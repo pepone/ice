@@ -15,9 +15,7 @@
 class FileParserI : public IceGrid::FileParser
 {
 public:
-
-    IceGrid::ApplicationDescriptor
-    parse(const std::string& file, const IceGrid::AdminPrx& admin, const Ice::Current&);
+    IceGrid::ApplicationDescriptor parse(const std::string& file, const IceGrid::AdminPrx& admin, const Ice::Current&);
 };
 
 #endif

@@ -15,29 +15,26 @@
 
 namespace Ice
 {
-
-/// \cond INTERNAL
-class ConnectionI;
+    /// \cond INTERNAL
+    class ConnectionI;
 #ifdef ICE_CPP11_MAPPING // C++11 mapping
-using ConnectionIPtr = ::std::shared_ptr<ConnectionI>;
+    using ConnectionIPtr = ::std::shared_ptr<ConnectionI>;
 #else // C++98 mapping
-ICE_API Ice::LocalObject* upCast(Ice::ConnectionI*);
-typedef IceInternal::Handle<ConnectionI> ConnectionIPtr;
+    ICE_API Ice::LocalObject* upCast(Ice::ConnectionI*);
+    typedef IceInternal::Handle<ConnectionI> ConnectionIPtr;
 #endif
-/// \endcond
+    /// \endcond
 
-}
+} // namespace Ice
 
 namespace IceInternal
 {
-
-enum AsyncStatus
-{
-    AsyncStatusQueued = 0,
-    AsyncStatusSent = 1,
-    AsyncStatusInvokeSentCallback = 2
-};
-
+    enum AsyncStatus
+    {
+        AsyncStatusQueued = 0,
+        AsyncStatusSent = 1,
+        AsyncStatusInvokeSentCallback = 2
+    };
 }
 
 #endif

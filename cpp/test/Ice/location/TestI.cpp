@@ -14,8 +14,7 @@
 
 using namespace Test;
 
-ServerManagerI::ServerManagerI(const ServerLocatorRegistryPtr& registry,
-                               const Ice::InitializationData& initData) :
+ServerManagerI::ServerManagerI(const ServerLocatorRegistryPtr& registry, const Ice::InitializationData& initData) :
     _registry(registry),
     _initData(initData),
     _nextPort(1)
@@ -26,8 +25,7 @@ ServerManagerI::ServerManagerI(const ServerLocatorRegistryPtr& registry,
     _initData.properties->setProperty("Ice.PrintAdapterReady", "0");
 }
 
-void
-ServerManagerI::startServer(const Ice::Current&)
+void ServerManagerI::startServer(const Ice::Current&)
 {
     for(::std::vector<Ice::CommunicatorPtr>::const_iterator i = _communicators.begin(); i != _communicators.end(); ++i)
     {
@@ -101,8 +99,7 @@ ServerManagerI::startServer(const Ice::Current&)
     }
 }
 
-void
-ServerManagerI::shutdown(const Ice::Current& current)
+void ServerManagerI::shutdown(const Ice::Current& current)
 {
     for(::std::vector<Ice::CommunicatorPtr>::const_iterator i = _communicators.begin(); i != _communicators.end(); ++i)
     {
@@ -111,35 +108,31 @@ ServerManagerI::shutdown(const Ice::Current& current)
     current.adapter->getCommunicator()->shutdown();
 }
 
-TestI::TestI(const Ice::ObjectAdapterPtr& adapter,
-             const Ice::ObjectAdapterPtr& adapter2,
+TestI::TestI(const Ice::ObjectAdapterPtr& adapter, const Ice::ObjectAdapterPtr& adapter2,
              const ServerLocatorRegistryPtr& registry) :
-    _adapter1(adapter), _adapter2(adapter2), _registry(registry)
+    _adapter1(adapter),
+    _adapter2(adapter2),
+    _registry(registry)
 {
     _registry->addObject(_adapter1->add(ICE_MAKE_SHARED(HelloI), Ice::stringToIdentity("hello")));
 }
 
-void
-TestI::shutdown(const Ice::Current&)
+void TestI::shutdown(const Ice::Current&)
 {
     _adapter1->getCommunicator()->shutdown();
 }
 
-HelloPrxPtr
-TestI::getHello(const Ice::Current&)
+HelloPrxPtr TestI::getHello(const Ice::Current&)
 {
-    return ICE_UNCHECKED_CAST(HelloPrx, _adapter1->createIndirectProxy(
-                                            Ice::stringToIdentity("hello")));
+    return ICE_UNCHECKED_CAST(HelloPrx, _adapter1->createIndirectProxy(Ice::stringToIdentity("hello")));
 }
 
-HelloPrxPtr
-TestI::getReplicatedHello(const Ice::Current&)
+HelloPrxPtr TestI::getReplicatedHello(const Ice::Current&)
 {
     return ICE_UNCHECKED_CAST(HelloPrx, _adapter1->createProxy(Ice::stringToIdentity("hello")));
 }
 
-void
-TestI::migrateHello(const Ice::Current&)
+void TestI::migrateHello(const Ice::Current&)
 {
     const Ice::Identity id = Ice::stringToIdentity("hello");
     try
@@ -152,7 +145,6 @@ TestI::migrateHello(const Ice::Current&)
     }
 }
 
-void
-HelloI::sayHello(const Ice::Current&)
+void HelloI::sayHello(const Ice::Current&)
 {
 }

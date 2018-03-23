@@ -18,281 +18,262 @@ using namespace IceGrid;
 
 namespace IceGrid
 {
-
-class MasterDatabaseObserverI : public DatabaseObserver, public IceUtil::Mutex
-{
-public:
-
-    MasterDatabaseObserverI(const ReplicaSessionManager::ThreadPtr& thread,
-                            const DatabasePtr& database,
-                            const ReplicaSessionPrx& session) :
-        _thread(thread),
-        _database(database),
-        _session(session)
+    class MasterDatabaseObserverI : public DatabaseObserver, public IceUtil::Mutex
     {
-    }
-
-    virtual void
-    applicationInit(int, const ApplicationInfoSeq& applications, const Ice::Current& current)
-    {
-        int serial;
-        _database->syncApplications(applications, getSerials(current.ctx, serial));
-        receivedUpdate(ApplicationObserverTopicName, serial);
-    }
-
-    virtual void
-    applicationAdded(int, const ApplicationInfo& application, const Ice::Current& current)
-    {
-        int serial;
-        string failure;
-        try
+    public:
+        MasterDatabaseObserverI(const ReplicaSessionManager::ThreadPtr& thread, const DatabasePtr& database,
+                                const ReplicaSessionPrx& session) :
+            _thread(thread),
+            _database(database),
+            _session(session)
         {
-            _database->addApplication(application, 0, getSerials(current.ctx, serial));
-        }
-        catch(const DeploymentException& ex)
-        {
-            ostringstream os;
-            os << ex << ":\n" << ex.reason;
-            failure = os.str();
-        }
-        receivedUpdate(ApplicationObserverTopicName, serial, failure);
-    }
-
-    virtual void
-    applicationRemoved(int, const std::string& name, const Ice::Current& current)
-    {
-        int serial;
-        string failure;
-        try
-        {
-            _database->removeApplication(name, 0, getSerials(current.ctx, serial));
-        }
-        catch(const ApplicationNotExistException& ex)
-        {
-            ostringstream os;
-            os << ex << ":\napplication: " << ex.name;
-            failure = os.str();
-        }
-        receivedUpdate(ApplicationObserverTopicName, serial, failure);
-    }
-
-    virtual void
-    applicationUpdated(int, const ApplicationUpdateInfo& update, const Ice::Current& current)
-    {
-        int serial;
-        string failure;
-        try
-        {
-            _database->updateApplication(update, false, 0, getSerials(current.ctx, serial));
-        }
-        catch(const DeploymentException& ex)
-        {
-            ostringstream os;
-            os << ex << ":\n" << ex.reason;
-            failure = os.str();
-        }
-        catch(const ApplicationNotExistException& ex)
-        {
-            ostringstream os;
-            os << ex << ":\napplication: " << ex.name;
-            failure = os.str();
-        }
-        receivedUpdate(ApplicationObserverTopicName, serial, failure);
-    }
-
-    virtual void
-    adapterInit(const AdapterInfoSeq& adapters, const Ice::Current& current)
-    {
-        int serial;
-        _database->syncAdapters(adapters, getSerials(current.ctx, serial));
-        receivedUpdate(AdapterObserverTopicName, serial);
-    }
-
-    virtual void
-    adapterAdded(const AdapterInfo& info, const Ice::Current& current)
-    {
-        int serial;
-        string failure;
-        try
-        {
-            _database->setAdapterDirectProxy(info.id, info.replicaGroupId, info.proxy, getSerials(current.ctx, serial));
-        }
-        catch(const AdapterExistsException&)
-        {
-            failure = "adapter `" + info.id + "' already exists and belongs to an application";
-        }
-        receivedUpdate(AdapterObserverTopicName, serial, failure);
-    }
-
-    virtual void
-    adapterUpdated(const AdapterInfo& info, const Ice::Current& current)
-    {
-        int serial;
-        string failure;
-        try
-        {
-            _database->setAdapterDirectProxy(info.id, info.replicaGroupId, info.proxy, getSerials(current.ctx, serial));
-        }
-        catch(const AdapterExistsException&)
-        {
-            failure = "adapter `" + info.id + "' already exists and belongs to an application";
-        }
-        receivedUpdate(AdapterObserverTopicName, serial, failure);
-    }
-
-    virtual void
-    adapterRemoved(const std::string& id, const Ice::Current& current)
-    {
-        int serial;
-        string failure;
-        try
-        {
-            _database->setAdapterDirectProxy(id, "", 0, getSerials(current.ctx, serial));
-        }
-        catch(const AdapterExistsException&)
-        {
-            failure = "adapter `" + id + "' already exists and belongs to an application";
-        }
-        receivedUpdate(AdapterObserverTopicName, serial, failure);
-    }
-
-    virtual void
-    objectInit(const ObjectInfoSeq& objects, const Ice::Current& current)
-    {
-        int serial;
-        _database->syncObjects(objects, getSerials(current.ctx, serial));
-        receivedUpdate(ObjectObserverTopicName, serial);
-    }
-
-    virtual void
-    objectAdded(const ObjectInfo& info, const Ice::Current& current)
-    {
-        int serial;
-        string failure;
-        try
-        {
-            _database->addOrUpdateObject(info, getSerials(current.ctx, serial));
-        }
-        catch(const ObjectExistsException& ex)
-        {
-            ostringstream os;
-            os << ex << ":\n";
-            os << "id: " << _database->getCommunicator()->identityToString(info.proxy->ice_getIdentity());
-            failure = os.str();
-        }
-        receivedUpdate(ObjectObserverTopicName, serial, failure);
-    }
-
-    virtual void
-    objectUpdated(const ObjectInfo& info, const Ice::Current& current)
-    {
-        int serial;
-        string failure;
-        try
-        {
-            _database->addOrUpdateObject(info, getSerials(current.ctx, serial));
-        }
-        catch(const ObjectExistsException& ex)
-        {
-            ostringstream os;
-            os << ex << ":\n";
-            os << "id: " << _database->getCommunicator()->identityToString(info.proxy->ice_getIdentity());
-            failure = os.str();
-        }
-        catch(const DeploymentException& ex)
-        {
-            ostringstream os;
-            os << ex << ":\n" << ex.reason;
-            failure = os.str();
-        }
-        receivedUpdate(ObjectObserverTopicName, serial, failure);
-    }
-
-    virtual void
-    objectRemoved(const Ice::Identity& id, const Ice::Current& current)
-    {
-        int serial;
-        string failure;
-        try
-        {
-            _database->removeObject(id, getSerials(current.ctx, serial));
-        }
-        catch(const DeploymentException& ex)
-        {
-            ostringstream os;
-            os << ex << ":\n" << ex.reason;
-            failure = os.str();
-        }
-        catch(const ObjectNotRegisteredException&)
-        {
-        }
-        receivedUpdate(ObjectObserverTopicName, serial, failure);
-    }
-
-private:
-
-    Ice::Long
-    getSerials(const Ice::Context& context, int& serial)
-    {
-        Ice::Context::const_iterator p = context.find("serial");
-        if(p != context.end())
-        {
-            istringstream is(p->second);
-            is >> serial;
-        }
-        else
-        {
-            serial = -1;
         }
 
-        p = context.find("dbSerial");
-        if(p != context.end())
+        virtual void applicationInit(int, const ApplicationInfoSeq& applications, const Ice::Current& current)
         {
-            Ice::Long dbSerial;
-            istringstream is(p->second);
-            is >> dbSerial;
-            return dbSerial;
+            int serial;
+            _database->syncApplications(applications, getSerials(current.ctx, serial));
+            receivedUpdate(ApplicationObserverTopicName, serial);
         }
-        else
-        {
-            return -1;
-        }
-    }
 
-    void
-    receivedUpdate(TopicName name, int serial, const string& failure = string())
-    {
-        try
+        virtual void applicationAdded(int, const ApplicationInfo& application, const Ice::Current& current)
         {
-            _session->receivedUpdate(name, serial, failure);
+            int serial;
+            string failure;
+            try
+            {
+                _database->addApplication(application, 0, getSerials(current.ctx, serial));
+            }
+            catch(const DeploymentException& ex)
+            {
+                ostringstream os;
+                os << ex << ":\n" << ex.reason;
+                failure = os.str();
+            }
+            receivedUpdate(ApplicationObserverTopicName, serial, failure);
         }
-        catch(const Ice::LocalException&)
-        {
-        }
-        if(!failure.empty())
-        {
-            _thread->destroyActiveSession();
-        }
-    }
 
-    const ReplicaSessionManager::ThreadPtr _thread;
-    const DatabasePtr _database;
-    const ReplicaSessionPrx _session;
-};
+        virtual void applicationRemoved(int, const std::string& name, const Ice::Current& current)
+        {
+            int serial;
+            string failure;
+            try
+            {
+                _database->removeApplication(name, 0, getSerials(current.ctx, serial));
+            }
+            catch(const ApplicationNotExistException& ex)
+            {
+                ostringstream os;
+                os << ex << ":\napplication: " << ex.name;
+                failure = os.str();
+            }
+            receivedUpdate(ApplicationObserverTopicName, serial, failure);
+        }
 
-};
+        virtual void applicationUpdated(int, const ApplicationUpdateInfo& update, const Ice::Current& current)
+        {
+            int serial;
+            string failure;
+            try
+            {
+                _database->updateApplication(update, false, 0, getSerials(current.ctx, serial));
+            }
+            catch(const DeploymentException& ex)
+            {
+                ostringstream os;
+                os << ex << ":\n" << ex.reason;
+                failure = os.str();
+            }
+            catch(const ApplicationNotExistException& ex)
+            {
+                ostringstream os;
+                os << ex << ":\napplication: " << ex.name;
+                failure = os.str();
+            }
+            receivedUpdate(ApplicationObserverTopicName, serial, failure);
+        }
+
+        virtual void adapterInit(const AdapterInfoSeq& adapters, const Ice::Current& current)
+        {
+            int serial;
+            _database->syncAdapters(adapters, getSerials(current.ctx, serial));
+            receivedUpdate(AdapterObserverTopicName, serial);
+        }
+
+        virtual void adapterAdded(const AdapterInfo& info, const Ice::Current& current)
+        {
+            int serial;
+            string failure;
+            try
+            {
+                _database->setAdapterDirectProxy(info.id, info.replicaGroupId, info.proxy,
+                                                 getSerials(current.ctx, serial));
+            }
+            catch(const AdapterExistsException&)
+            {
+                failure = "adapter `" + info.id + "' already exists and belongs to an application";
+            }
+            receivedUpdate(AdapterObserverTopicName, serial, failure);
+        }
+
+        virtual void adapterUpdated(const AdapterInfo& info, const Ice::Current& current)
+        {
+            int serial;
+            string failure;
+            try
+            {
+                _database->setAdapterDirectProxy(info.id, info.replicaGroupId, info.proxy,
+                                                 getSerials(current.ctx, serial));
+            }
+            catch(const AdapterExistsException&)
+            {
+                failure = "adapter `" + info.id + "' already exists and belongs to an application";
+            }
+            receivedUpdate(AdapterObserverTopicName, serial, failure);
+        }
+
+        virtual void adapterRemoved(const std::string& id, const Ice::Current& current)
+        {
+            int serial;
+            string failure;
+            try
+            {
+                _database->setAdapterDirectProxy(id, "", 0, getSerials(current.ctx, serial));
+            }
+            catch(const AdapterExistsException&)
+            {
+                failure = "adapter `" + id + "' already exists and belongs to an application";
+            }
+            receivedUpdate(AdapterObserverTopicName, serial, failure);
+        }
+
+        virtual void objectInit(const ObjectInfoSeq& objects, const Ice::Current& current)
+        {
+            int serial;
+            _database->syncObjects(objects, getSerials(current.ctx, serial));
+            receivedUpdate(ObjectObserverTopicName, serial);
+        }
+
+        virtual void objectAdded(const ObjectInfo& info, const Ice::Current& current)
+        {
+            int serial;
+            string failure;
+            try
+            {
+                _database->addOrUpdateObject(info, getSerials(current.ctx, serial));
+            }
+            catch(const ObjectExistsException& ex)
+            {
+                ostringstream os;
+                os << ex << ":\n";
+                os << "id: " << _database->getCommunicator()->identityToString(info.proxy->ice_getIdentity());
+                failure = os.str();
+            }
+            receivedUpdate(ObjectObserverTopicName, serial, failure);
+        }
+
+        virtual void objectUpdated(const ObjectInfo& info, const Ice::Current& current)
+        {
+            int serial;
+            string failure;
+            try
+            {
+                _database->addOrUpdateObject(info, getSerials(current.ctx, serial));
+            }
+            catch(const ObjectExistsException& ex)
+            {
+                ostringstream os;
+                os << ex << ":\n";
+                os << "id: " << _database->getCommunicator()->identityToString(info.proxy->ice_getIdentity());
+                failure = os.str();
+            }
+            catch(const DeploymentException& ex)
+            {
+                ostringstream os;
+                os << ex << ":\n" << ex.reason;
+                failure = os.str();
+            }
+            receivedUpdate(ObjectObserverTopicName, serial, failure);
+        }
+
+        virtual void objectRemoved(const Ice::Identity& id, const Ice::Current& current)
+        {
+            int serial;
+            string failure;
+            try
+            {
+                _database->removeObject(id, getSerials(current.ctx, serial));
+            }
+            catch(const DeploymentException& ex)
+            {
+                ostringstream os;
+                os << ex << ":\n" << ex.reason;
+                failure = os.str();
+            }
+            catch(const ObjectNotRegisteredException&)
+            {
+            }
+            receivedUpdate(ObjectObserverTopicName, serial, failure);
+        }
+
+    private:
+        Ice::Long getSerials(const Ice::Context& context, int& serial)
+        {
+            Ice::Context::const_iterator p = context.find("serial");
+            if(p != context.end())
+            {
+                istringstream is(p->second);
+                is >> serial;
+            }
+            else
+            {
+                serial = -1;
+            }
+
+            p = context.find("dbSerial");
+            if(p != context.end())
+            {
+                Ice::Long dbSerial;
+                istringstream is(p->second);
+                is >> dbSerial;
+                return dbSerial;
+            }
+            else
+            {
+                return -1;
+            }
+        }
+
+        void receivedUpdate(TopicName name, int serial, const string& failure = string())
+        {
+            try
+            {
+                _session->receivedUpdate(name, serial, failure);
+            }
+            catch(const Ice::LocalException&)
+            {
+            }
+            if(!failure.empty())
+            {
+                _thread->destroyActiveSession();
+            }
+        }
+
+        const ReplicaSessionManager::ThreadPtr _thread;
+        const DatabasePtr _database;
+        const ReplicaSessionPrx _session;
+    };
+
+}; // namespace IceGrid
 
 ReplicaSessionManager::ReplicaSessionManager(const Ice::CommunicatorPtr& communicator, const string& instanceName) :
     SessionManager(communicator, instanceName)
 {
 }
 
-void
-ReplicaSessionManager::create(const string& name,
-                              const InternalReplicaInfoPtr& info,
-                              const DatabasePtr& database,
-                              const WellKnownObjectsManagerPtr& wellKnownObjects,
-                              const InternalRegistryPrx& internalRegistry)
+void ReplicaSessionManager::create(const string& name, const InternalReplicaInfoPtr& info, const DatabasePtr& database,
+                                   const WellKnownObjectsManagerPtr& wellKnownObjects,
+                                   const InternalRegistryPrx& internalRegistry)
 {
     {
         Lock sync(*this);
@@ -313,8 +294,7 @@ ReplicaSessionManager::create(const string& name,
     _thread->waitTryCreateSession();
 }
 
-void
-ReplicaSessionManager::create(const InternalRegistryPrx& replica)
+void ReplicaSessionManager::create(const InternalRegistryPrx& replica)
 {
     {
         Lock sync(*this);
@@ -335,8 +315,7 @@ ReplicaSessionManager::create(const InternalRegistryPrx& replica)
     _thread->waitTryCreateSession();
 }
 
-NodePrxSeq
-ReplicaSessionManager::getNodes(const NodePrxSeq& nodes) const
+NodePrxSeq ReplicaSessionManager::getNodes(const NodePrxSeq& nodes) const
 {
     assert(_thread && _thread->getRegistry());
     if(_thread->getSession())
@@ -356,8 +335,7 @@ ReplicaSessionManager::getNodes(const NodePrxSeq& nodes) const
     }
 }
 
-void
-ReplicaSessionManager::destroy()
+void ReplicaSessionManager::destroy()
 {
     ThreadPtr thread;
     {
@@ -382,8 +360,7 @@ ReplicaSessionManager::destroy()
     _wellKnownObjects = 0;
 }
 
-void
-ReplicaSessionManager::registerAllWellKnownObjects()
+void ReplicaSessionManager::registerAllWellKnownObjects()
 {
     //
     // Always register first the well-known objects with the
@@ -411,8 +388,7 @@ ReplicaSessionManager::registerAllWellKnownObjects()
     }
 }
 
-IceGrid::InternalRegistryPrx
-ReplicaSessionManager::findInternalRegistryForReplica(const Ice::Identity& id)
+IceGrid::InternalRegistryPrx ReplicaSessionManager::findInternalRegistryForReplica(const Ice::Identity& id)
 {
     vector<Ice::AsyncResultPtr> results;
     vector<QueryPrx> queryObjects = findAllQueryObjects(true);
@@ -436,8 +412,7 @@ ReplicaSessionManager::findInternalRegistryForReplica(const Ice::Identity& id)
     return 0;
 }
 
-bool
-ReplicaSessionManager::keepAlive(const ReplicaSessionPrx& session)
+bool ReplicaSessionManager::keepAlive(const ReplicaSessionPrx& session)
 {
     try
     {
@@ -461,8 +436,7 @@ ReplicaSessionManager::keepAlive(const ReplicaSessionPrx& session)
     }
 }
 
-ReplicaSessionPrx
-ReplicaSessionManager::createSession(InternalRegistryPrx& registry, IceUtil::Time& timeout)
+ReplicaSessionPrx ReplicaSessionManager::createSession(InternalRegistryPrx& registry, IceUtil::Time& timeout)
 {
     ReplicaSessionPrx session;
     IceInternal::UniquePtr<Ice::Exception> exception;
@@ -596,8 +570,7 @@ ReplicaSessionManager::createSession(InternalRegistryPrx& registry, IceUtil::Tim
     return session;
 }
 
-ReplicaSessionPrx
-ReplicaSessionManager::createSessionImpl(const InternalRegistryPrx& registry, IceUtil::Time& timeout)
+ReplicaSessionPrx ReplicaSessionManager::createSessionImpl(const InternalRegistryPrx& registry, IceUtil::Time& timeout)
 {
     ReplicaSessionPrx session;
     try
@@ -632,8 +605,7 @@ ReplicaSessionManager::createSessionImpl(const InternalRegistryPrx& registry, Ic
     }
 }
 
-void
-ReplicaSessionManager::destroySession(const ReplicaSessionPrx& session)
+void ReplicaSessionManager::destroySession(const ReplicaSessionPrx& session)
 {
     if(session)
     {

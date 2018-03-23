@@ -18,47 +18,49 @@
 
 namespace IceSSL
 {
+    namespace OpenSSL
+    {
+        class SSLEngine : public IceSSL::SSLEngine
+        {
+        public:
+            SSLEngine(const Ice::CommunicatorPtr&);
+            ~SSLEngine();
 
-namespace OpenSSL
-{
-
-class SSLEngine : public IceSSL::SSLEngine
-{
-public:
-
-    SSLEngine(const Ice::CommunicatorPtr&);
-    ~SSLEngine();
-
-    virtual void initialize();
-    virtual void destroy();
-    virtual void verifyPeer(const std::string&, const IceSSL::ConnectionInfoPtr&, const std::string&);
-    virtual IceInternal::TransceiverPtr
-    createTransceiver(const IceSSL::InstancePtr&, const IceInternal::TransceiverPtr&, const std::string&, bool);
+            virtual void initialize();
+            virtual void destroy();
+            virtual void verifyPeer(const std::string&, const IceSSL::ConnectionInfoPtr&, const std::string&);
+            virtual IceInternal::TransceiverPtr
+            createTransceiver(const IceSSL::InstancePtr&, const IceInternal::TransceiverPtr&, const std::string&, bool);
 
 #ifndef OPENSSL_NO_DH
-    DH* dhParams(int);
+            DH* dhParams(int);
 #endif
 
-    SSL_CTX* context() const;
-    void context(SSL_CTX*);
-    std::string sslErrors() const;
+            SSL_CTX* context() const;
+            void context(SSL_CTX*);
+            std::string sslErrors() const;
 
-private:
+        private:
+            SSL_METHOD* getMethod(int);
+            void setOptions(int);
+            enum Protocols
+            {
+                SSLv3 = 0x01,
+                TLSv1_0 = 0x02,
+                TLSv1_1 = 0x04,
+                TLSv1_2 = 0x08
+            };
+            int parseProtocols(const Ice::StringSeq&) const;
 
-    SSL_METHOD* getMethod(int);
-    void setOptions(int);
-    enum Protocols { SSLv3 = 0x01, TLSv1_0 = 0x02, TLSv1_1 = 0x04, TLSv1_2 = 0x08 };
-    int parseProtocols(const Ice::StringSeq&) const;
-
-    SSL_CTX* _ctx;
+            SSL_CTX* _ctx;
 
 #ifndef OPENSSL_NO_DH
-    IceSSL::OpenSSL::DHParamsPtr _dhParams;
+            IceSSL::OpenSSL::DHParamsPtr _dhParams;
 #endif
-};
+        };
 
-} // OpenSSL namespace end
+    } // namespace OpenSSL
 
-} // IceSSL namespace endif
+} // namespace IceSSL
 
 #endif

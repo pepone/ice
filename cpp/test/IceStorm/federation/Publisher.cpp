@@ -17,8 +17,7 @@ using namespace Ice;
 using namespace IceStorm;
 using namespace Test;
 
-int
-run(int, char* argv[], const CommunicatorPtr& communicator)
+int run(int, char* argv[], const CommunicatorPtr& communicator)
 {
     PropertiesPtr properties = communicator->getProperties();
     const char* managerProxyProperty = "IceStormAdmin.TopicManager.Default";
@@ -46,7 +45,6 @@ run(int, char* argv[], const CommunicatorPtr& communicator)
     {
         cerr << argv[0] << ": NoSuchTopic: " << e.name << endl;
         return EXIT_FAILURE;
-
     }
 
     TopicPrx fed2;
@@ -58,7 +56,6 @@ run(int, char* argv[], const CommunicatorPtr& communicator)
     {
         cerr << argv[0] << ": NoSuchTopic: " << e.name << endl;
         return EXIT_FAILURE;
-
     }
 
     TopicPrx fed3;
@@ -70,7 +67,6 @@ run(int, char* argv[], const CommunicatorPtr& communicator)
     {
         cerr << argv[0] << ": NoSuchTopic: " << e.name << endl;
         return EXIT_FAILURE;
-
     }
 
     EventPrx eventFed1 = EventPrx::uncheckedCast(fed1->getPublisher()->ice_oneway());
@@ -127,8 +123,7 @@ run(int, char* argv[], const CommunicatorPtr& communicator)
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
     int status;
     CommunicatorPtr communicator;

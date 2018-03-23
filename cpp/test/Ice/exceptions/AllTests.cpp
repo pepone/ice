@@ -17,7 +17,7 @@ using namespace Test;
 
 namespace
 {
-const bool printException = false;
+    const bool printException = false;
 }
 
 class EmptyI : public virtual Empty
@@ -27,15 +27,28 @@ class EmptyI : public virtual Empty
 class ServantLocatorI : public virtual Ice::ServantLocator
 {
 public:
-
 #ifdef ICE_CPP11_MAPPING
-    virtual shared_ptr<Ice::Object> locate(const Ice::Current&, shared_ptr<void>&) { return nullptr; }
-    virtual void finished(const Ice::Current&, const shared_ptr<Ice::Object>&, const shared_ptr<void>&) {}
-    virtual void deactivate(const string&) {}
+    virtual shared_ptr<Ice::Object> locate(const Ice::Current&, shared_ptr<void>&)
+    {
+        return nullptr;
+    }
+    virtual void finished(const Ice::Current&, const shared_ptr<Ice::Object>&, const shared_ptr<void>&)
+    {
+    }
+    virtual void deactivate(const string&)
+    {
+    }
 #else
-    virtual Ice::ObjectPtr locate(const Ice::Current&, Ice::LocalObjectPtr&) { return 0; }
-    virtual void finished(const Ice::Current&, const Ice::ObjectPtr&, const Ice::LocalObjectPtr&) {}
-    virtual void deactivate(const string&) {}
+    virtual Ice::ObjectPtr locate(const Ice::Current&, Ice::LocalObjectPtr&)
+    {
+        return 0;
+    }
+    virtual void finished(const Ice::Current&, const Ice::ObjectPtr&, const Ice::LocalObjectPtr&)
+    {
+    }
+    virtual void deactivate(const string&)
+    {
+    }
 #endif
 };
 
@@ -43,16 +56,17 @@ public:
 class ValueFactoryI : public virtual Ice::ValueFactory
 {
 public:
-    virtual Ice::ObjectPtr create(const string&) { return 0; }
+    virtual Ice::ObjectPtr create(const string&)
+    {
+        return 0;
+    }
 };
 #endif
 
 class CallbackBase : public IceUtil::Monitor<IceUtil::Mutex>
 {
 public:
-
-    CallbackBase() :
-        _called(false)
+    CallbackBase() : _called(false)
     {
     }
 
@@ -71,7 +85,6 @@ public:
     }
 
 protected:
-
     void called()
     {
         IceUtil::Monitor<IceUtil::Mutex>::Lock sync(*this);
@@ -81,20 +94,17 @@ protected:
     }
 
 private:
-
     bool _called;
 };
 
 class Callback : public CallbackBase, public IceUtil::Shared
 {
 public:
-
     Callback()
     {
     }
 
-    Callback(const Ice::CommunicatorPtr& c)
-        : _communicator(c)
+    Callback(const Ice::CommunicatorPtr& c) : _communicator(c)
     {
     }
 
@@ -385,14 +395,12 @@ public:
     }
 
 private:
-
     Ice::CommunicatorPtr _communicator;
 };
 
 typedef IceUtil::Handle<Callback> CallbackPtr;
 
-bool
-endsWith(const string& s, const string& findme)
+bool endsWith(const string& s, const string& findme)
 {
     if(s.length() > findme.length())
     {
@@ -401,8 +409,7 @@ endsWith(const string& s, const string& findme)
     return false;
 }
 
-ThrowerPrxPtr
-allTests(const Ice::CommunicatorPtr& communicator)
+ThrowerPrxPtr allTests(const Ice::CommunicatorPtr& communicator)
 {
     const string protocol = communicator->getProperties()->getProperty("Ice.Default.Protocol");
 
@@ -485,7 +492,6 @@ allTests(const Ice::CommunicatorPtr& communicator)
             test(endsWith(os.str(), "Test::H data:'H'"));
             test(ex.data == "H");
         }
-
     }
     cout << "ok" << endl;
 
@@ -509,7 +515,7 @@ allTests(const Ice::CommunicatorPtr& communicator)
 #endif
 
     if(!uwp || (communicator->getProperties()->getProperty("Ice.Default.Protocol") != "ssl" &&
-                  communicator->getProperties()->getProperty("Ice.Default.Protocol") != "wss"))
+                communicator->getProperties()->getProperty("Ice.Default.Protocol") != "wss"))
     {
         cout << "testing object adapter registration exceptions... " << flush;
         {
@@ -656,20 +662,10 @@ allTests(const Ice::CommunicatorPtr& communicator)
     cout << "testing value factory registration exception... " << flush;
     {
 #ifdef ICE_CPP11_MAPPING
-        communicator->getValueFactoryManager()->add(
-            [](const std::string&)
-            {
-                return nullptr;
-            },
-            "x");
+        communicator->getValueFactoryManager()->add([](const std::string&) { return nullptr; }, "x");
         try
         {
-            communicator->getValueFactoryManager()->add(
-                [](const std::string&)
-                {
-                    return nullptr;
-                },
-                "x");
+            communicator->getValueFactoryManager()->add([](const std::string&) { return nullptr; }, "x");
             test(false);
         }
         catch(const Ice::AlreadyRegisteredException&)
@@ -1001,8 +997,8 @@ allTests(const Ice::CommunicatorPtr& communicator)
 
         try
         {
-            ThrowerPrxPtr thrower2 =
-                ICE_UNCHECKED_CAST(ThrowerPrx, communicator->stringToProxy("thrower:" + getTestEndpoint(communicator, 1)));
+            ThrowerPrxPtr thrower2 = ICE_UNCHECKED_CAST(
+                ThrowerPrx, communicator->stringToProxy("thrower:" + getTestEndpoint(communicator, 1)));
             try
             {
                 thrower2->throwMemoryLimitException(Ice::ByteSeq(2 * 1024 * 1024)); // 2MB (no limits)
@@ -1010,8 +1006,8 @@ allTests(const Ice::CommunicatorPtr& communicator)
             catch(const Ice::MemoryLimitException&)
             {
             }
-            ThrowerPrxPtr thrower3 =
-                ICE_UNCHECKED_CAST(ThrowerPrx, communicator->stringToProxy("thrower:" + getTestEndpoint(communicator, 2)));
+            ThrowerPrxPtr thrower3 = ICE_UNCHECKED_CAST(
+                ThrowerPrx, communicator->stringToProxy("thrower:" + getTestEndpoint(communicator, 2)));
             try
             {
                 thrower3->throwMemoryLimitException(Ice::ByteSeq(1024)); // 1KB limit
@@ -1035,7 +1031,7 @@ allTests(const Ice::CommunicatorPtr& communicator)
     {
         ThrowerPrxPtr thrower2 = ICE_UNCHECKED_CAST(ThrowerPrx, thrower->ice_identity(id));
         thrower2->throwAasA(1);
-//      thrower2->ice_ping();
+        //      thrower2->ice_ping();
         test(false);
     }
     catch(const Ice::ObjectNotExistException& ex)
@@ -1287,91 +1283,37 @@ allTests(const Ice::CommunicatorPtr& communicator)
     //
     {
         promise<bool> sent;
-        thrower->throwAasAAsync(1,
-            []()
-            {
-                test(false);
-            },
-            nullptr,
-            [&](bool value)
-            {
-                sent.set_value(value);
-            });
+        thrower->throwAasAAsync(1, []() { test(false); }, nullptr, [&](bool value) { sent.set_value(value); });
         sent.get_future().get(); // Wait for sent
     }
 
     {
         promise<bool> sent;
-        thrower->throwAorDasAorDAsync(1,
-            []()
-            {
-                test(false);
-            },
-            nullptr,
-            [&](bool value)
-            {
-                sent.set_value(value);
-            });
+        thrower->throwAorDasAorDAsync(1, []() { test(false); }, nullptr, [&](bool value) { sent.set_value(value); });
         sent.get_future().get(); // Wait for sent
     }
 
     {
         promise<bool> sent;
-        thrower->throwAorDasAorDAsync(-1,
-            []()
-            {
-                test(false);
-            },
-            nullptr,
-            [&](bool value)
-            {
-                sent.set_value(value);
-            });
+        thrower->throwAorDasAorDAsync(-1, []() { test(false); }, nullptr, [&](bool value) { sent.set_value(value); });
         sent.get_future().get(); // Wait for sent
     }
 
     {
         promise<bool> sent;
-        thrower->throwBasBAsync(1, 2,
-            []()
-            {
-                test(false);
-            },
-            nullptr,
-            [&](bool value)
-            {
-                sent.set_value(value);
-            });
+        thrower->throwBasBAsync(1, 2, []() { test(false); }, nullptr, [&](bool value) { sent.set_value(value); });
         sent.get_future().get(); // Wait for sent
     }
 
     {
         promise<bool> sent;
-        thrower->throwCasCAsync(1, 2, 3,
-            []()
-            {
-                test(false);
-            },
-            nullptr,
-            [&](bool value)
-            {
-                sent.set_value(value);
-            });
+        thrower->throwCasCAsync(1, 2, 3, []() { test(false); }, nullptr, [&](bool value) { sent.set_value(value); });
         sent.get_future().get(); // Wait for sent
     }
 
     {
         promise<bool> sent;
-        thrower->throwModAAsync(1, 2,
-            []()
-            {
-                test(false);
-            },
-            nullptr,
-            [&](bool value)
-            {
-                sent.set_value(value);
-            });
+        thrower->throwModAAsync(1, 2, []() { test(false); }, nullptr, [&](bool value) { sent.set_value(value); });
         sent.get_future().get(); // Wait for sent
     }
 #else
@@ -1664,8 +1606,7 @@ allTests(const Ice::CommunicatorPtr& communicator)
 #else
         CallbackPtr cb = new Callback;
         Callback_WrongOperation_noSuchOperationPtr callback =
-            newCallback_WrongOperation_noSuchOperation(cb, &Callback::response,
-                                                       &Callback::exception_noSuchOperation);
+            newCallback_WrongOperation_noSuchOperation(cb, &Callback::response, &Callback::exception_noSuchOperation);
         WrongOperationPrx thrower4 = WrongOperationPrx::uncheckedCast(thrower);
         thrower4->begin_noSuchOperation(callback);
         cb->check();
@@ -1721,9 +1662,8 @@ allTests(const Ice::CommunicatorPtr& communicator)
 
     {
         CallbackPtr cb = new Callback;
-        Callback_Thrower_throwLocalExceptionIdempotentPtr callback =
-            newCallback_Thrower_throwLocalExceptionIdempotent(cb, &Callback::response,
-                                                              &Callback::exception_LocalException);
+        Callback_Thrower_throwLocalExceptionIdempotentPtr callback = newCallback_Thrower_throwLocalExceptionIdempotent(
+            cb, &Callback::response, &Callback::exception_LocalException);
         thrower->begin_throwLocalExceptionIdempotent(callback);
         cb->check();
     }

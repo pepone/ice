@@ -22,19 +22,19 @@
 #include <fstream>
 
 #if defined(_WIN32)
-#   include <pdhmsg.h> // For PDH_MORE_DATA
+#    include <pdhmsg.h> // For PDH_MORE_DATA
 #else
-#   include <sys/utsname.h>
-#   if defined(__APPLE__) || defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
-#      include <sys/sysctl.h>
-#   elif defined(__sun)
-#      include <sys/loadavg.h>
-#   elif defined(__hpux)
-#      include <sys/pstat.h>
-#   elif defined(_AIX)
-#      include <nlist.h>
-#      include <fcntl.h>
-#   endif
+#    include <sys/utsname.h>
+#    if defined(__APPLE__) || defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
+#        include <sys/sysctl.h>
+#    elif defined(__sun)
+#        include <sys/loadavg.h>
+#    elif defined(__hpux)
+#        include <sys/pstat.h>
+#    elif defined(_AIX)
+#        include <nlist.h>
+#        include <fcntl.h>
+#    endif
 #endif
 
 using namespace std;
@@ -42,145 +42,134 @@ using namespace IceGrid;
 
 namespace
 {
-
 #ifdef _WIN32
 
-string
-pdhErrorToString(PDH_STATUS err)
-{
-    return IceUtilInternal::errorToString(err, GetModuleHandle(TEXT("PDH.DLL")));
-}
-
-static string
-getLocalizedPerfName(int idx, const Ice::LoggerPtr& logger)
-{
-    vector<char> localized;
-    unsigned long size = 256;
-    localized.resize(size);
-    PDH_STATUS err;
-    while((err = PdhLookupPerfNameByIndex(0, idx, &localized[0], &size)) == PDH_MORE_DATA)
+    string pdhErrorToString(PDH_STATUS err)
     {
-        size += 256;
+        return IceUtilInternal::errorToString(err, GetModuleHandle(TEXT("PDH.DLL")));
+    }
+
+    static string getLocalizedPerfName(int idx, const Ice::LoggerPtr& logger)
+    {
+        vector<char> localized;
+        unsigned long size = 256;
         localized.resize(size);
-    }
-
-    if(err != ERROR_SUCCESS)
-    {
-        Ice::Warning out(logger);
-        out << "Unable to lookup the performance counter name:\n";
-        out << pdhErrorToString(err);
-        out << "\nThis usually occurs when you do not have sufficient privileges";
-
-        throw Ice::SyscallException(__FILE__, __LINE__, err);
-    }
-    return string(&localized[0]);
-}
-
-class UpdateUtilizationAverageThread : public IceUtil::Thread
-{
-public:
-
-    UpdateUtilizationAverageThread(PlatformInfo& platform) :
-        IceUtil::Thread("IceGrid update utilization average thread"),
-        _platform(platform)
-    {
-    }
-
-    virtual void
-    run()
-    {
-        _platform.runUpdateLoadInfo();
-    }
-
-private:
-
-    PlatformInfo& _platform;
-};
-
-typedef BOOL (WINAPI *LPFN_GLPI)(PSYSTEM_LOGICAL_PROCESSOR_INFORMATION, PDWORD);
-
-int
-getSocketCount(const Ice::LoggerPtr& logger)
-{
-    LPFN_GLPI glpi;
-    glpi = (LPFN_GLPI) GetProcAddress(GetModuleHandle(TEXT("kernel32")), "GetLogicalProcessorInformation");
-    if(!glpi)
-    {
-        Ice::Warning out(logger);
-        out << "Unable to figure out the number of process sockets:\n";
-        out << "GetLogicalProcessInformation not supported on this OS;";
-        return 0;
-    }
-
-    vector<SYSTEM_LOGICAL_PROCESSOR_INFORMATION> buffer(1);
-    DWORD returnLength = sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION) * static_cast<int>(buffer.size());
-    while(true)
-    {
-        DWORD rc = glpi(&buffer[0], &returnLength);
-        if(!rc)
+        PDH_STATUS err;
+        while((err = PdhLookupPerfNameByIndex(0, idx, &localized[0], &size)) == PDH_MORE_DATA)
         {
-            if(GetLastError() == ERROR_INSUFFICIENT_BUFFER)
+            size += 256;
+            localized.resize(size);
+        }
+
+        if(err != ERROR_SUCCESS)
+        {
+            Ice::Warning out(logger);
+            out << "Unable to lookup the performance counter name:\n";
+            out << pdhErrorToString(err);
+            out << "\nThis usually occurs when you do not have sufficient privileges";
+
+            throw Ice::SyscallException(__FILE__, __LINE__, err);
+        }
+        return string(&localized[0]);
+    }
+
+    class UpdateUtilizationAverageThread : public IceUtil::Thread
+    {
+    public:
+        UpdateUtilizationAverageThread(PlatformInfo& platform) :
+            IceUtil::Thread("IceGrid update utilization average thread"),
+            _platform(platform)
+        {
+        }
+
+        virtual void run()
+        {
+            _platform.runUpdateLoadInfo();
+        }
+
+    private:
+        PlatformInfo& _platform;
+    };
+
+    typedef BOOL(WINAPI* LPFN_GLPI)(PSYSTEM_LOGICAL_PROCESSOR_INFORMATION, PDWORD);
+
+    int getSocketCount(const Ice::LoggerPtr& logger)
+    {
+        LPFN_GLPI glpi;
+        glpi = (LPFN_GLPI)GetProcAddress(GetModuleHandle(TEXT("kernel32")), "GetLogicalProcessorInformation");
+        if(!glpi)
+        {
+            Ice::Warning out(logger);
+            out << "Unable to figure out the number of process sockets:\n";
+            out << "GetLogicalProcessInformation not supported on this OS;";
+            return 0;
+        }
+
+        vector<SYSTEM_LOGICAL_PROCESSOR_INFORMATION> buffer(1);
+        DWORD returnLength = sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION) * static_cast<int>(buffer.size());
+        while(true)
+        {
+            DWORD rc = glpi(&buffer[0], &returnLength);
+            if(!rc)
             {
-                buffer.resize(returnLength / sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION) + 1);
-                continue;
+                if(GetLastError() == ERROR_INSUFFICIENT_BUFFER)
+                {
+                    buffer.resize(returnLength / sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION) + 1);
+                    continue;
+                }
+                else
+                {
+                    Ice::Warning out(logger);
+                    out << "Unable to figure out the number of process sockets:\n";
+                    out << IceUtilInternal::lastErrorToString();
+                    return 0;
+                }
             }
-            else
+            buffer.resize(returnLength / sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION));
+            break;
+        }
+
+        int socketCount = 0;
+        for(vector<SYSTEM_LOGICAL_PROCESSOR_INFORMATION>::const_iterator p = buffer.begin(); p != buffer.end(); ++p)
+        {
+            if(p->Relationship == RelationProcessorPackage)
             {
-                Ice::Warning out(logger);
-                out << "Unable to figure out the number of process sockets:\n";
-                out << IceUtilInternal::lastErrorToString();
-                return 0;
+                socketCount++;
             }
         }
-        buffer.resize(returnLength / sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION));
-        break;
+        return socketCount;
     }
-
-    int socketCount = 0;
-    for(vector<SYSTEM_LOGICAL_PROCESSOR_INFORMATION>::const_iterator p = buffer.begin(); p != buffer.end(); ++p)
-    {
-        if(p->Relationship == RelationProcessorPackage)
-        {
-            socketCount++;
-        }
-    }
-    return socketCount;
-}
 #endif
 
-}
+} // namespace
 
 namespace IceGrid
 {
+    RegistryInfo toRegistryInfo(const InternalReplicaInfoPtr& replica)
+    {
+        RegistryInfo info;
+        info.name = replica->name;
+        info.hostname = replica->hostname;
+        return info;
+    }
 
-RegistryInfo
-toRegistryInfo(const InternalReplicaInfoPtr& replica)
-{
-    RegistryInfo info;
-    info.name = replica->name;
-    info.hostname = replica->hostname;
-    return info;
-}
+    NodeInfo toNodeInfo(const InternalNodeInfoPtr& node)
+    {
+        NodeInfo info;
+        info.name = node->name;
+        info.os = node->os;
+        info.hostname = node->hostname;
+        info.release = node->release;
+        info.version = node->version;
+        info.machine = node->machine;
+        info.nProcessors = node->nProcessors;
+        info.dataDir = node->dataDir;
+        return info;
+    }
 
-NodeInfo
-toNodeInfo(const InternalNodeInfoPtr& node)
-{
-    NodeInfo info;
-    info.name = node->name;
-    info.os = node->os;
-    info.hostname = node->hostname;
-    info.release = node->release;
-    info.version = node->version;
-    info.machine = node->machine;
-    info.nProcessors = node->nProcessors;
-    info.dataDir = node->dataDir;
-    return info;
-}
+} // namespace IceGrid
 
-}
-
-PlatformInfo::PlatformInfo(const string& prefix,
-                           const Ice::CommunicatorPtr& communicator,
+PlatformInfo::PlatformInfo(const string& prefix, const Ice::CommunicatorPtr& communicator,
                            const TraceLevelsPtr& traceLevels) :
     _traceLevels(traceLevels)
 {
@@ -189,8 +178,8 @@ PlatformInfo::PlatformInfo(const string& prefix,
     //
 #if defined(_WIN32)
     _terminated = false;
-    _usages1.insert(_usages1.end(), 1 * 60 / 5, 0); // 1 sample every 5 seconds during 1 minutes.
-    _usages5.insert(_usages5.end(), 5 * 60 / 5, 0); // 1 sample every 5 seconds during 5 minutes.
+    _usages1.insert(_usages1.end(), 1 * 60 / 5, 0);    // 1 sample every 5 seconds during 1 minutes.
+    _usages5.insert(_usages5.end(), 5 * 60 / 5, 0);    // 1 sample every 5 seconds during 5 minutes.
     _usages15.insert(_usages15.end(), 15 * 60 / 5, 0); // 1 sample every 5 seconds during 15 minutes.
     _last1Total = 0;
     _last5Total = 0;
@@ -224,7 +213,7 @@ PlatformInfo::PlatformInfo(const string& prefix,
     GetSystemInfo(&sysInfo);
     _nProcessorThreads = sysInfo.dwNumberOfProcessors;
 #elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
-    static int ncpu[2] = { CTL_HW, HW_NCPU };
+    static int ncpu[2] = {CTL_HW, HW_NCPU};
     size_t sz = sizeof(_nProcessorThreads);
     if(sysctl(ncpu, 2, &_nProcessorThreads, &sz, 0, 0) == -1)
     {
@@ -258,13 +247,13 @@ PlatformInfo::PlatformInfo(const string& prefix,
 //
 // GetVersionEx deprecated in Windows 8.1
 //
-#  if defined(_MSC_VER) && _MSC_VER >= 1800
-#    pragma warning (disable : 4996)
-#  endif
+#    if defined(_MSC_VER) && _MSC_VER >= 1800
+#        pragma warning(disable : 4996)
+#    endif
     GetVersionEx(&osInfo);
-#  if defined(_MSC_VER) && _MSC_VER >= 1800
-#    pragma warning (default : 4996)
-#  endif
+#    if defined(_MSC_VER) && _MSC_VER >= 1800
+#        pragma warning(default : 4996)
+#    endif
 
     DWORD major = osInfo.dwMajorVersion;
     DWORD minor = osInfo.dwMinorVersion;
@@ -280,7 +269,7 @@ PlatformInfo::PlatformInfo(const string& prefix,
             if(size)
             {
                 vector<unsigned char> buffer;
-                buffer.resize(size) ;
+                buffer.resize(size);
 
                 if(GetFileVersionInfoW(path, 0, size, &buffer[0]))
                 {
@@ -305,18 +294,18 @@ PlatformInfo::PlatformInfo(const string& prefix,
 
     switch(sysInfo.wProcessorArchitecture)
     {
-    case PROCESSOR_ARCHITECTURE_AMD64:
-        _machine = "x64";
-        break;
-    case PROCESSOR_ARCHITECTURE_IA64:
-        _machine = "IA64";
-        break;
-    case PROCESSOR_ARCHITECTURE_INTEL:
-        _machine = "x86";
-        break;
-    default:
-        _machine = "unknown";
-        break;
+        case PROCESSOR_ARCHITECTURE_AMD64:
+            _machine = "x64";
+            break;
+        case PROCESSOR_ARCHITECTURE_IA64:
+            _machine = "IA64";
+            break;
+        case PROCESSOR_ARCHITECTURE_INTEL:
+            _machine = "x86";
+            break;
+        default:
+            _machine = "unknown";
+            break;
     };
 #else
     struct utsname utsinfo;
@@ -415,8 +404,7 @@ PlatformInfo::~PlatformInfo()
 #endif
 }
 
-void
-PlatformInfo::start()
+void PlatformInfo::start()
 {
 #if defined(_WIN32)
     _updateUtilizationThread = new UpdateUtilizationAverageThread(*this);
@@ -424,8 +412,7 @@ PlatformInfo::start()
 #endif
 }
 
-void
-PlatformInfo::stop()
+void PlatformInfo::stop()
 {
 #if defined(_WIN32)
     {
@@ -440,20 +427,17 @@ PlatformInfo::stop()
 #endif
 }
 
-NodeInfo
-PlatformInfo::getNodeInfo() const
+NodeInfo PlatformInfo::getNodeInfo() const
 {
     return toNodeInfo(getInternalNodeInfo());
 }
 
-RegistryInfo
-PlatformInfo::getRegistryInfo() const
+RegistryInfo PlatformInfo::getRegistryInfo() const
 {
     return toRegistryInfo(getInternalReplicaInfo());
 }
 
-InternalNodeInfoPtr
-PlatformInfo::getInternalNodeInfo() const
+InternalNodeInfoPtr PlatformInfo::getInternalNodeInfo() const
 {
     InternalNodeInfoPtr info = new InternalNodeInfo();
     info->name = _name;
@@ -467,8 +451,7 @@ PlatformInfo::getInternalNodeInfo() const
     return info;
 }
 
-InternalReplicaInfoPtr
-PlatformInfo::getInternalReplicaInfo() const
+InternalReplicaInfoPtr PlatformInfo::getInternalReplicaInfo() const
 {
     InternalReplicaInfoPtr info = new InternalReplicaInfo();
     info->name = _name;
@@ -476,8 +459,7 @@ PlatformInfo::getInternalReplicaInfo() const
     return info;
 }
 
-LoadInfo
-PlatformInfo::getLoadInfo()
+LoadInfo PlatformInfo::getLoadInfo()
 {
     LoadInfo info;
     info.avg1 = -1.0f;
@@ -531,33 +513,28 @@ PlatformInfo::getLoadInfo()
     return info;
 }
 
-int
-PlatformInfo::getProcessorSocketCount() const
+int PlatformInfo::getProcessorSocketCount() const
 {
     return _nProcessorSockets;
 }
 
-std::string
-PlatformInfo::getHostname() const
+std::string PlatformInfo::getHostname() const
 {
     return _hostname;
 }
 
-std::string
-PlatformInfo::getDataDir() const
+std::string PlatformInfo::getDataDir() const
 {
     return _dataDir;
 }
 
-std::string
-PlatformInfo::getCwd() const
+std::string PlatformInfo::getCwd() const
 {
     return _cwd;
 }
 
 #ifdef _WIN32
-void
-PlatformInfo::runUpdateLoadInfo()
+void PlatformInfo::runUpdateLoadInfo()
 {
     //
     // NOTE: We shouldn't initialize the performance counter from the

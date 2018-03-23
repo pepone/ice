@@ -16,17 +16,17 @@
 // Visual C++ defines min and max as macros
 //
 #ifdef min
-#   undef min
+#    undef min
 #endif
 #ifdef max
-#   undef max
+#    undef max
 #endif
 
 //
 // Work-around for GCC warning bug
 //
 #if defined(__GNUC__)
-#   pragma GCC diagnostic ignored "-Wstrict-aliasing"
+#    pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #endif
 
 using namespace std;
@@ -34,111 +34,69 @@ using namespace Test;
 
 namespace
 {
-
-class PerThreadContextInvokeThread : public IceUtil::Thread
-{
-public:
-
-    PerThreadContextInvokeThread(const Test::MyClassPrxPtr& proxy) :
-        _proxy(proxy)
+    class PerThreadContextInvokeThread : public IceUtil::Thread
     {
-    }
+    public:
+        PerThreadContextInvokeThread(const Test::MyClassPrxPtr& proxy) : _proxy(proxy)
+        {
+        }
 
-    virtual void
-    run()
-    {
-        Ice::Context ctx = _proxy->ice_getCommunicator()->getImplicitContext()->getContext();
-        test(ctx.empty());
-        ctx["one"] = "UN";
-        _proxy->ice_getCommunicator()->getImplicitContext()->setContext(ctx);
-        test(_proxy->opContext() == ctx);
-    }
+        virtual void run()
+        {
+            Ice::Context ctx = _proxy->ice_getCommunicator()->getImplicitContext()->getContext();
+            test(ctx.empty());
+            ctx["one"] = "UN";
+            _proxy->ice_getCommunicator()->getImplicitContext()->setContext(ctx);
+            test(_proxy->opContext() == ctx);
+        }
 
-private:
+    private:
+        Test::MyClassPrxPtr _proxy;
+    };
 
-    Test::MyClassPrxPtr _proxy;
-};
+} // namespace
 
-}
-
-void
-twoways(const Ice::CommunicatorPtr& communicator, const Test::MyClassPrxPtr& p)
+void twoways(const Ice::CommunicatorPtr& communicator, const Test::MyClassPrxPtr& p)
 {
     Test::StringS literals = p->opStringLiterals();
 
-    test(Test::s0 == "\\" &&
-         Test::s0 == Test::sw0 &&
-         Test::s0 == literals[0] &&
-         Test::s0 == literals[11]);
+    test(Test::s0 == "\\" && Test::s0 == Test::sw0 && Test::s0 == literals[0] && Test::s0 == literals[11]);
 
-    test(Test::s1 == "A" &&
-         Test::s1 == Test::sw1 &&
-         Test::s1 == literals[1] &&
-         Test::s1 == literals[12]);
+    test(Test::s1 == "A" && Test::s1 == Test::sw1 && Test::s1 == literals[1] && Test::s1 == literals[12]);
 
-    test(Test::s2 == "Ice" &&
-         Test::s2 == Test::sw2 &&
-         Test::s2 == literals[2] &&
-         Test::s2 == literals[13]);
+    test(Test::s2 == "Ice" && Test::s2 == Test::sw2 && Test::s2 == literals[2] && Test::s2 == literals[13]);
 
-    test(Test::s3 == "A21" &&
-         Test::s3 == Test::sw3 &&
-         Test::s3 == literals[3] &&
-         Test::s3 == literals[14]);
+    test(Test::s3 == "A21" && Test::s3 == Test::sw3 && Test::s3 == literals[3] && Test::s3 == literals[14]);
 
-    test(Test::s4 == "\\u0041 \\U00000041" &&
-         Test::s4 == Test::sw4 &&
-         Test::s4 == literals[4] &&
+    test(Test::s4 == "\\u0041 \\U00000041" && Test::s4 == Test::sw4 && Test::s4 == literals[4] &&
          Test::s4 == literals[15]);
 
-    test(Test::s5 == "\xc3\xbf" &&
-         Test::s5 == Test::sw5 &&
-         Test::s5 == literals[5] &&
-         Test::s5 == literals[16]);
+    test(Test::s5 == "\xc3\xbf" && Test::s5 == Test::sw5 && Test::s5 == literals[5] && Test::s5 == literals[16]);
 
-    test(Test::s6 == "\xcf\xbf" &&
-         Test::s6 == Test::sw6 &&
-         Test::s6 == literals[6] &&
-         Test::s6 == literals[17]);
+    test(Test::s6 == "\xcf\xbf" && Test::s6 == Test::sw6 && Test::s6 == literals[6] && Test::s6 == literals[17]);
 
-    test(Test::s7 == "\xd7\xb0" &&
-         Test::s7 == Test::sw7 &&
-         Test::s7 == literals[7] &&
-         Test::s7 == literals[18]);
+    test(Test::s7 == "\xd7\xb0" && Test::s7 == Test::sw7 && Test::s7 == literals[7] && Test::s7 == literals[18]);
 
-    test(Test::s8 == "\xf0\x90\x80\x80" &&
-         Test::s8 == Test::sw8 &&
-         Test::s8 == literals[8] &&
+    test(Test::s8 == "\xf0\x90\x80\x80" && Test::s8 == Test::sw8 && Test::s8 == literals[8] &&
          Test::s8 == literals[19]);
 
-    test(Test::s9 == "\xf0\x9f\x8d\x8c" &&
-         Test::s9 == Test::sw9 &&
-         Test::s9 == literals[9] &&
+    test(Test::s9 == "\xf0\x9f\x8d\x8c" && Test::s9 == Test::sw9 && Test::s9 == literals[9] &&
          Test::s9 == literals[20]);
 
-    test(Test::s10 == "\xe0\xb6\xa7" &&
-         Test::s10 == Test::sw10 &&
-         Test::s10 == literals[10] &&
+    test(Test::s10 == "\xe0\xb6\xa7" && Test::s10 == Test::sw10 && Test::s10 == literals[10] &&
          Test::s10 == literals[21]);
 
     test(Test::s11 == "\xe2\x82\xac\xe2\x82\xac\xe2\x82\xac");
     test(Test::s12 == "\\101");
 
-    test(Test::ss0 == "\'\"\?\\\a\b\f\n\r\t\v\006" &&
-         Test::ss0 == Test::ss1 &&
-         Test::ss0 == Test::ss2 &&
-         Test::ss0 == literals[22] &&
-         Test::ss0 == literals[23] &&
-         Test::ss0 == literals[24]);
+    test(Test::ss0 == "\'\"\?\\\a\b\f\n\r\t\v\006" && Test::ss0 == Test::ss1 && Test::ss0 == Test::ss2 &&
+         Test::ss0 == literals[22] && Test::ss0 == literals[23] && Test::ss0 == literals[24]);
 
-    test(Test::ss3 == "\\\\U\\u\\" &&
-         Test::ss3 == literals[25]);
+    test(Test::ss3 == "\\\\U\\u\\" && Test::ss3 == literals[25]);
 
-    test(Test::ss4 == "\\A\\" &&
-         Test::ss4 == literals[26]);
+    test(Test::ss4 == "\\A\\" && Test::ss4 == literals[26]);
 
-    test(Test::ss5 == "\\u0041\\" &&
-         Test::ss5 == literals[27]);
+    test(Test::ss5 == "\\u0041\\" && Test::ss5 == literals[27]);
 
     test(Test::su0 == Test::su1);
     test(Test::su0 == Test::su2);
@@ -151,82 +109,43 @@ twoways(const Ice::CommunicatorPtr& communicator, const Test::MyClassPrxPtr& p)
     //
     Test::WStringS wliterals = p->opWStringLiterals();
 
-    test(Test::ws0 == L"\\" &&
-         Test::ws0 == Test::wsw0 &&
-         Test::ws0 == wliterals[0] &&
-         Test::ws0 == wliterals[11]);
+    test(Test::ws0 == L"\\" && Test::ws0 == Test::wsw0 && Test::ws0 == wliterals[0] && Test::ws0 == wliterals[11]);
 
-    test(Test::ws1 == L"A" &&
-         Test::ws1 == Test::wsw1 &&
-         Test::ws1 == wliterals[1] &&
-         Test::ws1 == wliterals[12]);
+    test(Test::ws1 == L"A" && Test::ws1 == Test::wsw1 && Test::ws1 == wliterals[1] && Test::ws1 == wliterals[12]);
 
-    test(Test::ws2 == L"Ice" &&
-         Test::ws2 == Test::wsw2 &&
-         Test::ws2 == wliterals[2] &&
-         Test::ws2 == wliterals[13]);
+    test(Test::ws2 == L"Ice" && Test::ws2 == Test::wsw2 && Test::ws2 == wliterals[2] && Test::ws2 == wliterals[13]);
 
-    test(Test::ws3 == L"A21" &&
-         Test::ws3 == Test::wsw3 &&
-         Test::ws3 == wliterals[3] &&
-         Test::ws3 == wliterals[14]);
+    test(Test::ws3 == L"A21" && Test::ws3 == Test::wsw3 && Test::ws3 == wliterals[3] && Test::ws3 == wliterals[14]);
 
-    test(Test::ws4 == L"\\u0041 \\U00000041" &&
-         Test::ws4 == Test::wsw4 &&
-         Test::ws4 == wliterals[4] &&
+    test(Test::ws4 == L"\\u0041 \\U00000041" && Test::ws4 == Test::wsw4 && Test::ws4 == wliterals[4] &&
          Test::ws4 == wliterals[15]);
 
-    test(Test::ws5 == L"\u00FF" &&
-         Test::ws5 == Test::wsw5 &&
-         Test::ws5 == wliterals[5] &&
-         Test::ws5 == wliterals[16]);
+    test(Test::ws5 == L"\u00FF" && Test::ws5 == Test::wsw5 && Test::ws5 == wliterals[5] && Test::ws5 == wliterals[16]);
 
-    test(Test::ws6 == L"\u03FF" &&
-         Test::ws6 == Test::wsw6 &&
-         Test::ws6 == wliterals[6] &&
-         Test::ws6 == wliterals[17]);
+    test(Test::ws6 == L"\u03FF" && Test::ws6 == Test::wsw6 && Test::ws6 == wliterals[6] && Test::ws6 == wliterals[17]);
 
-    test(Test::ws7 == L"\u05F0" &&
-         Test::ws7 == Test::wsw7 &&
-         Test::ws7 == wliterals[7] &&
-         Test::ws7 == wliterals[18]);
+    test(Test::ws7 == L"\u05F0" && Test::ws7 == Test::wsw7 && Test::ws7 == wliterals[7] && Test::ws7 == wliterals[18]);
 
-    test(Test::ws8 == L"\U00010000" &&
-         Test::ws8 == Test::wsw8 &&
-         Test::ws8 == wliterals[8] &&
+    test(Test::ws8 == L"\U00010000" && Test::ws8 == Test::wsw8 && Test::ws8 == wliterals[8] &&
          Test::ws8 == wliterals[19]);
 
-    test(Test::ws9 == L"\U0001F34C" &&
-         Test::ws9 == Test::wsw9 &&
-         Test::ws9 == wliterals[9] &&
+    test(Test::ws9 == L"\U0001F34C" && Test::ws9 == Test::wsw9 && Test::ws9 == wliterals[9] &&
          Test::ws9 == wliterals[20]);
 
-    test(Test::ws10 == L"\u0DA7" &&
-         Test::ws10 == Test::wsw10 &&
-         Test::ws10 == wliterals[10] &&
+    test(Test::ws10 == L"\u0DA7" && Test::ws10 == Test::wsw10 && Test::ws10 == wliterals[10] &&
          Test::ws10 == wliterals[21]);
 
-    test(Test::wss0 == L"\'\"\?\\\a\b\f\n\r\t\v\006" &&
-         Test::wss0 == Test::wss1 &&
-         Test::wss0 == Test::wss2 &&
-         Test::wss0 == wliterals[22] &&
-         Test::wss0 == wliterals[23] &&
-         Test::wss0 == wliterals[24]);
+    test(Test::wss0 == L"\'\"\?\\\a\b\f\n\r\t\v\006" && Test::wss0 == Test::wss1 && Test::wss0 == Test::wss2 &&
+         Test::wss0 == wliterals[22] && Test::wss0 == wliterals[23] && Test::wss0 == wliterals[24]);
 
-    test(Test::wss3 == L"\\\\U\\u\\" &&
-         Test::wss3 == wliterals[25]);
+    test(Test::wss3 == L"\\\\U\\u\\" && Test::wss3 == wliterals[25]);
 
-    test(Test::wss4 == L"\\A\\" &&
-         Test::wss4 == wliterals[26]);
+    test(Test::wss4 == L"\\A\\" && Test::wss4 == wliterals[26]);
 
-    test(Test::wss5 == L"\\u0041\\" &&
-         Test::wss5 == wliterals[27]);
+    test(Test::wss5 == L"\\u0041\\" && Test::wss5 == wliterals[27]);
 
-    test(Test::wsu0 == Test::wsu1 &&
-         Test::wsu0 == Test::wsu2 &&
-         Test::wsu0 == wliterals[28] &&
-         Test::wsu0 == wliterals[29] &&
-         Test::wsu0 == wliterals[30]);
+    test(Test::wsu0 == Test::wsu1 && Test::wsu0 == Test::wsu2 && Test::wsu0 == wliterals[28] &&
+         Test::wsu0 == wliterals[29] && Test::wsu0 == wliterals[30]);
 
     {
         p->ice_ping();
@@ -936,14 +855,14 @@ twoways(const Ice::CommunicatorPtr& communicator, const Test::MyClassPrxPtr& p)
     }
 
     {
-        Test::MyStruct s11 = { 1, 1 };
-        Test::MyStruct s12 = { 1, 2 };
+        Test::MyStruct s11 = {1, 1};
+        Test::MyStruct s12 = {1, 2};
         Test::MyStructMyEnumD di1;
         di1[s11] = ICE_ENUM(MyEnum, enum1);
         di1[s12] = ICE_ENUM(MyEnum, enum2);
 
-        Test::MyStruct s22 = { 2, 2 };
-        Test::MyStruct s23 = { 2, 3 };
+        Test::MyStruct s22 = {2, 2};
+        Test::MyStruct s23 = {2, 3};
         Test::MyStructMyEnumD di2;
         di2[s11] = ICE_ENUM(MyEnum, enum1);
         di2[s22] = ICE_ENUM(MyEnum, enum3);
@@ -981,7 +900,8 @@ twoways(const Ice::CommunicatorPtr& communicator, const Test::MyClassPrxPtr& p)
         dsi1[1] = di2;
         dsi2[0] = di3;
 
-        try {
+        try
+        {
             Test::ByteBoolDS _do;
             Test::ByteBoolDS ro = p->opByteBoolDS(dsi1, dsi2, _do);
 
@@ -1261,14 +1181,14 @@ twoways(const Ice::CommunicatorPtr& communicator, const Test::MyClassPrxPtr& p)
         Test::MyStructMyEnumDS dsi2;
         dsi2.resize(1);
 
-        Test::MyStruct s11 = { 1, 1 };
-        Test::MyStruct s12 = { 1, 2 };
+        Test::MyStruct s11 = {1, 1};
+        Test::MyStruct s12 = {1, 2};
         Test::MyStructMyEnumD di1;
         di1[s11] = ICE_ENUM(MyEnum, enum1);
         di1[s12] = ICE_ENUM(MyEnum, enum2);
 
-        Test::MyStruct s22 = { 2, 2 };
-        Test::MyStruct s23 = { 2, 3 };
+        Test::MyStruct s22 = {2, 2};
+        Test::MyStruct s23 = {2, 3};
         Test::MyStructMyEnumD di2;
         di2[s11] = ICE_ENUM(MyEnum, enum1);
         di2[s22] = ICE_ENUM(MyEnum, enum3);
@@ -1691,7 +1611,7 @@ twoways(const Ice::CommunicatorPtr& communicator, const Test::MyClassPrxPtr& p)
     }
 
     {
-        const int lengths[] = { 0, 1, 2, 126, 127, 128, 129, 253, 254, 255, 256, 257, 1000 };
+        const int lengths[] = {0, 1, 2, 126, 127, 128, 129, 253, 254, 255, 256, 257, 1000};
 
         for(unsigned int l = 0; l != sizeof(lengths) / sizeof(*lengths); ++l)
         {
@@ -1753,8 +1673,8 @@ twoways(const Ice::CommunicatorPtr& communicator, const Test::MyClassPrxPtr& p)
                 ctx["two"] = "TWO";
                 ctx["three"] = "THREE";
 
-                Test::MyClassPrxPtr p = ICE_UNCHECKED_CAST(Test::MyClassPrx,
-                                                           ic->stringToProxy("test:" + getTestEndpoint(ic, 0)));
+                Test::MyClassPrxPtr p =
+                    ICE_UNCHECKED_CAST(Test::MyClassPrx, ic->stringToProxy("test:" + getTestEndpoint(ic, 0)));
 
                 ic->getImplicitContext()->setContext(ctx);
                 test(ic->getImplicitContext()->getContext() == ctx);

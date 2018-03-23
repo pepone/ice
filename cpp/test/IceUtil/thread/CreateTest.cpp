@@ -20,9 +20,7 @@ static const string createTestName("thread create");
 class CreateTestThread : public Thread
 {
 public:
-
-    CreateTestThread() :
-        threadran(false)
+    CreateTestThread() : threadran(false)
     {
     }
 
@@ -36,15 +34,13 @@ public:
 
 typedef Handle<CreateTestThread> CreateTestThreadPtr;
 
-CreateTest::CreateTest() :
-    TestBase(createTestName)
+CreateTest::CreateTest() : TestBase(createTestName)
 {
 }
 
-void
-CreateTest::run()
+void CreateTest::run()
 {
-    for(int i = 0; i < 4096 ; ++i)
+    for(int i = 0; i < 4096; ++i)
     {
         CreateTestThreadPtr t = new CreateTestThread();
         ThreadControl control = t->start();

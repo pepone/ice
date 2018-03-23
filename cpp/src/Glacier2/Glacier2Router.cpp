@@ -25,54 +25,46 @@ using namespace IceInternal;
 
 namespace
 {
-
-class RouterService : public Service
-{
-public:
-
-    RouterService();
-
-protected:
-
-    virtual bool start(int, char*[], int&);
-    virtual bool stop();
-    virtual CommunicatorPtr initializeCommunicator(int&, char*[], const InitializationData&, int);
-
-private:
-
-    void usage(const std::string&);
-
-    Glacier2::InstancePtr _instance;
-    SessionRouterIPtr _sessionRouter;
-};
-
-class FinderI : public Ice::RouterFinder
-{
-public:
-
-    FinderI(const Glacier2::RouterPrx& router) : _router(router)
+    class RouterService : public Service
     {
-    }
+    public:
+        RouterService();
 
-    virtual Ice::RouterPrx
-    getRouter(const Ice::Current&)
+    protected:
+        virtual bool start(int, char* [], int&);
+        virtual bool stop();
+        virtual CommunicatorPtr initializeCommunicator(int&, char* [], const InitializationData&, int);
+
+    private:
+        void usage(const std::string&);
+
+        Glacier2::InstancePtr _instance;
+        SessionRouterIPtr _sessionRouter;
+    };
+
+    class FinderI : public Ice::RouterFinder
     {
-        return _router;
-    }
+    public:
+        FinderI(const Glacier2::RouterPrx& router) : _router(router)
+        {
+        }
 
-private:
+        virtual Ice::RouterPrx getRouter(const Ice::Current&)
+        {
+            return _router;
+        }
 
-    const Glacier2::RouterPrx _router;
-};
+    private:
+        const Glacier2::RouterPrx _router;
+    };
 
-};
+}; // namespace
 
 RouterService::RouterService()
 {
 }
 
-bool
-RouterService::start(int argc, char* argv[], int& status)
+bool RouterService::start(int argc, char* argv[], int& status)
 {
     bool nowarn;
 
@@ -175,7 +167,8 @@ RouterService::start(int argc, char* argv[], int& status)
     {
         ServiceError err(this);
         err << "permissions verifier `" << communicator()->getProperties()->getProperty(verifierProperty)
-            << "' is invalid:\n" << ex;
+            << "' is invalid:\n"
+            << ex;
         return false;
     }
 
@@ -198,7 +191,8 @@ RouterService::start(int argc, char* argv[], int& status)
             {
                 ServiceWarning warn(this);
                 warn << "unable to contact permissions verifier `"
-                     << communicator()->getProperties()->getProperty(verifierProperty) << "'\n" << ex;
+                     << communicator()->getProperties()->getProperty(verifierProperty) << "'\n"
+                     << ex;
             }
             verifier = PermissionsVerifierPrx::uncheckedCast(obj);
         }
@@ -259,7 +253,8 @@ RouterService::start(int argc, char* argv[], int& status)
     {
         ServiceError err(this);
         err << "ssl permissions verifier `" << communicator()->getProperties()->getProperty(sslVerifierProperty)
-            << "' is invalid:\n" << ex;
+            << "' is invalid:\n"
+            << ex;
         return false;
     }
 
@@ -271,8 +266,7 @@ RouterService::start(int argc, char* argv[], int& status)
             if(!sslVerifier)
             {
                 ServiceError err(this);
-                err << "ssl permissions verifier `"
-                    << communicator()->getProperties()->getProperty(sslVerifierProperty)
+                err << "ssl permissions verifier `" << communicator()->getProperties()->getProperty(sslVerifierProperty)
                     << "' is invalid";
             }
         }
@@ -282,7 +276,7 @@ RouterService::start(int argc, char* argv[], int& status)
             {
                 ServiceWarning warn(this);
                 warn << "unable to contact ssl permissions verifier `"
-                     <<  communicator()->getProperties()->getProperty(sslVerifierProperty) << "'\n"
+                     << communicator()->getProperties()->getProperty(sslVerifierProperty) << "'\n"
                      << ex;
             }
             sslVerifier = SSLPermissionsVerifierPrx::uncheckedCast(obj);
@@ -321,8 +315,7 @@ RouterService::start(int argc, char* argv[], int& status)
             if(!nowarn)
             {
                 ServiceWarning warn(this);
-                warn << "unable to contact ssl session manager `" << sslSessionManagerPropertyValue
-                     << "'\n" << ex;
+                warn << "unable to contact ssl session manager `" << sslSessionManagerPropertyValue << "'\n" << ex;
             }
             sslSessionManager = SSLSessionManagerPrx::uncheckedCast(obj);
         }
@@ -405,8 +398,7 @@ RouterService::start(int argc, char* argv[], int& status)
     return true;
 }
 
-bool
-RouterService::stop()
+bool RouterService::stop()
 {
     if(_sessionRouter)
     {
@@ -426,10 +418,8 @@ RouterService::stop()
     return true;
 }
 
-CommunicatorPtr
-RouterService::initializeCommunicator(int& argc, char* argv[],
-                                      const InitializationData& initializationData,
-                                      int version)
+CommunicatorPtr RouterService::initializeCommunicator(int& argc, char* argv[],
+                                                      const InitializationData& initializationData, int version)
 {
     InitializationData initData = initializationData;
     initData.properties = createProperties(argc, argv, initializationData.properties);
@@ -464,8 +454,8 @@ RouterService::initializeCommunicator(int& argc, char* argv[],
     // session timeout to ensure client connections are not closed
     // prematurely,
     //
-    //initData.properties->setProperty("Ice.ACM.Client", "0");
-    //initData.properties->setProperty("Ice.ACM.Server", "0");
+    // initData.properties->setProperty("Ice.ACM.Client", "0");
+    // initData.properties->setProperty("Ice.ACM.Server", "0");
 
     //
     // We do not need to set Ice.RetryIntervals to -1, i.e., we do
@@ -478,36 +468,30 @@ RouterService::initializeCommunicator(int& argc, char* argv[],
     return Service::initializeCommunicator(argc, argv, initData, version);
 }
 
-void
-RouterService::usage(const string& appName)
+void RouterService::usage(const string& appName)
 {
-    string options =
-        "Options:\n"
-        "-h, --help           Show this message.\n"
-        "-v, --version        Display the Ice version.\n"
-        "--nowarn             Suppress warnings.";
+    string options = "Options:\n"
+                     "-h, --help           Show this message.\n"
+                     "-v, --version        Display the Ice version.\n"
+                     "--nowarn             Suppress warnings.";
 #ifndef _WIN32
-    options.append(
-        "\n"
-        "\n"
-        "--daemon             Run as a daemon.\n"
-        "--pidfile FILE       Write process ID into FILE.\n"
-        "--noclose            Do not close open file descriptors.\n"
-        "--nochdir            Do not change the current working directory.\n"
-    );
+    options.append("\n"
+                   "\n"
+                   "--daemon             Run as a daemon.\n"
+                   "--pidfile FILE       Write process ID into FILE.\n"
+                   "--noclose            Do not close open file descriptors.\n"
+                   "--nochdir            Do not change the current working directory.\n");
 #endif
     print("Usage: " + appName + " [options]\n" + options);
 }
 
 #ifdef _WIN32
 
-int
-wmain(int argc, wchar_t* argv[])
+int wmain(int argc, wchar_t* argv[])
 
 #else
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 
 #endif
 {

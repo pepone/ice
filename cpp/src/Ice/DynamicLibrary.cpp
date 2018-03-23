@@ -12,22 +12,27 @@
 #include <Ice/StringConverter.h>
 
 #ifndef _WIN32
-#   include <dlfcn.h>
+#    include <dlfcn.h>
 #endif
 
 #if defined(ICE_CPP11) && defined(__GNUC__) && (__GNUC__ < 6) && defined(__GLIBCXX__)
-#   define ICE_LIBSUFFIX "++11"
+#    define ICE_LIBSUFFIX "++11"
 #endif
 
 using namespace Ice;
 using namespace IceInternal;
 using namespace std;
 
-IceUtil::Shared* IceInternal::upCast(DynamicLibrary* p) { return p; }
-IceUtil::Shared* IceInternal::upCast(DynamicLibraryList* p) { return p; }
+IceUtil::Shared* IceInternal::upCast(DynamicLibrary* p)
+{
+    return p;
+}
+IceUtil::Shared* IceInternal::upCast(DynamicLibraryList* p)
+{
+    return p;
+}
 
-IceInternal::DynamicLibrary::DynamicLibrary() :
-    _hnd(0)
+IceInternal::DynamicLibrary::DynamicLibrary() : _hnd(0)
 {
 }
 
@@ -50,8 +55,8 @@ IceInternal::DynamicLibrary::~DynamicLibrary()
     */
 }
 
-IceInternal::DynamicLibrary::symbol_type
-IceInternal::DynamicLibrary::loadEntryPoint(const string& entryPoint, bool useIceVersion)
+IceInternal::DynamicLibrary::symbol_type IceInternal::DynamicLibrary::loadEntryPoint(const string& entryPoint,
+                                                                                     bool useIceVersion)
 {
     string::size_type colon = entryPoint.rfind(':');
 
@@ -93,9 +98,9 @@ IceInternal::DynamicLibrary::loadEntryPoint(const string& entryPoint, bool useIc
     if(comma == string::npos)
     {
         libName = libSpec;
-#  if defined(ICE_CPP11_MAPPING) && !defined(_WIN32)
+#if defined(ICE_CPP11_MAPPING) && !defined(_WIN32)
         libName += "++11";
-#  endif
+#endif
         if(useIceVersion)
         {
             int majorVersion = (ICE_INT_VERSION / 10000);
@@ -122,9 +127,9 @@ IceInternal::DynamicLibrary::loadEntryPoint(const string& entryPoint, bool useIc
             return 0;
         }
         libName = libSpec.substr(0, comma);
-#  if defined(ICE_CPP11_MAPPING) && !defined(_WIN32)
+#if defined(ICE_CPP11_MAPPING) && !defined(_WIN32)
         libName += "++11";
-#  endif
+#endif
         version = libSpec.substr(comma + 1);
     }
 
@@ -133,21 +138,21 @@ IceInternal::DynamicLibrary::loadEntryPoint(const string& entryPoint, bool useIc
 #ifdef _WIN32
     lib += libName;
     lib += version;
-#  ifdef ICE_OS_UWP
+#    ifdef ICE_OS_UWP
     lib += "uwp";
-#  endif
+#    endif
 
-#  ifdef ICE_CPP11_MAPPING
+#    ifdef ICE_CPP11_MAPPING
     lib += "++11";
-#  endif
+#    endif
 
-#   if defined(_DEBUG) && !defined(__MINGW32__)
+#    if defined(_DEBUG) && !defined(__MINGW32__)
     lib += 'd';
-#   endif
+#    endif
 
-#   ifdef COMPSUFFIX
+#    ifdef COMPSUFFIX
     lib += COMPSUFFIX;
-#   endif
+#    endif
 
     lib += ".dll";
 #elif defined(__APPLE__)
@@ -210,8 +215,7 @@ IceInternal::DynamicLibrary::loadEntryPoint(const string& entryPoint, bool useIc
     return getSymbol(funcName);
 }
 
-bool
-IceInternal::DynamicLibrary::load(const string& lib)
+bool IceInternal::DynamicLibrary::load(const string& lib)
 {
     //
     // Don't need to use a wide string converter as the wide string is passed
@@ -224,9 +228,9 @@ IceInternal::DynamicLibrary::load(const string& lib)
 #else
 
     int flags = RTLD_NOW | RTLD_GLOBAL;
-#ifdef _AIX
+#    ifdef _AIX
     flags |= RTLD_MEMBER;
-#endif
+#    endif
 
     _hnd = dlopen(lib.c_str(), flags);
 #endif
@@ -249,8 +253,7 @@ IceInternal::DynamicLibrary::load(const string& lib)
     return _hnd != 0;
 }
 
-IceInternal::DynamicLibrary::symbol_type
-IceInternal::DynamicLibrary::getSymbol(const string& name)
+IceInternal::DynamicLibrary::symbol_type IceInternal::DynamicLibrary::getSymbol(const string& name)
 {
     assert(_hnd != 0);
 #ifdef _WIN32
@@ -277,8 +280,7 @@ IceInternal::DynamicLibrary::getSymbol(const string& name)
     return result;
 }
 
-const string&
-IceInternal::DynamicLibrary::getErrorMessage() const
+const string& IceInternal::DynamicLibrary::getErrorMessage() const
 {
     return _err;
 }
@@ -288,8 +290,7 @@ IceInternal::DynamicLibraryList::~DynamicLibraryList()
     // Out of line to avoid weak vtable
 }
 
-void
-IceInternal::DynamicLibraryList::add(const DynamicLibraryPtr& library)
+void IceInternal::DynamicLibraryList::add(const DynamicLibraryPtr& library)
 {
     _libraries.push_back(library);
 }

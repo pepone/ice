@@ -20,25 +20,21 @@ using namespace IceGrid;
 
 namespace IceGrid
 {
-
-struct AllocatableObjectEntryCI : binary_function<AllocatableObjectEntryPtr&, AllocatableObjectEntryPtr&, bool>
-{
-
-    bool
-    operator()(const AllocatableObjectEntryPtr& lhs, const AllocatableObjectEntryPtr& rhs)
+    struct AllocatableObjectEntryCI : binary_function<AllocatableObjectEntryPtr&, AllocatableObjectEntryPtr&, bool>
     {
-        return ::Ice::proxyIdentityLess(lhs->getProxy(), rhs->getProxy());
-    }
-};
+        bool operator()(const AllocatableObjectEntryPtr& lhs, const AllocatableObjectEntryPtr& rhs)
+        {
+            return ::Ice::proxyIdentityLess(lhs->getProxy(), rhs->getProxy());
+        }
+    };
 
-};
+}; // namespace IceGrid
 
 AllocatableObjectCache::TypeEntry::TypeEntry()
 {
 }
 
-void
-AllocatableObjectCache::TypeEntry::add(const AllocatableObjectEntryPtr& obj)
+void AllocatableObjectCache::TypeEntry::add(const AllocatableObjectEntryPtr& obj)
 {
     //
     // No mutex protection here, this is called with the cache locked.
@@ -50,8 +46,7 @@ AllocatableObjectCache::TypeEntry::add(const AllocatableObjectEntryPtr& obj)
     }
 }
 
-bool
-AllocatableObjectCache::TypeEntry::remove(const AllocatableObjectEntryPtr& obj)
+bool AllocatableObjectCache::TypeEntry::remove(const AllocatableObjectEntryPtr& obj)
 {
     //
     // No mutex protection here, this is called with the cache locked.
@@ -71,8 +66,7 @@ AllocatableObjectCache::TypeEntry::remove(const AllocatableObjectEntryPtr& obj)
     return _objects.empty();
 }
 
-void
-AllocatableObjectCache::TypeEntry::addAllocationRequest(const ObjectAllocationRequestPtr& request)
+void AllocatableObjectCache::TypeEntry::addAllocationRequest(const ObjectAllocationRequestPtr& request)
 {
     //
     // No mutex protection here, this is called with the cache locked.
@@ -83,8 +77,7 @@ AllocatableObjectCache::TypeEntry::addAllocationRequest(const ObjectAllocationRe
     }
 }
 
-bool
-AllocatableObjectCache::TypeEntry::canTryAllocate(const AllocatableObjectEntryPtr& entry, bool fromRelease)
+bool AllocatableObjectCache::TypeEntry::canTryAllocate(const AllocatableObjectEntryPtr& entry, bool fromRelease)
 {
     //
     // No mutex protection here, this is called with the cache locked.
@@ -121,13 +114,11 @@ AllocatableObjectCache::TypeEntry::canTryAllocate(const AllocatableObjectEntryPt
     return false;
 }
 
-AllocatableObjectCache::AllocatableObjectCache(const Ice::CommunicatorPtr& communicator) :
-    _communicator(communicator)
+AllocatableObjectCache::AllocatableObjectCache(const Ice::CommunicatorPtr& communicator) : _communicator(communicator)
 {
 }
 
-void
-AllocatableObjectCache::add(const ObjectInfo& info, const ServerEntryPtr& parent)
+void AllocatableObjectCache::add(const ObjectInfo& info, const ServerEntryPtr& parent)
 {
     const Ice::Identity& id = info.proxy->ice_getIdentity();
 
@@ -156,8 +147,7 @@ AllocatableObjectCache::add(const ObjectInfo& info, const ServerEntryPtr& parent
     }
 }
 
-AllocatableObjectEntryPtr
-AllocatableObjectCache::get(const Ice::Identity& id) const
+AllocatableObjectEntryPtr AllocatableObjectCache::get(const Ice::Identity& id) const
 {
     Lock sync(*this);
     AllocatableObjectEntryPtr entry = getImpl(id);
@@ -168,8 +158,7 @@ AllocatableObjectCache::get(const Ice::Identity& id) const
     return entry;
 }
 
-void
-AllocatableObjectCache::remove(const Ice::Identity& id)
+void AllocatableObjectCache::remove(const Ice::Identity& id)
 {
     AllocatableObjectEntryPtr entry;
     {
@@ -205,8 +194,7 @@ AllocatableObjectCache::remove(const Ice::Identity& id)
     entry->destroy();
 }
 
-void
-AllocatableObjectCache::allocateByType(const string& type, const ObjectAllocationRequestPtr& request)
+void AllocatableObjectCache::allocateByType(const string& type, const ObjectAllocationRequestPtr& request)
 {
     Lock sync(*this);
     map<string, TypeEntry>::iterator p = _types.find(type);
@@ -244,8 +232,7 @@ AllocatableObjectCache::allocateByType(const string& type, const ObjectAllocatio
     p->second.addAllocationRequest(request);
 }
 
-bool
-AllocatableObjectCache::canTryAllocate(const AllocatableObjectEntryPtr& entry)
+bool AllocatableObjectCache::canTryAllocate(const AllocatableObjectEntryPtr& entry)
 {
     //
     // Notify the type entry that an object was released.
@@ -259,8 +246,7 @@ AllocatableObjectCache::canTryAllocate(const AllocatableObjectEntryPtr& entry)
     return p->second.canTryAllocate(entry, true);
 }
 
-AllocatableObjectEntry::AllocatableObjectEntry(AllocatableObjectCache& cache,
-                                               const ObjectInfo& info,
+AllocatableObjectEntry::AllocatableObjectEntry(AllocatableObjectCache& cache, const ObjectInfo& info,
                                                const ServerEntryPtr& parent) :
     Allocatable(true, parent),
     _cache(cache),
@@ -271,32 +257,27 @@ AllocatableObjectEntry::AllocatableObjectEntry(AllocatableObjectCache& cache,
     assert(_server);
 }
 
-Ice::ObjectPrx
-AllocatableObjectEntry::getProxy() const
+Ice::ObjectPrx AllocatableObjectEntry::getProxy() const
 {
     return _info.proxy;
 }
 
-string
-AllocatableObjectEntry::getType() const
+string AllocatableObjectEntry::getType() const
 {
     return _info.type;
 }
 
-bool
-AllocatableObjectEntry::canRemove()
+bool AllocatableObjectEntry::canRemove()
 {
     return true;
 }
 
-bool
-AllocatableObjectEntry::isEnabled() const
+bool AllocatableObjectEntry::isEnabled() const
 {
     return _server->isEnabled();
 }
 
-void
-AllocatableObjectEntry::allocated(const SessionIPtr& session)
+void AllocatableObjectEntry::allocated(const SessionIPtr& session)
 {
     //
     // Add the object allocation to the session. The object will be
@@ -333,8 +314,7 @@ AllocatableObjectEntry::allocated(const SessionIPtr& session)
     }
 }
 
-void
-AllocatableObjectEntry::released(const SessionIPtr& session)
+void AllocatableObjectEntry::released(const SessionIPtr& session)
 {
     //
     // Remove the object allocation from the session.
@@ -371,8 +351,7 @@ AllocatableObjectEntry::released(const SessionIPtr& session)
     }
 }
 
-void
-AllocatableObjectEntry::destroy()
+void AllocatableObjectEntry::destroy()
 {
     SessionIPtr session;
     {
@@ -392,8 +371,7 @@ AllocatableObjectEntry::destroy()
     }
 }
 
-void
-AllocatableObjectEntry::checkAllocatable()
+void AllocatableObjectEntry::checkAllocatable()
 {
     if(_destroyed)
     {
@@ -403,8 +381,7 @@ AllocatableObjectEntry::checkAllocatable()
     Allocatable::checkAllocatable();
 }
 
-bool
-AllocatableObjectEntry::canTryAllocate()
+bool AllocatableObjectEntry::canTryAllocate()
 {
     return _cache.canTryAllocate(this);
 }

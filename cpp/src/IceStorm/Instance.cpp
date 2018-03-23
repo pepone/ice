@@ -26,18 +26,16 @@ using namespace IceStormInternal;
 
 namespace IceStormInternal
 {
-extern IceDB::IceContext dbContext;
+    extern IceDB::IceContext dbContext;
 }
 
-void
-TopicReaper::add(const string& name)
+void TopicReaper::add(const string& name)
 {
     Lock sync(*this);
     _topics.push_back(name);
 }
 
-vector<string>
-TopicReaper::consumeReapedTopics()
+vector<string> TopicReaper::consumeReapedTopics()
 {
     Lock sync(*this);
     vector<string> reaped;
@@ -45,14 +43,11 @@ TopicReaper::consumeReapedTopics()
     return reaped;
 }
 
-PersistentInstance::PersistentInstance(
-    const string& instanceName,
-    const string& name,
-    const Ice::CommunicatorPtr& communicator,
-    const Ice::ObjectAdapterPtr& publishAdapter,
-    const Ice::ObjectAdapterPtr& topicAdapter,
-    const Ice::ObjectAdapterPtr& nodeAdapter,
-    const NodePrx& nodeProxy) :
+PersistentInstance::PersistentInstance(const string& instanceName, const string& name,
+                                       const Ice::CommunicatorPtr& communicator,
+                                       const Ice::ObjectAdapterPtr& publishAdapter,
+                                       const Ice::ObjectAdapterPtr& topicAdapter,
+                                       const Ice::ObjectAdapterPtr& nodeAdapter, const NodePrx& nodeProxy) :
     Instance(instanceName, name, communicator, publishAdapter, topicAdapter, nodeAdapter, nodeProxy),
     _dbLock(communicator->getProperties()->getPropertyWithDefault(name + ".LMDB.Path", name) + "/icedb.lock"),
     _dbEnv(communicator->getProperties()->getPropertyWithDefault(name + ".LMDB.Path", name), 2,
@@ -80,8 +75,7 @@ PersistentInstance::PersistentInstance(
     }
 }
 
-void
-PersistentInstance::destroy()
+void PersistentInstance::destroy()
 {
     _dbEnv.close();
     dbContext.communicator = 0;
@@ -89,14 +83,9 @@ PersistentInstance::destroy()
     Instance::destroy();
 }
 
-Instance::Instance(
-    const string& instanceName,
-    const string& name,
-    const Ice::CommunicatorPtr& communicator,
-    const Ice::ObjectAdapterPtr& publishAdapter,
-    const Ice::ObjectAdapterPtr& topicAdapter,
-    const Ice::ObjectAdapterPtr& nodeAdapter,
-    const NodePrx& nodeProxy) :
+Instance::Instance(const string& instanceName, const string& name, const Ice::CommunicatorPtr& communicator,
+                   const Ice::ObjectAdapterPtr& publishAdapter, const Ice::ObjectAdapterPtr& topicAdapter,
+                   const Ice::ObjectAdapterPtr& nodeAdapter, const NodePrx& nodeProxy) :
     _instanceName(instanceName),
     _serviceName(name),
     _communicator(communicator),
@@ -106,9 +95,9 @@ Instance::Instance(
     _nodeProxy(nodeProxy),
     _traceLevels(new TraceLevels(name, communicator->getProperties(), communicator->getLogger())),
     _discardInterval(IceUtil::Time::seconds(communicator->getProperties()->getPropertyAsIntWithDefault(
-                                                name + ".Discard.Interval", 60))), // default one minute.
+        name + ".Discard.Interval", 60))), // default one minute.
     _flushInterval(IceUtil::Time::milliSeconds(communicator->getProperties()->getPropertyAsIntWithDefault(
-                                                   name + ".Flush.Timeout", 1000))), // default one second.
+        name + ".Flush.Timeout", 1000))), // default one second.
     // default one minute.
     _sendTimeout(communicator->getProperties()->getPropertyAsIntWithDefault(name + ".Send.Timeout", 60 * 1000)),
     _sendQueueSizeMax(communicator->getProperties()->getPropertyAsIntWithDefault(name + ".Send.QueueSizeMax", -1)),
@@ -174,146 +163,122 @@ Instance::Instance(
     __setNoDelete(false);
 }
 
-void
-Instance::setNode(const NodeIPtr& node)
+void Instance::setNode(const NodeIPtr& node)
 {
     _node = node;
 }
 
-string
-Instance::instanceName() const
+string Instance::instanceName() const
 {
     return _instanceName;
 }
 
-string
-Instance::serviceName() const
+string Instance::serviceName() const
 {
     return _serviceName;
 }
 
-Ice::CommunicatorPtr
-Instance::communicator() const
+Ice::CommunicatorPtr Instance::communicator() const
 {
     return _communicator;
 }
 
-Ice::PropertiesPtr
-Instance::properties() const
+Ice::PropertiesPtr Instance::properties() const
 {
     return _communicator->getProperties();
 }
 
-Ice::ObjectAdapterPtr
-Instance::publishAdapter() const
+Ice::ObjectAdapterPtr Instance::publishAdapter() const
 {
     return _publishAdapter;
 }
 
-Ice::ObjectAdapterPtr
-Instance::topicAdapter() const
+Ice::ObjectAdapterPtr Instance::topicAdapter() const
 {
     return _topicAdapter;
 }
 
-Ice::ObjectAdapterPtr
-Instance::nodeAdapter() const
+Ice::ObjectAdapterPtr Instance::nodeAdapter() const
 {
     return _nodeAdapter;
 }
 
-ObserversPtr
-Instance::observers() const
+ObserversPtr Instance::observers() const
 {
     return _observers;
 }
 
-NodeIPtr
-Instance::node() const
+NodeIPtr Instance::node() const
 {
     return _node;
 }
 
-NodePrx
-Instance::nodeProxy() const
+NodePrx Instance::nodeProxy() const
 {
     return _nodeProxy;
 }
 
-TraceLevelsPtr
-Instance::traceLevels() const
+TraceLevelsPtr Instance::traceLevels() const
 {
     return _traceLevels;
 }
 
-IceUtil::TimerPtr
-Instance::batchFlusher() const
+IceUtil::TimerPtr Instance::batchFlusher() const
 {
     return _batchFlusher;
 }
 
-IceUtil::TimerPtr
-Instance::timer() const
+IceUtil::TimerPtr Instance::timer() const
 {
     return _timer;
 }
 
-Ice::ObjectPrx
-Instance::topicReplicaProxy() const
+Ice::ObjectPrx Instance::topicReplicaProxy() const
 {
     return _topicReplicaProxy;
 }
 
-Ice::ObjectPrx
-Instance::publisherReplicaProxy() const
+Ice::ObjectPrx Instance::publisherReplicaProxy() const
 {
     return _publisherReplicaProxy;
 }
 
-IceStorm::Instrumentation::TopicManagerObserverPtr
-Instance::observer() const
+IceStorm::Instrumentation::TopicManagerObserverPtr Instance::observer() const
 {
     return _observer;
 }
 
-IceStorm::TopicReaperPtr
-Instance::topicReaper() const
+IceStorm::TopicReaperPtr Instance::topicReaper() const
 {
     return _topicReaper;
 }
 
-IceUtil::Time
-Instance::discardInterval() const
+IceUtil::Time Instance::discardInterval() const
 {
     return _discardInterval;
 }
 
-IceUtil::Time
-Instance::flushInterval() const
+IceUtil::Time Instance::flushInterval() const
 {
     return _flushInterval;
 }
 
-int
-Instance::sendTimeout() const
+int Instance::sendTimeout() const
 {
     return _sendTimeout;
 }
 
-int
-Instance::sendQueueSizeMax() const
+int Instance::sendQueueSizeMax() const
 {
     return _sendQueueSizeMax;
 }
 
-Instance::SendQueueSizeMaxPolicy
-Instance::sendQueueSizeMaxPolicy() const
+Instance::SendQueueSizeMaxPolicy Instance::sendQueueSizeMaxPolicy() const
 {
     return _sendQueueSizeMaxPolicy;
 }
 
-void
-Instance::shutdown()
+void Instance::shutdown()
 {
     if(_node)
     {
@@ -331,8 +296,7 @@ Instance::shutdown()
     }
 }
 
-void
-Instance::destroy()
+void Instance::destroy()
 {
     if(_batchFlusher)
     {

@@ -15,8 +15,7 @@ using namespace std;
 using namespace Ice;
 using namespace Test;
 
-TestIntfPrxPtr
-allTests(const CommunicatorPtr& communicator)
+TestIntfPrxPtr allTests(const CommunicatorPtr& communicator)
 {
     cout << "testing stringToProxy... " << flush;
     ObjectPrxPtr base = communicator->stringToProxy("test:" + getTestEndpoint(communicator, 0));
@@ -41,7 +40,7 @@ allTests(const CommunicatorPtr& communicator)
 
     {
         if(!uwp || (communicator->getProperties()->getProperty("Ice.Default.Protocol") != "ssl" &&
-                      communicator->getProperties()->getProperty("Ice.Default.Protocol") != "wss"))
+                    communicator->getProperties()->getProperty("Ice.Default.Protocol") != "wss"))
         {
             cout << "creating/destroying/recreating object adapter... " << flush;
             ObjectAdapterPtr adpt = communicator->createObjectAdapterWithEndpoints("TransientTestAdapter", "default");
@@ -135,7 +134,8 @@ allTests(const CommunicatorPtr& communicator)
     {
         Ice::Identity routerId;
         routerId.name = "router";
-        Ice::RouterPrxPtr router = ICE_UNCHECKED_CAST(Ice::RouterPrx, base->ice_identity(routerId)->ice_connectionId("rc"));
+        Ice::RouterPrxPtr router =
+            ICE_UNCHECKED_CAST(Ice::RouterPrx, base->ice_identity(routerId)->ice_connectionId("rc"));
         Ice::ObjectAdapterPtr adapter = communicator->createObjectAdapterWithRouter("", router);
         test(adapter->getPublishedEndpoints().size() == 1);
         test(adapter->getPublishedEndpoints()[0]->toString() == "tcp -h localhost -p 23456 -t 30000");

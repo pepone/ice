@@ -25,8 +25,8 @@ Ice::UserExceptionFactory::~UserExceptionFactory()
 // Add a factory to the exception factory table.
 // If the factory is present already, increment its reference count.
 //
-void
-IceInternal::FactoryTable::addExceptionFactory(const string& t, ICE_IN(ICE_DELEGATE(::Ice::UserExceptionFactory)) f)
+void IceInternal::FactoryTable::addExceptionFactory(const string& t,
+                                                    ICE_IN(ICE_DELEGATE(::Ice::UserExceptionFactory)) f)
 {
     IceUtil::Mutex::Lock lock(_m);
     assert(f);
@@ -58,8 +58,7 @@ IceInternal::FactoryTable::getExceptionFactory(const string& t) const
 // reference count; if the count drops to zero, remove the factory's
 // entry from the table.
 //
-void
-IceInternal::FactoryTable::removeExceptionFactory(const string& t)
+void IceInternal::FactoryTable::removeExceptionFactory(const string& t)
 {
     IceUtil::Mutex::Lock lock(_m);
     EFTable::iterator i = _eft.find(t);
@@ -75,8 +74,7 @@ IceInternal::FactoryTable::removeExceptionFactory(const string& t)
 //
 // Add a factory to the value factory table.
 //
-void
-IceInternal::FactoryTable::addValueFactory(const string& t, ICE_IN(ICE_DELEGATE(::Ice::ValueFactory)) f)
+void IceInternal::FactoryTable::addValueFactory(const string& t, ICE_IN(ICE_DELEGATE(::Ice::ValueFactory)) f)
 {
     IceUtil::Mutex::Lock lock(_m);
     assert(f);
@@ -108,8 +106,7 @@ IceInternal::FactoryTable::getValueFactory(const string& t) const
 // reference count if the count drops to zero, remove the factory's
 // entry from the table.
 //
-void
-IceInternal::FactoryTable::removeValueFactory(const string& t)
+void IceInternal::FactoryTable::removeValueFactory(const string& t)
 {
     IceUtil::Mutex::Lock lock(_m);
     VFTable::iterator i = _vft.find(t);
@@ -125,8 +122,7 @@ IceInternal::FactoryTable::removeValueFactory(const string& t)
 //
 // Add a factory to the value factory table.
 //
-void
-IceInternal::FactoryTable::addTypeId(int compactId, const string& typeId)
+void IceInternal::FactoryTable::addTypeId(int compactId, const string& typeId)
 {
     IceUtil::Mutex::Lock lock(_m);
     assert(!typeId.empty() && compactId >= 0);
@@ -144,16 +140,14 @@ IceInternal::FactoryTable::addTypeId(int compactId, const string& typeId)
 //
 // Return the type ID for the given compact ID
 //
-string
-IceInternal::FactoryTable::getTypeId(int compactId) const
+string IceInternal::FactoryTable::getTypeId(int compactId) const
 {
     IceUtil::Mutex::Lock lock(_m);
     TypeIdTable::const_iterator i = _typeIdTable.find(compactId);
     return i != _typeIdTable.end() ? i->second.first : string();
 }
 
-void
-IceInternal::FactoryTable::removeTypeId(int compactId)
+void IceInternal::FactoryTable::removeTypeId(int compactId)
 {
     IceUtil::Mutex::Lock lock(_m);
     TypeIdTable::iterator i = _typeIdTable.find(compactId);

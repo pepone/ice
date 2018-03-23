@@ -11,14 +11,12 @@
 
 #include <Ice/Communicator.h>
 
-std::string
-getTestEndpoint(const Ice::CommunicatorPtr& communicator, int num, const std::string& protocol)
+std::string getTestEndpoint(const Ice::CommunicatorPtr& communicator, int num, const std::string& protocol)
 {
     return getTestEndpoint(communicator->getProperties(), num, protocol);
 }
 
-std::string
-getTestEndpoint(const Ice::PropertiesPtr& properties, int num, const std::string& prot)
+std::string getTestEndpoint(const Ice::PropertiesPtr& properties, int num, const std::string& prot)
 {
     std::ostringstream ostr;
     std::string protocol = prot;
@@ -37,17 +35,17 @@ getTestEndpoint(const Ice::PropertiesPtr& properties, int num, const std::string
         //
         switch(num)
         {
-        case 0:
-            ostr << "default -u 5e08f4de-5015-4507-abe1-a7807002db3d";
-            break;
-        case 1:
-            ostr << "default -u dae56460-2485-46fd-a3ca-8b730e1e868b";
-            break;
-        case 2:
-            ostr << "default -u 99e08bc6-fcda-4758-afd0-a8c00655c999";
-            break;
-        default:
-            assert(false);
+            case 0:
+                ostr << "default -u 5e08f4de-5015-4507-abe1-a7807002db3d";
+                break;
+            case 1:
+                ostr << "default -u dae56460-2485-46fd-a3ca-8b730e1e868b";
+                break;
+            case 2:
+                ostr << "default -u 99e08bc6-fcda-4758-afd0-a8c00655c999";
+                break;
+            default:
+                assert(false);
         }
     }
     else
@@ -57,26 +55,22 @@ getTestEndpoint(const Ice::PropertiesPtr& properties, int num, const std::string
     return ostr.str();
 }
 
-std::string
-getTestHost(const Ice::PropertiesPtr& properties)
+std::string getTestHost(const Ice::PropertiesPtr& properties)
 {
     return properties->getPropertyWithDefault("Ice.Default.Host", "127.0.0.1");
 }
 
-std::string
-getTestProtocol(const Ice::PropertiesPtr& properties)
+std::string getTestProtocol(const Ice::PropertiesPtr& properties)
 {
     return properties->getPropertyWithDefault("Ice.Default.Protocol", "tcp");
 }
 
-int
-getTestPort(const Ice::PropertiesPtr& properties, int num)
+int getTestPort(const Ice::PropertiesPtr& properties, int num)
 {
     return properties->getPropertyAsIntWithDefault("Test.BasePort", 12010) + num;
 }
 
-Ice::InitializationData
-getTestInitData(int& argc, char* argv[])
+Ice::InitializationData getTestInitData(int& argc, char* argv[])
 {
     Ice::InitializationData initData;
     initData.properties = Ice::createProperties(argc, argv);

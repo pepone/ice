@@ -26,7 +26,10 @@ using namespace Ice;
 using namespace IceUtil;
 using namespace IceSSL;
 
-IceUtil::Shared* IceSSL::upCast(IceSSL::SSLEngine* p) { return p; }
+IceUtil::Shared* IceSSL::upCast(IceSSL::SSLEngine* p)
+{
+    return p;
+}
 
 IceSSL::SSLEngine::SSLEngine(const Ice::CommunicatorPtr& communicator) :
     _initialized(false),
@@ -36,32 +39,27 @@ IceSSL::SSLEngine::SSLEngine(const Ice::CommunicatorPtr& communicator) :
 {
 }
 
-IceSSL::CertificateVerifierPtr
-IceSSL::SSLEngine::getCertificateVerifier() const
+IceSSL::CertificateVerifierPtr IceSSL::SSLEngine::getCertificateVerifier() const
 {
     return _verifier;
 }
 
-void
-IceSSL::SSLEngine::setCertificateVerifier(const IceSSL::CertificateVerifierPtr& verifier)
+void IceSSL::SSLEngine::setCertificateVerifier(const IceSSL::CertificateVerifierPtr& verifier)
 {
     _verifier = verifier;
 }
 
-IceSSL::PasswordPromptPtr
-IceSSL::SSLEngine::getPasswordPrompt() const
+IceSSL::PasswordPromptPtr IceSSL::SSLEngine::getPasswordPrompt() const
 {
     return _prompt;
 }
 
-void
-IceSSL::SSLEngine::setPasswordPrompt(const IceSSL::PasswordPromptPtr& prompt)
+void IceSSL::SSLEngine::setPasswordPrompt(const IceSSL::PasswordPromptPtr& prompt)
 {
     _prompt = prompt;
 }
 
-string
-IceSSL::SSLEngine::password(bool /*encrypting*/)
+string IceSSL::SSLEngine::password(bool /*encrypting*/)
 {
     if(_prompt)
     {
@@ -83,27 +81,23 @@ IceSSL::SSLEngine::password(bool /*encrypting*/)
     }
 }
 
-bool
-IceSSL::SSLEngine::initialized() const
+bool IceSSL::SSLEngine::initialized() const
 {
     Mutex::Lock lock(_mutex);
     return _initialized;
 }
 
-string
-IceSSL::SSLEngine::getPassword() const
+string IceSSL::SSLEngine::getPassword() const
 {
     return _password;
 }
 
-void
-IceSSL::SSLEngine::setPassword(const std::string& password)
+void IceSSL::SSLEngine::setPassword(const std::string& password)
 {
     _password = password;
 }
 
-void
-IceSSL::SSLEngine::initialize()
+void IceSSL::SSLEngine::initialize()
 {
     const string propPrefix = "IceSSL.";
     const PropertiesPtr properties = communicator()->getProperties();
@@ -128,16 +122,15 @@ IceSSL::SSLEngine::initialize()
 
     if(_verifyPeer < 0 || _verifyPeer > 2)
     {
-        throw PluginInitializationException(__FILE__, __LINE__, "IceSSL: invalid value for " + propPrefix +
-                                            "VerifyPeer");
+        throw PluginInitializationException(__FILE__, __LINE__,
+                                            "IceSSL: invalid value for " + propPrefix + "VerifyPeer");
     }
 
     _securityTraceLevel = properties->getPropertyAsInt("IceSSL.Trace.Security");
     _securityTraceCategory = "Security";
 }
 
-void
-IceSSL::SSLEngine::verifyPeerCertName(const string& address, const ConnectionInfoPtr& info)
+void IceSSL::SSLEngine::verifyPeerCertName(const string& address, const ConnectionInfoPtr& info)
 {
     //
     // For an outgoing connection, we compare the proxy address (if any) against
@@ -151,10 +144,10 @@ IceSSL::SSLEngine::verifyPeerCertName(const string& address, const ConnectionInf
         // Extract the IP addresses and the DNS names from the subject
         // alternative names.
         //
-        vector<pair<int, string> > subjectAltNames = cert->getSubjectAlternativeNames();
+        vector<pair<int, string>> subjectAltNames = cert->getSubjectAlternativeNames();
         vector<string> ipAddresses;
         vector<string> dnsNames;
-        for(vector<pair<int, string> >::const_iterator p = subjectAltNames.begin(); p != subjectAltNames.end(); ++p)
+        for(vector<pair<int, string>>::const_iterator p = subjectAltNames.begin(); p != subjectAltNames.end(); ++p)
         {
             if(p->first == AltNAmeIP)
             {
@@ -223,16 +216,15 @@ IceSSL::SSLEngine::verifyPeerCertName(const string& address, const ConnectionInf
     }
 }
 
-void
-IceSSL::SSLEngine::verifyPeer(const string& address, const ConnectionInfoPtr& info, const string& desc)
+void IceSSL::SSLEngine::verifyPeer(const string& address, const ConnectionInfoPtr& info, const string& desc)
 {
     const CertificateVerifierPtr verifier = getCertificateVerifier();
     if(_verifyDepthMax > 0 && static_cast<int>(info->certs.size()) > _verifyDepthMax)
     {
         ostringstream ostr;
         ostr << (info->incoming ? "incoming" : "outgoing") << " connection rejected:\n"
-                << "length of peer's certificate chain (" << info->certs.size() << ") exceeds maximum of "
-                << _verifyDepthMax;
+             << "length of peer's certificate chain (" << info->certs.size() << ") exceeds maximum of "
+             << _verifyDepthMax;
         string msg = ostr.str();
         if(_securityTraceLevel >= 1)
         {
@@ -262,26 +254,22 @@ IceSSL::SSLEngine::verifyPeer(const string& address, const ConnectionInfoPtr& in
     }
 }
 
-bool
-IceSSL::SSLEngine::getCheckCertName() const
+bool IceSSL::SSLEngine::getCheckCertName() const
 {
     return _checkCertName;
 }
 
-int
-IceSSL::SSLEngine::getVerifyPeer() const
+int IceSSL::SSLEngine::getVerifyPeer() const
 {
     return _verifyPeer;
 }
 
-int
-IceSSL::SSLEngine::securityTraceLevel() const
+int IceSSL::SSLEngine::securityTraceLevel() const
 {
     return _securityTraceLevel;
 }
 
-std::string
-IceSSL::SSLEngine::securityTraceCategory() const
+std::string IceSSL::SSLEngine::securityTraceCategory() const
 {
     return _securityTraceCategory;
 }

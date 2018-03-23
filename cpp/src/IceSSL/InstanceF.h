@@ -16,23 +16,22 @@
 
 namespace IceSSL
 {
+    class Instance;
+    ICESSL_API IceUtil::Shared* upCast(Instance*);
+    typedef IceInternal::Handle<Instance> InstancePtr;
 
-class Instance;
-ICESSL_API IceUtil::Shared* upCast(Instance*);
-typedef IceInternal::Handle<Instance> InstancePtr;
-
-class EndpointI;
+    class EndpointI;
 #ifdef ICE_CPP11_MAPPING
-typedef ::std::shared_ptr<EndpointI> EndpointIPtr;
+    typedef ::std::shared_ptr<EndpointI> EndpointIPtr;
 #else
-ICESSL_API IceUtil::Shared* upCast(EndpointI*);
-typedef IceInternal::Handle<EndpointI> EndpointIPtr;
+    ICESSL_API IceUtil::Shared* upCast(EndpointI*);
+    typedef IceInternal::Handle<EndpointI> EndpointIPtr;
 #endif
 
-class AcceptorI;
-ICESSL_API IceUtil::Shared* upCast(AcceptorI*);
-typedef IceInternal::Handle<AcceptorI> AcceptorIPtr;
+    class AcceptorI;
+    ICESSL_API IceUtil::Shared* upCast(AcceptorI*);
+    typedef IceInternal::Handle<AcceptorI> AcceptorIPtr;
 
-}
+} // namespace IceSSL
 
 #endif

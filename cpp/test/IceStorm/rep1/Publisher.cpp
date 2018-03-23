@@ -19,8 +19,7 @@ using namespace Ice;
 using namespace IceStorm;
 using namespace Test;
 
-int
-run(int argc, char* argv[], const CommunicatorPtr& communicator)
+int run(int argc, char* argv[], const CommunicatorPtr& communicator)
 {
     IceUtilInternal::Options opts;
     opts.addOpt("", "cycle");
@@ -44,8 +43,8 @@ run(int argc, char* argv[], const CommunicatorPtr& communicator)
         return EXIT_FAILURE;
     }
 
-    IceStorm::TopicManagerPrx manager = IceStorm::TopicManagerPrx::checkedCast(
-        communicator->stringToProxy(managerProxy));
+    IceStorm::TopicManagerPrx manager =
+        IceStorm::TopicManagerPrx::checkedCast(communicator->stringToProxy(managerProxy));
     if(!manager)
     {
         cerr << argv[0] << ": `" << managerProxy << "' is not running" << endl;
@@ -116,8 +115,7 @@ run(int argc, char* argv[], const CommunicatorPtr& communicator)
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
     int status;
     CommunicatorPtr communicator;

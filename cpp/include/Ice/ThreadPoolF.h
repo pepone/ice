@@ -16,13 +16,12 @@
 
 namespace IceInternal
 {
+    class ThreadPool;
+    ICE_API IceUtil::Shared* upCast(ThreadPool*);
+    typedef Handle<ThreadPool> ThreadPoolPtr;
 
-class ThreadPool;
-ICE_API IceUtil::Shared* upCast(ThreadPool*);
-typedef Handle<ThreadPool> ThreadPoolPtr;
+    class ThreadPoolCurrent;
 
-class ThreadPoolCurrent;
-
-}
+} // namespace IceInternal
 
 #endif

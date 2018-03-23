@@ -26,8 +26,7 @@ FileCache::FileCache(const Ice::CommunicatorPtr& com) :
 {
 }
 
-Ice::Long
-FileCache::getOffsetFromEnd(const string& file, int originalCount)
+Ice::Long FileCache::getOffsetFromEnd(const string& file, int originalCount)
 {
     ifstream is(IceUtilInternal::streamFilename(file).c_str()); // file is a UTF-8 string
     if(is.fail())
@@ -51,7 +50,7 @@ FileCache::getOffsetFromEnd(const string& file, int originalCount)
     streampos lastBlockOffset = endOfFile;
     int totalCount = 0;
     string line;
-    deque<pair<streampos, string> > lines;
+    deque<pair<streampos, string>> lines;
     do
     {
         lines.clear();
@@ -106,10 +105,9 @@ FileCache::getOffsetFromEnd(const string& file, int originalCount)
             // read another block of text before this block.
             //
             lastBlockOffset -= blockSize; // Position of the block we just read.
-            blockSize *= 2; // Read a bigger block.
+            blockSize *= 2;               // Read a bigger block.
         }
-    }
-    while(totalCount < originalCount && !is.bad());
+    } while(totalCount < originalCount && !is.bad());
 
     if(is.bad())
     {
@@ -126,8 +124,7 @@ FileCache::getOffsetFromEnd(const string& file, int originalCount)
     }
 }
 
-bool
-FileCache::read(const string& file, Ice::Long offset, int size, Ice::Long& newOffset, Ice::StringSeq& lines)
+bool FileCache::read(const string& file, Ice::Long offset, int size, Ice::Long& newOffset, Ice::StringSeq& lines)
 {
     assert(size > 0);
 

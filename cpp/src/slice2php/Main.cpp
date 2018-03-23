@@ -30,9 +30,9 @@
 #include <sys/stat.h>
 
 #ifdef _WIN32
-#  include <direct.h>
+#    include <direct.h>
 #else
-#  include <unistd.h>
+#    include <unistd.h>
 #endif
 
 using namespace std;
@@ -42,19 +42,18 @@ using namespace IceUtilInternal;
 
 namespace
 {
+    //
+    // Get the fully-qualified name of the given definition. If a suffix is provided,
+    // it is prepended to the definition's unqualified name. If the nameSuffix
+    // is provided, it is appended to the container's name.
+    //
+    string getAbsolute(const ContainedPtr& cont, bool ns, const string& pfx = std::string(),
+                       const string& suffix = std::string())
+    {
+        return scopedToName(cont->scope() + pfx + cont->name() + suffix, ns);
+    }
 
-//
-// Get the fully-qualified name of the given definition. If a suffix is provided,
-// it is prepended to the definition's unqualified name. If the nameSuffix
-// is provided, it is appended to the container's name.
-//
-string
-getAbsolute(const ContainedPtr& cont, bool ns, const string& pfx = std::string(), const string& suffix = std::string())
-{
-    return scopedToName(cont->scope() + pfx + cont->name() + suffix, ns);
-}
-
-}
+} // namespace
 
 //
 // CodeVisitor generates the PHP mapping for a translation unit.
@@ -62,7 +61,6 @@ getAbsolute(const ContainedPtr& cont, bool ns, const string& pfx = std::string()
 class CodeVisitor : public ParserVisitor
 {
 public:
-
     CodeVisitor(IceUtilInternal::Output&, bool);
 
     virtual void visitClassDecl(const ClassDeclPtr&);
@@ -75,7 +73,6 @@ public:
     virtual void visitConst(const ConstPtr&);
 
 private:
-
     void startNamespace(const ContainedPtr&);
     void endNamespace();
 
@@ -133,7 +130,7 @@ private:
     void collectExceptionMembers(const ExceptionPtr&, MemberInfoList&, bool);
 
     Output& _out;
-    bool _ns; // Using namespaces?
+    bool _ns;                  // Using namespaces?
     list<string> _moduleStack; // TODO: Necessary?
     set<string> _classHistory; // TODO: Necessary?
 };
@@ -141,14 +138,11 @@ private:
 //
 // CodeVisitor implementation.
 //
-CodeVisitor::CodeVisitor(Output& out, bool ns) :
-    _out(out),
-    _ns(ns)
+CodeVisitor::CodeVisitor(Output& out, bool ns) : _out(out), _ns(ns)
 {
 }
 
-void
-CodeVisitor::visitClassDecl(const ClassDeclPtr& p)
+void CodeVisitor::visitClassDecl(const ClassDeclPtr& p)
 {
     //
     // Handle forward declarations.
@@ -181,8 +175,7 @@ CodeVisitor::visitClassDecl(const ClassDeclPtr& p)
     }
 }
 
-bool
-CodeVisitor::visitClassDefStart(const ClassDefPtr& p)
+bool CodeVisitor::visitClassDefStart(const ClassDefPtr& p)
 {
     //
     // Do not generate any code for php:internal types, those are provided by
@@ -432,8 +425,8 @@ CodeVisitor::visitClassDefStart(const ClassDefPtr& p)
     //
     const bool preserved = p->hasMetaData("preserve-slice") || p->inheritsMetaData("preserve-slice");
     _out << sp << nl << type << " = IcePHP_defineClass('" << scoped << "', '" << escapeName(abs) << "', "
-         << p->compactId() << ", " << (preserved ? "true" : "false") << ", "
-         << (isInterface ? "true" : "false") << ", ";
+         << p->compactId() << ", " << (preserved ? "true" : "false") << ", " << (isInterface ? "true" : "false")
+         << ", ";
     if(!base || (isInterface && !p->isLocal()))
     {
         _out << "$Ice__t_Value";
@@ -464,8 +457,8 @@ CodeVisitor::visitClassDefStart(const ClassDefPtr& p)
             _out.inc();
             _out << nl << "array('" << fixIdent((*q)->name()) << "', ";
             writeType((*q)->type());
-            _out << ", " << ((*q)->optional() ? "true" : "false") << ", "
-                 << ((*q)->optional() ? (*q)->tag() : 0) << ')';
+            _out << ", " << ((*q)->optional() ? "true" : "false") << ", " << ((*q)->optional() ? (*q)->tag() : 0)
+                 << ')';
             _out.dec();
         }
         _out << ')';
@@ -646,8 +639,7 @@ CodeVisitor::visitClassDefStart(const ClassDefPtr& p)
     return false;
 }
 
-bool
-CodeVisitor::visitExceptionStart(const ExceptionPtr& p)
+bool CodeVisitor::visitExceptionStart(const ExceptionPtr& p)
 {
     //
     // Do not generate any code for php:internal types, those are provided by
@@ -802,8 +794,7 @@ CodeVisitor::visitExceptionStart(const ExceptionPtr& p)
     return false;
 }
 
-bool
-CodeVisitor::visitStructStart(const StructPtr& p)
+bool CodeVisitor::visitStructStart(const StructPtr& p)
 {
     //
     // Do not generate any code for php:internal types, those are provided by
@@ -897,8 +888,7 @@ CodeVisitor::visitStructStart(const StructPtr& p)
     return false;
 }
 
-void
-CodeVisitor::visitSequence(const SequencePtr& p)
+void CodeVisitor::visitSequence(const SequencePtr& p)
 {
     //
     // Do not generate any code for php:internal types, those are provided by
@@ -930,8 +920,7 @@ CodeVisitor::visitSequence(const SequencePtr& p)
     endNamespace();
 }
 
-void
-CodeVisitor::visitDictionary(const DictionaryPtr& p)
+void CodeVisitor::visitDictionary(const DictionaryPtr& p)
 {
     //
     // Do not generate any code for php:internal types, those are provided by
@@ -1004,8 +993,7 @@ CodeVisitor::visitDictionary(const DictionaryPtr& p)
     endNamespace();
 }
 
-void
-CodeVisitor::visitEnum(const EnumPtr& p)
+void CodeVisitor::visitEnum(const EnumPtr& p)
 {
     //
     // Do not generate any code for php:internal types, those are provided by
@@ -1056,8 +1044,7 @@ CodeVisitor::visitEnum(const EnumPtr& p)
     endNamespace();
 }
 
-void
-CodeVisitor::visitConst(const ConstPtr& p)
+void CodeVisitor::visitConst(const ConstPtr& p)
 {
     //
     // Do not generate any code for php:internal types, those are provided by
@@ -1094,21 +1081,19 @@ CodeVisitor::visitConst(const ConstPtr& p)
     endNamespace();
 }
 
-void
-CodeVisitor::startNamespace(const ContainedPtr& cont)
+void CodeVisitor::startNamespace(const ContainedPtr& cont)
 {
     if(_ns)
     {
         string scope = cont->scope();
-        scope = scope.substr(2); // Removing leading '::'
+        scope = scope.substr(2);                     // Removing leading '::'
         scope = scope.substr(0, scope.length() - 2); // Removing trailing '::'
         _out << sp << nl << "namespace " << scopedToName(scope, true);
         _out << sb;
     }
 }
 
-void
-CodeVisitor::endNamespace()
+void CodeVisitor::endNamespace()
 {
     if(_ns)
     {
@@ -1116,14 +1101,12 @@ CodeVisitor::endNamespace()
     }
 }
 
-string
-CodeVisitor::getTypeVar(const ContainedPtr& p, const string& suffix)
+string CodeVisitor::getTypeVar(const ContainedPtr& p, const string& suffix)
 {
     return "$" + getAbsolute(p, false, "_t_", suffix);
 }
 
-string
-CodeVisitor::getName(const ContainedPtr& p, const string& suffix)
+string CodeVisitor::getName(const ContainedPtr& p, const string& suffix)
 {
     if(_ns)
     {
@@ -1135,8 +1118,7 @@ CodeVisitor::getName(const ContainedPtr& p, const string& suffix)
     }
 }
 
-void
-CodeVisitor::writeType(const TypePtr& p)
+void CodeVisitor::writeType(const TypePtr& p)
 {
     BuiltinPtr builtin = BuiltinPtr::dynamicCast(p);
     if(builtin)
@@ -1223,8 +1205,7 @@ CodeVisitor::writeType(const TypePtr& p)
     _out << getTypeVar(cont);
 }
 
-void
-CodeVisitor::writeDefaultValue(const DataMemberPtr& m)
+void CodeVisitor::writeDefaultValue(const DataMemberPtr& m)
 {
     TypePtr p = m->type();
     BuiltinPtr builtin = BuiltinPtr::dynamicCast(p);
@@ -1293,8 +1274,7 @@ CodeVisitor::writeDefaultValue(const DataMemberPtr& m)
     _out << "null";
 }
 
-void
-CodeVisitor::writeAssign(const MemberInfo& info)
+void CodeVisitor::writeAssign(const MemberInfo& info)
 {
     StructPtr st = StructPtr::dynamicCast(info.dataMember->type());
     if(st)
@@ -1308,8 +1288,7 @@ CodeVisitor::writeAssign(const MemberInfo& info)
     }
 }
 
-void
-CodeVisitor::writeConstantValue(const TypePtr& type, const SyntaxTreeBasePtr& valueType, const string& value)
+void CodeVisitor::writeConstantValue(const TypePtr& type, const SyntaxTreeBasePtr& valueType, const string& value)
 {
     ConstPtr constant = ConstPtr::dynamicCast(valueType);
     if(constant)
@@ -1380,8 +1359,7 @@ CodeVisitor::writeConstantValue(const TypePtr& type, const SyntaxTreeBasePtr& va
     }
 }
 
-void
-CodeVisitor::writeConstructorParams(const MemberInfoList& members)
+void CodeVisitor::writeConstructorParams(const MemberInfoList& members)
 {
     for(MemberInfoList::const_iterator p = members.begin(); p != members.end(); ++p)
     {
@@ -1407,16 +1385,14 @@ CodeVisitor::writeConstructorParams(const MemberInfoList& members)
     }
 }
 
-string
-CodeVisitor::getOperationMode(Slice::Operation::Mode mode, bool /*ns*/)
+string CodeVisitor::getOperationMode(Slice::Operation::Mode mode, bool /*ns*/)
 {
     ostringstream ostr;
     ostr << static_cast<int>(mode);
     return ostr.str();
 }
 
-void
-CodeVisitor::collectClassMembers(const ClassDefPtr& p, MemberInfoList& allMembers, bool inherited)
+void CodeVisitor::collectClassMembers(const ClassDefPtr& p, MemberInfoList& allMembers, bool inherited)
 {
     ClassList bases = p->bases();
     if(!bases.empty() && !bases.front()->isInterface())
@@ -1436,8 +1412,7 @@ CodeVisitor::collectClassMembers(const ClassDefPtr& p, MemberInfoList& allMember
     }
 }
 
-void
-CodeVisitor::collectExceptionMembers(const ExceptionPtr& p, MemberInfoList& allMembers, bool inherited)
+void CodeVisitor::collectExceptionMembers(const ExceptionPtr& p, MemberInfoList& allMembers, bool inherited)
 {
     ExceptionPtr base = p->base();
     if(base)
@@ -1457,8 +1432,8 @@ CodeVisitor::collectExceptionMembers(const ExceptionPtr& p, MemberInfoList& allM
     }
 }
 
-static void
-generate(const UnitPtr& un, bool all, bool checksum, bool ns, const vector<string>& includePaths, Output& out)
+static void generate(const UnitPtr& un, bool all, bool checksum, bool ns, const vector<string>& includePaths,
+                     Output& out)
 {
     if(!all)
     {
@@ -1543,19 +1518,16 @@ generate(const UnitPtr& un, bool all, bool checksum, bool ns, const vector<strin
     out << nl; // Trailing newline.
 }
 
-static void
-printHeader(IceUtilInternal::Output& out)
+static void printHeader(IceUtilInternal::Output& out)
 {
-    static const char* header =
-        "// **********************************************************************\n"
-        "//\n"
-        "// Copyright (c) 2003-2018 ZeroC, Inc. All rights reserved.\n"
-        "//\n"
-        "// This copy of Ice is licensed to you under the terms described in the\n"
-        "// ICE_LICENSE file included in this distribution.\n"
-        "//\n"
-        "// **********************************************************************\n"
-        ;
+    static const char* header = "// **********************************************************************\n"
+                                "//\n"
+                                "// Copyright (c) 2003-2018 ZeroC, Inc. All rights reserved.\n"
+                                "//\n"
+                                "// This copy of Ice is licensed to you under the terms described in the\n"
+                                "// ICE_LICENSE file included in this distribution.\n"
+                                "//\n"
+                                "// **********************************************************************\n";
 
     out << header;
     out << "//\n";
@@ -1565,69 +1537,62 @@ printHeader(IceUtilInternal::Output& out)
 
 namespace
 {
+    IceUtil::Mutex* globalMutex = 0;
+    bool interrupted = false;
 
-IceUtil::Mutex* globalMutex = 0;
-bool interrupted = false;
-
-class Init
-{
-public:
-
-    Init()
+    class Init
     {
-        globalMutex = new IceUtil::Mutex;
-    }
+    public:
+        Init()
+        {
+            globalMutex = new IceUtil::Mutex;
+        }
 
-    ~Init()
-    {
-        delete globalMutex;
-        globalMutex = 0;
-    }
-};
+        ~Init()
+        {
+            delete globalMutex;
+            globalMutex = 0;
+        }
+    };
 
-Init init;
+    Init init;
 
-}
+} // namespace
 
-static void
-interruptedCallback(int /*signal*/)
+static void interruptedCallback(int /*signal*/)
 {
     IceUtilInternal::MutexPtrLock<IceUtil::Mutex> sync(globalMutex);
 
     interrupted = true;
 }
 
-static void
-usage(const string& n)
+static void usage(const string& n)
 {
     consoleErr << "Usage: " << n << " [options] slice-files...\n";
-    consoleErr <<
-        "Options:\n"
-        "-h, --help               Show this message.\n"
-        "-v, --version            Display the Ice version.\n"
-        "-DNAME                   Define NAME as 1.\n"
-        "-DNAME=DEF               Define NAME as DEF.\n"
-        "-UNAME                   Remove any definition for NAME.\n"
-        "-IDIR                    Put DIR in the include file search path.\n"
-        "-E                       Print preprocessor output on stdout.\n"
-        "--output-dir DIR         Create files in the directory DIR.\n"
-        "-d, --debug              Print debug messages.\n"
-        "--depend                 Generate Makefile dependencies.\n"
-        "--depend-xml             Generate dependencies in XML format.\n"
-        "--depend-file FILE       Write dependencies to FILE instead of standard output.\n"
-        "--validate               Validate command line options.\n"
-        "--all                    Generate code for Slice definitions in included files.\n"
-        "--no-namespace           Do not use PHP namespaces (deprecated).\n"
-        "--checksum               Generate checksums for Slice definitions.\n"
-        "--ice                    Allow reserved Ice prefix in Slice identifiers\n"
-        "                         deprecated: use instead [[\"ice-prefix\"]] metadata.\n"
-        "--underscore             Allow underscores in Slice identifiers\n"
-        "                         deprecated: use instead [[\"underscore\"]] metadata.\n"
-        ;
+    consoleErr << "Options:\n"
+                  "-h, --help               Show this message.\n"
+                  "-v, --version            Display the Ice version.\n"
+                  "-DNAME                   Define NAME as 1.\n"
+                  "-DNAME=DEF               Define NAME as DEF.\n"
+                  "-UNAME                   Remove any definition for NAME.\n"
+                  "-IDIR                    Put DIR in the include file search path.\n"
+                  "-E                       Print preprocessor output on stdout.\n"
+                  "--output-dir DIR         Create files in the directory DIR.\n"
+                  "-d, --debug              Print debug messages.\n"
+                  "--depend                 Generate Makefile dependencies.\n"
+                  "--depend-xml             Generate dependencies in XML format.\n"
+                  "--depend-file FILE       Write dependencies to FILE instead of standard output.\n"
+                  "--validate               Validate command line options.\n"
+                  "--all                    Generate code for Slice definitions in included files.\n"
+                  "--no-namespace           Do not use PHP namespaces (deprecated).\n"
+                  "--checksum               Generate checksums for Slice definitions.\n"
+                  "--ice                    Allow reserved Ice prefix in Slice identifiers\n"
+                  "                         deprecated: use instead [[\"ice-prefix\"]] metadata.\n"
+                  "--underscore             Allow underscores in Slice identifiers\n"
+                  "                         deprecated: use instead [[\"underscore\"]] metadata.\n";
 }
 
-int
-compile(const vector<string>& argv)
+int compile(const vector<string>& argv)
 {
     IceUtilInternal::Options opts;
     opts.addOpt("h", "help");
@@ -1784,8 +1749,8 @@ compile(const vector<string>& argv)
                 return EXIT_FAILURE;
             }
 
-            if(!icecpp->printMakefileDependencies(os, depend ? Preprocessor::PHP : Preprocessor::SliceXML,
-                                                  includePaths, "-D__SLICE2PHP__"))
+            if(!icecpp->printMakefileDependencies(os, depend ? Preprocessor::PHP : Preprocessor::SliceXML, includePaths,
+                                                  "-D__SLICE2PHP__"))
             {
                 return EXIT_FAILURE;
             }
@@ -1947,7 +1912,8 @@ int main(int argc, char* argv[])
     }
     catch(...)
     {
-        consoleErr << args[0] << ": error:" << "unknown exception" << endl;
+        consoleErr << args[0] << ": error:"
+                   << "unknown exception" << endl;
         return EXIT_FAILURE;
     }
 }

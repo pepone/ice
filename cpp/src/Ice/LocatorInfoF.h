@@ -16,19 +16,18 @@
 
 namespace IceInternal
 {
+    class LocatorManager;
+    IceUtil::Shared* upCast(LocatorManager*);
+    typedef Handle<LocatorManager> LocatorManagerPtr;
 
-class LocatorManager;
-IceUtil::Shared* upCast(LocatorManager*);
-typedef Handle<LocatorManager> LocatorManagerPtr;
+    class LocatorInfo;
+    IceUtil::Shared* upCast(LocatorInfo*);
+    typedef Handle<LocatorInfo> LocatorInfoPtr;
 
-class LocatorInfo;
-IceUtil::Shared* upCast(LocatorInfo*);
-typedef Handle<LocatorInfo> LocatorInfoPtr;
+    class LocatorTable;
+    IceUtil::Shared* upCast(LocatorTable*);
+    typedef Handle<LocatorTable> LocatorTablePtr;
 
-class LocatorTable;
-IceUtil::Shared* upCast(LocatorTable*);
-typedef Handle<LocatorTable> LocatorTablePtr;
-
-}
+} // namespace IceInternal
 
 #endif

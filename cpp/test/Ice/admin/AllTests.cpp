@@ -15,8 +15,7 @@ using namespace std;
 using namespace Test;
 using namespace Ice;
 
-static void
-testFacets(const Ice::CommunicatorPtr& com, bool builtInFacets = true)
+static void testFacets(const Ice::CommunicatorPtr& com, bool builtInFacets = true)
 {
     if(builtInFacets)
     {
@@ -95,7 +94,6 @@ testFacets(const Ice::CommunicatorPtr& com, bool builtInFacets = true)
 class RemoteLoggerI : public Ice::RemoteLogger
 {
 public:
-
     RemoteLoggerI();
 
     virtual void init(ICE_IN(string), ICE_IN(Ice::LogMessageSeq), const Ice::Current&);
@@ -107,7 +105,6 @@ public:
     void wait(int);
 
 private:
-
     IceUtil::Monitor<IceUtil::Mutex> _monitor;
 
     int _receivedCalls;
@@ -124,8 +121,7 @@ RemoteLoggerI::RemoteLoggerI() : _receivedCalls(0)
 {
 }
 
-void
-RemoteLoggerI::init(ICE_IN(string) prefix, ICE_IN(Ice::LogMessageSeq) logMessages, const Ice::Current&)
+void RemoteLoggerI::init(ICE_IN(string) prefix, ICE_IN(Ice::LogMessageSeq) logMessages, const Ice::Current&)
 {
     IceUtil::Monitor<IceUtil::Mutex>::Lock lock(_monitor);
     test(prefix == _expectedPrefix);
@@ -134,8 +130,7 @@ RemoteLoggerI::init(ICE_IN(string) prefix, ICE_IN(Ice::LogMessageSeq) logMessage
     _monitor.notifyAll();
 }
 
-void
-RemoteLoggerI::log(ICE_IN(Ice::LogMessage) logMessage, const Ice::Current&)
+void RemoteLoggerI::log(ICE_IN(Ice::LogMessage) logMessage, const Ice::Current&)
 {
     IceUtil::Monitor<IceUtil::Mutex>::Lock lock(_monitor);
     Ice::LogMessage front = _expectedLogMessages.front();
@@ -148,26 +143,22 @@ RemoteLoggerI::log(ICE_IN(Ice::LogMessage) logMessage, const Ice::Current&)
     _monitor.notifyAll();
 }
 
-void
-RemoteLoggerI::checkNextInit(const string& prefix, const Ice::LogMessageSeq& logMessages)
+void RemoteLoggerI::checkNextInit(const string& prefix, const Ice::LogMessageSeq& logMessages)
 {
     IceUtil::Monitor<IceUtil::Mutex>::Lock lock(_monitor);
     _expectedPrefix = prefix;
     _expectedInitMessages = logMessages;
 }
 
-void
-RemoteLoggerI::checkNextLog(Ice::LogMessageType messageType, const string& message,
-                            const string& category)
+void RemoteLoggerI::checkNextLog(Ice::LogMessageType messageType, const string& message, const string& category)
 {
-    Ice::LogMessage logMessage = { messageType, 0, category, message };
+    Ice::LogMessage logMessage = {messageType, 0, category, message};
 
     IceUtil::Monitor<IceUtil::Mutex>::Lock lock(_monitor);
     _expectedLogMessages.push_back(logMessage);
 }
 
-void
-RemoteLoggerI::wait(int calls)
+void RemoteLoggerI::wait(int calls)
 {
     IceUtil::Monitor<IceUtil::Mutex>::Lock lock(_monitor);
     _receivedCalls -= calls;
@@ -177,8 +168,7 @@ RemoteLoggerI::wait(int calls)
     }
 }
 
-void
-allTests(const Ice::CommunicatorPtr& communicator)
+void allTests(const Ice::CommunicatorPtr& communicator)
 {
     cout << "testing communicator operations... " << flush;
     {
@@ -346,9 +336,9 @@ allTests(const Ice::CommunicatorPtr& communicator)
         Ice::PropertyDict setProps;
         setProps["Prop1"] = "10"; // Changed
         setProps["Prop2"] = "20"; // Changed
-        setProps["Prop3"] = ""; // Removed
-        setProps["Prop4"] = "4"; // Added
-        setProps["Prop5"] = "5"; // Added
+        setProps["Prop3"] = "";   // Removed
+        setProps["Prop4"] = "4";  // Added
+        setProps["Prop5"] = "5";  // Added
         pa->setProperties(setProps);
         test(pa->getProperty("Prop1") == "10");
         test(pa->getProperty("Prop2") == "20");
@@ -369,8 +359,8 @@ allTests(const Ice::CommunicatorPtr& communicator)
         com->removeUpdateCallback();
         Ice::PropertyDict moreProps;
         moreProps["Prop1"] = "11"; // Changed
-        moreProps["Prop2"] = ""; // Removed
-        moreProps["Prop6"] = "6"; // Added
+        moreProps["Prop2"] = "";   // Removed
+        moreProps["Prop6"] = "6";  // Added
         pa->setProperties(moreProps);
         changes = com->getChanges();
         test(changes.empty());
@@ -407,11 +397,11 @@ allTests(const Ice::CommunicatorPtr& communicator)
         com->print("print");
 
         Ice::ObjectPrxPtr obj = com->getAdmin();
-#ifdef ICE_CPP11_MAPPING
+#    ifdef ICE_CPP11_MAPPING
         shared_ptr<Ice::LoggerAdminPrx> logger = Ice::checkedCast<Ice::LoggerAdminPrx>(obj, "Logger");
-#else
+#    else
         Ice::LoggerAdminPrx logger = Ice::LoggerAdminPrx::checkedCast(obj, "Logger");
-#endif
+#    endif
         test(logger);
 
         string prefix;
@@ -419,8 +409,7 @@ allTests(const Ice::CommunicatorPtr& communicator)
         //
         // Get all
         //
-        Ice::LogMessageSeq logMessages =
-            logger->getLog(Ice::LogMessageTypeSeq(), Ice::StringSeq(), -1, prefix);
+        Ice::LogMessageSeq logMessages = logger->getLog(Ice::LogMessageTypeSeq(), Ice::StringSeq(), -1, prefix);
 
         test(logMessages.size() == 4);
         test(prefix == "NullLogger");
@@ -442,15 +431,15 @@ allTests(const Ice::CommunicatorPtr& communicator)
         messageTypes.push_back(ICE_ENUM(LogMessageType, ErrorMessage));
         messageTypes.push_back(ICE_ENUM(LogMessageType, WarningMessage));
 
-        logMessages =
-            logger->getLog(messageTypes, Ice::StringSeq(), -1, prefix);
+        logMessages = logger->getLog(messageTypes, Ice::StringSeq(), -1, prefix);
         test(logMessages.size() == 4);
         test(prefix == "NullLogger");
 
         p = logMessages.begin();
         while(p != logMessages.end())
         {
-            test(p->type == ICE_ENUM(LogMessageType, ErrorMessage) || p->type == ICE_ENUM(LogMessageType, WarningMessage));
+            test(p->type == ICE_ENUM(LogMessageType, ErrorMessage) ||
+                 p->type == ICE_ENUM(LogMessageType, WarningMessage));
             ++p;
         }
 
@@ -468,8 +457,7 @@ allTests(const Ice::CommunicatorPtr& communicator)
         Ice::StringSeq categories;
         categories.push_back("testCat");
 
-        logMessages =
-            logger->getLog(messageTypes, categories, -1, prefix);
+        logMessages = logger->getLog(messageTypes, categories, -1, prefix);
         test(logMessages.size() == 5);
         test(prefix == "NullLogger");
 
@@ -477,7 +465,7 @@ allTests(const Ice::CommunicatorPtr& communicator)
         while(p != logMessages.end())
         {
             test(p->type == ICE_ENUM(LogMessageType, ErrorMessage) ||
-                (p->type == ICE_ENUM(LogMessageType, TraceMessage) && p->traceCategory == "testCat"));
+                 (p->type == ICE_ENUM(LogMessageType, TraceMessage) && p->traceCategory == "testCat"));
             ++p;
         }
 
@@ -486,8 +474,7 @@ allTests(const Ice::CommunicatorPtr& communicator)
         //
         com->error("error3");
 
-        logMessages =
-            logger->getLog(messageTypes, categories, 2, prefix);
+        logMessages = logger->getLog(messageTypes, categories, 2, prefix);
         test(logMessages.size() == 2);
         test(prefix == "NullLogger");
 
@@ -504,8 +491,7 @@ allTests(const Ice::CommunicatorPtr& communicator)
 
         RemoteLoggerIPtr remoteLogger = ICE_MAKE_SHARED(RemoteLoggerI);
 
-        Ice::RemoteLoggerPrxPtr myProxy =
-            ICE_UNCHECKED_CAST(Ice::RemoteLoggerPrx, adapter->addWithUUID(remoteLogger));
+        Ice::RemoteLoggerPrxPtr myProxy = ICE_UNCHECKED_CAST(Ice::RemoteLoggerPrx, adapter->addWithUUID(remoteLogger));
 
         adapter->activate();
 

@@ -15,11 +15,9 @@
 class CountDownLatchTest : public TestBase
 {
 public:
-
     CountDownLatchTest();
 
 private:
-
     virtual void run();
 };
 

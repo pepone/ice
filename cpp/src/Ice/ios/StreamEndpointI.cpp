@@ -33,26 +33,21 @@ using namespace IceInternal;
 
 extern "C"
 {
-
-Plugin*
-createIceTCP(const CommunicatorPtr& com, const string&, const StringSeq&)
-{
-    IceObjC::InstancePtr tcpInstance = new IceObjC::Instance(com, TCPEndpointType, "tcp", false);
-    return new EndpointFactoryPlugin(com, new IceObjC::StreamEndpointFactory(tcpInstance));
-}
-
+    Plugin* createIceTCP(const CommunicatorPtr& com, const string&, const StringSeq&)
+    {
+        IceObjC::InstancePtr tcpInstance = new IceObjC::Instance(com, TCPEndpointType, "tcp", false);
+        return new EndpointFactoryPlugin(com, new IceObjC::StreamEndpointFactory(tcpInstance));
+    }
 }
 
 namespace
 {
+    inline CFStringRef toCFString(const string& s)
+    {
+        return CFStringCreateWithCString(ICE_NULLPTR, s.c_str(), kCFStringEncodingUTF8);
+    }
 
-inline CFStringRef
-toCFString(const string& s)
-{
-    return CFStringCreateWithCString(ICE_NULLPTR, s.c_str(), kCFStringEncodingUTF8);
-}
-
-}
+} // namespace
 
 IceObjC::Instance::Instance(const Ice::CommunicatorPtr& com, Short type, const string& protocol, bool secure) :
     ProtocolInstance(com, type, protocol, secure),
@@ -71,8 +66,8 @@ IceObjC::Instance::Instance(const Ice::CommunicatorPtr& com, Short type, const s
 #if TARGET_IPHONE_SIMULATOR != 0
         throw Ice::FeatureNotSupportedException(__FILE__, __LINE__, "SOCKS proxy not supported");
 #endif
-        _proxySettings.reset(CFDictionaryCreateMutable(0, 3, &kCFTypeDictionaryKeyCallBacks,
-                                                       &kCFTypeDictionaryValueCallBacks));
+        _proxySettings.reset(
+            CFDictionaryCreateMutable(0, 3, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks));
 
         _proxyPort = properties->getPropertyAsIntWithDefault("Ice.SOCKSProxyPort", 1080);
 
@@ -90,11 +85,8 @@ IceObjC::Instance::~Instance()
 {
 }
 
-void
-IceObjC::Instance::setupStreams(CFReadStreamRef readStream,
-                                CFWriteStreamRef writeStream,
-                                bool server,
-                                const string& host) const
+void IceObjC::Instance::setupStreams(CFReadStreamRef readStream, CFWriteStreamRef writeStream, bool server,
+                                     const string& host) const
 {
     if(_voip)
     {
@@ -117,8 +109,7 @@ IceObjC::Instance::setupStreams(CFReadStreamRef readStream,
     }
 }
 
-IceObjC::Instance*
-IceObjC::Instance::clone(const ProtocolInstancePtr& instance)
+IceObjC::Instance* IceObjC::Instance::clone(const ProtocolInstancePtr& instance)
 {
     return new Instance(_communicator, instance->type(), instance->protocol(), instance->secure());
 }
@@ -150,8 +141,7 @@ IceObjC::StreamEndpointI::StreamEndpointI(const InstancePtr& instance, Ice::Inpu
     s->read(const_cast<bool&>(_compress));
 }
 
-EndpointInfoPtr
-IceObjC::StreamEndpointI::getInfo() const ICE_NOEXCEPT
+EndpointInfoPtr IceObjC::StreamEndpointI::getInfo() const ICE_NOEXCEPT
 {
     TCPEndpointInfoPtr info = ICE_MAKE_SHARED(InfoI<Ice::TCPEndpointInfo>, ICE_SHARED_FROM_CONST_THIS(StreamEndpointI));
     IPEndpointI::fillEndpointInfo(info.get());
@@ -160,14 +150,12 @@ IceObjC::StreamEndpointI::getInfo() const ICE_NOEXCEPT
     return info;
 }
 
-Int
-IceObjC::StreamEndpointI::timeout() const
+Int IceObjC::StreamEndpointI::timeout() const
 {
     return _timeout;
 }
 
-EndpointIPtr
-IceObjC::StreamEndpointI::timeout(Int t) const
+EndpointIPtr IceObjC::StreamEndpointI::timeout(Int t) const
 {
     if(t == _timeout)
     {
@@ -179,14 +167,12 @@ IceObjC::StreamEndpointI::timeout(Int t) const
     }
 }
 
-bool
-IceObjC::StreamEndpointI::compress() const
+bool IceObjC::StreamEndpointI::compress() const
 {
     return _compress;
 }
 
-EndpointIPtr
-IceObjC::StreamEndpointI::compress(bool c) const
+EndpointIPtr IceObjC::StreamEndpointI::compress(bool c) const
 {
     if(c == _compress)
     {
@@ -198,40 +184,35 @@ IceObjC::StreamEndpointI::compress(bool c) const
     }
 }
 
-bool
-IceObjC::StreamEndpointI::datagram() const
+bool IceObjC::StreamEndpointI::datagram() const
 {
     return false;
 }
 
-bool
-IceObjC::StreamEndpointI::secure() const
+bool IceObjC::StreamEndpointI::secure() const
 {
     return _instance->secure();
 }
 
-void
-IceObjC::StreamEndpointI::connectors_async(Ice::EndpointSelectionType selType, const EndpointI_connectorsPtr& cb) const
+void IceObjC::StreamEndpointI::connectors_async(Ice::EndpointSelectionType selType,
+                                                const EndpointI_connectorsPtr& cb) const
 {
     vector<ConnectorPtr> connectors;
     connectors.push_back(new StreamConnector(_instance, _host, _port, _timeout, _connectionId));
     cb->connectors(connectors);
 }
 
-TransceiverPtr
-IceObjC::StreamEndpointI::transceiver() const
+TransceiverPtr IceObjC::StreamEndpointI::transceiver() const
 {
     return 0;
 }
 
-AcceptorPtr
-IceObjC::StreamEndpointI::acceptor(const string&) const
+AcceptorPtr IceObjC::StreamEndpointI::acceptor(const string&) const
 {
     return new StreamAcceptor(ICE_SHARED_FROM_CONST_THIS(StreamEndpointI), _instance, _host, _port);
 }
 
-IceObjC::StreamEndpointIPtr
-IceObjC::StreamEndpointI::endpoint(const StreamAcceptorPtr& a) const
+IceObjC::StreamEndpointIPtr IceObjC::StreamEndpointI::endpoint(const StreamAcceptorPtr& a) const
 {
     int port = a->effectivePort();
     if(port == _port)
@@ -240,12 +221,12 @@ IceObjC::StreamEndpointI::endpoint(const StreamAcceptorPtr& a) const
     }
     else
     {
-        return ICE_MAKE_SHARED(StreamEndpointI, _instance, _host, port, _sourceAddr, _timeout, _connectionId, _compress);
+        return ICE_MAKE_SHARED(StreamEndpointI, _instance, _host, port, _sourceAddr, _timeout, _connectionId,
+                               _compress);
     }
 }
 
-string
-IceObjC::StreamEndpointI::options() const
+string IceObjC::StreamEndpointI::options() const
 {
     //
     // WARNING: Certain features, such as proxy validation in Glacier2,
@@ -355,24 +336,21 @@ IceObjC::StreamEndpointI::operator<(const LocalObject& r) const
     return IPEndpointI::operator<(r);
 }
 
-void
-IceObjC::StreamEndpointI::streamWriteImpl(Ice::OutputStream* s) const
+void IceObjC::StreamEndpointI::streamWriteImpl(Ice::OutputStream* s) const
 {
     IPEndpointI::streamWriteImpl(s);
     s->write(_timeout);
     s->write(_compress);
 }
 
-void
-IceObjC::StreamEndpointI::hashInit(Ice::Int& h) const
+void IceObjC::StreamEndpointI::hashInit(Ice::Int& h) const
 {
     IPEndpointI::hashInit(h);
     hashAdd(h, _timeout);
     hashAdd(h, _compress);
 }
 
-bool
-IceObjC::StreamEndpointI::checkOption(const string& option, const string& argument, const string& endpoint)
+bool IceObjC::StreamEndpointI::checkOption(const string& option, const string& argument, const string& endpoint)
 {
     if(IPEndpointI::checkOption(option, argument, endpoint))
     {
@@ -381,57 +359,55 @@ IceObjC::StreamEndpointI::checkOption(const string& option, const string& argume
 
     switch(option[1])
     {
-    case 't':
-    {
-        if(argument.empty())
+        case 't':
         {
-            throw EndpointParseException(__FILE__, __LINE__, "no argument provided for -t option in endpoint " +
-                                         endpoint);
-        }
-
-        if(argument == "infinite")
-        {
-            const_cast<Int&>(_timeout) = -1;
-        }
-        else
-        {
-            istringstream t(argument);
-            if(!(t >> const_cast<Int&>(_timeout)) || !t.eof() || _timeout < 1)
+            if(argument.empty())
             {
-                throw EndpointParseException(__FILE__, __LINE__, "invalid timeout value `" + argument +
-                                             "' in endpoint " + endpoint);
+                throw EndpointParseException(__FILE__, __LINE__,
+                                             "no argument provided for -t option in endpoint " + endpoint);
             }
-        }
-        return true;
-    }
 
-    case 'z':
-    {
-        if(!argument.empty())
+            if(argument == "infinite")
+            {
+                const_cast<Int&>(_timeout) = -1;
+            }
+            else
+            {
+                istringstream t(argument);
+                if(!(t >> const_cast<Int&>(_timeout)) || !t.eof() || _timeout < 1)
+                {
+                    throw EndpointParseException(__FILE__, __LINE__,
+                                                 "invalid timeout value `" + argument + "' in endpoint " + endpoint);
+                }
+            }
+            return true;
+        }
+
+        case 'z':
         {
-            throw EndpointParseException(__FILE__, __LINE__, "unexpected argument `" + argument +
-                                         "' provided for -z option in " + endpoint);
+            if(!argument.empty())
+            {
+                throw EndpointParseException(
+                    __FILE__, __LINE__, "unexpected argument `" + argument + "' provided for -z option in " + endpoint);
+            }
+            const_cast<bool&>(_compress) = true;
+            return true;
         }
-        const_cast<bool&>(_compress) = true;
-        return true;
-    }
 
-    default:
-    {
-        return false;
-    }
+        default:
+        {
+            return false;
+        }
     }
 }
 
-ConnectorPtr
-IceObjC::StreamEndpointI::createConnector(const Address& address, const NetworkProxyPtr& proxy) const
+ConnectorPtr IceObjC::StreamEndpointI::createConnector(const Address& address, const NetworkProxyPtr& proxy) const
 {
     assert(false);
     return 0;
 }
 
-IPEndpointIPtr
-IceObjC::StreamEndpointI::createEndpoint(const string& host, int port, const string& connectionId) const
+IPEndpointIPtr IceObjC::StreamEndpointI::createEndpoint(const string& host, int port, const string& connectionId) const
 {
     return ICE_MAKE_SHARED(StreamEndpointI, _instance, host, port, _sourceAddr, _timeout, connectionId, _compress);
 }
@@ -444,40 +420,34 @@ IceObjC::StreamEndpointFactory::~StreamEndpointFactory()
 {
 }
 
-Short
-IceObjC::StreamEndpointFactory::type() const
+Short IceObjC::StreamEndpointFactory::type() const
 {
     return _instance->type();
 }
 
-string
-IceObjC::StreamEndpointFactory::protocol() const
+string IceObjC::StreamEndpointFactory::protocol() const
 {
     return _instance->protocol();
 }
 
-EndpointIPtr
-IceObjC::StreamEndpointFactory::create(vector<string>& args, bool oaEndpoint) const
+EndpointIPtr IceObjC::StreamEndpointFactory::create(vector<string>& args, bool oaEndpoint) const
 {
     IPEndpointIPtr endpt = ICE_MAKE_SHARED(StreamEndpointI, _instance);
     endpt->initWithOptions(args, oaEndpoint);
     return endpt;
 }
 
-EndpointIPtr
-IceObjC::StreamEndpointFactory::read(Ice::InputStream* s) const
+EndpointIPtr IceObjC::StreamEndpointFactory::read(Ice::InputStream* s) const
 {
     return ICE_MAKE_SHARED(StreamEndpointI, _instance, s);
 }
 
-void
-IceObjC::StreamEndpointFactory::destroy()
+void IceObjC::StreamEndpointFactory::destroy()
 {
     _instance = 0;
 }
 
-EndpointFactoryPtr
-IceObjC::StreamEndpointFactory::clone(const ProtocolInstancePtr& instance) const
+EndpointFactoryPtr IceObjC::StreamEndpointFactory::clone(const ProtocolInstancePtr& instance) const
 {
     return new StreamEndpointFactory(_instance->clone(instance));
 }

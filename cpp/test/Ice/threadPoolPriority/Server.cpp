@@ -13,8 +13,7 @@
 
 using namespace std;
 
-int
-run(int, char**, const Ice::CommunicatorPtr& communicator)
+int run(int, char**, const Ice::CommunicatorPtr& communicator)
 {
     Ice::PropertiesPtr properties = communicator->getProperties();
     communicator->getProperties()->setProperty("TestAdapter.Endpoints", getTestEndpoint(communicator, 0) + " -t 10000");
@@ -30,7 +29,7 @@ run(int, char**, const Ice::CommunicatorPtr& communicator)
     }
     catch(const IceUtil::ThreadSyscallException&)
     {
-        //expected
+        // expected
     }
     catch(...)
     {
@@ -54,8 +53,7 @@ run(int, char**, const Ice::CommunicatorPtr& communicator)
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
 #ifdef ICE_STATIC_LIBS
     Ice::registerIceSSL(false);

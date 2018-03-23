@@ -21,12 +21,10 @@ using namespace Test;
 class AttackClient : public Application
 {
 public:
-
-    virtual int run(int, char*[]);
+    virtual int run(int, char* []);
 };
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
     Ice::InitializationData initData = getTestInitData(argc, argv);
 
@@ -40,8 +38,7 @@ main(int argc, char* argv[])
     return app.main(argc, argv, initData);
 }
 
-int
-AttackClient::run(int, char**)
+int AttackClient::run(int, char**)
 {
     cout << "getting router... " << flush;
     ObjectPrx routerBase = communicator()->stringToProxy("Glacier2/router:" + getTestEndpoint(communicator(), 50));
@@ -113,8 +110,8 @@ AttackClient::run(int, char**)
     cout << "testing server and router shutdown... " << flush;
     backend->shutdown();
     communicator()->setDefaultRouter(0);
-    ObjectPrx adminBase = communicator()->stringToProxy("Glacier2/admin -f Process:" +
-                                                        getTestEndpoint(communicator(), 51));
+    ObjectPrx adminBase =
+        communicator()->stringToProxy("Glacier2/admin -f Process:" + getTestEndpoint(communicator(), 51));
     Ice::ProcessPrx process = Ice::ProcessPrx::checkedCast(adminBase);
     test(process);
     process->shutdown();

@@ -15,11 +15,11 @@
 #include <sys/stat.h>
 
 #ifdef _WIN32
-#include <direct.h>
+#    include <direct.h>
 #endif
 
 #ifndef _WIN32
-#include <unistd.h>
+#    include <unistd.h>
 #endif
 
 using namespace std;
@@ -27,23 +27,19 @@ using namespace Slice;
 using namespace IceUtil;
 using namespace IceUtilInternal;
 
-static string
-lookupKwd(const string& name)
+static string lookupKwd(const string& name)
 {
     //
     // Keyword list. *Must* be kept in alphabetical order.
     //
-    static const string keywordList[] =
-    {
-        "await", "break", "case", "catch", "class", "const", "continue", "debugger", "default", "delete", "do",
-        "else", "enum", "export", "extends", "false", "finally", "for", "function", "if", "implements", "import",
-        "in", "instanceof", "interface", "let", "new", "null", "package", "private", "protected", "public", "return",
-        "static", "super", "switch", "this", "throw", "true", "try", "typeof", "var", "void", "while", "with",
-        "yield"
-    };
-    bool found = binary_search(&keywordList[0],
-                               &keywordList[sizeof(keywordList) / sizeof(*keywordList)],
-                               name,
+    static const string keywordList[] = {
+        "await",     "break",  "case",     "catch",  "class",      "const",   "continue",  "debugger",
+        "default",   "delete", "do",       "else",   "enum",       "export",  "extends",   "false",
+        "finally",   "for",    "function", "if",     "implements", "import",  "in",        "instanceof",
+        "interface", "let",    "new",      "null",   "package",    "private", "protected", "public",
+        "return",    "static", "super",    "switch", "this",       "throw",   "true",      "try",
+        "typeof",    "var",    "void",     "while",  "with",       "yield"};
+    bool found = binary_search(&keywordList[0], &keywordList[sizeof(keywordList) / sizeof(*keywordList)], name,
                                Slice::CICompare());
     if(found)
     {
@@ -56,8 +52,7 @@ lookupKwd(const string& name)
 //
 // Split a scoped name into its components and return the components as a list of (unscoped) identifiers.
 //
-static StringList
-splitScopedName(const string& scoped)
+static StringList splitScopedName(const string& scoped)
 {
     assert(scoped[0] == ':');
     StringList ids;
@@ -88,8 +83,7 @@ splitScopedName(const string& scoped)
     return ids;
 }
 
-static StringList
-fixIds(const StringList& ids)
+static StringList fixIds(const StringList& ids)
 {
     StringList newIds;
     for(StringList::const_iterator i = ids.begin(); i != ids.end(); ++i)
@@ -99,8 +93,7 @@ fixIds(const StringList& ids)
     return newIds;
 }
 
-bool
-Slice::JsGenerator::isClassType(const TypePtr& type)
+bool Slice::JsGenerator::isClassType(const TypePtr& type)
 {
     BuiltinPtr builtin = BuiltinPtr::dynamicCast(type);
     return (builtin && builtin->kind() == Builtin::KindObject) || ClassDeclPtr::dynamicCast(type);
@@ -112,8 +105,7 @@ Slice::JsGenerator::isClassType(const TypePtr& type)
 // their "_"-prefixed version; otherwise, if the passed name is
 // not scoped, but a JS keyword, return the "_"-prefixed name.
 //
-string
-Slice::JsGenerator::fixId(const string& name)
+string Slice::JsGenerator::fixId(const string& name)
 {
     if(name.empty())
     {
@@ -139,35 +131,26 @@ Slice::JsGenerator::fixId(const string& name)
     return result.str();
 }
 
-string
-Slice::JsGenerator::fixId(const ContainedPtr& cont)
+string Slice::JsGenerator::fixId(const ContainedPtr& cont)
 {
     return fixId(cont->name());
 }
 
-string
-Slice::JsGenerator::typeToString(const TypePtr& type)
+string Slice::JsGenerator::typeToString(const TypePtr& type)
 {
     if(!type)
     {
         return "void";
     }
 
-    static const char* builtinTable[] =
-    {
-        "Number",           // byte
-        "Boolean",          // bool
-        "Number",           // short
-        "Number",           // int
-        "Number",           // long
-        "Number",           // float
-        "Number",           // double
-        "String",
-        "Ice.Value",
-        "Ice.ObjectPrx",
-        "Object",
-        "Ice.Value"
-    };
+    static const char* builtinTable[] = {"Number",  // byte
+                                         "Boolean", // bool
+                                         "Number",  // short
+                                         "Number",  // int
+                                         "Number",  // long
+                                         "Number",  // float
+                                         "Number",  // double
+                                         "String",  "Ice.Value", "Ice.ObjectPrx", "Object", "Ice.Value"};
 
     BuiltinPtr builtin = BuiltinPtr::dynamicCast(type);
     if(builtin)
@@ -204,8 +187,7 @@ Slice::JsGenerator::typeToString(const TypePtr& type)
     return "???";
 }
 
-string
-Slice::JsGenerator::getLocalScope(const string& scope, const string& separator)
+string Slice::JsGenerator::getLocalScope(const string& scope, const string& separator)
 {
     assert(!scope.empty());
 
@@ -243,8 +225,7 @@ Slice::JsGenerator::getLocalScope(const string& scope, const string& separator)
     return result.str();
 }
 
-string
-Slice::JsGenerator::getReference(const string& scope, const string& target)
+string Slice::JsGenerator::getReference(const string& scope, const string& target)
 {
     //
     // scope and target should be fully-qualified symbols.
@@ -276,11 +257,7 @@ Slice::JsGenerator::getReference(const string& scope, const string& target)
     }
 }
 
-void
-Slice::JsGenerator::writeMarshalUnmarshalCode(Output &out,
-                                              const TypePtr& type,
-                                              const string& param,
-                                              bool marshal)
+void Slice::JsGenerator::writeMarshalUnmarshalCode(Output& out, const TypePtr& type, const string& param, bool marshal)
 {
     string stream = marshal ? "ostr" : "istr";
 
@@ -454,7 +431,7 @@ Slice::JsGenerator::writeMarshalUnmarshalCode(Output &out,
     {
         if(marshal)
         {
-            out << nl << getHelper(type) <<".write(" << stream << ", " << param << ");";
+            out << nl << getHelper(type) << ".write(" << stream << ", " << param << ");";
         }
         else
         {
@@ -466,12 +443,8 @@ Slice::JsGenerator::writeMarshalUnmarshalCode(Output &out,
     assert(false);
 }
 
-void
-Slice::JsGenerator::writeOptionalMarshalUnmarshalCode(Output &out,
-                                                      const TypePtr& type,
-                                                      const string& param,
-                                                      int tag,
-                                                      bool marshal)
+void Slice::JsGenerator::writeOptionalMarshalUnmarshalCode(Output& out, const TypePtr& type, const string& param,
+                                                           int tag, bool marshal)
 {
     string stream = marshal ? "ostr" : "istr";
 
@@ -493,7 +466,7 @@ Slice::JsGenerator::writeOptionalMarshalUnmarshalCode(Output &out,
     {
         if(marshal)
         {
-            out << nl << typeToString(type) <<"._writeOpt(" << stream << ", " << tag << ", " << param << ");";
+            out << nl << typeToString(type) << "._writeOpt(" << stream << ", " << tag << ", " << param << ");";
         }
         else
         {
@@ -504,7 +477,7 @@ Slice::JsGenerator::writeOptionalMarshalUnmarshalCode(Output &out,
 
     if(marshal)
     {
-        out << nl << getHelper(type) <<".writeOptional(" << stream << ", " << tag << ", " << param << ");";
+        out << nl << getHelper(type) << ".writeOptional(" << stream << ", " << tag << ", " << param << ");";
     }
     else
     {
@@ -512,8 +485,7 @@ Slice::JsGenerator::writeOptionalMarshalUnmarshalCode(Output &out,
     }
 }
 
-std::string
-Slice::JsGenerator::getHelper(const TypePtr& type)
+std::string Slice::JsGenerator::getHelper(const TypePtr& type)
 {
     BuiltinPtr builtin = BuiltinPtr::dynamicCast(type);
     if(builtin)

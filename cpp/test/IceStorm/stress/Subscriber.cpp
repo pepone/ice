@@ -28,9 +28,7 @@ struct Subscription; // Forward declaration.
 class EventI : public Event, public IceUtil::Mutex
 {
 public:
-
-    EventI(const CommunicatorPtr& communicator, int total) :
-        _communicator(communicator), _total(total), _count(0)
+    EventI(const CommunicatorPtr& communicator, int total) : _communicator(communicator), _total(total), _count(0)
     {
     }
 
@@ -45,7 +43,6 @@ public:
     }
 
 protected:
-
     const CommunicatorPtr _communicator;
     const int _total;
     int _count;
@@ -69,18 +66,15 @@ struct Subscription
 class OrderEventI : public EventI
 {
 public:
-
-    OrderEventI(const CommunicatorPtr& communicator, int total) :
-        EventI(communicator, total)
+    OrderEventI(const CommunicatorPtr& communicator, int total) : EventI(communicator, total)
     {
     }
 
-    virtual void
-    pub(int counter, const Ice::Current&)
+    virtual void pub(int counter, const Ice::Current&)
     {
         Lock sync(*this);
 
-        if(counter != _count || counter == _total-1)
+        if(counter != _count || counter == _total - 1)
         {
             if(counter != _count)
             {
@@ -95,14 +89,11 @@ public:
 class CountEventI : public EventI
 {
 public:
-
-    CountEventI(const CommunicatorPtr& communicator, int total) :
-        EventI(communicator, total)
+    CountEventI(const CommunicatorPtr& communicator, int total) : EventI(communicator, total)
     {
     }
 
-    virtual void
-    pub(int, const Ice::Current&)
+    virtual void pub(int, const Ice::Current&)
     {
         Lock sync(*this);
 
@@ -116,14 +107,11 @@ public:
 class SlowEventI : public EventI
 {
 public:
-
-    SlowEventI(const CommunicatorPtr& communicator, int total) :
-        EventI(communicator, total)
+    SlowEventI(const CommunicatorPtr& communicator, int total) : EventI(communicator, total)
     {
     }
 
-    virtual void
-    pub(int, const Ice::Current&)
+    virtual void pub(int, const Ice::Current&)
     {
         Lock sync(*this);
 
@@ -146,16 +134,13 @@ public:
 class ErraticEventI : public EventI
 {
 public:
-
-    ErraticEventI(const CommunicatorPtr& communicator, int total) :
-        EventI(communicator, total), _done(false)
+    ErraticEventI(const CommunicatorPtr& communicator, int total) : EventI(communicator, total), _done(false)
     {
         IceUtilInternal::MutexPtrLock<IceUtil::Mutex> sync(_remainingMutex);
         ++_remaining;
     }
 
-    virtual void
-    pub(int, const Ice::Current& current)
+    virtual void pub(int, const Ice::Current& current)
     {
         Lock sync(*this);
 
@@ -182,7 +167,6 @@ public:
     static IceUtil::Mutex* _remainingMutex;
 
 private:
-
     static int _remaining;
     bool _done;
 };
@@ -193,14 +177,14 @@ int ErraticEventI::_remaining = 0;
 class MaxQueueEventI : public EventI
 {
 public:
-
     MaxQueueEventI(const CommunicatorPtr& communicator, int expected, int total, bool removeSubscriber) :
-        EventI(communicator, total), _removeSubscriber(removeSubscriber), _expected(expected)
+        EventI(communicator, total),
+        _removeSubscriber(removeSubscriber),
+        _expected(expected)
     {
     }
 
-    virtual void
-    pub(int counter, const Ice::Current&)
+    virtual void pub(int counter, const Ice::Current&)
     {
         Lock sync(*this);
 
@@ -226,8 +210,7 @@ public:
         }
     }
 
-    virtual void
-    check(const Subscription& subscription)
+    virtual void check(const Subscription& subscription)
     {
         if(_removeSubscriber)
         {
@@ -252,22 +235,20 @@ public:
     }
 
 private:
-
     bool _removeSubscriber;
     int _expected;
 };
 
-class ControllerEventI: public EventI
+class ControllerEventI : public EventI
 {
 public:
-
     ControllerEventI(const CommunicatorPtr& communicator, int total, const Ice::ObjectAdapterPtr& adapter) :
-        EventI(communicator, total), _adapter(adapter)
+        EventI(communicator, total),
+        _adapter(adapter)
     {
     }
 
-    virtual void
-    pub(int, const Ice::Current&)
+    virtual void pub(int, const Ice::Current&)
     {
         Lock sync(*this);
         if(++_count == _total)
@@ -277,35 +258,31 @@ public:
     }
 
 private:
-
     const Ice::ObjectAdapterPtr _adapter;
 };
 
 namespace
 {
-
-class Init
-{
-public:
-
-    Init()
+    class Init
     {
-        ErraticEventI::_remainingMutex = new IceUtil::Mutex;
-    }
+    public:
+        Init()
+        {
+            ErraticEventI::_remainingMutex = new IceUtil::Mutex;
+        }
 
-    ~Init()
-    {
-        delete ErraticEventI::_remainingMutex;
-        ErraticEventI::_remainingMutex = 0;
-    }
-};
+        ~Init()
+        {
+            delete ErraticEventI::_remainingMutex;
+            ErraticEventI::_remainingMutex = 0;
+        }
+    };
 
-Init init;
+    Init init;
 
-}
+} // namespace
 
-int
-run(int argc, char* argv[], const CommunicatorPtr& communicator)
+int run(int argc, char* argv[], const CommunicatorPtr& communicator)
 {
     IceUtilInternal::Options opts;
     opts.addOpt("", "events", IceUtilInternal::Options::NeedArg);
@@ -348,7 +325,7 @@ run(int argc, char* argv[], const CommunicatorPtr& communicator)
             cerr << argv[0] << ": parse error: no , in QoS" << endl;
             return EXIT_FAILURE;
         }
-        cmdLineQos[q->substr(0, off)] = q->substr(off+1);
+        cmdLineQos[q->substr(0, off)] = q->substr(off + 1);
     }
 
     bool slow = opts.isSet("slow");
@@ -377,8 +354,8 @@ run(int argc, char* argv[], const CommunicatorPtr& communicator)
         return EXIT_FAILURE;
     }
 
-    IceStorm::TopicManagerPrx manager = IceStorm::TopicManagerPrx::checkedCast(
-        communicator->stringToProxy(managerProxy));
+    IceStorm::TopicManagerPrx manager =
+        IceStorm::TopicManagerPrx::checkedCast(communicator->stringToProxy(managerProxy));
     if(!manager)
     {
         cerr << argv[0] << ": `" << managerProxy << "' is not running" << endl;
@@ -389,7 +366,7 @@ run(int argc, char* argv[], const CommunicatorPtr& communicator)
 
     if(erratic)
     {
-        for(int i = 0 ; i < erraticNum; ++i)
+        for(int i = 0; i < erraticNum; ++i)
         {
             ostringstream os;
             os << "SubscriberAdapter" << i;
@@ -482,7 +459,7 @@ run(int argc, char* argv[], const CommunicatorPtr& communicator)
             {
                 p->obj = p->obj->ice_batchOneway();
             }
-            else //if(reliability == "oneway")
+            else // if(reliability == "oneway")
             {
                 p->obj = p->obj->ice_oneway();
             }
@@ -518,8 +495,7 @@ run(int argc, char* argv[], const CommunicatorPtr& communicator)
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
     int status;
     CommunicatorPtr communicator;

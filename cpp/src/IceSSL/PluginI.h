@@ -16,36 +16,34 @@
 
 namespace IceSSL
 {
+    class ICESSL_API PluginI : public virtual IceSSL::Plugin
+    {
+    public:
+        PluginI(const Ice::CommunicatorPtr&, const IceSSL::SSLEnginePtr&);
+        //
+        // From Ice::Plugin.
+        //
+        virtual void initialize();
+        virtual void destroy();
 
-class ICESSL_API PluginI : public virtual IceSSL::Plugin
-{
-public:
-
-    PluginI(const Ice::CommunicatorPtr&, const IceSSL::SSLEnginePtr&);
-    //
-    // From Ice::Plugin.
-    //
-    virtual void initialize();
-    virtual void destroy();
-
-    //
-    // From IceSSL::Plugin.
-    //
+        //
+        // From IceSSL::Plugin.
+        //
 #ifdef ICE_CPP11_MAPPING
-    virtual void setCertificateVerifier(std::function<bool(const std::shared_ptr<ConnectionInfo>&)>);
-    virtual void setPasswordPrompt(std::function<std::string()>);
+        virtual void setCertificateVerifier(std::function<bool(const std::shared_ptr<ConnectionInfo>&)>);
+        virtual void setPasswordPrompt(std::function<std::string()>);
 #else
-    virtual void setCertificateVerifier(const CertificateVerifierPtr&);
-    virtual void setPasswordPrompt(const PasswordPromptPtr&);
+        virtual void setCertificateVerifier(const CertificateVerifierPtr&);
+        virtual void setPasswordPrompt(const PasswordPromptPtr&);
 #endif
 
-    virtual CertificatePtr load(const std::string&) const = 0;
-    virtual CertificatePtr decode(const std::string&) const = 0;
-protected:
+        virtual CertificatePtr load(const std::string&) const = 0;
+        virtual CertificatePtr decode(const std::string&) const = 0;
 
-    SSLEnginePtr _engine;
-};
+    protected:
+        SSLEnginePtr _engine;
+    };
 
-}
+} // namespace IceSSL
 
 #endif

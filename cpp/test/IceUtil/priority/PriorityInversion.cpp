@@ -20,7 +20,7 @@
 #include <map>
 
 #ifndef _WIN32
-#include <unistd.h>
+#    include <unistd.h>
 #endif
 
 using namespace std;
@@ -29,7 +29,6 @@ using namespace IceUtil;
 class TaskCollector : public IceUtil::Shared
 {
 public:
-
     TaskCollector(int cores, int high, int medium, int low, Monitor<Mutex>& monitor) :
         _lowBegin(0),
         _lowEnd(0),
@@ -64,9 +63,9 @@ public:
     void waitAll()
     {
         Monitor<Mutex>::Lock lock(_monitor);
-        while(_mediumBegin < _cores || _highBegin  == 0)
+        while(_mediumBegin < _cores || _highBegin == 0)
         {
-            //Wait until all task are ready to compete by processors
+            // Wait until all task are ready to compete by processors
             _monitor.wait();
         }
     }
@@ -118,7 +117,6 @@ public:
     }
 
 private:
-
     int _lowBegin;
     int _lowEnd;
     int _mediumBegin;
@@ -137,18 +135,18 @@ typedef IceUtil::Handle<TaskCollector> TaskCollectorPtr;
 class SharedResource : public IceUtil::Shared
 {
 public:
-
-    SharedResource(const TaskCollectorPtr& taskCollector) :
-        _taskCollector(taskCollector)
+    SharedResource(const TaskCollectorPtr& taskCollector) : _taskCollector(taskCollector)
     {
     }
 
-    TaskCollectorPtr taskCollector() const { return _taskCollector; }
+    TaskCollectorPtr taskCollector() const
+    {
+        return _taskCollector;
+    }
 
     virtual void run(int priority) = 0;
 
 private:
-
     TaskCollectorPtr _taskCollector;
 };
 typedef IceUtil::Handle<SharedResource> SharedResourcePtr;
@@ -156,9 +154,7 @@ typedef IceUtil::Handle<SharedResource> SharedResourcePtr;
 class SharedResourceMutex : public SharedResource
 {
 public:
-
-    SharedResourceMutex(const TaskCollectorPtr& taskCollector) :
-        SharedResource(taskCollector)
+    SharedResourceMutex(const TaskCollectorPtr& taskCollector) : SharedResource(taskCollector)
     {
     }
 
@@ -189,16 +185,13 @@ public:
     }
 
 private:
-
     IceUtil::Mutex _mutex;
 };
 
 class SharedResourceRecMutex : public SharedResource
 {
 public:
-
-    SharedResourceRecMutex(const TaskCollectorPtr& taskCollector) :
-        SharedResource(taskCollector)
+    SharedResourceRecMutex(const TaskCollectorPtr& taskCollector) : SharedResource(taskCollector)
     {
     }
 
@@ -229,14 +222,12 @@ public:
     }
 
 private:
-
     IceUtil::RecMutex _mutex;
 };
 
 class ThreadCommon : public IceUtil::Thread
 {
 public:
-
     virtual void run() = 0;
     int getPriority()
     {
@@ -257,9 +248,7 @@ public:
 class Task : public ThreadCommon
 {
 public:
-
-    Task(const SharedResourcePtr& shared) :
-        _shared(shared)
+    Task(const SharedResourcePtr& shared) : _shared(shared)
     {
     }
 
@@ -274,7 +263,6 @@ public:
     }
 
 private:
-
     SharedResourcePtr _shared;
 };
 typedef IceUtil::Handle<Task> TaskPtr;
@@ -282,7 +270,6 @@ typedef IceUtil::Handle<Task> TaskPtr;
 class MediumPriorityThread : public ThreadCommon
 {
 public:
-
     MediumPriorityThread(const TaskCollectorPtr& taskCollector, const ThreadPtr& highPriorityThread, int timeout) :
         _taskCollector(taskCollector),
         _highPriorityThread(highPriorityThread),
@@ -312,7 +299,6 @@ public:
     }
 
 private:
-
     const TaskCollectorPtr _taskCollector;
     const ThreadPtr _highPriorityThread;
     const IceUtil::Time _timeout;
@@ -320,18 +306,16 @@ private:
 
 static const string priorityTestName("priority inversion");
 
-PriorityInversionTest::PriorityInversionTest() :
-    TestBase(priorityTestName)
+PriorityInversionTest::PriorityInversionTest() : TestBase(priorityTestName)
 {
 }
 
-void
-PriorityInversionTest::run()
+void PriorityInversionTest::run()
 {
     int cores, high, medium, low, timeout;
     timeout = 30;
 #ifdef _WIN32
-    return; //Priority inversion is not supported by WIN32
+    return; // Priority inversion is not supported by WIN32
 #else
     try
     {

@@ -14,44 +14,40 @@
 #include <Wstring.h>
 
 #ifdef _MSC_VER
-#   pragma warning( 4 : 4503 ) // C4503: ... : decorated name length exceeded, name was truncated
+#    pragma warning(4 : 4503) // C4503: ... : decorated name length exceeded, name was truncated
 #endif
 
 using namespace std;
 
 namespace
 {
-
-template<typename T> bool
-arrayRangeEquals(pair<const T*, const T*> lhs, pair<const T*, const T*> rhs)
-{
-    if(lhs.second - lhs.first != rhs.second - rhs.first)
+    template<typename T> bool arrayRangeEquals(pair<const T*, const T*> lhs, pair<const T*, const T*> rhs)
     {
-        return false;
-    }
-
-    T* l = const_cast<T*>(lhs.first);
-    T* r = const_cast<T*>(rhs.first);
-    while(l != lhs.second)
-    {
-        if(*l++ != *r++)
+        if(lhs.second - lhs.first != rhs.second - rhs.first)
         {
             return false;
         }
-    }
-    return true;
-}
 
-}
+        T* l = const_cast<T*>(lhs.first);
+        T* r = const_cast<T*>(rhs.first);
+        while(l != lhs.second)
+        {
+            if(*l++ != *r++)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+} // namespace
 
 #ifndef ICE_CPP11_MAPPING
 
 class CallbackBase : public IceUtil::Monitor<IceUtil::Mutex>
 {
 public:
-
-    CallbackBase() :
-        _called(false)
+    CallbackBase() : _called(false)
     {
     }
 
@@ -70,7 +66,6 @@ public:
     }
 
 protected:
-
     void called()
     {
         IceUtil::Monitor<IceUtil::Mutex>::Lock sync(*this);
@@ -80,7 +75,6 @@ protected:
     }
 
 private:
-
     bool _called;
 };
 
@@ -89,11 +83,9 @@ class InParam : public Ice::LocalObject
 };
 typedef IceUtil::Handle<InParam> InParamPtr;
 
-template<class T>
-class InParamT : public InParam
+template<class T> class InParamT : public InParam
 {
 public:
-
     InParamT(const T& v) : in(v)
     {
     }
@@ -108,16 +100,13 @@ template<typename T> InParamPtr newInParam(const T& v)
 
 template<typename T> const T& getIn(const InParamPtr& cookie)
 {
-    return dynamic_cast<InParamT<T>* >(cookie.get())->in;
+    return dynamic_cast<InParamT<T>*>(cookie.get())->in;
 }
 
 class Callback : public CallbackBase, public IceUtil::Shared
 {
 public:
-
-    void opString(const Util::string_view& ret,
-                  const Util::string_view& out,
-                  const InParamPtr& cookie)
+    void opString(const Util::string_view& ret, const Util::string_view& out, const InParamPtr& cookie)
     {
         const Util::string_view& in = getIn<Util::string_view>(cookie);
         test(out == ret);
@@ -126,41 +115,37 @@ public:
     }
 
     void opDoubleArray(const ::std::pair<const double*, const double*>& ret,
-                       const ::std::pair<const double*, const double*>& out,
-                       const InParamPtr& cookie)
+                       const ::std::pair<const double*, const double*>& out, const InParamPtr& cookie)
     {
-        const ::std::pair<const double*, const double*>& in = getIn<std::pair<const double*, const double*> >(cookie);
+        const ::std::pair<const double*, const double*>& in = getIn<std::pair<const double*, const double*>>(cookie);
         test(arrayRangeEquals<double>(out, in));
         test(arrayRangeEquals<double>(ret, in));
         called();
     }
 
-    void opBoolArray(const ::std::pair<const bool*, const bool*>& ret,
-                     const ::std::pair<const bool*, const bool*>& out,
+    void opBoolArray(const ::std::pair<const bool*, const bool*>& ret, const ::std::pair<const bool*, const bool*>& out,
                      const InParamPtr& cookie)
     {
-        const ::std::pair<const bool*, const bool*>& in = getIn<std::pair<const bool*, const bool*> >(cookie);
+        const ::std::pair<const bool*, const bool*>& in = getIn<std::pair<const bool*, const bool*>>(cookie);
         test(arrayRangeEquals<bool>(out, in));
         test(arrayRangeEquals<bool>(ret, in));
         called();
     }
 
     void opByteArray(const pair<const Ice::Byte*, const Ice::Byte*>& ret,
-                     const pair<const Ice::Byte*, const Ice::Byte*>& out,
-                     const InParamPtr& cookie)
+                     const pair<const Ice::Byte*, const Ice::Byte*>& out, const InParamPtr& cookie)
     {
-        const pair<const Ice::Byte*, const Ice::Byte*>& in = getIn<pair<const Ice::Byte*, const Ice::Byte*> >(cookie);
+        const pair<const Ice::Byte*, const Ice::Byte*>& in = getIn<pair<const Ice::Byte*, const Ice::Byte*>>(cookie);
         test(arrayRangeEquals<Ice::Byte>(out, in));
         test(arrayRangeEquals<Ice::Byte>(ret, in));
         called();
     }
 
     void opVariableArray(const pair<const Test::Variable*, const Test::Variable*>& ret,
-                         const pair<const Test::Variable*, const Test::Variable*>& out,
-                         const InParamPtr& cookie)
+                         const pair<const Test::Variable*, const Test::Variable*>& out, const InParamPtr& cookie)
     {
         const pair<const Test::Variable*, const Test::Variable*>& in =
-            getIn<pair<const Test::Variable*, const Test::Variable*> >(cookie);
+            getIn<pair<const Test::Variable*, const Test::Variable*>>(cookie);
         test(arrayRangeEquals<Test::Variable>(out, in));
         test(arrayRangeEquals<Test::Variable>(ret, in));
         called();
@@ -170,8 +155,8 @@ public:
                      const pair<Test::BoolSeq::const_iterator, Test::BoolSeq::const_iterator>& out,
                      const InParamPtr& cookie)
     {
-        const pair<Test::BoolSeq::const_iterator, Test::BoolSeq::const_iterator>& in
-            = getIn<pair<Test::BoolSeq::const_iterator, Test::BoolSeq::const_iterator> >(cookie);
+        const pair<Test::BoolSeq::const_iterator, Test::BoolSeq::const_iterator>& in =
+            getIn<pair<Test::BoolSeq::const_iterator, Test::BoolSeq::const_iterator>>(cookie);
         test(equal(out.first, out.second, in.first));
         test(equal(ret.first, ret.second, in.first));
         called();
@@ -182,7 +167,7 @@ public:
                      const InParamPtr& cookie)
     {
         const pair<Test::ByteList::const_iterator, Test::ByteList::const_iterator>& in =
-            getIn<pair<Test::ByteList::const_iterator, Test::ByteList::const_iterator> >(cookie);
+            getIn<pair<Test::ByteList::const_iterator, Test::ByteList::const_iterator>>(cookie);
         test(equal(out.first, out.second, in.first));
         test(equal(ret.first, ret.second, in.first));
         called();
@@ -193,7 +178,7 @@ public:
                          const InParamPtr& cookie)
     {
         const pair<Test::VariableList::const_iterator, Test::VariableList::const_iterator>& in =
-            getIn<pair<Test::VariableList::const_iterator, Test::VariableList::const_iterator> >(cookie);
+            getIn<pair<Test::VariableList::const_iterator, Test::VariableList::const_iterator>>(cookie);
         test(equal(out.first, out.second, in.first));
         test(equal(ret.first, ret.second, in.first));
         called();
@@ -204,20 +189,19 @@ public:
                          const InParamPtr& cookie)
     {
         const pair<Test::ByteList::const_iterator, Test::ByteList::const_iterator>& in =
-            getIn<pair<Test::ByteList::const_iterator, Test::ByteList::const_iterator> >(cookie);
+            getIn<pair<Test::ByteList::const_iterator, Test::ByteList::const_iterator>>(cookie);
         test(equal(out.first, out.second, in.first));
         test(equal(ret.first, ret.second, in.first));
         called();
     }
 
-    void opVariableRangeType(const pair<deque<Test::Variable>::const_iterator,
-                             deque<Test::Variable>::const_iterator>& ret,
-                             const pair<deque<Test::Variable>::const_iterator,
-                             deque<Test::Variable>::const_iterator>& out,
-                             const InParamPtr& cookie)
+    void
+    opVariableRangeType(const pair<deque<Test::Variable>::const_iterator, deque<Test::Variable>::const_iterator>& ret,
+                        const pair<deque<Test::Variable>::const_iterator, deque<Test::Variable>::const_iterator>& out,
+                        const InParamPtr& cookie)
     {
         const pair<deque<Test::Variable>::const_iterator, deque<Test::Variable>::const_iterator>& in =
-            getIn<pair<deque<Test::Variable>::const_iterator, deque<Test::Variable>::const_iterator> >(cookie);
+            getIn<pair<deque<Test::Variable>::const_iterator, deque<Test::Variable>::const_iterator>>(cookie);
 
         test(equal(out.first, out.second, in.first));
         test(equal(ret.first, ret.second, in.first));
@@ -226,7 +210,7 @@ public:
 
     void opBoolSeq(const deque<bool>& ret, const deque<bool>& out, const InParamPtr& cookie)
     {
-        const deque<bool>& in = getIn<deque<bool> >(cookie);
+        const deque<bool>& in = getIn<deque<bool>>(cookie);
         test(out == in);
         test(ret == in);
         called();
@@ -234,7 +218,7 @@ public:
 
     void opBoolList(const list<bool>& ret, const list<bool>& out, const InParamPtr& cookie)
     {
-        const list<bool>& in = getIn<list<bool> >(cookie);
+        const list<bool>& in = getIn<list<bool>>(cookie);
         test(out == in);
         test(ret == in);
         called();
@@ -242,7 +226,7 @@ public:
 
     void opByteSeq(const deque<Ice::Byte>& ret, const deque<Ice::Byte>& out, const InParamPtr& cookie)
     {
-        const deque<Ice::Byte>& in = getIn< deque<Ice::Byte> >(cookie);
+        const deque<Ice::Byte>& in = getIn<deque<Ice::Byte>>(cookie);
         test(out == in);
         test(ret == in);
         called();
@@ -250,7 +234,7 @@ public:
 
     void opByteList(const list<Ice::Byte>& ret, const list<Ice::Byte>& out, const InParamPtr& cookie)
     {
-        const list<Ice::Byte>& in = getIn<list<Ice::Byte> >(cookie);
+        const list<Ice::Byte>& in = getIn<list<Ice::Byte>>(cookie);
         test(out == in);
         test(ret == in);
         called();
@@ -266,7 +250,7 @@ public:
 
     void opStringSeq(const deque<string>& ret, const deque<string>& out, const InParamPtr& cookie)
     {
-        const deque<string>& in = getIn<deque<string> >(cookie);
+        const deque<string>& in = getIn<deque<string>>(cookie);
         test(out == in);
         test(ret == in);
         called();
@@ -274,7 +258,7 @@ public:
 
     void opStringList(const list<string>& ret, const list<string>& out, const InParamPtr& cookie)
     {
-        const list<string>& in = getIn<list<string> >(cookie);
+        const list<string>& in = getIn<list<string>>(cookie);
         test(out == in);
         test(ret == in);
         called();
@@ -282,7 +266,7 @@ public:
 
     void opFixedSeq(const deque<Test::Fixed>& ret, const deque<Test::Fixed>& out, const InParamPtr& cookie)
     {
-        const deque<Test::Fixed>& in = getIn<deque<Test::Fixed> >(cookie);
+        const deque<Test::Fixed>& in = getIn<deque<Test::Fixed>>(cookie);
         test(out == in);
         test(ret == in);
         called();
@@ -290,16 +274,15 @@ public:
 
     void opFixedList(const list<Test::Fixed>& ret, const list<Test::Fixed>& out, const InParamPtr& cookie)
     {
-        const list<Test::Fixed>& in = getIn<list<Test::Fixed> >(cookie);
+        const list<Test::Fixed>& in = getIn<list<Test::Fixed>>(cookie);
         test(out == in);
         test(ret == in);
         called();
     }
 
-    void opVariableSeq(const deque<Test::Variable>& ret, const deque<Test::Variable>& out,
-                       const InParamPtr& cookie)
+    void opVariableSeq(const deque<Test::Variable>& ret, const deque<Test::Variable>& out, const InParamPtr& cookie)
     {
-        const deque<Test::Variable>& in = getIn<deque<Test::Variable> >(cookie);
+        const deque<Test::Variable>& in = getIn<deque<Test::Variable>>(cookie);
         test(out == in);
         test(ret == in);
         called();
@@ -307,7 +290,7 @@ public:
 
     void opVariableList(const list<Test::Variable>& ret, const list<Test::Variable>& out, const InParamPtr& cookie)
     {
-        const list<Test::Variable>& in = getIn<list<Test::Variable> >(cookie);
+        const list<Test::Variable>& in = getIn<list<Test::Variable>>(cookie);
         test(out == in);
         test(ret == in);
         called();
@@ -316,7 +299,7 @@ public:
     void opStringStringDictSeq(const deque<Test::StringStringDict>& ret, const deque<Test::StringStringDict>& out,
                                const InParamPtr& cookie)
     {
-        const deque<Test::StringStringDict>& in = getIn<deque<Test::StringStringDict> >(cookie);
+        const deque<Test::StringStringDict>& in = getIn<deque<Test::StringStringDict>>(cookie);
         test(out == in);
         test(ret == in);
         called();
@@ -325,7 +308,7 @@ public:
     void opStringStringDictList(const list<Test::StringStringDict>& ret, const list<Test::StringStringDict>& out,
                                 const InParamPtr& cookie)
     {
-        const list<Test::StringStringDict>& in = getIn<list<Test::StringStringDict> >(cookie);
+        const list<Test::StringStringDict>& in = getIn<list<Test::StringStringDict>>(cookie);
         test(out == in);
         test(ret == in);
         called();
@@ -333,7 +316,7 @@ public:
 
     void opESeq(const deque<Test::E>& ret, const deque<Test::E>& out, const InParamPtr& cookie)
     {
-        const deque<Test::E>& in = getIn<deque<Test::E> >(cookie);
+        const deque<Test::E>& in = getIn<deque<Test::E>>(cookie);
         test(out == in);
         test(ret == in);
         called();
@@ -341,7 +324,7 @@ public:
 
     void opEList(const list<Test::E>& ret, const list<Test::E>& out, const InParamPtr& cookie)
     {
-        const list<Test::E>& in = getIn<list<Test::E> >(cookie);
+        const list<Test::E>& in = getIn<list<Test::E>>(cookie);
         test(out == in);
         test(ret == in);
         called();
@@ -349,7 +332,7 @@ public:
 
     void opDPrxSeq(const deque<Test::DPrxPtr>& ret, const deque<Test::DPrxPtr>& out, const InParamPtr& cookie)
     {
-        const deque<Test::DPrxPtr>& in = getIn<deque<Test::DPrxPtr> >(cookie);
+        const deque<Test::DPrxPtr>& in = getIn<deque<Test::DPrxPtr>>(cookie);
         test(out == in);
         test(ret == in);
         called();
@@ -357,7 +340,7 @@ public:
 
     void opDPrxList(const list<Test::DPrxPtr>& ret, const list<Test::DPrxPtr>& out, const InParamPtr& cookie)
     {
-        const list<Test::DPrxPtr>& in = getIn<list<Test::DPrxPtr> >(cookie);
+        const list<Test::DPrxPtr>& in = getIn<list<Test::DPrxPtr>>(cookie);
         test(out == in);
         test(ret == in);
         called();
@@ -365,7 +348,7 @@ public:
 
     void opCSeq(const deque<Test::CPtr>& ret, const deque<Test::CPtr>& out, const InParamPtr& cookie)
     {
-        const deque<Test::CPtr>& in = getIn<deque<Test::CPtr> >(cookie);
+        const deque<Test::CPtr>& in = getIn<deque<Test::CPtr>>(cookie);
         test(out.size() == in.size());
         test(ret.size() == in.size());
         for(unsigned int i = 1; i < in.size(); ++i)
@@ -378,7 +361,7 @@ public:
 
     void opCList(const list<Test::CPtr>& ret, const list<Test::CPtr>& out, const InParamPtr& cookie)
     {
-        const list<Test::CPtr>& in = getIn<list<Test::CPtr> >(cookie);
+        const list<Test::CPtr>& in = getIn<list<Test::CPtr>>(cookie);
         test(out.size() == in.size());
         test(ret.size() == in.size());
         list<Test::CPtr>::const_iterator p1;
@@ -390,13 +373,11 @@ public:
         called();
     }
 
-    void opClassStruct(const ::Test::ClassStructPtr& ret,
-                       const ::Test::ClassStructPtr& cs1,
-                       const ::Test::ClassStructSeq& seq,
-                       const InParamPtr& cookie)
+    void opClassStruct(const ::Test::ClassStructPtr& ret, const ::Test::ClassStructPtr& cs1,
+                       const ::Test::ClassStructSeq& seq, const InParamPtr& cookie)
     {
-        pair< ::Test::ClassStructPtr, ::Test::ClassStructSeq> in =
-            getIn<pair< ::Test::ClassStructPtr, ::Test::ClassStructSeq> >(cookie);
+        pair<::Test::ClassStructPtr, ::Test::ClassStructSeq> in =
+            getIn<pair<::Test::ClassStructPtr, ::Test::ClassStructSeq>>(cookie);
         test(ret == in.first);
         test(cs1 == in.first);
         test(seq == in.second);
@@ -425,7 +406,7 @@ public:
         called();
     }
 
-    void opOutRangeByteSeq(const ::std::pair< ::Test::ByteSeq::const_iterator, ::Test::ByteSeq::const_iterator>& data,
+    void opOutRangeByteSeq(const ::std::pair<::Test::ByteSeq::const_iterator, ::Test::ByteSeq::const_iterator>& data,
                            const InParamPtr& cookie)
     {
         const Test::ByteSeq& in = getIn<Test::ByteSeq>(cookie);
@@ -449,10 +430,10 @@ public:
         called();
     }
 
-    void opVarDict(const Test::CustomMap<Ice::Long, Ice::Long>& ret,
-                   const Test::CustomMap<std::string, Ice::Int>& out, const InParamPtr& cookie)
+    void opVarDict(const Test::CustomMap<Ice::Long, Ice::Long>& ret, const Test::CustomMap<std::string, Ice::Int>& out,
+                   const InParamPtr& cookie)
     {
-        const Test::CustomMap<std::string, Ice::Int>& in = getIn<Test::CustomMap<std::string, Ice::Int> >(cookie);
+        const Test::CustomMap<std::string, Ice::Int>& in = getIn<Test::CustomMap<std::string, Ice::Int>>(cookie);
 
         test(out == in);
         test(ret.size() == 1000);
@@ -465,9 +446,10 @@ public:
         called();
     }
 
-    void opCustomIntStringDict(const map<int, Util::string_view>& ret, const map<int, Util::string_view>& out, const InParamPtr& cookie)
+    void opCustomIntStringDict(const map<int, Util::string_view>& ret, const map<int, Util::string_view>& out,
+                               const InParamPtr& cookie)
     {
-        const map<int, Util::string_view>& in = getIn<map<int, Util::string_view> >(cookie);
+        const map<int, Util::string_view>& in = getIn<map<int, Util::string_view>>(cookie);
 
         test(out.size() == in.size());
         test(ret == out);
@@ -554,8 +536,7 @@ public:
         }
     }
 
-    void
-    noEx(const Ice::Exception& ex, const InParamPtr&)
+    void noEx(const Ice::Exception& ex, const InParamPtr&)
     {
         cerr << ex << endl;
         test(false);
@@ -565,8 +546,7 @@ typedef IceUtil::Handle<Callback> CallbackPtr;
 
 #endif
 
-Test::TestIntfPrxPtr
-allTests(const Ice::CommunicatorPtr& communicator)
+Test::TestIntfPrxPtr allTests(const Ice::CommunicatorPtr& communicator)
 {
     const string endp = getTestEndpoint(communicator, 0);
     cout << "testing stringToProxy... " << flush;
@@ -801,8 +781,8 @@ allTests(const Ice::CommunicatorPtr& communicator)
 #ifdef ICE_CPP11_MAPPING
         Test::VariableList ret = t->opVariableRangeType(in, out);
 #else
-        pair<deque<Test::Variable>::const_iterator, deque<Test::Variable>::const_iterator>
-            inPair(inSeq.begin(), inSeq.end());
+        pair<deque<Test::Variable>::const_iterator, deque<Test::Variable>::const_iterator> inPair(inSeq.begin(),
+                                                                                                  inSeq.end());
         Test::VariableList ret = t->opVariableRangeType(inPair, out);
 #endif
         test(out == in);
@@ -838,29 +818,29 @@ allTests(const Ice::CommunicatorPtr& communicator)
     }
 
     {
-        deque< ::Ice::Byte> in(5);
+        deque<::Ice::Byte> in(5);
         in[0] = '1';
         in[1] = '2';
         in[2] = '3';
         in[3] = '4';
         in[4] = '5';
 
-        deque< ::Ice::Byte> out;
-        deque< ::Ice::Byte> ret = t->opByteSeq(in, out);
+        deque<::Ice::Byte> out;
+        deque<::Ice::Byte> ret = t->opByteSeq(in, out);
         test(out == in);
         test(ret == in);
     }
 
     {
-        list< ::Ice::Byte> in;
+        list<::Ice::Byte> in;
         in.push_back('1');
         in.push_back('2');
         in.push_back('3');
         in.push_back('4');
         in.push_back('5');
 
-        list< ::Ice::Byte> out;
-        list< ::Ice::Byte> ret = t->opByteList(in, out);
+        list<::Ice::Byte> out;
+        list<::Ice::Byte> ret = t->opByteList(in, out);
         test(out == in);
         test(ret == in);
     }
@@ -1005,11 +985,11 @@ allTests(const Ice::CommunicatorPtr& communicator)
 
     {
         deque<Test::E> in(5);
-        in[0] = Test:: ICE_ENUM(E, E1);
-        in[1] = Test:: ICE_ENUM(E, E2);
-        in[2] = Test:: ICE_ENUM(E, E3);
-        in[3] = Test:: ICE_ENUM(E, E1);
-        in[4] = Test:: ICE_ENUM(E, E3);
+        in[0] = Test::ICE_ENUM(E, E1);
+        in[1] = Test::ICE_ENUM(E, E2);
+        in[2] = Test::ICE_ENUM(E, E3);
+        in[3] = Test::ICE_ENUM(E, E1);
+        in[4] = Test::ICE_ENUM(E, E3);
 
         deque<Test::E> out;
         deque<Test::E> ret = t->opESeq(in, out);
@@ -1019,11 +999,11 @@ allTests(const Ice::CommunicatorPtr& communicator)
 
     {
         list<Test::E> in;
-        in.push_back(Test:: ICE_ENUM(E, E1));
-        in.push_back(Test:: ICE_ENUM(E, E2));
-        in.push_back(Test:: ICE_ENUM(E, E3));
-        in.push_back(Test:: ICE_ENUM(E, E1));
-        in.push_back(Test:: ICE_ENUM(E, E3));
+        in.push_back(Test::ICE_ENUM(E, E1));
+        in.push_back(Test::ICE_ENUM(E, E2));
+        in.push_back(Test::ICE_ENUM(E, E3));
+        in.push_back(Test::ICE_ENUM(E, E1));
+        in.push_back(Test::ICE_ENUM(E, E3));
 
         list<Test::E> out;
         list<Test::E> ret = t->opEList(in, out);
@@ -1046,7 +1026,7 @@ allTests(const Ice::CommunicatorPtr& communicator)
         auto op = out.begin();
         auto rp = ret.begin();
 
-        for(auto i: in)
+        for(auto i : in)
         {
             test(Ice::targetEqualTo(*op++, i));
             test(Ice::targetEqualTo(*rp++, i));
@@ -1071,7 +1051,7 @@ allTests(const Ice::CommunicatorPtr& communicator)
         auto op = out.begin();
         auto rp = ret.begin();
 
-        for(auto i: in)
+        for(auto i : in)
         {
             test(Ice::targetEqualTo(*op++, i));
             test(Ice::targetEqualTo(*rp++, i));
@@ -1178,8 +1158,7 @@ allTests(const Ice::CommunicatorPtr& communicator)
         Test::IntStringDict ret = t->opCustomIntStringDict(idict, out);
         test(out.size() == idict.size());
         test(out == ret);
-        for(std::map<int, Util::string_view>::const_iterator p = idict.begin();
-            p != idict.end(); ++p)
+        for(std::map<int, Util::string_view>::const_iterator p = idict.begin(); p != idict.end(); ++p)
         {
 #ifdef ICE_CPP11_MAPPING
             test(out[p->first] == p->second.to_string());
@@ -1485,8 +1464,8 @@ allTests(const Ice::CommunicatorPtr& communicator)
             test(r.outSeq == in);
             test(r.returnValue == in);
 #else
-            pair<deque<Test::Variable>::const_iterator, deque<Test::Variable>::const_iterator>
-                inPair(inSeq.begin(), inSeq.end());
+            pair<deque<Test::Variable>::const_iterator, deque<Test::Variable>::const_iterator> inPair(inSeq.begin(),
+                                                                                                      inSeq.end());
             Test::VariableList out;
             Ice::AsyncResultPtr r = t->begin_opVariableRangeType(inPair);
             Test::VariableList ret = t->end_opVariableRangeType(out, r);
@@ -1538,7 +1517,7 @@ allTests(const Ice::CommunicatorPtr& communicator)
         }
 
         {
-            deque< ::Ice::Byte> in(5);
+            deque<::Ice::Byte> in(5);
             in[0] = '1';
             in[1] = '2';
             in[2] = '3';
@@ -1550,16 +1529,16 @@ allTests(const Ice::CommunicatorPtr& communicator)
             test(r.outSeq == in);
             test(r.returnValue == in);
 #else
-            deque< ::Ice::Byte> out;
+            deque<::Ice::Byte> out;
             Ice::AsyncResultPtr r = t->begin_opByteSeq(in);
-            deque< ::Ice::Byte> ret = t->end_opByteSeq(out, r);
+            deque<::Ice::Byte> ret = t->end_opByteSeq(out, r);
             test(out == in);
             test(ret == in);
 #endif
         }
 
         {
-            list< ::Ice::Byte> in;
+            list<::Ice::Byte> in;
             in.push_back('1');
             in.push_back('2');
             in.push_back('3');
@@ -1571,9 +1550,9 @@ allTests(const Ice::CommunicatorPtr& communicator)
             test(r.outSeq == in);
             test(r.returnValue == in);
 #else
-            list< ::Ice::Byte> out;
+            list<::Ice::Byte> out;
             Ice::AsyncResultPtr r = t->begin_opByteList(in);
-            list< ::Ice::Byte> ret = t->end_opByteList(out, r);
+            list<::Ice::Byte> ret = t->end_opByteList(out, r);
             test(out == in);
             test(ret == in);
 #endif
@@ -1782,11 +1761,11 @@ allTests(const Ice::CommunicatorPtr& communicator)
 
         {
             deque<Test::E> in(5);
-            in[0] = Test:: ICE_ENUM(E, E1);
-            in[1] = Test:: ICE_ENUM(E, E2);
-            in[2] = Test:: ICE_ENUM(E, E3);
-            in[3] = Test:: ICE_ENUM(E, E1);
-            in[4] = Test:: ICE_ENUM(E, E3);
+            in[0] = Test::ICE_ENUM(E, E1);
+            in[1] = Test::ICE_ENUM(E, E2);
+            in[2] = Test::ICE_ENUM(E, E3);
+            in[3] = Test::ICE_ENUM(E, E1);
+            in[4] = Test::ICE_ENUM(E, E3);
 
 #ifdef ICE_CPP11_MAPPING
             auto r = t->opESeqAsync(in).get();
@@ -1803,11 +1782,11 @@ allTests(const Ice::CommunicatorPtr& communicator)
 
         {
             list<Test::E> in;
-            in.push_back(Test:: ICE_ENUM(E, E1));
-            in.push_back(Test:: ICE_ENUM(E, E2));
-            in.push_back(Test:: ICE_ENUM(E, E3));
-            in.push_back(Test:: ICE_ENUM(E, E1));
-            in.push_back(Test:: ICE_ENUM(E, E3));
+            in.push_back(Test::ICE_ENUM(E, E1));
+            in.push_back(Test::ICE_ENUM(E, E2));
+            in.push_back(Test::ICE_ENUM(E, E3));
+            in.push_back(Test::ICE_ENUM(E, E1));
+            in.push_back(Test::ICE_ENUM(E, E3));
 
 #ifdef ICE_CPP11_MAPPING
             auto r = t->opEListAsync(in).get();
@@ -1839,7 +1818,7 @@ allTests(const Ice::CommunicatorPtr& communicator)
             auto op = r.outSeq.begin();
             auto rp = r.returnValue.begin();
 
-            for(auto i: in)
+            for(auto i : in)
             {
                 test(Ice::targetEqualTo(*op++, i));
                 test(Ice::targetEqualTo(*rp++, i));
@@ -1870,7 +1849,7 @@ allTests(const Ice::CommunicatorPtr& communicator)
             auto op = r.outSeq.begin();
             auto rp = r.returnValue.begin();
 
-            for(auto i: in)
+            for(auto i : in)
             {
                 test(Ice::targetEqualTo(*op++, i));
                 test(Ice::targetEqualTo(*rp++, i));
@@ -1898,7 +1877,7 @@ allTests(const Ice::CommunicatorPtr& communicator)
             test(r.returnValue.size() == in.size());
 
             auto rp = r.returnValue.begin();
-            for(auto o: r.outSeq)
+            for(auto o : r.outSeq)
             {
                 test(o == r.outSeq[0]);
                 test(*rp++ == o);
@@ -2012,16 +1991,12 @@ allTests(const Ice::CommunicatorPtr& communicator)
         promise<bool> done;
 
         t->opStringAsync(in,
-            [&](Util::string_view ret, Util::string_view out)
-            {
-                test(out == ret);
-                test(in == out);
-                done.set_value(true);
-            },
-            [&](std::exception_ptr)
-            {
-                done.set_value(false);
-            });
+                         [&](Util::string_view ret, Util::string_view out) {
+                             test(out == ret);
+                             test(in == out);
+                             done.set_value(true);
+                         },
+                         [&](std::exception_ptr) { done.set_value(false); });
 
         test(done.get_future().get());
 #else
@@ -2055,18 +2030,14 @@ allTests(const Ice::CommunicatorPtr& communicator)
 
         promise<bool> done;
 
-        t->opDoubleArrayAsync(inPair,
-                              [&](pair<const Ice::Double*, const Ice::Double*> ret,
-                                  pair<const Ice::Double*, const Ice::Double*> out)
-                              {
-                                  test(arrayRangeEquals<double>(out, inPair));
-                                  test(arrayRangeEquals<double>(ret, inPair));
-                                  done.set_value(true);
-                              },
-                              [&](std::exception_ptr)
-                              {
-                                  done.set_value(false);
-                              });
+        t->opDoubleArrayAsync(
+            inPair,
+            [&](pair<const Ice::Double*, const Ice::Double*> ret, pair<const Ice::Double*, const Ice::Double*> out) {
+                test(arrayRangeEquals<double>(out, inPair));
+                test(arrayRangeEquals<double>(ret, inPair));
+                done.set_value(true);
+            },
+            [&](std::exception_ptr) { done.set_value(false); });
 
         test(done.get_future().get());
 #else
@@ -2097,17 +2068,12 @@ allTests(const Ice::CommunicatorPtr& communicator)
         promise<bool> done;
 
         t->opBoolArrayAsync(inPair,
-                            [&](pair<const bool*, const bool*> ret,
-                                pair<const bool*, const bool*> out)
-                            {
+                            [&](pair<const bool*, const bool*> ret, pair<const bool*, const bool*> out) {
                                 test(arrayRangeEquals<bool>(out, inPair));
                                 test(arrayRangeEquals<bool>(ret, inPair));
                                 done.set_value(true);
                             },
-                            [&](std::exception_ptr)
-                            {
-                                done.set_value(false);
-                            });
+                            [&](std::exception_ptr) { done.set_value(false); });
 
         test(done.get_future().get());
 #else
@@ -2132,18 +2098,14 @@ allTests(const Ice::CommunicatorPtr& communicator)
 
         promise<bool> done;
 
-        t->opByteArrayAsync(inPair,
-                            [&](pair<const Ice::Byte*, const Ice::Byte*> ret,
-                                pair<const Ice::Byte*, const Ice::Byte*> out)
-                            {
-                                test(arrayRangeEquals<Ice::Byte>(out, inPair));
-                                test(arrayRangeEquals<Ice::Byte>(ret, inPair));
-                                done.set_value(true);
-                            },
-                            [&](std::exception_ptr)
-                            {
-                                done.set_value(false);
-                            });
+        t->opByteArrayAsync(
+            inPair,
+            [&](pair<const Ice::Byte*, const Ice::Byte*> ret, pair<const Ice::Byte*, const Ice::Byte*> out) {
+                test(arrayRangeEquals<Ice::Byte>(out, inPair));
+                test(arrayRangeEquals<Ice::Byte>(ret, inPair));
+                done.set_value(true);
+            },
+            [&](std::exception_ptr) { done.set_value(false); });
 
         test(done.get_future().get());
 #else
@@ -2177,16 +2139,12 @@ allTests(const Ice::CommunicatorPtr& communicator)
 
         t->opVariableArrayAsync(inPair,
                                 [&](pair<const Test::Variable*, const Test::Variable*> ret,
-                                    pair<const Test::Variable*, const Test::Variable*> out)
-                                {
+                                    pair<const Test::Variable*, const Test::Variable*> out) {
                                     test(arrayRangeEquals<Test::Variable>(out, inPair));
                                     test(arrayRangeEquals<Test::Variable>(ret, inPair));
                                     done.set_value(true);
                                 },
-                                [&](std::exception_ptr)
-                                {
-                                    done.set_value(false);
-                                });
+                                [&](std::exception_ptr) { done.set_value(false); });
 
         test(done.get_future().get());
 #else
@@ -2211,16 +2169,12 @@ allTests(const Ice::CommunicatorPtr& communicator)
         promise<bool> done;
 
         t->opBoolRangeAsync(in,
-                            [&](Test::BoolSeq ret, Test::BoolSeq out)
-                            {
-                                   test(ret == in);
-                                   test(out == in);
-                                   done.set_value(true);
+                            [&](Test::BoolSeq ret, Test::BoolSeq out) {
+                                test(ret == in);
+                                test(out == in);
+                                done.set_value(true);
                             },
-                            [&](std::exception_ptr)
-                            {
-                                done.set_value(false);
-                            });
+                            [&](std::exception_ptr) { done.set_value(false); });
 
         test(done.get_future().get());
 #else
@@ -2247,16 +2201,12 @@ allTests(const Ice::CommunicatorPtr& communicator)
         promise<bool> done;
 
         t->opByteRangeAsync(in,
-                            [&](Test::ByteList ret, Test::ByteList out)
-                            {
+                            [&](Test::ByteList ret, Test::ByteList out) {
                                 test(ret == in);
                                 test(out == in);
                                 done.set_value(true);
                             },
-                            [&](std::exception_ptr)
-                            {
-                                done.set_value(false);
-                            });
+                            [&](std::exception_ptr) { done.set_value(false); });
 
         test(done.get_future().get());
 #else
@@ -2288,16 +2238,12 @@ allTests(const Ice::CommunicatorPtr& communicator)
         promise<bool> done;
 
         t->opVariableRangeAsync(in,
-                                [&](Test::VariableList ret, Test::VariableList out)
-                                {
+                                [&](Test::VariableList ret, Test::VariableList out) {
                                     test(ret == in);
                                     test(out == in);
                                     done.set_value(true);
                                 },
-                                [&](std::exception_ptr)
-                                {
-                                    done.set_value(false);
-                                });
+                                [&](std::exception_ptr) { done.set_value(false); });
 
         test(done.get_future().get());
 #else
@@ -2323,16 +2269,12 @@ allTests(const Ice::CommunicatorPtr& communicator)
         promise<bool> done;
 
         t->opByteRangeTypeAsync(in,
-                                [&](Test::ByteList ret, Test::ByteList out)
-                                {
+                                [&](Test::ByteList ret, Test::ByteList out) {
                                     test(ret == in);
                                     test(out == in);
                                     done.set_value(true);
                                 },
-                                [&](std::exception_ptr)
-                                {
-                                    done.set_value(false);
-                                });
+                                [&](std::exception_ptr) { done.set_value(false); });
 
         test(done.get_future().get());
 #else
@@ -2369,16 +2311,12 @@ allTests(const Ice::CommunicatorPtr& communicator)
         promise<bool> done;
 
         t->opVariableRangeTypeAsync(in,
-                                    [&](Test::VariableList ret, Test::VariableList out)
-                                    {
+                                    [&](Test::VariableList ret, Test::VariableList out) {
                                         test(ret == in);
                                         test(out == in);
                                         done.set_value(true);
                                     },
-                                    [&](std::exception_ptr)
-                                    {
-                                        done.set_value(false);
-                                    });
+                                    [&](std::exception_ptr) { done.set_value(false); });
 
         test(done.get_future().get());
 #else
@@ -2405,16 +2343,12 @@ allTests(const Ice::CommunicatorPtr& communicator)
         promise<bool> done;
 
         t->opBoolSeqAsync(in,
-                          [&](deque<bool>ret, deque<bool> out)
-                          {
+                          [&](deque<bool> ret, deque<bool> out) {
                               test(ret == out);
                               test(ret == in);
                               done.set_value(true);
                           },
-                          [&](std::exception_ptr)
-                          {
-                              done.set_value(false);
-                          });
+                          [&](std::exception_ptr) { done.set_value(false); });
 
         test(done.get_future().get());
 #else
@@ -2439,16 +2373,12 @@ allTests(const Ice::CommunicatorPtr& communicator)
         promise<bool> done;
 
         t->opBoolListAsync(in,
-                          [&](list<bool>ret, list<bool> out)
-                          {
-                              test(ret == out);
-                              test(ret == in);
-                              done.set_value(true);
-                          },
-                          [&](std::exception_ptr)
-                          {
-                              done.set_value(false);
-                          });
+                           [&](list<bool> ret, list<bool> out) {
+                               test(ret == out);
+                               test(ret == in);
+                               done.set_value(true);
+                           },
+                           [&](std::exception_ptr) { done.set_value(false); });
 
         test(done.get_future().get());
 #else
@@ -2461,7 +2391,7 @@ allTests(const Ice::CommunicatorPtr& communicator)
     }
 
     {
-        deque< ::Ice::Byte> in(5);
+        deque<::Ice::Byte> in(5);
         in[0] = '1';
         in[1] = '2';
         in[2] = '3';
@@ -2473,16 +2403,12 @@ allTests(const Ice::CommunicatorPtr& communicator)
         promise<bool> done;
 
         t->opByteSeqAsync(in,
-                          [&](deque<Ice::Byte> ret, deque<Ice::Byte> out)
-                          {
+                          [&](deque<Ice::Byte> ret, deque<Ice::Byte> out) {
                               test(ret == out);
                               test(ret == in);
                               done.set_value(true);
                           },
-                          [&](std::exception_ptr)
-                          {
-                              done.set_value(false);
-                          });
+                          [&](std::exception_ptr) { done.set_value(false); });
 
         test(done.get_future().get());
 #else
@@ -2495,7 +2421,7 @@ allTests(const Ice::CommunicatorPtr& communicator)
     }
 
     {
-        list< ::Ice::Byte> in;
+        list<::Ice::Byte> in;
         in.push_back('1');
         in.push_back('2');
         in.push_back('3');
@@ -2507,16 +2433,12 @@ allTests(const Ice::CommunicatorPtr& communicator)
         promise<bool> done;
 
         t->opByteListAsync(in,
-                           [&](list<Ice::Byte> ret, list<Ice::Byte> out)
-                           {
+                           [&](list<Ice::Byte> ret, list<Ice::Byte> out) {
                                test(ret == out);
                                test(ret == in);
                                done.set_value(true);
                            },
-                           [&](std::exception_ptr)
-                           {
-                               done.set_value(false);
-                           });
+                           [&](std::exception_ptr) { done.set_value(false); });
 
         test(done.get_future().get());
 #else
@@ -2542,16 +2464,12 @@ allTests(const Ice::CommunicatorPtr& communicator)
         promise<bool> done;
 
         t->opMyByteSeqAsync(in,
-                            [&](MyByteSeq ret, MyByteSeq out)
-                            {
+                            [&](MyByteSeq ret, MyByteSeq out) {
                                 test(ret == out);
                                 test(ret == in);
                                 done.set_value(true);
                             },
-                            [&](std::exception_ptr)
-                            {
-                                done.set_value(false);
-                            });
+                            [&](std::exception_ptr) { done.set_value(false); });
 
         test(done.get_future().get());
 #else
@@ -2576,16 +2494,12 @@ allTests(const Ice::CommunicatorPtr& communicator)
         promise<bool> done;
 
         t->opStringSeqAsync(in,
-                            [&](deque<string> ret, deque<string> out)
-                            {
+                            [&](deque<string> ret, deque<string> out) {
                                 test(ret == out);
                                 test(ret == in);
                                 done.set_value(true);
                             },
-                            [&](std::exception_ptr)
-                            {
-                                done.set_value(false);
-                            });
+                            [&](std::exception_ptr) { done.set_value(false); });
 
         test(done.get_future().get());
 #else
@@ -2610,16 +2524,12 @@ allTests(const Ice::CommunicatorPtr& communicator)
         promise<bool> done;
 
         t->opStringListAsync(in,
-                             [&](list<string> ret, list<string> out)
-                             {
+                             [&](list<string> ret, list<string> out) {
                                  test(ret == out);
                                  test(ret == in);
                                  done.set_value(true);
                              },
-                             [&](std::exception_ptr)
-                             {
-                                 done.set_value(false);
-                             });
+                             [&](std::exception_ptr) { done.set_value(false); });
 
         test(done.get_future().get());
 #else
@@ -2644,16 +2554,12 @@ allTests(const Ice::CommunicatorPtr& communicator)
         promise<bool> done;
 
         t->opFixedSeqAsync(in,
-                           [&](deque<Test::Fixed> ret, deque<Test::Fixed> out)
-                           {
+                           [&](deque<Test::Fixed> ret, deque<Test::Fixed> out) {
                                test(ret == out);
                                test(ret == in);
                                done.set_value(true);
                            },
-                           [&](std::exception_ptr)
-                           {
-                               done.set_value(false);
-                           });
+                           [&](std::exception_ptr) { done.set_value(false); });
 
         test(done.get_future().get());
 #else
@@ -2678,16 +2584,12 @@ allTests(const Ice::CommunicatorPtr& communicator)
         promise<bool> done;
 
         t->opFixedListAsync(in,
-                            [&](list<Test::Fixed> ret, list<Test::Fixed> out)
-                            {
+                            [&](list<Test::Fixed> ret, list<Test::Fixed> out) {
                                 test(ret == out);
                                 test(ret == in);
                                 done.set_value(true);
                             },
-                            [&](std::exception_ptr)
-                            {
-                                done.set_value(false);
-                            });
+                            [&](std::exception_ptr) { done.set_value(false); });
 
         test(done.get_future().get());
 #else
@@ -2712,16 +2614,12 @@ allTests(const Ice::CommunicatorPtr& communicator)
         promise<bool> done;
 
         t->opVariableSeqAsync(in,
-                              [&](deque<Test::Variable> ret, deque<Test::Variable> out)
-                              {
+                              [&](deque<Test::Variable> ret, deque<Test::Variable> out) {
                                   test(ret == out);
                                   test(ret == in);
                                   done.set_value(true);
                               },
-                              [&](std::exception_ptr)
-                              {
-                                  done.set_value(false);
-                              });
+                              [&](std::exception_ptr) { done.set_value(false); });
 
         test(done.get_future().get());
 #else
@@ -2752,16 +2650,12 @@ allTests(const Ice::CommunicatorPtr& communicator)
         promise<bool> done;
 
         t->opVariableListAsync(in,
-                               [&](list<Test::Variable> ret, list<Test::Variable> out)
-                               {
+                               [&](list<Test::Variable> ret, list<Test::Variable> out) {
                                    test(ret == out);
                                    test(ret == in);
                                    done.set_value(true);
                                },
-                               [&](std::exception_ptr)
-                               {
-                                   done.set_value(false);
-                               });
+                               [&](std::exception_ptr) { done.set_value(false); });
 
         test(done.get_future().get());
 #else
@@ -2786,16 +2680,12 @@ allTests(const Ice::CommunicatorPtr& communicator)
         promise<bool> done;
 
         t->opStringStringDictSeqAsync(in,
-                                      [&](deque<Test::StringStringDict> ret, deque<Test::StringStringDict> out)
-                                      {
+                                      [&](deque<Test::StringStringDict> ret, deque<Test::StringStringDict> out) {
                                           test(ret == out);
                                           test(ret == in);
                                           done.set_value(true);
-                                       },
-                                      [&](std::exception_ptr)
-                                      {
-                                          done.set_value(false);
-                                      });
+                                      },
+                                      [&](std::exception_ptr) { done.set_value(false); });
 
         test(done.get_future().get());
 #else
@@ -2826,16 +2716,12 @@ allTests(const Ice::CommunicatorPtr& communicator)
         promise<bool> done;
 
         t->opStringStringDictListAsync(in,
-                                   [&](list<Test::StringStringDict> ret, list<Test::StringStringDict> out)
-                                   {
-                                       test(ret == out);
-                                       test(ret == in);
-                                       done.set_value(true);
-                                   },
-                                   [&](std::exception_ptr)
-                                   {
-                                       done.set_value(false);
-                                   });
+                                       [&](list<Test::StringStringDict> ret, list<Test::StringStringDict> out) {
+                                           test(ret == out);
+                                           test(ret == in);
+                                           done.set_value(true);
+                                       },
+                                       [&](std::exception_ptr) { done.set_value(false); });
 
         test(done.get_future().get());
 #else
@@ -2849,27 +2735,23 @@ allTests(const Ice::CommunicatorPtr& communicator)
 
     {
         deque<Test::E> in(5);
-        in[0] = Test:: ICE_ENUM(E, E1);
-        in[1] = Test:: ICE_ENUM(E, E2);
-        in[2] = Test:: ICE_ENUM(E, E3);
-        in[3] = Test:: ICE_ENUM(E, E1);
-        in[4] = Test:: ICE_ENUM(E, E3);
+        in[0] = Test::ICE_ENUM(E, E1);
+        in[1] = Test::ICE_ENUM(E, E2);
+        in[2] = Test::ICE_ENUM(E, E3);
+        in[3] = Test::ICE_ENUM(E, E1);
+        in[4] = Test::ICE_ENUM(E, E3);
 
 #ifdef ICE_CPP11_MAPPING
 
         promise<bool> done;
 
         t->opESeqAsync(in,
-                       [&](deque<Test::E> ret, deque<Test::E> out)
-                       {
+                       [&](deque<Test::E> ret, deque<Test::E> out) {
                            test(ret == out);
                            test(ret == in);
                            done.set_value(true);
                        },
-                       [&](std::exception_ptr)
-                       {
-                           done.set_value(false);
-                       });
+                       [&](std::exception_ptr) { done.set_value(false); });
 
         test(done.get_future().get());
 #else
@@ -2883,27 +2765,23 @@ allTests(const Ice::CommunicatorPtr& communicator)
 
     {
         list<Test::E> in;
-        in.push_back(Test:: ICE_ENUM(E, E1));
-        in.push_back(Test:: ICE_ENUM(E, E2));
-        in.push_back(Test:: ICE_ENUM(E, E3));
-        in.push_back(Test:: ICE_ENUM(E, E1));
-        in.push_back(Test:: ICE_ENUM(E, E3));
+        in.push_back(Test::ICE_ENUM(E, E1));
+        in.push_back(Test::ICE_ENUM(E, E2));
+        in.push_back(Test::ICE_ENUM(E, E3));
+        in.push_back(Test::ICE_ENUM(E, E1));
+        in.push_back(Test::ICE_ENUM(E, E3));
 
 #ifdef ICE_CPP11_MAPPING
 
         promise<bool> done;
 
         t->opEListAsync(in,
-                        [&](list<Test::E> ret, list<Test::E> out)
-                        {
+                        [&](list<Test::E> ret, list<Test::E> out) {
                             test(ret == out);
                             test(ret == in);
                             done.set_value(true);
                         },
-                        [&](std::exception_ptr)
-                        {
-                            done.set_value(false);
-                        });
+                        [&](std::exception_ptr) { done.set_value(false); });
 
         test(done.get_future().get());
 #else
@@ -2928,22 +2806,18 @@ allTests(const Ice::CommunicatorPtr& communicator)
         promise<bool> done;
 
         t->opDPrxSeqAsync(in,
-                          [&](deque<shared_ptr<Test::DPrx>> ret, deque<shared_ptr<Test::DPrx>> out)
-                          {
+                          [&](deque<shared_ptr<Test::DPrx>> ret, deque<shared_ptr<Test::DPrx>> out) {
                               test(ret.size() == in.size());
                               auto op = out.begin();
                               auto rp = ret.begin();
-                              for(auto i: in)
+                              for(auto i : in)
                               {
                                   test(Ice::targetEqualTo(*op++, i));
                                   test(Ice::targetEqualTo(*rp++, i));
                               }
                               done.set_value(true);
                           },
-                          [&](std::exception_ptr)
-                          {
-                              done.set_value(false);
-                          });
+                          [&](std::exception_ptr) { done.set_value(false); });
 
         test(done.get_future().get());
 #else
@@ -2968,22 +2842,18 @@ allTests(const Ice::CommunicatorPtr& communicator)
         promise<bool> done;
 
         t->opDPrxListAsync(in,
-                           [&](list<shared_ptr<Test::DPrx>> ret, list<shared_ptr<Test::DPrx>> out)
-                           {
+                           [&](list<shared_ptr<Test::DPrx>> ret, list<shared_ptr<Test::DPrx>> out) {
                                test(ret.size() == in.size());
-                              auto op = out.begin();
-                              auto rp = ret.begin();
-                              for(auto i: in)
-                              {
-                                  test(Ice::targetEqualTo(*op++, i));
-                                  test(Ice::targetEqualTo(*rp++, i));
-                              }
-                              done.set_value(true);
-                          },
-                          [&](std::exception_ptr)
-                          {
-                              done.set_value(false);
-                          });
+                               auto op = out.begin();
+                               auto rp = ret.begin();
+                               for(auto i : in)
+                               {
+                                   test(Ice::targetEqualTo(*op++, i));
+                                   test(Ice::targetEqualTo(*rp++, i));
+                               }
+                               done.set_value(true);
+                           },
+                           [&](std::exception_ptr) { done.set_value(false); });
 
         test(done.get_future().get());
 #else
@@ -3008,21 +2878,18 @@ allTests(const Ice::CommunicatorPtr& communicator)
         promise<bool> done;
 
         t->opCSeqAsync(in,
-                       [&](deque<shared_ptr<Test::C>> ret, deque<shared_ptr<Test::C>> out)
-                       {
+                       [&](deque<shared_ptr<Test::C>> ret, deque<shared_ptr<Test::C>> out) {
                            test(ret == out);
                            test(ret.size() == in.size());
                            done.set_value(true);
                        },
-                       [&](std::exception_ptr)
-                       {
-                           done.set_value(false);
-                       });
+                       [&](std::exception_ptr) { done.set_value(false); });
 
         test(done.get_future().get());
 #else
         CallbackPtr cb = new Callback();
-        Test::Callback_TestIntf_opCSeqPtr callback = Test::newCallback_TestIntf_opCSeq(cb, &Callback::opCSeq, &Callback::noEx);
+        Test::Callback_TestIntf_opCSeqPtr callback =
+            Test::newCallback_TestIntf_opCSeq(cb, &Callback::opCSeq, &Callback::noEx);
         t->begin_opCSeq(in, callback, newInParam(in));
         cb->check();
 #endif
@@ -3041,16 +2908,12 @@ allTests(const Ice::CommunicatorPtr& communicator)
         promise<bool> done;
 
         t->opCListAsync(in,
-                        [&](list<shared_ptr<Test::C>> ret, list<shared_ptr<Test::C>> out)
-                        {
+                        [&](list<shared_ptr<Test::C>> ret, list<shared_ptr<Test::C>> out) {
                             test(ret == out);
                             test(ret.size() == in.size());
                             done.set_value(true);
                         },
-                        [&](std::exception_ptr)
-                        {
-                            done.set_value(false);
-                        });
+                        [&](std::exception_ptr) { done.set_value(false); });
 
         test(done.get_future().get());
 #else
@@ -3073,23 +2936,19 @@ allTests(const Ice::CommunicatorPtr& communicator)
 
         promise<bool> done;
 
-        t->opOutArrayByteSeqAsync(in,
-                                  [&](pair<const Ice::Byte*, const Ice::Byte*> out)
-                                  {
-                                      test(arrayRangeEquals<Ice::Byte>(
-                                               make_pair<const Ice::Byte*>(&in[0], &in[0] + in.size()), out));
-                                      done.set_value(true);
-                                  },
-                                  [&](std::exception_ptr)
-                                  {
-                                      done.set_value(false);
-                                  });
+        t->opOutArrayByteSeqAsync(
+            in,
+            [&](pair<const Ice::Byte*, const Ice::Byte*> out) {
+                test(arrayRangeEquals<Ice::Byte>(make_pair<const Ice::Byte*>(&in[0], &in[0] + in.size()), out));
+                done.set_value(true);
+            },
+            [&](std::exception_ptr) { done.set_value(false); });
 
         test(done.get_future().get());
 #else
         CallbackPtr cb = new Callback();
-        Test::Callback_TestIntf_opOutArrayByteSeqPtr callback = Test::newCallback_TestIntf_opOutArrayByteSeq(cb,
-                                                                                                             &Callback::opOutArrayByteSeq, &Callback::noEx);
+        Test::Callback_TestIntf_opOutArrayByteSeqPtr callback =
+            Test::newCallback_TestIntf_opOutArrayByteSeq(cb, &Callback::opOutArrayByteSeq, &Callback::noEx);
 
         t->begin_opOutArrayByteSeq(in, callback, newInParam(in));
         cb->check();
@@ -3108,21 +2967,17 @@ allTests(const Ice::CommunicatorPtr& communicator)
         promise<bool> done;
 
         t->opOutRangeByteSeqAsync(in,
-                                  [&](Test::ByteSeq out)
-                                  {
+                                  [&](Test::ByteSeq out) {
                                       test(out == in);
                                       done.set_value(true);
                                   },
-                                  [&](std::exception_ptr)
-                                  {
-                                      done.set_value(false);
-                                  });
+                                  [&](std::exception_ptr) { done.set_value(false); });
 
         test(done.get_future().get());
 #else
         CallbackPtr cb = new Callback();
-        Test::Callback_TestIntf_opOutRangeByteSeqPtr callback = Test::newCallback_TestIntf_opOutRangeByteSeq(cb,
-                                                                                                             &Callback::opOutRangeByteSeq, &Callback::noEx);
+        Test::Callback_TestIntf_opOutRangeByteSeqPtr callback =
+            Test::newCallback_TestIntf_opOutRangeByteSeq(cb, &Callback::opOutRangeByteSeq, &Callback::noEx);
 
         t->begin_opOutRangeByteSeq(in, callback, newInParam(in));
         cb->check();
@@ -3168,7 +3023,7 @@ allTests(const Ice::CommunicatorPtr& communicator)
             auto r = t->opVarDictAsync(idict).get();
             test(r.odict == idict);
             test(r.returnValue.size() == 1000);
-            for(auto i: r.returnValue)
+            for(auto i : r.returnValue)
             {
                 test(i.second == i.first * i.first);
             }
@@ -3202,7 +3057,7 @@ allTests(const Ice::CommunicatorPtr& communicator)
 
             test(r.odict == r.returnValue);
 
-            for(auto i: idict)
+            for(auto i : idict)
             {
                 test(r.odict[i.first] == i.second);
             }
@@ -3215,15 +3070,13 @@ allTests(const Ice::CommunicatorPtr& communicator)
 
             test(out.size() == idict.size());
             test(out == ret);
-            for(std::map<int, Util::string_view>::const_iterator p = idict.begin();
-                p != idict.end(); ++p)
+            for(std::map<int, Util::string_view>::const_iterator p = idict.begin(); p != idict.end(); ++p)
             {
                 test(out[p->first].size() == p->second.size());
                 //  test(out[p->first] == p->second.to_string()); does not always work due to string converter
             }
 #endif
         }
-
     }
     cout << "ok" << endl;
 
@@ -3241,16 +3094,12 @@ allTests(const Ice::CommunicatorPtr& communicator)
             promise<bool> done;
 
             t->opIntStringDictAsync(idict,
-                                    [&](map<int, string> ret, map<int, string> out)
-                                    {
+                                    [&](map<int, string> ret, map<int, string> out) {
                                         test(ret == out);
                                         test(ret == idict);
                                         done.set_value(true);
                                     },
-                                    [&](std::exception_ptr)
-                                    {
-                                        done.set_value(false);
-                                    });
+                                    [&](std::exception_ptr) { done.set_value(false); });
 
             test(done.get_future().get());
 
@@ -3275,20 +3124,16 @@ allTests(const Ice::CommunicatorPtr& communicator)
             promise<bool> done;
 
             t->opVarDictAsync(idict,
-                              [&](Test::CustomMap<long long, long long> ret, Test::CustomMap<string, int> out)
-                              {
+                              [&](Test::CustomMap<long long, long long> ret, Test::CustomMap<string, int> out) {
                                   test(out == idict);
-                                  for(auto i: ret)
+                                  for(auto i : ret)
                                   {
                                       test(i.second == i.first * i.first);
                                   }
 
                                   done.set_value(true);
                               },
-                              [&](std::exception_ptr)
-                              {
-                                  done.set_value(false);
-                              });
+                              [&](std::exception_ptr) { done.set_value(false); });
 
             test(done.get_future().get());
 
@@ -3314,20 +3159,16 @@ allTests(const Ice::CommunicatorPtr& communicator)
             promise<bool> done;
 
             t->opCustomIntStringDictAsync(idict,
-                                          [&](map<int, Util::string_view> ret, map<int, Util::string_view> out)
-                                          {
+                                          [&](map<int, Util::string_view> ret, map<int, Util::string_view> out) {
                                               test(ret == out);
-                                              for(auto i: idict)
+                                              for(auto i : idict)
                                               {
                                                   test(ret[i.first] == i.second);
                                               }
 
                                               done.set_value(true);
-                                           },
-                                           [&](std::exception_ptr)
-                                           {
-                                              done.set_value(false);
-                                           });
+                                          },
+                                          [&](std::exception_ptr) { done.set_value(false); });
 
             test(done.get_future().get());
 #else
@@ -3338,7 +3179,6 @@ allTests(const Ice::CommunicatorPtr& communicator)
             cb->check();
 #endif
         }
-
     }
     cout << "ok" << endl;
 
@@ -3435,16 +3275,12 @@ allTests(const Ice::CommunicatorPtr& communicator)
         promise<bool> done;
 
         wsc1->opStringAsync(wstr,
-                            [&](wstring ret, wstring out)
-                            {
+                            [&](wstring ret, wstring out) {
                                 test(out == wstr);
                                 test(ret == wstr);
                                 done.set_value(true);
                             },
-                            [&](std::exception_ptr)
-                            {
-                                done.set_value(false);
-                            });
+                            [&](std::exception_ptr) { done.set_value(false); });
 
         test(done.get_future().get());
 #else
@@ -3478,22 +3314,18 @@ allTests(const Ice::CommunicatorPtr& communicator)
         promise<bool> done;
 
         wsc2->opStringAsync(wstr,
-                            [&](wstring ret, wstring out)
-                            {
+                            [&](wstring ret, wstring out) {
                                 test(out == wstr);
                                 test(ret == wstr);
                                 done.set_value(true);
                             },
-                            [&](std::exception_ptr)
-                            {
-                                done.set_value(false);
-                            });
+                            [&](std::exception_ptr) { done.set_value(false); });
 
         test(done.get_future().get());
 #else
         CallbackPtr cb = new Callback();
-        wsc2->begin_opString(wstr, Test2::newCallback_WstringClass_opString(cb, &Callback::opString,
-                                                                            &Callback::noEx), newInParam(wstr));
+        wsc2->begin_opString(wstr, Test2::newCallback_WstringClass_opString(cb, &Callback::opString, &Callback::noEx),
+                             newInParam(wstr));
         cb->check();
 #endif
     }
@@ -3548,18 +3380,12 @@ allTests(const Ice::CommunicatorPtr& communicator)
 #endif
     }
     {
-
 #ifdef ICE_CPP11_MAPPING
 
         promise<bool> done;
 
-        wsc1->throwExceptAsync(wstr,
-                               [&]()
-                               {
-                                   done.set_value(false);
-                               },
-                               [&](std::exception_ptr eptr)
-                               {
+        wsc1->throwExceptAsync(wstr, [&]() { done.set_value(false); },
+                               [&](std::exception_ptr eptr) {
                                    try
                                    {
                                        std::rethrow_exception(eptr);
@@ -3593,7 +3419,6 @@ allTests(const Ice::CommunicatorPtr& communicator)
     }
 
     {
-
 #ifdef ICE_CPP11_MAPPING
 
         auto f = wsc2->throwExceptAsync(wstr);
@@ -3624,13 +3449,8 @@ allTests(const Ice::CommunicatorPtr& communicator)
 
         promise<bool> done;
 
-        wsc2->throwExceptAsync(wstr,
-                               [&]()
-                               {
-                                   done.set_value(false);
-                               },
-                               [&](std::exception_ptr eptr)
-                               {
+        wsc2->throwExceptAsync(wstr, [&]() { done.set_value(false); },
+                               [&](std::exception_ptr eptr) {
                                    try
                                    {
                                        std::rethrow_exception(eptr);

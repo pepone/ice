@@ -15,34 +15,31 @@
 
 namespace IceGrid
 {
+    class Database;
+    typedef IceUtil::Handle<Database> DatabasePtr;
 
-class Database;
-typedef IceUtil::Handle<Database> DatabasePtr;
+    class QueryI : public Query, public IceUtil::Mutex
+    {
+    public:
+        QueryI(const Ice::CommunicatorPtr&, const DatabasePtr&);
+        virtual ~QueryI();
 
-class QueryI : public Query, public IceUtil::Mutex
-{
-public:
+        virtual Ice::ObjectPrx findObjectById(const ::Ice::Identity&, const ::Ice::Current&) const;
 
-    QueryI(const Ice::CommunicatorPtr&, const DatabasePtr&);
-    virtual ~QueryI();
+        virtual Ice::ObjectPrx findObjectByType(const ::std::string&, const ::Ice::Current&) const;
 
-    virtual Ice::ObjectPrx findObjectById(const ::Ice::Identity&, const ::Ice::Current&) const;
+        virtual Ice::ObjectPrx findObjectByTypeOnLeastLoadedNode(const ::std::string&, LoadSample,
+                                                                 const ::Ice::Current&) const;
 
-    virtual Ice::ObjectPrx findObjectByType(const ::std::string&, const ::Ice::Current&) const;
+        virtual Ice::ObjectProxySeq findAllObjectsByType(const ::std::string&, const ::Ice::Current&) const;
 
-    virtual Ice::ObjectPrx findObjectByTypeOnLeastLoadedNode(const ::std::string&, LoadSample,
-                                                             const ::Ice::Current&) const;
+        virtual Ice::ObjectProxySeq findAllReplicas(const Ice::ObjectPrx&, const Ice::Current&) const;
 
-    virtual Ice::ObjectProxySeq findAllObjectsByType(const ::std::string&, const ::Ice::Current&) const;
+    private:
+        const Ice::CommunicatorPtr _communicator;
+        const DatabasePtr _database;
+    };
 
-    virtual Ice::ObjectProxySeq findAllReplicas(const Ice::ObjectPrx&, const Ice::Current&) const;
-
-private:
-
-    const Ice::CommunicatorPtr _communicator;
-    const DatabasePtr _database;
-};
-
-}
+} // namespace IceGrid
 
 #endif

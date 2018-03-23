@@ -21,8 +21,7 @@ using namespace std;
 static bool useLocale = false;
 static bool useIconv = true;
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
 #ifdef ICE_STATIC_LIBS
     Ice::registerIceSSL(false);
@@ -48,7 +47,6 @@ main(int argc, char* argv[])
 
     if(useIconv)
     {
-
 #if defined(__hpux)
         narrowEncoding = "iso815";
         wideEncoding = "ucs4";
@@ -72,19 +70,19 @@ main(int argc, char* argv[])
 
         if(sizeof(wchar_t) == 4)
         {
-#  ifdef ICE_BIG_ENDIAN
+#    ifdef ICE_BIG_ENDIAN
             wideEncoding = "UTF-32BE";
-#  else
+#    else
             wideEncoding = "UTF-32LE";
-#  endif
+#    endif
         }
         else
         {
-#  ifdef ICE_BIG_ENDIAN
+#    ifdef ICE_BIG_ENDIAN
             wideEncoding = "UTF-16BE";
-#  else
+#    else
             wideEncoding = "UTF-16LE";
-#  endif
+#    endif
         }
 #endif
     }
@@ -110,9 +108,8 @@ main(int argc, char* argv[])
 #endif
 
         Ice::CommunicatorPtr communicator = Ice::initialize(initData);
-        Test::MyObjectPrxPtr proxy =
-            ICE_UNCHECKED_CAST(Test::MyObjectPrx,
-                               communicator->stringToProxy("test:" + getTestEndpoint(communicator, 0)));
+        Test::MyObjectPrxPtr proxy = ICE_UNCHECKED_CAST(
+            Test::MyObjectPrx, communicator->stringToProxy("test:" + getTestEndpoint(communicator, 0)));
 
         char oe = char(0xBD); // A single character in ISO Latin 9
         string msg = string("tu me fends le c") + oe + "ur!";
@@ -155,7 +152,7 @@ main(int argc, char* argv[])
     string propValue = "Ice:createStringConverter";
     if(useIconv && !useLocale)
     {
-        propValue +=  " iconv=" + narrowEncoding + "," + wideEncoding;
+        propValue += " iconv=" + narrowEncoding + "," + wideEncoding;
     }
     propValue += " windows=28605";
 
@@ -163,8 +160,7 @@ main(int argc, char* argv[])
 
     Ice::CommunicatorPtr communicator = Ice::initialize(initData);
     Test::MyObjectPrxPtr proxy =
-        ICE_UNCHECKED_CAST(Test::MyObjectPrx,
-                           communicator->stringToProxy("test:" + getTestEndpoint(communicator, 0)));
+        ICE_UNCHECKED_CAST(Test::MyObjectPrx, communicator->stringToProxy("test:" + getTestEndpoint(communicator, 0)));
 
     char oe = char(0xBD); // A single character in ISO Latin 9
     string msg = string("tu me fends le c") + oe + "ur!";

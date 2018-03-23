@@ -15,8 +15,7 @@
 using namespace std;
 using namespace Test;
 
-int
-run(int, char**, const Ice::CommunicatorPtr& comm)
+int run(int, char**, const Ice::CommunicatorPtr& comm)
 {
     void allTests(const Ice::CommunicatorPtr&);
     allTests(comm);
@@ -29,8 +28,7 @@ run(int, char**, const Ice::CommunicatorPtr& comm)
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
     int status;
 

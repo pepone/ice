@@ -13,7 +13,7 @@
 #include <Configuration.h>
 
 #ifdef _MSC_VER
-#   pragma comment(lib, ICE_LIBNAME("testtransport"))
+#    pragma comment(lib, ICE_LIBNAME("testtransport"))
 #endif
 
 using namespace std;
@@ -21,13 +21,10 @@ using namespace Test;
 
 extern "C"
 {
-
-Ice::Plugin* createTestTransport(const Ice::CommunicatorPtr&, const std::string&, const Ice::StringSeq&);
-
+    Ice::Plugin* createTestTransport(const Ice::CommunicatorPtr&, const std::string&, const Ice::StringSeq&);
 };
 
-int
-run(int, char**, const Ice::CommunicatorPtr& communicator)
+int run(int, char**, const Ice::CommunicatorPtr& communicator)
 {
     BackgroundPrxPtr allTests(const Ice::CommunicatorPtr&);
     BackgroundPrxPtr background = allTests(communicator);
@@ -35,8 +32,7 @@ run(int, char**, const Ice::CommunicatorPtr& communicator)
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
 #ifdef ICE_STATIC_LIBS
     Ice::registerIceSSL(false);

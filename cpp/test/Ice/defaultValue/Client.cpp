@@ -16,8 +16,7 @@ using namespace Test;
 
 DEFINE_TEST("client")
 
-int
-run(int, char**)
+int run(int, char**)
 {
     void allTests();
     allTests();
@@ -25,8 +24,7 @@ run(int, char**)
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
     int status;
 

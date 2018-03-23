@@ -19,13 +19,11 @@ using namespace IceUtil;
 
 static const string createTestName("thread sleep");
 
-SleepTest::SleepTest() :
-    TestBase(createTestName)
+SleepTest::SleepTest() : TestBase(createTestName)
 {
 }
 
-void
-SleepTest::run()
+void SleepTest::run()
 {
     try
     {

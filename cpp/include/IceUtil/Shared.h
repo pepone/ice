@@ -30,103 +30,98 @@
 //
 namespace IceUtil
 {
-
-class ICE_API SimpleShared
-{
-public:
-
-    SimpleShared();
-    SimpleShared(const SimpleShared&);
-
-    virtual ~SimpleShared();
-
-    SimpleShared& operator=(const SimpleShared&)
+    class ICE_API SimpleShared
     {
-        return *this;
-    }
+    public:
+        SimpleShared();
+        SimpleShared(const SimpleShared&);
 
-    void __incRef()
-    {
-        assert(_ref >= 0);
-        ++_ref;
-    }
+        virtual ~SimpleShared();
 
-    void __decRef()
-    {
-        assert(_ref > 0);
-        if(--_ref == 0)
+        SimpleShared& operator=(const SimpleShared&)
         {
-            if(!_noDelete)
+            return *this;
+        }
+
+        void __incRef()
+        {
+            assert(_ref >= 0);
+            ++_ref;
+        }
+
+        void __decRef()
+        {
+            assert(_ref > 0);
+            if(--_ref == 0)
             {
-                delete this;
+                if(!_noDelete)
+                {
+                    delete this;
+                }
             }
         }
-    }
 
-    int __getRef() const
+        int __getRef() const
+        {
+            return _ref;
+        }
+
+        void __setNoDelete(bool b)
+        {
+            _noDelete = b;
+        }
+
+    private:
+        int _ref;
+        bool _noDelete;
+    };
+
+    class ICE_API Shared
     {
-        return _ref;
-    }
+    public:
+        //
+        // Flag constant used by the Shared class. Derived classes
+        // such as GCObject define more flag constants.
+        //
+        static const unsigned char NoDelete;
 
-    void __setNoDelete(bool b)
-    {
-        _noDelete = b;
-    }
+        Shared();
+        Shared(const Shared&);
 
-private:
+        virtual ~Shared()
+        {
+        }
 
-    int _ref;
-    bool _noDelete;
-};
+        Shared& operator=(const Shared&)
+        {
+            return *this;
+        }
 
-class ICE_API Shared
-{
-public:
+        virtual void __incRef();
+        virtual void __decRef();
+        virtual int __getRef() const;
+        virtual void __setNoDelete(bool);
 
-    //
-    // Flag constant used by the Shared class. Derived classes
-    // such as GCObject define more flag constants.
-    //
-    static const unsigned char NoDelete;
+        void __setFlag(unsigned char flag)
+        {
+            _flags |= flag;
+        }
 
-    Shared();
-    Shared(const Shared&);
+        void __clearFlag(unsigned char flag)
+        {
+            _flags &= ~flag;
+        }
 
-    virtual ~Shared()
-    {
-    }
+        bool __hasFlag(unsigned char flag)
+        {
+            return (_flags & flag) > 0;
+        }
 
-    Shared& operator=(const Shared&)
-    {
-        return *this;
-    }
+    protected:
+        IceUtilInternal::Atomic _ref;
+        unsigned char _flags;
+    };
 
-    virtual void __incRef();
-    virtual void __decRef();
-    virtual int __getRef() const;
-    virtual void __setNoDelete(bool);
-
-    void __setFlag(unsigned char flag)
-    {
-        _flags |= flag;
-    }
-
-    void __clearFlag(unsigned char flag)
-    {
-        _flags &= ~flag;
-    }
-
-    bool __hasFlag(unsigned char flag)
-    {
-        return (_flags & flag) > 0;
-    }
-
-protected:
-
-    IceUtilInternal::Atomic _ref;
-    unsigned char _flags;
-};
-
-}
+} // namespace IceUtil
 
 #endif

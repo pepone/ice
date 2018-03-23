@@ -14,45 +14,42 @@
 
 namespace IceStorm
 {
+    //
+    // Forward declarations.
+    //
+    class Instance;
+    typedef IceUtil::Handle<Instance> InstancePtr;
 
-//
-// Forward declarations.
-//
-class Instance;
-typedef IceUtil::Handle<Instance> InstancePtr;
+    class TransientTopicImpl;
+    typedef IceUtil::Handle<TransientTopicImpl> TransientTopicImplPtr;
 
-class TransientTopicImpl;
-typedef IceUtil::Handle<TransientTopicImpl> TransientTopicImplPtr;
+    //
+    // TopicManager implementation.
+    //
+    class TransientTopicManagerImpl : public TopicManagerInternal, public IceUtil::Mutex
+    {
+    public:
+        TransientTopicManagerImpl(const InstancePtr&);
+        ~TransientTopicManagerImpl();
 
-//
-// TopicManager implementation.
-//
-class TransientTopicManagerImpl : public TopicManagerInternal, public IceUtil::Mutex
-{
-public:
+        // TopicManager methods.
+        virtual TopicPrx create(const std::string&, const Ice::Current&);
+        virtual TopicPrx retrieve(const std::string&, const Ice::Current&) const;
+        virtual TopicDict retrieveAll(const Ice::Current&) const;
+        virtual Ice::SliceChecksumDict getSliceChecksums(const Ice::Current&) const;
+        virtual IceStormElection::NodePrx getReplicaNode(const Ice::Current&) const;
 
-    TransientTopicManagerImpl(const InstancePtr&);
-    ~TransientTopicManagerImpl();
+        void reap();
 
-    // TopicManager methods.
-    virtual TopicPrx create(const std::string&, const Ice::Current&);
-    virtual TopicPrx retrieve(const std::string&, const Ice::Current&) const;
-    virtual TopicDict retrieveAll(const Ice::Current&) const;
-    virtual Ice::SliceChecksumDict getSliceChecksums(const Ice::Current&) const;
-    virtual IceStormElection::NodePrx getReplicaNode(const Ice::Current&) const;
+        void shutdown();
 
-    void reap();
+        Ice::ObjectPtr getServant() const;
 
-    void shutdown();
-
-    Ice::ObjectPtr getServant() const;
-
-private:
-
-    const InstancePtr _instance;
-    std::map<std::string, TransientTopicImplPtr> _topics;
-};
-typedef IceUtil::Handle<TransientTopicManagerImpl> TransientTopicManagerImplPtr;
+    private:
+        const InstancePtr _instance;
+        std::map<std::string, TransientTopicImplPtr> _topics;
+    };
+    typedef IceUtil::Handle<TransientTopicManagerImpl> TransientTopicManagerImplPtr;
 
 } // End namespace IceStorm
 

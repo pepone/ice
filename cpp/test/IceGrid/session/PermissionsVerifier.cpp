@@ -18,24 +18,21 @@ using namespace std;
 class AdminPermissionsVerifierI : public Glacier2::PermissionsVerifier
 {
 public:
-
-    virtual bool
-    checkPermissions(const string& userId, const string& passwd, string&, const Ice::Current& c) const
+    virtual bool checkPermissions(const string& userId, const string& passwd, string&, const Ice::Current& c) const
     {
         if(c.ctx.find("throw") != c.ctx.end())
         {
             throw Test::ExtendedPermissionDeniedException("reason");
         }
         return (userId == "admin1" && passwd == "test1") || (userId == "admin2" && passwd == "test2") ||
-                (userId == "admin3" && passwd == "test3");
+               (userId == "admin3" && passwd == "test3");
     }
 };
 
 class PermissionsVerifierServer : public Ice::Application
 {
 public:
-
-    virtual int run(int, char*[])
+    virtual int run(int, char* [])
     {
         Ice::ObjectAdapterPtr adapter = communicator()->createObjectAdapter("PermissionsVerifier");
         adapter->add(new AdminPermissionsVerifierI, Ice::stringToIdentity("AdminPermissionsVerifier"));
@@ -45,8 +42,7 @@ public:
     }
 };
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
     PermissionsVerifierServer app;
     Ice::InitializationData initData = getTestInitData(argc, argv);

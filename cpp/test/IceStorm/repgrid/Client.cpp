@@ -20,14 +20,11 @@ using namespace Test;
 class SingleI : public Single, public IceUtil::Monitor<IceUtil::Mutex>
 {
 public:
-
-    SingleI() :
-        _count(0)
+    SingleI() : _count(0)
     {
     }
 
-    virtual void
-    event(int, const Current&)
+    virtual void event(int, const Current&)
     {
         Lock sync(*this);
         if(++_count == 1000)
@@ -36,8 +33,7 @@ public:
         }
     }
 
-    virtual void
-    waitForEvents()
+    virtual void waitForEvents()
     {
         Lock sync(*this);
         IceUtil::Time timeout = IceUtil::Time::seconds(20);
@@ -51,13 +47,11 @@ public:
     }
 
 private:
-
     int _count;
 };
 typedef IceUtil::Handle<SingleI> SingleIPtr;
 
-int
-run(int, char* argv[], const CommunicatorPtr& communicator)
+int run(int, char* argv[], const CommunicatorPtr& communicator)
 {
     ObjectPrx base = communicator->stringToProxy("Test.IceStorm/TopicManager");
     IceStorm::TopicManagerPrx manager = IceStorm::TopicManagerPrx::checkedCast(base);
@@ -93,8 +87,7 @@ run(int, char* argv[], const CommunicatorPtr& communicator)
     Ice::ObjectPrx p1 = topic->getPublisher();
     Ice::ObjectPrx p2 = topic->getNonReplicatedPublisher();
     test(p1->ice_getAdapterId() == "PublishReplicaGroup");
-    test(p2->ice_getAdapterId() == "Test.IceStorm1.Publish" ||
-         p2->ice_getAdapterId() == "Test.IceStorm2.Publish" ||
+    test(p2->ice_getAdapterId() == "Test.IceStorm1.Publish" || p2->ice_getAdapterId() == "Test.IceStorm2.Publish" ||
          p2->ice_getAdapterId() == "Test.IceStorm3.Publish");
 
     //
@@ -112,8 +105,7 @@ run(int, char* argv[], const CommunicatorPtr& communicator)
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
     int status;
     CommunicatorPtr communicator;

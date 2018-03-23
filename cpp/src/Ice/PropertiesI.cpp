@@ -22,8 +22,7 @@ using namespace std;
 using namespace Ice;
 using namespace IceInternal;
 
-string
-Ice::PropertiesI::getProperty(const string& key) ICE_NOEXCEPT
+string Ice::PropertiesI::getProperty(const string& key) ICE_NOEXCEPT
 {
     IceUtil::Mutex::Lock sync(*this);
 
@@ -39,8 +38,7 @@ Ice::PropertiesI::getProperty(const string& key) ICE_NOEXCEPT
     }
 }
 
-string
-Ice::PropertiesI::getPropertyWithDefault(const string& key, const string& value) ICE_NOEXCEPT
+string Ice::PropertiesI::getPropertyWithDefault(const string& key, const string& value) ICE_NOEXCEPT
 {
     IceUtil::Mutex::Lock sync(*this);
 
@@ -56,14 +54,12 @@ Ice::PropertiesI::getPropertyWithDefault(const string& key, const string& value)
     }
 }
 
-Int
-Ice::PropertiesI::getPropertyAsInt(const string& key) ICE_NOEXCEPT
+Int Ice::PropertiesI::getPropertyAsInt(const string& key) ICE_NOEXCEPT
 {
     return getPropertyAsIntWithDefault(key, 0);
 }
 
-Int
-Ice::PropertiesI::getPropertyAsIntWithDefault(const string& key, Int value) ICE_NOEXCEPT
+Int Ice::PropertiesI::getPropertyAsIntWithDefault(const string& key, Int value) ICE_NOEXCEPT
 {
     IceUtil::Mutex::Lock sync(*this);
 
@@ -84,14 +80,12 @@ Ice::PropertiesI::getPropertyAsIntWithDefault(const string& key, Int value) ICE_
     return value;
 }
 
-Ice::StringSeq
-Ice::PropertiesI::getPropertyAsList(const string& key) ICE_NOEXCEPT
+Ice::StringSeq Ice::PropertiesI::getPropertyAsList(const string& key) ICE_NOEXCEPT
 {
     return getPropertyAsListWithDefault(key, StringSeq());
 }
 
-Ice::StringSeq
-Ice::PropertiesI::getPropertyAsListWithDefault(const string& key, const StringSeq& value) ICE_NOEXCEPT
+Ice::StringSeq Ice::PropertiesI::getPropertyAsListWithDefault(const string& key, const StringSeq& value) ICE_NOEXCEPT
 {
     IceUtil::Mutex::Lock sync(*this);
 
@@ -118,8 +112,7 @@ Ice::PropertiesI::getPropertyAsListWithDefault(const string& key, const StringSe
     }
 }
 
-PropertyDict
-Ice::PropertiesI::getPropertiesForPrefix(const string& prefix) ICE_NOEXCEPT
+PropertyDict Ice::PropertiesI::getPropertiesForPrefix(const string& prefix) ICE_NOEXCEPT
 {
     IceUtil::Mutex::Lock sync(*this);
 
@@ -136,8 +129,7 @@ Ice::PropertiesI::getPropertiesForPrefix(const string& prefix) ICE_NOEXCEPT
     return result;
 }
 
-void
-Ice::PropertiesI::setProperty(const string& key, const string& value)
+void Ice::PropertiesI::setProperty(const string& key, const string& value)
 {
     //
     // Trim whitespace
@@ -156,7 +148,7 @@ Ice::PropertiesI::setProperty(const string& key, const string& value)
     if(dotPos != string::npos)
     {
         string prefix = currentKey.substr(0, dotPos);
-        for(int i = 0 ; IceInternal::PropertyNames::validProps[i].properties != 0; ++i)
+        for(int i = 0; IceInternal::PropertyNames::validProps[i].properties != 0; ++i)
         {
             string pattern(IceInternal::PropertyNames::validProps[i].properties[0].pattern);
 
@@ -193,8 +185,8 @@ Ice::PropertiesI::setProperty(const string& key, const string& value)
                     }
                 }
 
-                if(!found && IceUtilInternal::match(IceUtilInternal::toUpper(currentKey),
-                                                    IceUtilInternal::toUpper(prop.pattern)))
+                if(!found &&
+                   IceUtilInternal::match(IceUtilInternal::toUpper(currentKey), IceUtilInternal::toUpper(prop.pattern)))
                 {
                     found = true;
                     mismatchCase = true;
@@ -234,8 +226,7 @@ Ice::PropertiesI::setProperty(const string& key, const string& value)
     }
 }
 
-StringSeq
-Ice::PropertiesI::getCommandLineOptions() ICE_NOEXCEPT
+StringSeq Ice::PropertiesI::getCommandLineOptions() ICE_NOEXCEPT
 {
     IceUtil::Mutex::Lock sync(*this);
 
@@ -248,8 +239,7 @@ Ice::PropertiesI::getCommandLineOptions() ICE_NOEXCEPT
     return result;
 }
 
-StringSeq
-Ice::PropertiesI::parseCommandLineOptions(const string& prefix, const StringSeq& options)
+StringSeq Ice::PropertiesI::parseCommandLineOptions(const string& prefix, const StringSeq& options)
 {
     string pfx = prefix;
     if(!pfx.empty() && pfx[pfx.size() - 1] != '.')
@@ -280,8 +270,7 @@ Ice::PropertiesI::parseCommandLineOptions(const string& prefix, const StringSeq&
     return result;
 }
 
-StringSeq
-Ice::PropertiesI::parseIceCommandLineOptions(const StringSeq& options)
+StringSeq Ice::PropertiesI::parseIceCommandLineOptions(const StringSeq& options)
 {
     StringSeq args = options;
     for(const char** i = IceInternal::PropertyNames::clPropNames; *i != 0; ++i)
@@ -289,18 +278,16 @@ Ice::PropertiesI::parseIceCommandLineOptions(const StringSeq& options)
         args = parseCommandLineOptions(*i, args);
     }
     return args;
-
 }
 
-void
-Ice::PropertiesI::load(const std::string& file)
+void Ice::PropertiesI::load(const std::string& file)
 {
     StringConverterPtr stringConverter = getProcessStringConverter();
 
 //
 // Metro style applications cannot access Windows registry.
 //
-#if defined (_WIN32) && !defined(ICE_OS_UWP)
+#if defined(_WIN32) && !defined(ICE_OS_UWP)
     if(file.find("HKLM\\") == 0)
     {
         HKEY iceKey;
@@ -308,8 +295,9 @@ Ice::PropertiesI::load(const std::string& file)
         LONG err;
         if((err = RegOpenKeyExW(HKEY_LOCAL_MACHINE, keyName.c_str(), 0, KEY_QUERY_VALUE, &iceKey)) != ERROR_SUCCESS)
         {
-            throw InitializationException(__FILE__, __LINE__, "could not open Windows registry key `" + file + "':\n" +
-                                          IceUtilInternal::errorToString(err));
+            throw InitializationException(__FILE__, __LINE__,
+                                          "could not open Windows registry key `" + file + "':\n" +
+                                              IceUtilInternal::errorToString(err));
         }
 
         DWORD maxNameSize; // Size in characters not including terminating null character.
@@ -317,12 +305,13 @@ Ice::PropertiesI::load(const std::string& file)
         DWORD numValues;
         try
         {
-            err = RegQueryInfoKey(iceKey, ICE_NULLPTR, ICE_NULLPTR, ICE_NULLPTR, ICE_NULLPTR, ICE_NULLPTR, ICE_NULLPTR, &numValues, &maxNameSize, &maxDataSize,
-                                  ICE_NULLPTR, ICE_NULLPTR);
+            err = RegQueryInfoKey(iceKey, ICE_NULLPTR, ICE_NULLPTR, ICE_NULLPTR, ICE_NULLPTR, ICE_NULLPTR, ICE_NULLPTR,
+                                  &numValues, &maxNameSize, &maxDataSize, ICE_NULLPTR, ICE_NULLPTR);
             if(err != ERROR_SUCCESS)
             {
-                throw InitializationException(__FILE__, __LINE__, "could not open Windows registry key `" + file + "':\n" +
-                                              IceUtilInternal::errorToString(err));
+                throw InitializationException(__FILE__, __LINE__,
+                                              "could not open Windows registry key `" + file + "':\n" +
+                                                  IceUtilInternal::errorToString(err));
             }
 
             for(DWORD i = 0; i < numValues; ++i)
@@ -332,7 +321,8 @@ Ice::PropertiesI::load(const std::string& file)
                 DWORD keyType;
                 DWORD nameBufSize = static_cast<DWORD>(nameBuf.size());
                 DWORD dataBufSize = static_cast<DWORD>(dataBuf.size());
-                err = RegEnumValueW(iceKey, i, &nameBuf[0], &nameBufSize, ICE_NULLPTR, &keyType, &dataBuf[0], &dataBufSize);
+                err = RegEnumValueW(iceKey, i, &nameBuf[0], &nameBufSize, ICE_NULLPTR, &keyType, &dataBuf[0],
+                                    &dataBufSize);
                 if(err != ERROR_SUCCESS || nameBufSize == 0)
                 {
                     ostringstream os;
@@ -348,8 +338,8 @@ Ice::PropertiesI::load(const std::string& file)
                     getProcessLogger()->warning(os.str());
                     continue;
                 }
-                string name = wstringToString(
-                    wstring(reinterpret_cast<wchar_t*>(&nameBuf[0]), nameBufSize), stringConverter);
+                string name =
+                    wstringToString(wstring(reinterpret_cast<wchar_t*>(&nameBuf[0]), nameBufSize), stringConverter);
                 if(keyType != REG_SZ && keyType != REG_EXPAND_SZ)
                 {
                     ostringstream os;
@@ -382,7 +372,7 @@ Ice::PropertiesI::load(const std::string& file)
                             continue;
                         }
                     }
-                    value = wstringToString(wstring(&expandedValue[0], sz -1), stringConverter);
+                    value = wstringToString(wstring(&expandedValue[0], sz - 1), stringConverter);
                 }
                 setProperty(name, value);
             }
@@ -413,8 +403,7 @@ Ice::PropertiesI::load(const std::string& file)
             if(firstLine)
             {
                 const unsigned char UTF8_BOM[3] = {0xEF, 0xBB, 0xBF};
-                if(line.size() >= 3 &&
-                   static_cast<const unsigned char>(line[0]) == UTF8_BOM[0] &&
+                if(line.size() >= 3 && static_cast<const unsigned char>(line[0]) == UTF8_BOM[0] &&
                    static_cast<const unsigned char>(line[1]) == UTF8_BOM[1] &&
                    static_cast<const unsigned char>(line[2]) == UTF8_BOM[2])
                 {
@@ -427,15 +416,13 @@ Ice::PropertiesI::load(const std::string& file)
     }
 }
 
-PropertiesPtr
-Ice::PropertiesI::clone() ICE_NOEXCEPT
+PropertiesPtr Ice::PropertiesI::clone() ICE_NOEXCEPT
 {
     IceUtil::Mutex::Lock sync(*this);
     return ICE_MAKE_SHARED(PropertiesI, this);
 }
 
-set<string>
-Ice::PropertiesI::getUnusedProperties()
+set<string> Ice::PropertiesI::getUnusedProperties()
 {
     IceUtil::Mutex::Lock sync(*this);
     set<string> unusedProperties;
@@ -449,8 +436,7 @@ Ice::PropertiesI::getUnusedProperties()
     return unusedProperties;
 }
 
-Ice::PropertiesI::PropertiesI(const PropertiesI* p) :
-    _properties(p->_properties)
+Ice::PropertiesI::PropertiesI(const PropertiesI* p) : _properties(p->_properties)
 {
 }
 
@@ -528,13 +514,16 @@ Ice::PropertiesI::PropertiesI(StringSeq& args, const PropertiesPtr& defaults)
     args = parseIceCommandLineOptions(args);
 }
 
-void
-Ice::PropertiesI::parseLine(const string& line, const StringConverterPtr& converter)
+void Ice::PropertiesI::parseLine(const string& line, const StringConverterPtr& converter)
 {
     string key;
     string value;
 
-    enum ParseState { Key , Value };
+    enum ParseState
+    {
+        Key,
+        Value
+    };
     ParseState state = Key;
 
     string whitespace;
@@ -545,137 +534,137 @@ Ice::PropertiesI::parseLine(const string& line, const StringConverterPtr& conver
         char c = line[i];
         switch(state)
         {
-          case Key:
-          {
-            switch(c)
+            case Key:
             {
-              case '\\':
-                if(i < line.length() - 1)
+                switch(c)
                 {
-                    c = line[++i];
-                    switch(c)
-                    {
-                      case '\\':
-                      case '#':
-                      case '=':
-                        key += whitespace;
-                        whitespace.clear();
-                        key += c;
+                    case '\\':
+                        if(i < line.length() - 1)
+                        {
+                            c = line[++i];
+                            switch(c)
+                            {
+                                case '\\':
+                                case '#':
+                                case '=':
+                                    key += whitespace;
+                                    whitespace.clear();
+                                    key += c;
+                                    break;
+
+                                case ' ':
+                                    if(key.length() != 0)
+                                    {
+                                        whitespace += c;
+                                    }
+                                    break;
+
+                                default:
+                                    key += whitespace;
+                                    whitespace.clear();
+                                    key += '\\';
+                                    key += c;
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            key += whitespace;
+                            key += c;
+                        }
                         break;
 
-                      case ' ':
+                    case ' ':
+                    case '\t':
+                    case '\r':
+                    case '\n':
                         if(key.length() != 0)
                         {
                             whitespace += c;
                         }
                         break;
 
-                      default:
+                    case '=':
+                        whitespace.clear();
+                        state = Value;
+                        break;
+
+                    case '#':
+                        finished = true;
+                        break;
+
+                    default:
                         key += whitespace;
                         whitespace.clear();
-                        key += '\\';
                         key += c;
                         break;
-                    }
-                }
-                else
-                {
-                    key += whitespace;
-                    key += c;
                 }
                 break;
-
-              case ' ':
-              case '\t':
-              case '\r':
-              case '\n':
-                  if(key.length() != 0)
-                  {
-                      whitespace += c;
-                  }
-                  break;
-
-              case '=':
-                  whitespace.clear();
-                  state = Value;
-                  break;
-
-              case '#':
-                  finished = true;
-                  break;
-
-              default:
-                  key += whitespace;
-                  whitespace.clear();
-                  key += c;
-                  break;
             }
-            break;
-          }
 
-          case Value:
-          {
-            switch(c)
+            case Value:
             {
-              case '\\':
-                if(i < line.length() - 1)
+                switch(c)
                 {
-                    c = line[++i];
-                    switch(c)
-                    {
-                      case '\\':
-                      case '#':
-                      case '=':
+                    case '\\':
+                        if(i < line.length() - 1)
+                        {
+                            c = line[++i];
+                            switch(c)
+                            {
+                                case '\\':
+                                case '#':
+                                case '=':
+                                    value += value.length() == 0 ? escapedspace : whitespace;
+                                    whitespace.clear();
+                                    escapedspace.clear();
+                                    value += c;
+                                    break;
+
+                                case ' ':
+                                    whitespace += c;
+                                    escapedspace += c;
+                                    break;
+
+                                default:
+                                    value += value.length() == 0 ? escapedspace : whitespace;
+                                    whitespace.clear();
+                                    escapedspace.clear();
+                                    value += '\\';
+                                    value += c;
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            value += value.length() == 0 ? escapedspace : whitespace;
+                            value += c;
+                        }
+                        break;
+
+                    case ' ':
+                    case '\t':
+                    case '\r':
+                    case '\n':
+                        if(value.length() != 0)
+                        {
+                            whitespace += c;
+                        }
+                        break;
+
+                    case '#':
+                        finished = true;
+                        break;
+
+                    default:
                         value += value.length() == 0 ? escapedspace : whitespace;
                         whitespace.clear();
                         escapedspace.clear();
                         value += c;
                         break;
-
-                      case ' ':
-                        whitespace += c;
-                        escapedspace += c;
-                        break;
-
-                      default:
-                        value += value.length() == 0 ? escapedspace : whitespace;
-                        whitespace.clear();
-                        escapedspace.clear();
-                        value += '\\';
-                        value += c;
-                        break;
-                    }
-                }
-                else
-                {
-                    value += value.length() == 0 ? escapedspace : whitespace;
-                    value += c;
                 }
                 break;
-
-              case ' ':
-              case '\t':
-              case '\r':
-              case '\n':
-                  if(value.length() != 0)
-                  {
-                      whitespace += c;
-                  }
-                  break;
-
-              case '#':
-                  finished = true;
-                  break;
-
-              default:
-                  value += value.length() == 0 ? escapedspace : whitespace;
-                  whitespace.clear();
-                  escapedspace.clear();
-                  value += c;
-                  break;
             }
-            break;
-          }
         }
         if(finished)
         {
@@ -700,8 +689,7 @@ Ice::PropertiesI::parseLine(const string& line, const StringConverterPtr& conver
     setProperty(key, value);
 }
 
-void
-Ice::PropertiesI::loadConfig()
+void Ice::PropertiesI::loadConfig()
 {
     string value = getProperty("Ice.Config");
 #ifndef ICE_OS_UWP
@@ -710,7 +698,7 @@ Ice::PropertiesI::loadConfig()
     //
     if(value.empty() || value == "1")
     {
-#   ifdef _WIN32
+#    ifdef _WIN32
         vector<wchar_t> v(256);
         DWORD ret = GetEnvironmentVariableW(L"ICE_CONFIG", &v[0], static_cast<DWORD>(v.size()));
         if(ret >= v.size())
@@ -726,13 +714,13 @@ Ice::PropertiesI::loadConfig()
         {
             value = "";
         }
-#   else
-       const char* s = getenv("ICE_CONFIG");
-       if(s && *s != '\0')
-       {
-           value = s;
-       }
-#   endif
+#    else
+        const char* s = getenv("ICE_CONFIG");
+        if(s && *s != '\0')
+        {
+            value = s;
+        }
+#    endif
     }
 #endif
 

@@ -15,36 +15,33 @@
 
 namespace Glacier2
 {
+    class RoutingTable;
+    typedef IceUtil::Handle<RoutingTable> RoutingTablePtr;
 
-class RoutingTable;
-typedef IceUtil::Handle<RoutingTable> RoutingTablePtr;
+    class ClientBlobject;
+    typedef IceUtil::Handle<ClientBlobject> ClientBlobjectPtr;
 
-class ClientBlobject;
-typedef IceUtil::Handle<ClientBlobject> ClientBlobjectPtr;
+    class FilterManager;
+    typedef IceUtil::Handle<FilterManager> FilterManagerPtr;
 
-class FilterManager;
-typedef IceUtil::Handle<FilterManager> FilterManagerPtr;
+    class ClientBlobject : public Glacier2::Blobject
+    {
+    public:
+        ClientBlobject(const InstancePtr&, const FilterManagerPtr&, const Ice::Context&, const RoutingTablePtr&);
+        virtual ~ClientBlobject();
 
-class ClientBlobject : public Glacier2::Blobject
-{
-public:
+        virtual void ice_invoke_async(const Ice::AMD_Object_ice_invokePtr&,
+                                      const std::pair<const Ice::Byte*, const Ice::Byte*>&, const Ice::Current&);
 
-    ClientBlobject(const InstancePtr&, const FilterManagerPtr&, const Ice::Context&, const RoutingTablePtr&);
-    virtual ~ClientBlobject();
+        StringSetPtr categories();
+        StringSetPtr adapterIds();
+        IdentitySetPtr identities();
 
-    virtual void ice_invoke_async(const Ice::AMD_Object_ice_invokePtr&,
-                                  const std::pair<const Ice::Byte*, const Ice::Byte*>&, const Ice::Current&);
-
-    StringSetPtr categories();
-    StringSetPtr adapterIds();
-    IdentitySetPtr identities();
-
-private:
-
-    const RoutingTablePtr _routingTable;
-    const FilterManagerPtr _filters;
-    const int _rejectTraceLevel;
-};
-}
+    private:
+        const RoutingTablePtr _routingTable;
+        const FilterManagerPtr _filters;
+        const int _rejectTraceLevel;
+    };
+} // namespace Glacier2
 
 #endif

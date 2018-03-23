@@ -21,26 +21,21 @@ WaitItem::~WaitItem()
 {
 }
 
-const IceUtil::Time&
-WaitItem:: getExpirationTime()
+const IceUtil::Time& WaitItem::getExpirationTime()
 {
     return _expiration;
 }
 
-void
-WaitItem::setExpirationTime(const IceUtil::Time& time)
+void WaitItem::setExpirationTime(const IceUtil::Time& time)
 {
     _expiration = time;
 }
 
-WaitQueue::WaitQueue() :
-    Thread("IceGrid wait queue thread"),
-    _destroyed(false)
+WaitQueue::WaitQueue() : Thread("IceGrid wait queue thread"), _destroyed(false)
 {
 }
 
-void
-WaitQueue::run()
+void WaitQueue::run()
 {
     while(true)
     {
@@ -116,8 +111,7 @@ WaitQueue::run()
     _waitQueue.clear(); // Break cyclic reference counts.
 }
 
-void
-WaitQueue::destroy()
+void WaitQueue::destroy()
 {
     {
         Lock sync(*this);
@@ -128,8 +122,7 @@ WaitQueue::destroy()
     getThreadControl().join();
 }
 
-void
-WaitQueue::add(const WaitItemPtr& item, const IceUtil::Time& wait)
+void WaitQueue::add(const WaitItemPtr& item, const IceUtil::Time& wait)
 {
     Lock sync(*this);
     if(_destroyed)
@@ -162,8 +155,7 @@ WaitQueue::add(const WaitItemPtr& item, const IceUtil::Time& wait)
     }
 }
 
-bool
-WaitQueue::remove(const WaitItemPtr& item)
+bool WaitQueue::remove(const WaitItemPtr& item)
 {
     Lock sync(*this);
     list<WaitItemPtr>::iterator p = _waitQueue.begin();

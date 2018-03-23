@@ -16,12 +16,8 @@
 using namespace std;
 using namespace IceGrid;
 
-ServerAdapterI::ServerAdapterI(const NodeIPtr& node,
-                               ServerI* server,
-                               const string& serverName,
-                               const AdapterPrx& proxy,
-                               const string& id,
-                               bool enabled) :
+ServerAdapterI::ServerAdapterI(const NodeIPtr& node, ServerI* server, const string& serverName, const AdapterPrx& proxy,
+                               const string& id, bool enabled) :
     _node(node),
     _this(proxy),
     _serverId(serverName),
@@ -36,8 +32,7 @@ ServerAdapterI::~ServerAdapterI()
     assert(_activateCB.empty());
 }
 
-void
-ServerAdapterI::activate_async(const AMD_Adapter_activatePtr& cb, const Ice::Current&)
+void ServerAdapterI::activate_async(const AMD_Adapter_activatePtr& cb, const Ice::Current&)
 {
     {
         Lock sync(*this);
@@ -73,8 +68,8 @@ ServerAdapterI::activate_async(const AMD_Adapter_activatePtr& cb, const Ice::Cur
         {
             return;
         }
-        _activateAfterDeactivating = _server->getState(Ice::emptyCurrent) >= Deactivating &&
-            _server->getState(Ice::emptyCurrent) < Destroying;
+        _activateAfterDeactivating =
+            _server->getState(Ice::emptyCurrent) >= Deactivating && _server->getState(Ice::emptyCurrent) < Destroying;
     }
 
     //
@@ -107,8 +102,7 @@ ServerAdapterI::activate_async(const AMD_Adapter_activatePtr& cb, const Ice::Cur
     }
 }
 
-Ice::ObjectPrx
-ServerAdapterI::getDirectProxy(const Ice::Current&) const
+Ice::ObjectPrx ServerAdapterI::getDirectProxy(const Ice::Current&) const
 {
     Lock sync(*this);
 
@@ -126,8 +120,7 @@ ServerAdapterI::getDirectProxy(const Ice::Current&) const
     }
 }
 
-void
-ServerAdapterI::setDirectProxy(const Ice::ObjectPrx& prx, const Ice::Current&)
+void ServerAdapterI::setDirectProxy(const Ice::ObjectPrx& prx, const Ice::Current&)
 {
     Lock sync(*this);
 
@@ -155,8 +148,8 @@ ServerAdapterI::setDirectProxy(const Ice::ObjectPrx& prx, const Ice::Current&)
     // now. The server is going to be activated again and the adapter
     // activated.
     //
-    if(_server->getState(Ice::emptyCurrent) < Deactivating ||
-       _server->getState(Ice::emptyCurrent) >= Destroying || !_activateAfterDeactivating)
+    if(_server->getState(Ice::emptyCurrent) < Deactivating || _server->getState(Ice::emptyCurrent) >= Destroying ||
+       !_activateAfterDeactivating)
     {
         for(vector<AMD_Adapter_activatePtr>::const_iterator p = _activateCB.begin(); p != _activateCB.end(); ++p)
         {
@@ -193,8 +186,7 @@ ServerAdapterI::setDirectProxy(const Ice::ObjectPrx& prx, const Ice::Current&)
     }
 }
 
-void
-ServerAdapterI::destroy()
+void ServerAdapterI::destroy()
 {
     activationFailed("adapter destroyed");
     try
@@ -207,25 +199,21 @@ ServerAdapterI::destroy()
     }
 }
 
-void
-ServerAdapterI::updateEnabled()
+void ServerAdapterI::updateEnabled()
 {
     Lock sync(*this);
     _enabled = _server->isEnabled(Ice::emptyCurrent);
 }
 
-void
-ServerAdapterI::clear()
+void ServerAdapterI::clear()
 {
     Lock sync(*this);
     _proxy = 0;
     _activateAfterDeactivating = false;
 }
 
-void
-ServerAdapterI::activationFailed(const std::string& reason)
+void ServerAdapterI::activationFailed(const std::string& reason)
 {
-
     //
     // The server couldn't be activated, trace and return the current adapter proxy.
     //
@@ -243,8 +231,7 @@ ServerAdapterI::activationFailed(const std::string& reason)
     _activateCB.clear();
 }
 
-void
-ServerAdapterI::activationCompleted()
+void ServerAdapterI::activationCompleted()
 {
     Lock sync(*this);
     if(!_proxy)
@@ -266,8 +253,7 @@ ServerAdapterI::activationCompleted()
     _activateCB.clear();
 }
 
-AdapterPrx
-ServerAdapterI::getProxy() const
+AdapterPrx ServerAdapterI::getProxy() const
 {
     return _this;
 }

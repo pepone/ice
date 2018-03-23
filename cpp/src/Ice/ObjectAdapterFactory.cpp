@@ -19,11 +19,13 @@ using namespace Ice;
 using namespace IceInternal;
 
 #ifndef ICE_CPP11_MAPPING
-IceUtil::Shared* IceInternal::upCast(ObjectAdapterFactory* p) { return p; }
+IceUtil::Shared* IceInternal::upCast(ObjectAdapterFactory* p)
+{
+    return p;
+}
 #endif
 
-void
-IceInternal::ObjectAdapterFactory::shutdown()
+void IceInternal::ObjectAdapterFactory::shutdown()
 {
     list<ObjectAdapterIPtr> adapters;
 
@@ -58,8 +60,7 @@ IceInternal::ObjectAdapterFactory::shutdown()
 #endif
 }
 
-void
-IceInternal::ObjectAdapterFactory::waitForShutdown()
+void IceInternal::ObjectAdapterFactory::waitForShutdown()
 {
     list<ObjectAdapterIPtr> adapters;
 
@@ -87,16 +88,14 @@ IceInternal::ObjectAdapterFactory::waitForShutdown()
 #endif
 }
 
-bool
-IceInternal::ObjectAdapterFactory::isShutdown() const
+bool IceInternal::ObjectAdapterFactory::isShutdown() const
 {
     IceUtil::Monitor<IceUtil::RecMutex>::Lock sync(*this);
 
     return _instance == 0;
 }
 
-void
-IceInternal::ObjectAdapterFactory::destroy()
+void IceInternal::ObjectAdapterFactory::destroy()
 {
     //
     // First wait for shutdown to finish.
@@ -124,8 +123,7 @@ IceInternal::ObjectAdapterFactory::destroy()
     }
 }
 
-void
-IceInternal::ObjectAdapterFactory::updateObservers(void (ObjectAdapterI::*fn)())
+void IceInternal::ObjectAdapterFactory::updateObservers(void (ObjectAdapterI::*fn)())
 {
     list<ObjectAdapterIPtr> adapters;
 
@@ -134,18 +132,13 @@ IceInternal::ObjectAdapterFactory::updateObservers(void (ObjectAdapterI::*fn)())
         adapters = _adapters;
     }
 #ifdef ICE_CPP11_MAPPING
-    for_each(adapters.begin(), adapters.end(),
-        [fn](const ObjectAdapterIPtr& adapter)
-        {
-            (adapter.get() ->* fn)();
-        });
+    for_each(adapters.begin(), adapters.end(), [fn](const ObjectAdapterIPtr& adapter) { (adapter.get()->*fn)(); });
 #else
     for_each(adapters.begin(), adapters.end(), IceUtil::voidMemFun(fn));
 #endif
 }
 
-ObjectAdapterPtr
-IceInternal::ObjectAdapterFactory::createObjectAdapter(const string& name, const RouterPrxPtr& router)
+ObjectAdapterPtr IceInternal::ObjectAdapterFactory::createObjectAdapter(const string& name, const RouterPrxPtr& router)
 {
     ObjectAdapterIPtr adapter;
     {
@@ -210,8 +203,7 @@ IceInternal::ObjectAdapterFactory::createObjectAdapter(const string& name, const
     return adapter;
 }
 
-ObjectAdapterPtr
-IceInternal::ObjectAdapterFactory::findObjectAdapter(const ObjectPrxPtr& proxy)
+ObjectAdapterPtr IceInternal::ObjectAdapterFactory::findObjectAdapter(const ObjectPrxPtr& proxy)
 {
     list<ObjectAdapterIPtr> adapters;
     {
@@ -243,8 +235,7 @@ IceInternal::ObjectAdapterFactory::findObjectAdapter(const ObjectPrxPtr& proxy)
     return ICE_NULLPTR;
 }
 
-void
-IceInternal::ObjectAdapterFactory::removeObjectAdapter(const ObjectAdapterPtr& adapter)
+void IceInternal::ObjectAdapterFactory::removeObjectAdapter(const ObjectAdapterPtr& adapter)
 {
     IceUtil::Monitor<IceUtil::RecMutex>::Lock sync(*this);
 
@@ -264,9 +255,8 @@ IceInternal::ObjectAdapterFactory::removeObjectAdapter(const ObjectAdapterPtr& a
     _adapterNamesInUse.erase(adapter->getName());
 }
 
-void
-IceInternal::ObjectAdapterFactory::flushAsyncBatchRequests(const CommunicatorFlushBatchAsyncPtr& outAsync,
-                                                           CompressBatch compressBatch) const
+void IceInternal::ObjectAdapterFactory::flushAsyncBatchRequests(const CommunicatorFlushBatchAsyncPtr& outAsync,
+                                                                CompressBatch compressBatch) const
 {
     list<ObjectAdapterIPtr> adapters;
     {

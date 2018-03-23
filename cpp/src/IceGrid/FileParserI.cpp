@@ -15,8 +15,7 @@
 using namespace std;
 using namespace IceGrid;
 
-ApplicationDescriptor
-FileParserI::parse(const string& file, const AdminPrx& admin, const Ice::Current& current)
+ApplicationDescriptor FileParserI::parse(const string& file, const AdminPrx& admin, const Ice::Current& current)
 {
     try
     {

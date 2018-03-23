@@ -16,31 +16,29 @@
 
 namespace IceInternal
 {
-
-class ConnectionRequestHandler : public RequestHandler
+    class ConnectionRequestHandler : public RequestHandler
 #ifdef ICE_CPP11_MAPPING
-                               , public std::enable_shared_from_this<ConnectionRequestHandler>
+        ,
+                                     public std::enable_shared_from_this<ConnectionRequestHandler>
 #endif
-{
-public:
+    {
+    public:
+        ConnectionRequestHandler(const ReferencePtr&, const Ice::ConnectionIPtr&, bool);
 
-    ConnectionRequestHandler(const ReferencePtr&, const Ice::ConnectionIPtr&, bool);
+        virtual RequestHandlerPtr update(const RequestHandlerPtr&, const RequestHandlerPtr&);
 
-    virtual RequestHandlerPtr update(const RequestHandlerPtr&, const RequestHandlerPtr&);
+        virtual AsyncStatus sendAsyncRequest(const ProxyOutgoingAsyncBasePtr&);
 
-    virtual AsyncStatus sendAsyncRequest(const ProxyOutgoingAsyncBasePtr&);
+        virtual void asyncRequestCanceled(const OutgoingAsyncBasePtr&, const Ice::LocalException&);
 
-    virtual void asyncRequestCanceled(const OutgoingAsyncBasePtr&, const Ice::LocalException&);
+        virtual Ice::ConnectionIPtr getConnection();
+        virtual Ice::ConnectionIPtr waitForConnection();
 
-    virtual Ice::ConnectionIPtr getConnection();
-    virtual Ice::ConnectionIPtr waitForConnection();
+    private:
+        Ice::ConnectionIPtr _connection;
+        bool _compress;
+    };
 
-private:
-
-    Ice::ConnectionIPtr _connection;
-    bool _compress;
-};
-
-}
+} // namespace IceInternal
 
 #endif

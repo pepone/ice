@@ -20,29 +20,25 @@
 
 namespace Ice
 {
-
-class OutputStream;
-
+    class OutputStream;
 }
 
 namespace IceInternal
 {
-
-class ResponseHandler :
+    class ResponseHandler :
 #ifdef ICE_CPP11_MAPPING
         public EnableSharedFromThis<ResponseHandler>
 #else
         public virtual IceUtil::Shared
 #endif
-{
-public:
+    {
+    public:
+        virtual void sendResponse(Ice::Int, Ice::OutputStream*, Ice::Byte, bool) = 0;
+        virtual void sendNoResponse() = 0;
+        virtual bool systemException(Ice::Int, const Ice::SystemException&, bool) = 0;
+        virtual void invokeException(Ice::Int, const Ice::LocalException&, int, bool) = 0;
+    };
 
-    virtual void sendResponse(Ice::Int, Ice::OutputStream*, Ice::Byte, bool) = 0;
-    virtual void sendNoResponse() = 0;
-    virtual bool systemException(Ice::Int, const Ice::SystemException&, bool) = 0;
-    virtual void invokeException(Ice::Int, const Ice::LocalException&, int, bool) = 0;
-};
-
-}
+} // namespace IceInternal
 
 #endif

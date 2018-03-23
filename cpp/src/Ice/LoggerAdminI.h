@@ -17,30 +17,27 @@
 
 namespace IceInternal
 {
-
-//
-// A logger that works in tandem with a "Logger" admin facet.
-//
-class LoggerAdminLogger : public Ice::Logger
-{
-public:
-
     //
-    // Return the associated Admin facet
+    // A logger that works in tandem with a "Logger" admin facet.
     //
-    virtual Ice::ObjectPtr getFacet() const = 0;
+    class LoggerAdminLogger : public Ice::Logger
+    {
+    public:
+        //
+        // Return the associated Admin facet
+        //
+        virtual Ice::ObjectPtr getFacet() const = 0;
 
-    //
-    // Destroy this logger, in particular join any thread
-    // that this logger may have started
-    //
-    virtual void destroy() = 0;
-};
-ICE_DEFINE_PTR(LoggerAdminLoggerPtr, LoggerAdminLogger);
+        //
+        // Destroy this logger, in particular join any thread
+        // that this logger may have started
+        //
+        virtual void destroy() = 0;
+    };
+    ICE_DEFINE_PTR(LoggerAdminLoggerPtr, LoggerAdminLogger);
 
-LoggerAdminLoggerPtr
-createLoggerAdminLogger(const Ice::PropertiesPtr&, const Ice::LoggerPtr&);
+    LoggerAdminLoggerPtr createLoggerAdminLogger(const Ice::PropertiesPtr&, const Ice::LoggerPtr&);
 
-}
+} // namespace IceInternal
 
 #endif

@@ -30,7 +30,10 @@ using namespace Ice;
 using namespace IceInternal;
 
 #ifndef ICE_CPP11_MAPPING
-IceUtil::Shared* IceInternal::upCast(CommunicatorFlushBatchAsync* p) { return p; }
+IceUtil::Shared* IceInternal::upCast(CommunicatorFlushBatchAsync* p)
+{
+    return p;
+}
 #endif
 
 CommunicatorFlushBatchAsync::~CommunicatorFlushBatchAsync()
@@ -38,8 +41,7 @@ CommunicatorFlushBatchAsync::~CommunicatorFlushBatchAsync()
     // Out of line to avoid weak vtable
 }
 
-CommunicatorFlushBatchAsync::CommunicatorFlushBatchAsync(const InstancePtr& instance) :
-    OutgoingAsyncBase(instance)
+CommunicatorFlushBatchAsync::CommunicatorFlushBatchAsync(const InstancePtr& instance) : OutgoingAsyncBase(instance)
 {
     //
     // _useCount is initialized to 1 to prevent premature callbacks.
@@ -49,30 +51,27 @@ CommunicatorFlushBatchAsync::CommunicatorFlushBatchAsync(const InstancePtr& inst
     _useCount = 1;
 }
 
-void
-CommunicatorFlushBatchAsync::flushConnection(const ConnectionIPtr& con, Ice::CompressBatch compressBatch)
+void CommunicatorFlushBatchAsync::flushConnection(const ConnectionIPtr& con, Ice::CompressBatch compressBatch)
 {
     class FlushBatch : public OutgoingAsyncBase
     {
     public:
-
-        FlushBatch(const CommunicatorFlushBatchAsyncPtr& outAsync,
-                   const InstancePtr& instance,
+        FlushBatch(const CommunicatorFlushBatchAsyncPtr& outAsync, const InstancePtr& instance,
                    InvocationObserver& observer) :
-            OutgoingAsyncBase(instance), _outAsync(outAsync), _observer(observer)
+            OutgoingAsyncBase(instance),
+            _outAsync(outAsync),
+            _observer(observer)
         {
         }
 
-        virtual bool
-        sent()
+        virtual bool sent()
         {
             _childObserver.detach();
             _outAsync->check(false);
             return false;
         }
 
-        virtual bool
-        exception(const Exception& ex)
+        virtual bool exception(const Exception& ex)
         {
             _childObserver.failed(ex.ice_id());
             _childObserver.detach();
@@ -80,8 +79,7 @@ CommunicatorFlushBatchAsync::flushConnection(const ConnectionIPtr& con, Ice::Com
             return false;
         }
 
-        virtual InvocationObserver&
-        getObserver()
+        virtual InvocationObserver& getObserver()
         {
             return _observer;
         }
@@ -117,7 +115,6 @@ CommunicatorFlushBatchAsync::flushConnection(const ConnectionIPtr& con, Ice::Com
         }
 
     private:
-
         const CommunicatorFlushBatchAsyncPtr _outAsync;
         InvocationObserver& _observer;
     };
@@ -156,8 +153,7 @@ CommunicatorFlushBatchAsync::flushConnection(const ConnectionIPtr& con, Ice::Com
     }
 }
 
-void
-CommunicatorFlushBatchAsync::invoke(const string& operation, CompressBatch compressBatch)
+void CommunicatorFlushBatchAsync::invoke(const string& operation, CompressBatch compressBatch)
 {
     _observer.attach(_instance.get(), operation);
     _instance->outgoingConnectionFactory()->flushAsyncBatchRequests(ICE_SHARED_FROM_THIS, compressBatch);
@@ -165,8 +161,7 @@ CommunicatorFlushBatchAsync::invoke(const string& operation, CompressBatch compr
     check(true);
 }
 
-void
-CommunicatorFlushBatchAsync::check(bool userThread)
+void CommunicatorFlushBatchAsync::check(bool userThread)
 {
     {
         Lock sync(_m);
@@ -191,8 +186,7 @@ CommunicatorFlushBatchAsync::check(bool userThread)
     }
 }
 
-void
-Ice::CommunicatorI::destroy() ICE_NOEXCEPT
+void Ice::CommunicatorI::destroy() ICE_NOEXCEPT
 {
     if(_instance)
     {
@@ -200,8 +194,7 @@ Ice::CommunicatorI::destroy() ICE_NOEXCEPT
     }
 }
 
-void
-Ice::CommunicatorI::shutdown() ICE_NOEXCEPT
+void Ice::CommunicatorI::shutdown() ICE_NOEXCEPT
 {
     try
     {
@@ -213,8 +206,7 @@ Ice::CommunicatorI::shutdown() ICE_NOEXCEPT
     }
 }
 
-void
-Ice::CommunicatorI::waitForShutdown() ICE_NOEXCEPT
+void Ice::CommunicatorI::waitForShutdown() ICE_NOEXCEPT
 {
     try
     {
@@ -226,8 +218,7 @@ Ice::CommunicatorI::waitForShutdown() ICE_NOEXCEPT
     }
 }
 
-bool
-Ice::CommunicatorI::isShutdown() const ICE_NOEXCEPT
+bool Ice::CommunicatorI::isShutdown() const ICE_NOEXCEPT
 {
     try
     {
@@ -239,50 +230,42 @@ Ice::CommunicatorI::isShutdown() const ICE_NOEXCEPT
     }
 }
 
-ObjectPrxPtr
-Ice::CommunicatorI::stringToProxy(const string& s) const
+ObjectPrxPtr Ice::CommunicatorI::stringToProxy(const string& s) const
 {
     return _instance->proxyFactory()->stringToProxy(s);
 }
 
-string
-Ice::CommunicatorI::proxyToString(const ObjectPrxPtr& proxy) const
+string Ice::CommunicatorI::proxyToString(const ObjectPrxPtr& proxy) const
 {
     return _instance->proxyFactory()->proxyToString(proxy);
 }
 
-ObjectPrxPtr
-Ice::CommunicatorI::propertyToProxy(const string& p) const
+ObjectPrxPtr Ice::CommunicatorI::propertyToProxy(const string& p) const
 {
     return _instance->proxyFactory()->propertyToProxy(p);
 }
 
-PropertyDict
-Ice::CommunicatorI::proxyToProperty(const ObjectPrxPtr& proxy, const string& property) const
+PropertyDict Ice::CommunicatorI::proxyToProperty(const ObjectPrxPtr& proxy, const string& property) const
 {
     return _instance->proxyFactory()->proxyToProperty(proxy, property);
 }
 
-Identity
-Ice::CommunicatorI::stringToIdentity(const string& s) const
+Identity Ice::CommunicatorI::stringToIdentity(const string& s) const
 {
     return Ice::stringToIdentity(s);
 }
 
-string
-Ice::CommunicatorI::identityToString(const Identity& ident) const
+string Ice::CommunicatorI::identityToString(const Identity& ident) const
 {
     return Ice::identityToString(ident, _instance->toStringMode());
 }
 
-ObjectAdapterPtr
-Ice::CommunicatorI::createObjectAdapter(const string& name)
+ObjectAdapterPtr Ice::CommunicatorI::createObjectAdapter(const string& name)
 {
     return _instance->objectAdapterFactory()->createObjectAdapter(name, ICE_NULLPTR);
 }
 
-ObjectAdapterPtr
-Ice::CommunicatorI::createObjectAdapterWithEndpoints(const string& name, const string& endpoints)
+ObjectAdapterPtr Ice::CommunicatorI::createObjectAdapterWithEndpoints(const string& name, const string& endpoints)
 {
     string oaName = name;
     if(oaName.empty())
@@ -294,8 +277,7 @@ Ice::CommunicatorI::createObjectAdapterWithEndpoints(const string& name, const s
     return _instance->objectAdapterFactory()->createObjectAdapter(oaName, ICE_NULLPTR);
 }
 
-ObjectAdapterPtr
-Ice::CommunicatorI::createObjectAdapterWithRouter(const string& name, const RouterPrxPtr& router)
+ObjectAdapterPtr Ice::CommunicatorI::createObjectAdapterWithRouter(const string& name, const RouterPrxPtr& router)
 {
     string oaName = name;
     if(oaName.empty())
@@ -312,100 +294,84 @@ Ice::CommunicatorI::createObjectAdapterWithRouter(const string& name, const Rout
     return _instance->objectAdapterFactory()->createObjectAdapter(oaName, router);
 }
 
-void
-Ice::CommunicatorI::addObjectFactory(const ::Ice::ObjectFactoryPtr& factory, const string& id)
+void Ice::CommunicatorI::addObjectFactory(const ::Ice::ObjectFactoryPtr& factory, const string& id)
 {
     _instance->addObjectFactory(factory, id);
 }
 
-::Ice::ObjectFactoryPtr
-Ice::CommunicatorI::findObjectFactory(const string& id) const ICE_NOEXCEPT
+::Ice::ObjectFactoryPtr Ice::CommunicatorI::findObjectFactory(const string& id) const ICE_NOEXCEPT
 {
     return _instance->findObjectFactory(id);
 }
 
-PropertiesPtr
-Ice::CommunicatorI::getProperties() const ICE_NOEXCEPT
+PropertiesPtr Ice::CommunicatorI::getProperties() const ICE_NOEXCEPT
 {
     return _instance->initializationData().properties;
 }
 
-LoggerPtr
-Ice::CommunicatorI::getLogger() const ICE_NOEXCEPT
+LoggerPtr Ice::CommunicatorI::getLogger() const ICE_NOEXCEPT
 {
     return _instance->initializationData().logger;
 }
 
-Ice::Instrumentation::CommunicatorObserverPtr
-Ice::CommunicatorI::getObserver() const ICE_NOEXCEPT
+Ice::Instrumentation::CommunicatorObserverPtr Ice::CommunicatorI::getObserver() const ICE_NOEXCEPT
 {
     return _instance->initializationData().observer;
 }
 
-RouterPrxPtr
-Ice::CommunicatorI::getDefaultRouter() const
+RouterPrxPtr Ice::CommunicatorI::getDefaultRouter() const
 {
     return _instance->referenceFactory()->getDefaultRouter();
 }
 
-void
-Ice::CommunicatorI::setDefaultRouter(const RouterPrxPtr& router)
+void Ice::CommunicatorI::setDefaultRouter(const RouterPrxPtr& router)
 {
     _instance->setDefaultRouter(router);
 }
 
-LocatorPrxPtr
-Ice::CommunicatorI::getDefaultLocator() const
+LocatorPrxPtr Ice::CommunicatorI::getDefaultLocator() const
 {
     return _instance->referenceFactory()->getDefaultLocator();
 }
 
-void
-Ice::CommunicatorI::setDefaultLocator(const LocatorPrxPtr& locator)
+void Ice::CommunicatorI::setDefaultLocator(const LocatorPrxPtr& locator)
 {
     _instance->setDefaultLocator(locator);
 }
 
-Ice::ImplicitContextPtr
-Ice::CommunicatorI::getImplicitContext() const ICE_NOEXCEPT
+Ice::ImplicitContextPtr Ice::CommunicatorI::getImplicitContext() const ICE_NOEXCEPT
 {
     return _instance->getImplicitContext();
 }
 
-PluginManagerPtr
-Ice::CommunicatorI::getPluginManager() const
+PluginManagerPtr Ice::CommunicatorI::getPluginManager() const
 {
     return _instance->pluginManager();
 }
 
-ValueFactoryManagerPtr
-Ice::CommunicatorI::getValueFactoryManager() const ICE_NOEXCEPT
+ValueFactoryManagerPtr Ice::CommunicatorI::getValueFactoryManager() const ICE_NOEXCEPT
 {
     return _instance->initializationData().valueFactoryManager;
 }
 
 namespace
 {
-
-const ::std::string flushBatchRequests_name = "flushBatchRequests";
-
+    const ::std::string flushBatchRequests_name = "flushBatchRequests";
 }
 
 #ifdef ICE_CPP11_MAPPING
 
-::std::function<void()>
-Ice::CommunicatorI::flushBatchRequestsAsync(CompressBatch compress,
-                                            function<void(exception_ptr)> ex,
-                                            function<void(bool)> sent)
+::std::function<void()> Ice::CommunicatorI::flushBatchRequestsAsync(CompressBatch compress,
+                                                                    function<void(exception_ptr)> ex,
+                                                                    function<void(bool)> sent)
 {
     class CommunicatorFlushBatchLambda : public CommunicatorFlushBatchAsync, public LambdaInvoke
     {
     public:
-
-        CommunicatorFlushBatchLambda(const InstancePtr& instance,
-                                     std::function<void(std::exception_ptr)> ex,
+        CommunicatorFlushBatchLambda(const InstancePtr& instance, std::function<void(std::exception_ptr)> ex,
                                      std::function<void(bool)> sent) :
-            CommunicatorFlushBatchAsync(instance), LambdaInvoke(std::move(ex), std::move(sent))
+            CommunicatorFlushBatchAsync(instance),
+            LambdaInvoke(std::move(ex), std::move(sent))
         {
         }
     };
@@ -416,48 +382,41 @@ Ice::CommunicatorI::flushBatchRequestsAsync(CompressBatch compress,
 
 #else
 
-void
-Ice::CommunicatorI::flushBatchRequests(CompressBatch compress)
+void Ice::CommunicatorI::flushBatchRequests(CompressBatch compress)
 {
     end_flushBatchRequests(begin_flushBatchRequests(compress));
 }
 
-AsyncResultPtr
-Ice::CommunicatorI::begin_flushBatchRequests(CompressBatch compress)
+AsyncResultPtr Ice::CommunicatorI::begin_flushBatchRequests(CompressBatch compress)
 {
     return _iceI_begin_flushBatchRequests(compress, ::IceInternal::dummyCallback, 0);
 }
 
-AsyncResultPtr
-Ice::CommunicatorI::begin_flushBatchRequests(CompressBatch compress,
-                                             const CallbackPtr& cb,
-                                             const LocalObjectPtr& cookie)
+AsyncResultPtr Ice::CommunicatorI::begin_flushBatchRequests(CompressBatch compress, const CallbackPtr& cb,
+                                                            const LocalObjectPtr& cookie)
 {
     return _iceI_begin_flushBatchRequests(compress, cb, cookie);
 }
 
-AsyncResultPtr
-Ice::CommunicatorI::begin_flushBatchRequests(CompressBatch compress,
-                                             const Callback_Communicator_flushBatchRequestsPtr& cb,
-                                             const LocalObjectPtr& cookie)
+AsyncResultPtr Ice::CommunicatorI::begin_flushBatchRequests(CompressBatch compress,
+                                                            const Callback_Communicator_flushBatchRequestsPtr& cb,
+                                                            const LocalObjectPtr& cookie)
 {
     return _iceI_begin_flushBatchRequests(compress, cb, cookie);
 }
 
-AsyncResultPtr
-Ice::CommunicatorI::_iceI_begin_flushBatchRequests(CompressBatch compress,
-                                                   const IceInternal::CallbackBasePtr& cb,
-                                                   const LocalObjectPtr& cookie)
+AsyncResultPtr Ice::CommunicatorI::_iceI_begin_flushBatchRequests(CompressBatch compress,
+                                                                  const IceInternal::CallbackBasePtr& cb,
+                                                                  const LocalObjectPtr& cookie)
 {
     class CommunicatorFlushBatchAsyncWithCallback : public CommunicatorFlushBatchAsync, public CallbackCompletion
     {
     public:
-
-        CommunicatorFlushBatchAsyncWithCallback(const Ice::CommunicatorPtr& communicator,
-                                                const InstancePtr& instance,
-                                                const CallbackBasePtr& callback,
-                                                const Ice::LocalObjectPtr& cookie) :
-            CommunicatorFlushBatchAsync(instance), CallbackCompletion(callback, cookie), _communicator(communicator)
+        CommunicatorFlushBatchAsyncWithCallback(const Ice::CommunicatorPtr& communicator, const InstancePtr& instance,
+                                                const CallbackBasePtr& callback, const Ice::LocalObjectPtr& cookie) :
+            CommunicatorFlushBatchAsync(instance),
+            CallbackCompletion(callback, cookie),
+            _communicator(communicator)
         {
             _cookie = cookie;
         }
@@ -467,14 +426,12 @@ Ice::CommunicatorI::_iceI_begin_flushBatchRequests(CompressBatch compress,
             return _communicator;
         }
 
-        virtual const std::string&
-        getOperation() const
+        virtual const std::string& getOperation() const
         {
             return flushBatchRequests_name;
         }
 
     private:
-
         Ice::CommunicatorPtr _communicator;
     };
 
@@ -483,51 +440,43 @@ Ice::CommunicatorI::_iceI_begin_flushBatchRequests(CompressBatch compress,
     return result;
 }
 
-void
-Ice::CommunicatorI::end_flushBatchRequests(const AsyncResultPtr& r)
+void Ice::CommunicatorI::end_flushBatchRequests(const AsyncResultPtr& r)
 {
     AsyncResult::_check(r, this, flushBatchRequests_name);
     r->_waitForResponse();
 }
 #endif
 
-ObjectPrxPtr
-Ice::CommunicatorI::createAdmin(const ObjectAdapterPtr& adminAdapter, const Identity& adminId)
+ObjectPrxPtr Ice::CommunicatorI::createAdmin(const ObjectAdapterPtr& adminAdapter, const Identity& adminId)
 {
     return _instance->createAdmin(adminAdapter, adminId);
 }
-ObjectPrxPtr
-Ice::CommunicatorI::getAdmin() const
+ObjectPrxPtr Ice::CommunicatorI::getAdmin() const
 {
     return _instance->getAdmin();
 }
 
-void
-Ice::CommunicatorI::addAdminFacet(const Ice::ObjectPtr& servant, const string& facet)
+void Ice::CommunicatorI::addAdminFacet(const Ice::ObjectPtr& servant, const string& facet)
 {
     _instance->addAdminFacet(servant, facet);
 }
 
-Ice::ObjectPtr
-Ice::CommunicatorI::removeAdminFacet(const string& facet)
+Ice::ObjectPtr Ice::CommunicatorI::removeAdminFacet(const string& facet)
 {
     return _instance->removeAdminFacet(facet);
 }
 
-Ice::ObjectPtr
-Ice::CommunicatorI::findAdminFacet(const string& facet)
+Ice::ObjectPtr Ice::CommunicatorI::findAdminFacet(const string& facet)
 {
     return _instance->findAdminFacet(facet);
 }
 
-Ice::FacetMap
-Ice::CommunicatorI::findAllAdminFacets()
+Ice::FacetMap Ice::CommunicatorI::findAllAdminFacets()
 {
     return _instance->findAllAdminFacets();
 }
 
-CommunicatorIPtr
-Ice::CommunicatorI::create(const InitializationData& initData)
+CommunicatorIPtr Ice::CommunicatorI::create(const InitializationData& initData)
 {
     Ice::CommunicatorIPtr communicator = ICE_MAKE_SHARED(CommunicatorI);
     try
@@ -539,7 +488,8 @@ Ice::CommunicatorI::create(const InitializationData& initData)
         // the libraries are not unloaded until this Communicator's
         // destructor is invoked.
         //
-        const_cast<DynamicLibraryListPtr&>(communicator->_dynamicLibraryList) = communicator->_instance->dynamicLibraryList();
+        const_cast<DynamicLibraryListPtr&>(communicator->_dynamicLibraryList) =
+            communicator->_instance->dynamicLibraryList();
     }
     catch(...)
     {
@@ -558,8 +508,7 @@ Ice::CommunicatorI::~CommunicatorI()
     }
 }
 
-void
-Ice::CommunicatorI::finishSetup(int& argc, const char* argv[])
+void Ice::CommunicatorI::finishSetup(int& argc, const char* argv[])
 {
     try
     {

@@ -16,14 +16,12 @@ TestI::TestI(const Ice::ObjectAdapterPtr& adapter, const Ice::PropertiesPtr& pro
 {
 }
 
-void
-TestI::shutdown(const Ice::Current&)
+void TestI::shutdown(const Ice::Current&)
 {
     _adapter->getCommunicator()->shutdown();
 }
 
-std::string
-TestI::getProperty(const std::string& name, const Ice::Current&)
+std::string TestI::getProperty(const std::string& name, const Ice::Current&)
 {
     return _properties->getProperty(name);
 }

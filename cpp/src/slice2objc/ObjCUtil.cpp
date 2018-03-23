@@ -16,11 +16,11 @@
 #include <sys/stat.h>
 
 #ifdef _WIN32
-#include <direct.h>
+#    include <direct.h>
 #endif
 
 #ifndef _WIN32
-#include <unistd.h>
+#    include <unistd.h>
 #endif
 
 using namespace std;
@@ -30,59 +30,48 @@ using namespace IceUtilInternal;
 
 Slice::ObjCGenerator::ModuleMap Slice::ObjCGenerator::_modules;
 
-static string
-lookupKwd(const string& name, int baseType, bool mangleCasts = false)
+static string lookupKwd(const string& name, int baseType, bool mangleCasts = false)
 {
     //
     // All lists in this method *must* be kept in case-insensitive
     // alphabetical order.
     //
-    static string keywordList[] =
-    {
-        "auto", "BOOL", "break", "bycopy", "byref", "case", "char", "const", "continue",
-        "default", "do", "double", "else", "enum", "extern", "float", "for", "goto",
-        "id", "if", "IMP", "in", "inline", "inout", "int", "long", "nil", "NO", "oneway", "out",
-        "register", "return", "SEL", "self", "short", "signed", "sizeof", "static", "struct", "super", "switch",
-        "typedef", "union", "unsigned", "void", "volatile", "while", "YES"
-    };
+    static string keywordList[] = {
+        "auto",     "BOOL",    "break",  "bycopy",   "byref",  "case",     "char",   "const",  "continue", "default",
+        "do",       "double",  "else",   "enum",     "extern", "float",    "for",    "goto",   "id",       "if",
+        "IMP",      "in",      "inline", "inout",    "int",    "long",     "nil",    "NO",     "oneway",   "out",
+        "register", "return",  "SEL",    "self",     "short",  "signed",   "sizeof", "static", "struct",   "super",
+        "switch",   "typedef", "union",  "unsigned", "void",   "volatile", "while",  "YES"};
 
-    static string nsObjectList[] =
-    {
-        "autorelease", "class", "classForCoder", "copy", "dealloc", "description", "hash", "init", "isa",
-        "isProxy", "mutableCopy", "release", "retain", "retainCount", "superclass", "zone"
-    };
-    static string nsExceptionList[] =
-    {
+    static string nsObjectList[] = {
+        "autorelease", "class",   "classForCoder", "copy",    "dealloc", "description", "hash",       "init",
+        "isa",         "isProxy", "mutableCopy",   "release", "retain",  "retainCount", "superclass", "zone"};
+    static string nsExceptionList[] = {
         "callStackReturnAddresses", "name", "raise", "reason", "reserved", "userInfo",
     };
 
-    bool found = binary_search(&keywordList[0],
-                               &keywordList[sizeof(keywordList) / sizeof(*keywordList)],
-                               name,
+    bool found = binary_search(&keywordList[0], &keywordList[sizeof(keywordList) / sizeof(*keywordList)], name,
                                Slice::CICompare());
     if(!found)
     {
         switch(baseType)
         {
-        case BaseTypeNone:
-            break;
-
-        case BaseTypeException:
-            found = binary_search(&nsExceptionList[0],
-                                  &nsExceptionList[sizeof(nsExceptionList) / sizeof(*nsExceptionList)],
-                                  name,
-                                  Slice::CICompare());
-            if(found)
-            {
+            case BaseTypeNone:
                 break;
-            }
 
-        case BaseTypeObject:
-            found = binary_search(&nsObjectList[0],
-                                  &nsObjectList[sizeof(nsObjectList) / sizeof(*nsObjectList)],
-                                  name,
-                                  Slice::CICompare());
-            break;
+            case BaseTypeException:
+                found = binary_search(&nsExceptionList[0],
+                                      &nsExceptionList[sizeof(nsExceptionList) / sizeof(*nsExceptionList)], name,
+                                      Slice::CICompare());
+                if(found)
+                {
+                    break;
+                }
+
+            case BaseTypeObject:
+                found = binary_search(&nsObjectList[0], &nsObjectList[sizeof(nsObjectList) / sizeof(*nsObjectList)],
+                                      name, Slice::CICompare());
+                break;
         }
     }
     if(found || (mangleCasts && (name == "checkedCast" || name == "uncheckedCast")))
@@ -92,20 +81,14 @@ lookupKwd(const string& name, int baseType, bool mangleCasts = false)
     return name;
 }
 
-static string
-lookupParamIdKwd(const string& name)
+static string lookupParamIdKwd(const string& name)
 {
     //
     // All lists in this method *must* be kept in case-insensitive
     // alphabetical order.
     //
-    static string keywordList[] =
-    {
-        "nil", "NO", "YES"
-    };
-    if(binary_search(&keywordList[0],
-                     &keywordList[sizeof(keywordList) / sizeof(*keywordList)],
-                     name,
+    static string keywordList[] = {"nil", "NO", "YES"};
+    if(binary_search(&keywordList[0], &keywordList[sizeof(keywordList) / sizeof(*keywordList)], name,
                      Slice::CICompare()))
     {
         return name + "_";
@@ -113,8 +96,7 @@ lookupParamIdKwd(const string& name)
     return name;
 }
 
-bool
-Slice::ObjCGenerator::addModule(const ModulePtr& m, const string& name)
+bool Slice::ObjCGenerator::addModule(const ModulePtr& m, const string& name)
 {
     string scoped = m->scoped();
     ModuleMap::const_iterator i = _modules.find(scoped);
@@ -135,20 +117,17 @@ Slice::ObjCGenerator::addModule(const ModulePtr& m, const string& name)
     return true;
 }
 
-Slice::ObjCGenerator::ModulePrefix
-Slice::ObjCGenerator::modulePrefix(const ModulePtr& m)
+Slice::ObjCGenerator::ModulePrefix Slice::ObjCGenerator::modulePrefix(const ModulePtr& m)
 {
     return _modules[m->scoped()];
 }
 
-string
-Slice::ObjCGenerator::moduleName(const ModulePtr& m)
+string Slice::ObjCGenerator::moduleName(const ModulePtr& m)
 {
     return _modules[m->scoped()].name;
 }
 
-ModulePtr
-Slice::ObjCGenerator::findModule(const ContainedPtr& cont, int baseTypes, bool mangleCasts)
+ModulePtr Slice::ObjCGenerator::findModule(const ContainedPtr& cont, int baseTypes, bool mangleCasts)
 {
     ModulePtr m = ModulePtr::dynamicCast(cont);
     ContainerPtr container = cont->container();
@@ -171,8 +150,7 @@ Slice::ObjCGenerator::findModule(const ContainedPtr& cont, int baseTypes, bool m
 // baseTypes; if so, returned the prefixed name; otherwise, return the
 // name unchanged.
 //
-string
-Slice::ObjCGenerator::fixId(const string& name, int baseTypes, bool mangleCasts)
+string Slice::ObjCGenerator::fixId(const string& name, int baseTypes, bool mangleCasts)
 {
     if(name.empty())
     {
@@ -181,20 +159,17 @@ Slice::ObjCGenerator::fixId(const string& name, int baseTypes, bool mangleCasts)
     return lookupKwd(name, baseTypes, mangleCasts);
 }
 
-string
-Slice::ObjCGenerator::fixId(const ContainedPtr& cont, int baseTypes, bool mangleCasts)
+string Slice::ObjCGenerator::fixId(const ContainedPtr& cont, int baseTypes, bool mangleCasts)
 {
     return fixId(cont->name(), baseTypes, mangleCasts);
 }
 
-string
-Slice::ObjCGenerator::fixName(const ContainedPtr& cont, int baseTypes, bool mangleCasts)
+string Slice::ObjCGenerator::fixName(const ContainedPtr& cont, int baseTypes, bool mangleCasts)
 {
     return moduleName(findModule(cont, baseTypes, mangleCasts)) + cont->name();
 }
 
-string
-Slice::ObjCGenerator::getParamId(const ContainedPtr& param)
+string Slice::ObjCGenerator::getParamId(const ContainedPtr& param)
 {
     string n;
     if(ParamDeclPtr::dynamicCast(param) && param->findMetaData("objc:param:", n))
@@ -207,8 +182,7 @@ Slice::ObjCGenerator::getParamId(const ContainedPtr& param)
     }
 }
 
-string
-Slice::ObjCGenerator::getParamName(const ContainedPtr& param, bool internal)
+string Slice::ObjCGenerator::getParamName(const ContainedPtr& param, bool internal)
 {
     if(internal)
     {
@@ -220,8 +194,7 @@ Slice::ObjCGenerator::getParamName(const ContainedPtr& param, bool internal)
     }
 }
 
-string
-Slice::ObjCGenerator::getFactoryMethod(const ContainedPtr& p, bool deprecated)
+string Slice::ObjCGenerator::getFactoryMethod(const ContainedPtr& p, bool deprecated)
 {
     ClassDefPtr def = ClassDefPtr::dynamicCast(p);
     if(def && def->declaration()->isLocal())
@@ -256,29 +229,17 @@ Slice::ObjCGenerator::getFactoryMethod(const ContainedPtr& p, bool deprecated)
     return name;
 }
 
-string
-Slice::ObjCGenerator::typeToString(const TypePtr& type)
+string Slice::ObjCGenerator::typeToString(const TypePtr& type)
 {
     if(!type)
     {
         return "void";
     }
 
-    static const char* builtinTable[] =
-    {
-        "ICEByte",
-        "BOOL",
-        "ICEShort",
-        "ICEInt",
-        "ICELong",
-        "ICEFloat",
-        "ICEDouble",
-        "NSString",
-        "ICEObject",
-        "id<ICEObjectPrx>",
-        "id",            // Dummy--we don't support Slice local Object
-        "ICEObject"
-    };
+    static const char* builtinTable[] = {"ICEByte",  "BOOL",      "ICEShort", "ICEInt",    "ICELong",
+                                         "ICEFloat", "ICEDouble", "NSString", "ICEObject", "id<ICEObjectPrx>",
+                                         "id", // Dummy--we don't support Slice local Object
+                                         "ICEObject"};
 
     BuiltinPtr builtin = BuiltinPtr::dynamicCast(type);
     if(builtin)
@@ -339,8 +300,7 @@ Slice::ObjCGenerator::typeToString(const TypePtr& type)
     return "???";
 }
 
-string
-Slice::ObjCGenerator::inTypeToString(const TypePtr& type, bool optional, bool autoreleasing, bool reference)
+string Slice::ObjCGenerator::inTypeToString(const TypePtr& type, bool optional, bool autoreleasing, bool reference)
 {
     string s;
     if(optional)
@@ -366,8 +326,7 @@ Slice::ObjCGenerator::inTypeToString(const TypePtr& type, bool optional, bool au
     return s;
 }
 
-string
-Slice::ObjCGenerator::outTypeToString(const TypePtr& type, bool optional, bool autoreleasing, bool reference)
+string Slice::ObjCGenerator::outTypeToString(const TypePtr& type, bool optional, bool autoreleasing, bool reference)
 {
     if(!type)
     {
@@ -417,8 +376,7 @@ Slice::ObjCGenerator::outTypeToString(const TypePtr& type, bool optional, bool a
     return s;
 }
 
-string
-Slice::ObjCGenerator::typeToObjCTypeString(const TypePtr& type)
+string Slice::ObjCGenerator::typeToObjCTypeString(const TypePtr& type)
 {
     ProxyPtr proxy = ProxyPtr::dynamicCast(type);
     if(proxy)
@@ -431,8 +389,7 @@ Slice::ObjCGenerator::typeToObjCTypeString(const TypePtr& type)
     }
 }
 
-bool
-Slice::ObjCGenerator::isValueType(const TypePtr& type)
+bool Slice::ObjCGenerator::isValueType(const TypePtr& type)
 {
     if(!type)
     {
@@ -465,8 +422,7 @@ Slice::ObjCGenerator::isValueType(const TypePtr& type)
     return false;
 }
 
-bool
-Slice::ObjCGenerator::isString(const TypePtr& type)
+bool Slice::ObjCGenerator::isString(const TypePtr& type)
 {
     if(!type)
     {
@@ -475,8 +431,7 @@ Slice::ObjCGenerator::isString(const TypePtr& type)
     BuiltinPtr builtin = BuiltinPtr::dynamicCast(type);
     return builtin && builtin->kind() == Builtin::KindString;
 }
-bool
-Slice::ObjCGenerator::isClass(const TypePtr& type)
+bool Slice::ObjCGenerator::isClass(const TypePtr& type)
 {
     BuiltinPtr builtin = BuiltinPtr::dynamicCast(type);
     if(builtin)
@@ -486,8 +441,7 @@ Slice::ObjCGenerator::isClass(const TypePtr& type)
     return ClassDeclPtr::dynamicCast(type);
 }
 
-bool
-Slice::ObjCGenerator::mapsToPointerType(const TypePtr& type)
+bool Slice::ObjCGenerator::mapsToPointerType(const TypePtr& type)
 {
     if(isValueType(type))
     {
@@ -496,7 +450,7 @@ Slice::ObjCGenerator::mapsToPointerType(const TypePtr& type)
     BuiltinPtr builtin = BuiltinPtr::dynamicCast(type);
     if(builtin)
     {
-       return builtin->kind() != Builtin::KindObjectProxy && builtin->kind() != Builtin::KindLocalObject;
+        return builtin->kind() != Builtin::KindObjectProxy && builtin->kind() != Builtin::KindLocalObject;
     }
     ClassDeclPtr cl = ClassDeclPtr::dynamicCast(type);
     if(cl && cl->isInterface())
@@ -513,8 +467,7 @@ Slice::ObjCGenerator::mapsToPointerType(const TypePtr& type)
     return !ProxyPtr::dynamicCast(type);
 }
 
-string
-Slice::ObjCGenerator::getBuiltinName(const BuiltinPtr& builtin)
+string Slice::ObjCGenerator::getBuiltinName(const BuiltinPtr& builtin)
 {
     switch(builtin->kind())
     {
@@ -566,8 +519,7 @@ Slice::ObjCGenerator::getBuiltinName(const BuiltinPtr& builtin)
     return "NO__SUCH__TYPE";
 }
 
-string
-Slice::ObjCGenerator::getOptionalHelperGetter(const TypePtr& type)
+string Slice::ObjCGenerator::getOptionalHelperGetter(const TypePtr& type)
 {
     if(isValueType(type))
     {
@@ -587,8 +539,7 @@ Slice::ObjCGenerator::getOptionalHelperGetter(const TypePtr& type)
 //
 // Split a scoped name into its components and return the components as a list of (unscoped) identifiers.
 //
-StringList
-Slice::ObjCGenerator::splitScopedName(const string& scoped)
+StringList Slice::ObjCGenerator::splitScopedName(const string& scoped)
 {
     assert(scoped[0] == ':');
     StringList ids;
@@ -619,51 +570,50 @@ Slice::ObjCGenerator::splitScopedName(const string& scoped)
     return ids;
 }
 
-string
-Slice::ObjCGenerator::getOptionalFormat(const TypePtr& type)
+string Slice::ObjCGenerator::getOptionalFormat(const TypePtr& type)
 {
     BuiltinPtr bp = BuiltinPtr::dynamicCast(type);
     if(bp)
     {
         switch(bp->kind())
         {
-        case Builtin::KindByte:
-        case Builtin::KindBool:
-        {
-            return "ICEOptionalFormatF1";
-        }
-        case Builtin::KindShort:
-        {
-            return "ICEOptionalFormatF2";
-        }
-        case Builtin::KindInt:
-        case Builtin::KindFloat:
-        {
-            return "ICEOptionalFormatF4";
-        }
-        case Builtin::KindLong:
-        case Builtin::KindDouble:
-        {
-            return "ICEOptionalFormatF8";
-        }
-        case Builtin::KindString:
-        {
-            return "ICEOptionalFormatVSize";
-        }
-        case Builtin::KindObject:
-        case Builtin::KindValue:
-        {
-            return "ICEOptionalFormatClass";
-        }
-        case Builtin::KindObjectProxy:
-        {
-            return "ICEOptionalFormatFSize";
-        }
-        case Builtin::KindLocalObject:
-        {
-            assert(false);
-            break;
-        }
+            case Builtin::KindByte:
+            case Builtin::KindBool:
+            {
+                return "ICEOptionalFormatF1";
+            }
+            case Builtin::KindShort:
+            {
+                return "ICEOptionalFormatF2";
+            }
+            case Builtin::KindInt:
+            case Builtin::KindFloat:
+            {
+                return "ICEOptionalFormatF4";
+            }
+            case Builtin::KindLong:
+            case Builtin::KindDouble:
+            {
+                return "ICEOptionalFormatF8";
+            }
+            case Builtin::KindString:
+            {
+                return "ICEOptionalFormatVSize";
+            }
+            case Builtin::KindObject:
+            case Builtin::KindValue:
+            {
+                return "ICEOptionalFormatClass";
+            }
+            case Builtin::KindObjectProxy:
+            {
+                return "ICEOptionalFormatFSize";
+            }
+            case Builtin::KindLocalObject:
+            {
+                assert(false);
+                break;
+            }
         }
     }
 
@@ -681,8 +631,8 @@ Slice::ObjCGenerator::getOptionalFormat(const TypePtr& type)
     DictionaryPtr d = DictionaryPtr::dynamicCast(type);
     if(d)
     {
-        return (d->keyType()->isVariableLength() || d->valueType()->isVariableLength()) ?
-            "ICEOptionalFormatFSize" : "ICEOptionalFormatVSize";
+        return (d->keyType()->isVariableLength() || d->valueType()->isVariableLength()) ? "ICEOptionalFormatFSize" :
+                                                                                          "ICEOptionalFormatVSize";
     }
 
     StructPtr st = StructPtr::dynamicCast(type);
@@ -701,9 +651,8 @@ Slice::ObjCGenerator::getOptionalFormat(const TypePtr& type)
     return "ICEOptionalFormatClass";
 }
 
-void
-Slice::ObjCGenerator::writeMarshalUnmarshalCode(Output &out, const TypePtr& type, const string& param,
-                                                bool marshal, bool autoreleased) const
+void Slice::ObjCGenerator::writeMarshalUnmarshalCode(Output& out, const TypePtr& type, const string& param,
+                                                     bool marshal, bool autoreleased) const
 {
     string stream = marshal ? "ostr" : "istr";
     BuiltinPtr builtin = BuiltinPtr::dynamicCast(type);
@@ -815,11 +764,13 @@ Slice::ObjCGenerator::writeMarshalUnmarshalCode(Output &out, const TypePtr& type
         {
             if(autoreleased)
             {
-                out << nl << "[" << stream << " " << "readValue:(ICEObject**)&" << param;
+                out << nl << "[" << stream << " "
+                    << "readValue:(ICEObject**)&" << param;
             }
             else
             {
-                out << nl << "[" << stream << " " << "newValue:(ICEObject**)&" << param;
+                out << nl << "[" << stream << " "
+                    << "newValue:(ICEObject**)&" << param;
             }
 
             if(cl->isInterface())
@@ -852,8 +803,8 @@ Slice::ObjCGenerator::writeMarshalUnmarshalCode(Output &out, const TypePtr& type
         }
         else
         {
-            out << nl << param << " = " << "[" << stream << " readEnumerator:" << en->minValue()
-                << " max:" << en->maxValue() << "];";
+            out << nl << param << " = "
+                << "[" << stream << " readEnumerator:" << en->minValue() << " max:" << en->maxValue() << "];";
         }
         return;
     }
@@ -892,9 +843,8 @@ Slice::ObjCGenerator::writeMarshalUnmarshalCode(Output &out, const TypePtr& type
     }
 }
 
-void
-Slice::ObjCGenerator::writeOptMemberMarshalUnmarshalCode(Output &out, const TypePtr& type, const string& param,
-                                                         bool marshal) const
+void Slice::ObjCGenerator::writeOptMemberMarshalUnmarshalCode(Output& out, const TypePtr& type, const string& param,
+                                                              bool marshal) const
 {
     string stream = marshal ? "ostr" : "istr";
     string optionalHelper;
@@ -987,18 +937,16 @@ Slice::ObjCGenerator::writeOptMemberMarshalUnmarshalCode(Output &out, const Type
     out << nl;
     if(marshal)
     {
-        out << "[" << optionalHelper  << " write:" << param << " stream:" << stream << " helper:" << helper << "];";
+        out << "[" << optionalHelper << " write:" << param << " stream:" << stream << " helper:" << helper << "];";
     }
     else
     {
         out << param << " = [" << optionalHelper << " readRetained:" << stream << " helper:" << helper << "];";
     }
-
 }
 
-void
-Slice::ObjCGenerator::writeOptParamMarshalUnmarshalCode(Output &out, const TypePtr& type, const string& param,
-                                                        int tag, bool marshal) const
+void Slice::ObjCGenerator::writeOptParamMarshalUnmarshalCode(Output& out, const TypePtr& type, const string& param,
+                                                             int tag, bool marshal) const
 {
     string helper;
     BuiltinPtr builtin = BuiltinPtr::dynamicCast(type);
@@ -1042,8 +990,7 @@ Slice::ObjCGenerator::writeOptParamMarshalUnmarshalCode(Output &out, const TypeP
     }
 }
 
-void
-Slice::ObjCGenerator::validateMetaData(const UnitPtr& u)
+void Slice::ObjCGenerator::validateMetaData(const UnitPtr& u)
 {
     MetaDataVisitor visitor;
     u->visit(&visitor, true);
@@ -1052,8 +999,7 @@ Slice::ObjCGenerator::validateMetaData(const UnitPtr& u)
 const string Slice::ObjCGenerator::MetaDataVisitor::_objcPrefix = "objc:";
 const string Slice::ObjCGenerator::MetaDataVisitor::_msg = "ignoring invalid metadata";
 
-bool
-Slice::ObjCGenerator::MetaDataVisitor::visitUnitStart(const UnitPtr& p)
+bool Slice::ObjCGenerator::MetaDataVisitor::visitUnitStart(const UnitPtr& p)
 {
     //
     // Validate global metadata in the top-level file and all included files.
@@ -1116,104 +1062,87 @@ Slice::ObjCGenerator::MetaDataVisitor::visitUnitStart(const UnitPtr& p)
     return true;
 }
 
-bool
-Slice::ObjCGenerator::MetaDataVisitor::visitModuleStart(const ModulePtr& p)
+bool Slice::ObjCGenerator::MetaDataVisitor::visitModuleStart(const ModulePtr& p)
 {
     validate(p);
     return true;
 }
 
-void
-Slice::ObjCGenerator::MetaDataVisitor::visitModuleEnd(const ModulePtr&)
+void Slice::ObjCGenerator::MetaDataVisitor::visitModuleEnd(const ModulePtr&)
 {
 }
 
-void
-Slice::ObjCGenerator::MetaDataVisitor::visitClassDecl(const ClassDeclPtr& p)
+void Slice::ObjCGenerator::MetaDataVisitor::visitClassDecl(const ClassDeclPtr& p)
 {
     validate(p);
 }
 
-bool
-Slice::ObjCGenerator::MetaDataVisitor::visitClassDefStart(const ClassDefPtr& p)
+bool Slice::ObjCGenerator::MetaDataVisitor::visitClassDefStart(const ClassDefPtr& p)
 {
     validate(p);
     return true;
 }
 
-void
-Slice::ObjCGenerator::MetaDataVisitor::visitClassDefEnd(const ClassDefPtr&)
+void Slice::ObjCGenerator::MetaDataVisitor::visitClassDefEnd(const ClassDefPtr&)
 {
 }
 
-bool
-Slice::ObjCGenerator::MetaDataVisitor::visitExceptionStart(const ExceptionPtr& p)
+bool Slice::ObjCGenerator::MetaDataVisitor::visitExceptionStart(const ExceptionPtr& p)
 {
     validate(p);
     return true;
 }
 
-void
-Slice::ObjCGenerator::MetaDataVisitor::visitExceptionEnd(const ExceptionPtr&)
+void Slice::ObjCGenerator::MetaDataVisitor::visitExceptionEnd(const ExceptionPtr&)
 {
 }
 
-bool
-Slice::ObjCGenerator::MetaDataVisitor::visitStructStart(const StructPtr& p)
+bool Slice::ObjCGenerator::MetaDataVisitor::visitStructStart(const StructPtr& p)
 {
     validate(p);
     return true;
 }
 
-void
-Slice::ObjCGenerator::MetaDataVisitor::visitStructEnd(const StructPtr&)
+void Slice::ObjCGenerator::MetaDataVisitor::visitStructEnd(const StructPtr&)
 {
 }
 
-void
-Slice::ObjCGenerator::MetaDataVisitor::visitOperation(const OperationPtr& p)
+void Slice::ObjCGenerator::MetaDataVisitor::visitOperation(const OperationPtr& p)
 {
     validate(p);
 }
 
-void
-Slice::ObjCGenerator::MetaDataVisitor::visitParamDecl(const ParamDeclPtr& p)
+void Slice::ObjCGenerator::MetaDataVisitor::visitParamDecl(const ParamDeclPtr& p)
 {
     validate(p);
 }
 
-void
-Slice::ObjCGenerator::MetaDataVisitor::visitDataMember(const DataMemberPtr& p)
+void Slice::ObjCGenerator::MetaDataVisitor::visitDataMember(const DataMemberPtr& p)
 {
     validate(p);
 }
 
-void
-Slice::ObjCGenerator::MetaDataVisitor::visitSequence(const SequencePtr& p)
+void Slice::ObjCGenerator::MetaDataVisitor::visitSequence(const SequencePtr& p)
 {
     validate(p);
 }
 
-void
-Slice::ObjCGenerator::MetaDataVisitor::visitDictionary(const DictionaryPtr& p)
+void Slice::ObjCGenerator::MetaDataVisitor::visitDictionary(const DictionaryPtr& p)
 {
     validate(p);
 }
 
-void
-Slice::ObjCGenerator::MetaDataVisitor::visitEnum(const EnumPtr& p)
+void Slice::ObjCGenerator::MetaDataVisitor::visitEnum(const EnumPtr& p)
 {
     validate(p);
 }
 
-void
-Slice::ObjCGenerator::MetaDataVisitor::visitConst(const ConstPtr& p)
+void Slice::ObjCGenerator::MetaDataVisitor::visitConst(const ConstPtr& p)
 {
     validate(p);
 }
 
-void
-Slice::ObjCGenerator::MetaDataVisitor::validate(const ContainedPtr& cont)
+void Slice::ObjCGenerator::MetaDataVisitor::validate(const ContainedPtr& cont)
 {
     ModulePtr m = ModulePtr::dynamicCast(cont);
     if(m)
@@ -1233,8 +1162,8 @@ Slice::ObjCGenerator::MetaDataVisitor::validate(const ContainedPtr& cont)
                 name = trim(s.substr(prefix.size()));
                 if(name.empty())
                 {
-                    m->definitionContext()->warning(InvalidMetaData, m->definitionContext()->filename(),
-                                                    m->line(), _msg + " `" + s + "'");
+                    m->definitionContext()->warning(InvalidMetaData, m->definitionContext()->filename(), m->line(),
+                                                    _msg + " `" + s + "'");
                     meta.remove(s);
                     error = true;
                 }
@@ -1248,8 +1177,8 @@ Slice::ObjCGenerator::MetaDataVisitor::validate(const ContainedPtr& cont)
             }
             else
             {
-                m->definitionContext()->warning(InvalidMetaData, m->definitionContext()->filename(),
-                                                m->line(), _msg + " `" + s + "'");
+                m->definitionContext()->warning(InvalidMetaData, m->definitionContext()->filename(), m->line(),
+                                                _msg + " `" + s + "'");
                 meta.remove(s);
                 error = true;
             }
@@ -1280,8 +1209,8 @@ Slice::ObjCGenerator::MetaDataVisitor::validate(const ContainedPtr& cont)
             string s = *p;
             if(s != "objc:scoped")
             {
-                en->definitionContext()->warning(InvalidMetaData, en->definitionContext()->filename(),
-                                                en->line(), _msg + " `" + s + "'");
+                en->definitionContext()->warning(InvalidMetaData, en->definitionContext()->filename(), en->line(),
+                                                 _msg + " `" + s + "'");
                 meta.erase(p++);
             }
             else
@@ -1293,8 +1222,7 @@ Slice::ObjCGenerator::MetaDataVisitor::validate(const ContainedPtr& cont)
     }
 }
 
-StringList
-Slice::ObjCGenerator::MetaDataVisitor::getMetaData(const ContainedPtr& cont)
+StringList Slice::ObjCGenerator::MetaDataVisitor::getMetaData(const ContainedPtr& cont)
 {
     StringList localMetaData = cont->getMetaData();
     for(StringList::const_iterator p = localMetaData.begin(); p != localMetaData.end();)
@@ -1308,8 +1236,7 @@ Slice::ObjCGenerator::MetaDataVisitor::getMetaData(const ContainedPtr& cont)
     return localMetaData;
 }
 
-void
-Slice::ObjCGenerator::MetaDataVisitor::setMetaData(const ContainedPtr& cont, const StringList& metadata)
+void Slice::ObjCGenerator::MetaDataVisitor::setMetaData(const ContainedPtr& cont, const StringList& metadata)
 {
     StringList localMetaData = cont->getMetaData();
     for(StringList::const_iterator p = localMetaData.begin(); p != localMetaData.end();)
@@ -1324,8 +1251,7 @@ Slice::ObjCGenerator::MetaDataVisitor::setMetaData(const ContainedPtr& cont, con
     cont->setMetaData(localMetaData);
 }
 
-void
-Slice::ObjCGenerator::MetaDataVisitor::modulePrefixError(const ModulePtr& m, const string& metadata)
+void Slice::ObjCGenerator::MetaDataVisitor::modulePrefixError(const ModulePtr& m, const string& metadata)
 {
     string file = m->definitionContext()->filename();
     string line = m->line();
@@ -1340,7 +1266,7 @@ Slice::ObjCGenerator::MetaDataVisitor::modulePrefixError(const ModulePtr& m, con
     os << "inconsistent module prefix previously defined ";
     if(old_file != file)
     {
-         os << "in " << old_file << ":";
+        os << "in " << old_file << ":";
     }
     else
     {

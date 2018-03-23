@@ -18,9 +18,9 @@
 #include <sys/types.h>
 
 #ifdef _WIN32
-#   include <direct.h>
+#    include <direct.h>
 #else
-#   include <unistd.h>
+#    include <unistd.h>
 #endif
 
 #include <iterator>
@@ -35,64 +35,63 @@ using namespace Confluence;
 
 namespace Slice
 {
+    void generate(const UnitPtr& unit, const string& dir, const string& header, const string& footer,
+                  const string& indexHeader, const string& indexFooter, const string& imageDir, const string& logoURL,
+                  const string& searchAction, unsigned indexCount, unsigned warnSummary,
+                  const vector<string>& sortOrder)
+    {
+        unit->mergeModules();
 
-void
-generate(const UnitPtr& unit, const string& dir, const string& header, const string& footer,
-         const string& indexHeader, const string& indexFooter, const string& imageDir, const string& logoURL,
-         const string& searchAction, unsigned indexCount, unsigned warnSummary, const vector<string>& sortOrder)
-{
-    unit->mergeModules();
+        //
+        // I don't want the top-level module to be sorted, therefore no
+        // p->sort() before or after the p->sortContents().
+        //
+        unit->sortContents(false);
 
-    //
-    // I don't want the top-level module to be sorted, therefore no
-    // p->sort() before or after the p->sortContents().
-    //
-    unit->sortContents(false);
+        GeneratorBase::setOutputDir(dir);
+        GeneratorBase::setFooter(footer);
+        GeneratorBase::setImageDir(imageDir);
+        GeneratorBase::setLogoURL(logoURL);
+        GeneratorBase::setSearchAction(searchAction);
+        GeneratorBase::setIndexCount(indexCount);
+        GeneratorBase::warnSummary(warnSummary);
+        GeneratorBase::setSortOrder(sortOrder);
 
-    GeneratorBase::setOutputDir(dir);
-    GeneratorBase::setFooter(footer);
-    GeneratorBase::setImageDir(imageDir);
-    GeneratorBase::setLogoURL(logoURL);
-    GeneratorBase::setSearchAction(searchAction);
-    GeneratorBase::setIndexCount(indexCount);
-    GeneratorBase::warnSummary(warnSummary);
-    GeneratorBase::setSortOrder(sortOrder);
+        //
+        // The file visitor first runs over the tree and records
+        // the names of all files in this documentation set.
+        // This information is used later to check whether a referenced
+        // symbol is defined in this documentation set, as opposed to
+        // being defined in an included file that is not part of this
+        // documentation set. If the former, we can generate a link
+        // to the symbol; if the latter, we cannot.
+        //
+        Files files;
+        FileVisitor tv(files);
+        unit->visit(&tv, false);
 
-    //
-    // The file visitor first runs over the tree and records
-    // the names of all files in this documentation set.
-    // This information is used later to check whether a referenced
-    // symbol is defined in this documentation set, as opposed to
-    // being defined in an included file that is not part of this
-    // documentation set. If the former, we can generate a link
-    // to the symbol; if the latter, we cannot.
-    //
-    Files files;
-    FileVisitor tv(files);
-    unit->visit(&tv, false);
+        //
+        // Generate the start page.
+        //
+        StartPageVisitor spv(files);
+        unit->visit(&spv, false);
 
-    //
-    // Generate the start page.
-    //
-    StartPageVisitor spv(files);
-    unit->visit(&spv, false);
+        //
+        // Generate the table of contents.
+        //
+        TOCVisitor tocv(files, indexHeader, indexFooter);
+        unit->visit(&tocv, false);
+        tocv.generate();
 
-    //
-    // Generate the table of contents.
-    //
-    TOCVisitor tocv(files, indexHeader, indexFooter);
-    unit->visit(&tocv, false);
-    tocv.generate();
+        //
+        // Generate the individual HTML pages.
+        //
+        GeneratorBase::setSymbols(tocv.symbols());
+        PageVisitor v(files);
+        unit->visit(&v, false);
+    }
 
-    //
-    // Generate the individual HTML pages.
-    //
-    GeneratorBase::setSymbols(tocv.symbols());
-    PageVisitor v(files);
-    unit->visit(&v, false);
-}
-
-}
+} // namespace Slice
 
 string Slice::GeneratorBase::_dir = ".";
 string Slice::GeneratorBase::_header1;
@@ -112,8 +111,7 @@ ContainedList Slice::GeneratorBase::_symbols;
 // Set the output directory, creating it if necessary.
 //
 
-void
-Slice::GeneratorBase::setOutputDir(const string& dir)
+void Slice::GeneratorBase::setOutputDir(const string& dir)
 {
     if(!dir.empty())
     {
@@ -129,8 +127,7 @@ Slice::GeneratorBase::setOutputDir(const string& dir)
 // or trailing white space). The actual document title is later substituted
 // where that TITLE placeholder appears.
 //
-void
-Slice::GeneratorBase::setHeader(const string& header)
+void Slice::GeneratorBase::setHeader(const string& header)
 {
     getHeaders(header, _header1, _header2);
 }
@@ -139,8 +136,7 @@ Slice::GeneratorBase::setHeader(const string& header)
 // Get the footer. If "footer" is empty, use a default footer.
 // The footer is expected to include </body>.
 //
-void
-Slice::GeneratorBase::setFooter(const string& footer)
+void Slice::GeneratorBase::setFooter(const string& footer)
 {
     _footer = getFooter(footer);
 }
@@ -148,8 +144,7 @@ Slice::GeneratorBase::setFooter(const string& footer)
 //
 // Set the directory for style sheet images.
 //
-void
-Slice::GeneratorBase::setImageDir(const string& imageDir)
+void Slice::GeneratorBase::setImageDir(const string& imageDir)
 {
     _imageDir = imageDir;
 }
@@ -157,8 +152,7 @@ Slice::GeneratorBase::setImageDir(const string& imageDir)
 //
 // Set URL for logo image, if any.
 //
-void
-Slice::GeneratorBase::setLogoURL(const string& logoURL)
+void Slice::GeneratorBase::setLogoURL(const string& logoURL)
 {
     _logoURL = logoURL;
 }
@@ -166,8 +160,7 @@ Slice::GeneratorBase::setLogoURL(const string& logoURL)
 //
 // Set search action, if any.
 //
-void
-Slice::GeneratorBase::setSearchAction(const string& searchAction)
+void Slice::GeneratorBase::setSearchAction(const string& searchAction)
 {
     _searchAction = searchAction;
 }
@@ -178,8 +171,7 @@ Slice::GeneratorBase::setSearchAction(const string& searchAction)
 // sub-index. (For example, with "ic" set to 3, we generate
 // a sub-index only if, say, a structure has 3 or more members.
 //
-void
-Slice::GeneratorBase::setIndexCount(int ic)
+void Slice::GeneratorBase::setIndexCount(int ic)
 {
     _indexCount = ic;
 }
@@ -187,26 +179,22 @@ Slice::GeneratorBase::setIndexCount(int ic)
 //
 // If n > 0, we print a warning if a summary sentence exceeds n characters.
 //
-void
-Slice::GeneratorBase::warnSummary(int n)
+void Slice::GeneratorBase::warnSummary(int n)
 {
     _warnSummary = n;
 }
 
-void
-Slice::GeneratorBase::setSymbols(const ContainedList& symbols)
+void Slice::GeneratorBase::setSymbols(const ContainedList& symbols)
 {
     _symbols = symbols;
 }
 
-void
-Slice::GeneratorBase::setSortOrder(const vector<string>& sortOrder)
+void Slice::GeneratorBase::setSortOrder(const vector<string>& sortOrder)
 {
     _sortOrder = sortOrder;
 }
 
-Slice::GeneratorBase::GeneratorBase(Confluence::ConfluenceOutput& o, const Files& files)
-    : _out(o), _files(files)
+Slice::GeneratorBase::GeneratorBase(Confluence::ConfluenceOutput& o, const Files& files) : _out(o), _files(files)
 {
 }
 
@@ -218,8 +206,7 @@ Slice::GeneratorBase::~GeneratorBase()
 // Open a file for writing in the output directory (the output directory
 // is created if necessary) and write the HTML header into the file.
 //
-void
-Slice::GeneratorBase::openDoc(const string& file, const string& title, const string& header, const string& footer)
+void Slice::GeneratorBase::openDoc(const string& file, const string& title, const string& header, const string& footer)
 {
     makeDir(_dir);
     openStream(_dir + "/" + file);
@@ -234,18 +221,16 @@ Slice::GeneratorBase::openDoc(const string& file, const string& title, const str
 // is constructed from the Slice scoped name. Sub-directories are
 // created as needed and the header is written to the file.
 //
-void
-Slice::GeneratorBase::openDoc(const ContainedPtr& c)
+void Slice::GeneratorBase::openDoc(const ContainedPtr& c)
 {
     string path = _dir;
     StringList components = getContainer(c);
     StringList::size_type num = 0;
     for(StringList::const_iterator i = components.begin(); i != components.end(); ++i)
     {
-
-        if (num == components.size()-1 && !components.empty())
+        if(num == components.size() - 1 && !components.empty())
         {
-            if (path == "." || path == _dir)
+            if(path == "." || path == _dir)
             {
                 // Prevent files from starting with ".-"
                 // Append suffix to avoid name conflicts
@@ -259,9 +244,12 @@ Slice::GeneratorBase::openDoc(const ContainedPtr& c)
         }
         else
         {
-            if (num == 0) {
+            if(num == 0)
+            {
                 path += "/" + *i;
-            } else {
+            }
+            else
+            {
                 path += "-" + *i;
             }
         }
@@ -283,8 +271,7 @@ Slice::GeneratorBase::openDoc(const ContainedPtr& c)
 //
 // Close an open HTML file after writing the footer.
 //
-void
-Slice::GeneratorBase::closeDoc(const string& footer)
+void Slice::GeneratorBase::closeDoc(const string& footer)
 {
     _out.dec();
     _out.dec();
@@ -292,8 +279,7 @@ Slice::GeneratorBase::closeDoc(const string& footer)
     _out << nl;
 }
 
-void
-Slice::GeneratorBase::start(const std::string& element, const std::string& classes)
+void Slice::GeneratorBase::start(const std::string& element, const std::string& classes)
 {
     string s = element;
     if(!classes.empty())
@@ -303,54 +289,51 @@ Slice::GeneratorBase::start(const std::string& element, const std::string& class
     _out << Confluence::se(s);
 }
 
-void
-Slice::GeneratorBase::end()
+void Slice::GeneratorBase::end()
 {
     _out << Confluence::ee;
 }
 
-bool
-Slice::GeneratorBase::hasEnding(const std::string& fullString, const std::string& ending)
+bool Slice::GeneratorBase::hasEnding(const std::string& fullString, const std::string& ending)
 {
-    if (fullString.length() > ending.length()) {
-        return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
-    } else {
+    if(fullString.length() > ending.length())
+    {
+        return (0 == fullString.compare(fullString.length() - ending.length(), ending.length(), ending));
+    }
+    else
+    {
         return false;
     }
 }
 
-std::string
-Slice::GeneratorBase::getImageMarkup(const string& url, const string& title)
+std::string Slice::GeneratorBase::getImageMarkup(const string& url, const string& title)
 {
     return _out.getImageMarkup(url, title);
 }
 
-string
-Slice::GeneratorBase::getLinkMarkup(const string& url, const string& text, const string& anchor, const string& tip)
+string Slice::GeneratorBase::getLinkMarkup(const string& url, const string& text, const string& anchor,
+                                           const string& tip)
 {
     return _out.getLinkMarkup(url, text, anchor, tip);
 }
 
-string
-Slice::GeneratorBase::getAnchorMarkup(const std::string& anchor, const std::string& text)
+string Slice::GeneratorBase::getAnchorMarkup(const std::string& anchor, const std::string& text)
 {
     return _out.getAnchorMarkup(anchor, text);
 }
 
-std::string
-Slice::GeneratorBase::getNavMarkup(const std::string& prevLink, const std::string& nextLink)
+std::string Slice::GeneratorBase::getNavMarkup(const std::string& prevLink, const std::string& nextLink)
 {
     return _out.getNavMarkup(prevLink, nextLink);
 }
 
-bool
-Slice::GeneratorBase::compareSymbolNames(const string& n1, const string& n2)
+bool Slice::GeneratorBase::compareSymbolNames(const string& n1, const string& n2)
 {
     // Uppercase versions for case-insensitive compare
     string u1 = getUpper(n1);
     string u2 = getUpper(n2);
 
-    if (_sortOrder.empty())
+    if(_sortOrder.empty())
     {
         return u1 < u2;
     }
@@ -362,34 +345,34 @@ Slice::GeneratorBase::compareSymbolNames(const string& n1, const string& n2)
 
         unsigned int i1 = 0;
         unsigned int i2 = 0;
-        for (p1 = _sortOrder.begin();  p1 < _sortOrder.end(); ++p1)
+        for(p1 = _sortOrder.begin(); p1 < _sortOrder.end(); ++p1)
         {
-            if (*p1 == n1)
+            if(*p1 == n1)
             {
                 break;
             }
             ++i1;
         }
-        for (p2 = _sortOrder.begin(); p2 < _sortOrder.end(); ++p2)
+        for(p2 = _sortOrder.begin(); p2 < _sortOrder.end(); ++p2)
         {
-            if (*p2 == n2)
+            if(*p2 == n2)
             {
                 break;
             }
             ++i2;
         }
 
-        if (i1 >= _sortOrder.size() && i2 >= _sortOrder.size())
+        if(i1 >= _sortOrder.size() && i2 >= _sortOrder.size())
         {
             // Both unmentioned; natural order
             return u1 < u2;
         }
-        else if (i1 >= _sortOrder.size())
+        else if(i1 >= _sortOrder.size())
         {
             // Unmentioned values (n1) sorted to the end
             return false;
         }
-        else if (i2 > _sortOrder.size())
+        else if(i2 > _sortOrder.size())
         {
             // Unmentioned values (n2) sorted to the end
             return true;
@@ -402,18 +385,17 @@ Slice::GeneratorBase::compareSymbolNames(const string& n1, const string& n2)
     }
 }
 
-string
-Slice::GeneratorBase::removeNewlines(string str)
+string Slice::GeneratorBase::removeNewlines(string str)
 {
     size_t position = str.find("\n");
-    while (position != string::npos)
+    while(position != string::npos)
     {
         str.replace(position, 1, " ");
         position = str.find("\n");
     }
 
     position = str.find("\r");
-    while (position != string::npos)
+    while(position != string::npos)
     {
         str.replace(position, 1, " ");
         position = str.find("\r");
@@ -421,28 +403,25 @@ Slice::GeneratorBase::removeNewlines(string str)
     return str;
 }
 
-string
-Slice::GeneratorBase::trim(string str)
+string Slice::GeneratorBase::trim(string str)
 {
-    string out = str.erase( str.find_last_not_of(" \n\r\t") + 1);
-    out = out.erase(0 , out.find_first_not_of(" \n\r\t"));
+    string out = str.erase(str.find_last_not_of(" \n\r\t") + 1);
+    out = out.erase(0, out.find_first_not_of(" \n\r\t"));
     return out;
 }
 
-string
-Slice::GeneratorBase::getUpper(const std::string& str)
+string Slice::GeneratorBase::getUpper(const std::string& str)
 {
     ostringstream oss;
-    for (string::const_iterator i = str.begin(); i < str.end(); ++i)
+    for(string::const_iterator i = str.begin(); i < str.end(); ++i)
     {
         oss << toupper((unsigned char)*i);
     }
     return oss.str();
 }
 
-void
-Slice::GeneratorBase::printComment(const ContainedPtr& p, const ContainerPtr& container,
-                                   const string& deprecateReason, bool forIndex)
+void Slice::GeneratorBase::printComment(const ContainedPtr& p, const ContainerPtr& container,
+                                        const string& deprecateReason, bool forIndex)
 {
 #ifndef NDEBUG
     int indent = _out.currIndent();
@@ -688,15 +667,13 @@ Slice::GeneratorBase::printComment(const ContainedPtr& p, const ContainerPtr& co
     assert(_out.currIndent() == indent);
 }
 
-bool
-Slice::GeneratorBase::isUserImplemented(const ContainedPtr& p, const ContainerPtr& container)
+bool Slice::GeneratorBase::isUserImplemented(const ContainedPtr& p, const ContainerPtr& container)
 {
     string comment = getComment(p, container, false, true);
     return isTagged("userImplemented", comment);
 }
 
-void
-Slice::GeneratorBase::printMetaData(const ContainedPtr& p, bool isUserImplemented)
+void Slice::GeneratorBase::printMetaData(const ContainedPtr& p, bool isUserImplemented)
 {
     StringList metaData = p->getMetaData();
     string DEP_MARKER = "deprecate";
@@ -714,21 +691,21 @@ Slice::GeneratorBase::printMetaData(const ContainedPtr& p, bool isUserImplemente
         while(q != metaData.end())
         {
             // If not deprecated
-            if (strncmp(q->c_str(), DEP_MARKER.c_str(), strlen(DEP_MARKER.c_str())))
+            if(strncmp(q->c_str(), DEP_MARKER.c_str(), strlen(DEP_MARKER.c_str())))
             {
                 // For non-user-implemented items, do not print the restricted metadata
-                if (!isUserImplemented)
+                if(!isUserImplemented)
                 {
                     bool filterOutMetaData = false;
                     for(StringList::const_iterator r = userImplementedOnly.begin(); r != userImplementedOnly.end(); ++r)
                     {
-                        if ( !strncmp(q->c_str(), r->c_str(), strlen(q->c_str())) )
+                        if(!strncmp(q->c_str(), r->c_str(), strlen(q->c_str())))
                         {
                             filterOutMetaData = true;
                             break;
                         }
                     }
-                    if (filterOutMetaData)
+                    if(filterOutMetaData)
                     {
                         ++q;
                         continue;
@@ -736,7 +713,7 @@ Slice::GeneratorBase::printMetaData(const ContainedPtr& p, bool isUserImplemente
                 }
 
                 string stripped = removeNewlines(*q);
-                if (outString != "")
+                if(outString != "")
                 {
                     outString += ",";
                 }
@@ -744,21 +721,21 @@ Slice::GeneratorBase::printMetaData(const ContainedPtr& p, bool isUserImplemente
             }
             ++q;
         }
-        if (!outString.empty())
+        if(!outString.empty())
         {
             _out << "[ " << outString << " ] ";
         }
     }
 }
 
-void
-Slice::GeneratorBase::printSummary(const ContainedPtr& p, const ContainerPtr& module, bool deprecated, bool forIndex)
+void Slice::GeneratorBase::printSummary(const ContainedPtr& p, const ContainerPtr& module, bool deprecated,
+                                        bool forIndex)
 {
     _out << getSummary(p, module, deprecated, forIndex);
 }
 
-string
-Slice::GeneratorBase::getSummary(const ContainedPtr& p, const ContainerPtr& module, bool deprecated, bool forIndex)
+string Slice::GeneratorBase::getSummary(const ContainedPtr& p, const ContainerPtr& module, bool deprecated,
+                                        bool forIndex)
 {
     ostringstream oss;
     ContainerPtr container = ContainerPtr::dynamicCast(p);
@@ -782,43 +759,49 @@ Slice::GeneratorBase::getSummary(const ContainedPtr& p, const ContainerPtr& modu
     return oss.str();
 }
 
-static bool
-compareContained(const ContainedPtr& p1, const ContainedPtr& p2)
+static bool compareContained(const ContainedPtr& p1, const ContainedPtr& p2)
 {
     ContainedPtr c1 = ContainedPtr::dynamicCast(p1->container());
     ContainedPtr c2 = ContainedPtr::dynamicCast(p2->container());
 
-    if (c1 && c2) {
-        //XXX HACK: since the submodule "Ice::Instumentation" is not seen as a module, add special sorting
-        if (c1->name() == "Ice" && p1->name() == "Instrumentation") {
-            if (c2->name() == "Instrumentation") {
+    if(c1 && c2)
+    {
+        // XXX HACK: since the submodule "Ice::Instumentation" is not seen as a module, add special sorting
+        if(c1->name() == "Ice" && p1->name() == "Instrumentation")
+        {
+            if(c2->name() == "Instrumentation")
+            {
                 return true;
             }
-            if (c2->name() == "Ice") {
+            if(c2->name() == "Ice")
+            {
                 return false;
             }
             return true;
         }
-        if (c2->name() == "Ice" && p2->name() == "Instrumentation") {
-            if (c1->name() == "Instrumentation") {
+        if(c2->name() == "Ice" && p2->name() == "Instrumentation")
+        {
+            if(c1->name() == "Instrumentation")
+            {
                 return false;
             }
-            if (c1->name() == "Ice") {
+            if(c1->name() == "Ice")
+            {
                 return true;
             }
             return false;
         }
-        //XXX --- END HACK
+        // XXX --- END HACK
     }
 
-    if (!c1 && !c2)
+    if(!c1 && !c2)
     {
         // Both are top-level containers, compare cnames
         return Slice::GeneratorBase::compareSymbolNames(p1->name(), p2->name());
     }
-    else if (!c1)
+    else if(!c1)
     {
-        if (p1->name() == c2->name())
+        if(p1->name() == c2->name())
         {
             // Module index comes before its own contents
             return true;
@@ -826,9 +809,9 @@ compareContained(const ContainedPtr& p1, const ContainedPtr& p2)
         // p1 is top-level, compare to p2's parent
         return Slice::GeneratorBase::compareSymbolNames(p1->name(), c2->name());
     }
-    else if (!c2)
+    else if(!c2)
     {
-        if (c1->name() == p2->name())
+        if(c1->name() == p2->name())
         {
             // Module index comes before its own contents
             return false;
@@ -836,22 +819,23 @@ compareContained(const ContainedPtr& p1, const ContainedPtr& p2)
         // p2 is top-level, compare to p1's parent
         return Slice::GeneratorBase::compareSymbolNames(c1->name(), p2->name());
     }
-    if (!c1 || !c2 || c1->name() == c2->name())
+    if(!c1 || !c2 || c1->name() == c2->name())
     {
         // Same container, compare names
         return Slice::GeneratorBase::getUpper(p1->name()) < Slice::GeneratorBase::getUpper(p2->name());
     }
     else
     {
-        if ("Instrumentation" == p1->name() || "Instrumentation" == p2->name()) {
+        if("Instrumentation" == p1->name() || "Instrumentation" == p2->name())
+        {
         }
 
-        if (p1->name() == c2->name())
+        if(p1->name() == c2->name())
         {
             // Module index comes before its own contents
             return true;
         }
-        if (p2->name() == c1->name())
+        if(p2->name() == c1->name())
         {
             // Module index comes before its own contents
             return false;
@@ -861,8 +845,7 @@ compareContained(const ContainedPtr& p1, const ContainedPtr& p2)
     }
 }
 
-void
-Slice::GeneratorBase::printHeaderFooter(const ContainedPtr& c)
+void Slice::GeneratorBase::printHeaderFooter(const ContainedPtr& c)
 {
     //
     // mes: Disabling nav buttons in header/footer
@@ -957,14 +940,12 @@ Slice::GeneratorBase::printHeaderFooter(const ContainedPtr& c)
 #endif
 }
 
-void
-Slice::GeneratorBase::printSearch()
+void Slice::GeneratorBase::printSearch()
 {
-    //Do nothing. Form components will not work in confluence markup.
+    // Do nothing. Form components will not work in confluence markup.
 }
 
-void
-Slice::GeneratorBase::printLogo(const ContainedPtr& c, const ContainerPtr& container, bool forEnum)
+void Slice::GeneratorBase::printLogo(const ContainedPtr& c, const ContainerPtr& container, bool forEnum)
 {
     string imageDir = getImageDir();
     if(!imageDir.empty())
@@ -992,29 +973,15 @@ Slice::GeneratorBase::printLogo(const ContainedPtr& c, const ContainerPtr& conta
     }
 }
 
-string
-Slice::GeneratorBase::toString(const SyntaxTreeBasePtr& p, const ContainerPtr& container, bool asTarget, bool forIndex,
-                               size_t* summarySize, bool shortName)
+string Slice::GeneratorBase::toString(const SyntaxTreeBasePtr& p, const ContainerPtr& container, bool asTarget,
+                                      bool forIndex, size_t* summarySize, bool shortName)
 {
     string anchor;
     string linkpath;
     string s;
 
-    static const char* builtinTable[] =
-    {
-        "byte",
-        "bool",
-        "short",
-        "int",
-        "long",
-        "float",
-        "double",
-        "string",
-        "Object",
-        "Object*",
-        "LocalObject",
-        "Value"
-    };
+    static const char* builtinTable[] = {"byte",   "bool",   "short",  "int",     "long",        "float",
+                                         "double", "string", "Object", "Object*", "LocalObject", "Value"};
 
     BuiltinPtr builtin = BuiltinPtr::dynamicCast(p);
     if(builtin)
@@ -1138,7 +1105,7 @@ Slice::GeneratorBase::toString(const SyntaxTreeBasePtr& p, const ContainerPtr& c
     }
 
     string ret = "";
-    if (asTarget)
+    if(asTarget)
     {
         ret += getAnchorMarkup(anchor, s);
     }
@@ -1154,11 +1121,9 @@ Slice::GeneratorBase::toString(const SyntaxTreeBasePtr& p, const ContainerPtr& c
     return removeNewlines(ret);
 }
 
-string
-Slice::GeneratorBase::toString(const string& str, const ContainerPtr& container, bool asTarget, bool forIndex,
-                               size_t* summarySize)
+string Slice::GeneratorBase::toString(const string& str, const ContainerPtr& container, bool asTarget, bool forIndex,
+                                      size_t* summarySize)
 {
-
     TypeList types = container->lookupType(str, false);
     if(!types.empty())
     {
@@ -1178,9 +1143,8 @@ Slice::GeneratorBase::toString(const string& str, const ContainerPtr& container,
     return "{{" + str + "}}";
 }
 
-string
-Slice::GeneratorBase::getComment(const ContainedPtr& contained, const ContainerPtr& container,
-                                 bool summary, bool forIndex)
+string Slice::GeneratorBase::getComment(const ContainedPtr& contained, const ContainerPtr& container, bool summary,
+                                        bool forIndex)
 {
     size_t summarySize = 0;
     string s = contained->comment();
@@ -1270,8 +1234,7 @@ Slice::GeneratorBase::getComment(const ContainedPtr& contained, const ContainerP
     return trim(_out.convertCommentHTML(removeNewlines(comment)));
 }
 
-string
-Slice::GeneratorBase::getAnchor(const SyntaxTreeBasePtr& p)
+string Slice::GeneratorBase::getAnchor(const SyntaxTreeBasePtr& p)
 {
     StringList symbols = getContained(p);
     string anchor;
@@ -1287,15 +1250,15 @@ Slice::GeneratorBase::getAnchor(const SyntaxTreeBasePtr& p)
     return anchor;
 }
 
-string
-Slice::GeneratorBase::getLinkPath(const SyntaxTreeBasePtr& p, const ContainerPtr& container, bool forIndex, bool forEnum)
+string Slice::GeneratorBase::getLinkPath(const SyntaxTreeBasePtr& p, const ContainerPtr& container, bool forIndex,
+                                         bool forEnum)
 {
     ContainerPtr c = container;
     string path = "";
 
     // Sequences and dictionaries are documented on the page for
     // their enclosing module
-    if (DictionaryPtr::dynamicCast(p) || SequencePtr::dynamicCast(p))
+    if(DictionaryPtr::dynamicCast(p) || SequencePtr::dynamicCast(p))
     {
         string path = ContainedPtr::dynamicCast(ContainedPtr::dynamicCast(p)->container())->name() + MODULE_SUFFIX;
         return path;
@@ -1377,7 +1340,7 @@ Slice::GeneratorBase::getLinkPath(const SyntaxTreeBasePtr& p, const ContainerPtr
     }
 
     if((forIndex && path == parent) || (parent.empty() && path.find("-") == string::npos) ||
-        DictionaryPtr::dynamicCast(p))
+       DictionaryPtr::dynamicCast(p))
     {
         // Link to parent, add suffix
         path += MODULE_SUFFIX;
@@ -1386,17 +1349,19 @@ Slice::GeneratorBase::getLinkPath(const SyntaxTreeBasePtr& p, const ContainerPtr
     {
         // Intra-package links need package name, unlike with html dir structure
         EnumeratorPtr enumerator = EnumeratorPtr::dynamicCast(p);
-    if(enumerator)
-    {
-        target = toStringList(enumerator->type());
-    }
-    else
-    {
-        target = getContainer(p);
-    }
+        if(enumerator)
+        {
+            target = toStringList(enumerator->type());
+        }
+        else
+        {
+            target = getContainer(p);
+        }
         path = "";
-        while (!target.empty()) {
-            if (!path.empty()) {
+        while(!target.empty())
+        {
+            if(!path.empty())
+            {
                 path += "-";
             }
             path += target.front();
@@ -1407,20 +1372,17 @@ Slice::GeneratorBase::getLinkPath(const SyntaxTreeBasePtr& p, const ContainerPtr
     return path;
 }
 
-string
-Slice::GeneratorBase::getImageDir()
+string Slice::GeneratorBase::getImageDir()
 {
     return _imageDir;
 }
 
-string
-Slice::GeneratorBase::getLogoURL()
+string Slice::GeneratorBase::getLogoURL()
 {
     return _logoURL;
 }
 
-void
-Slice::GeneratorBase::openStream(const string& path)
+void Slice::GeneratorBase::openStream(const string& path)
 {
     _out.open(path.c_str());
     if(!_out.isOpen())
@@ -1432,14 +1394,12 @@ Slice::GeneratorBase::openStream(const string& path)
     FileTracker::instance()->addFile(path);
 }
 
-void
-Slice::GeneratorBase::closeStream()
+void Slice::GeneratorBase::closeStream()
 {
     _out.close();
 }
 
-string
-Slice::GeneratorBase::containedToId(const ContainedPtr& contained, bool asTarget)
+string Slice::GeneratorBase::containedToId(const ContainedPtr& contained, bool asTarget)
 {
     assert(contained);
 
@@ -1476,8 +1436,7 @@ Slice::GeneratorBase::containedToId(const ContainedPtr& contained, bool asTarget
     return '"' + id + '"';
 }
 
-StringList
-Slice::GeneratorBase::getTagged(const string& tag, string& comment)
+StringList Slice::GeneratorBase::getTagged(const string& tag, string& comment)
 {
     StringList result;
     string::size_type begin = 0;
@@ -1511,11 +1470,10 @@ Slice::GeneratorBase::getTagged(const string& tag, string& comment)
     return result;
 }
 
-bool
-Slice::GeneratorBase::isTagged(const string& tag, string& comment)
+bool Slice::GeneratorBase::isTagged(const string& tag, string& comment)
 {
     string::size_type begin = comment.find("@" + tag, 0);
-    if (begin != string::npos)
+    if(begin != string::npos)
     {
         comment.erase(begin, tag.size() + 1);
         return true;
@@ -1523,8 +1481,8 @@ Slice::GeneratorBase::isTagged(const string& tag, string& comment)
     return false;
 }
 
-string
-Slice::GeneratorBase::getScopedMinimized(const ContainedPtr& contained, const ContainerPtr& container, bool shortName)
+string Slice::GeneratorBase::getScopedMinimized(const ContainedPtr& contained, const ContainerPtr& container,
+                                                bool shortName)
 {
     if(shortName)
     {
@@ -1541,24 +1499,24 @@ Slice::GeneratorBase::getScopedMinimized(const ContainedPtr& contained, const Co
         return s.substr(2);
     }
 
-//    do
-//    {
-//        string s2 = q->scoped(); // Containing scope
-//        s2 += "::";
-//
-//        if(s.find(s2) == 0)
-//        {
-//            if (q->scoped().find("::", 2) != string::npos)
-//            {
-//                return "MIN3::" + s.substr(s2.size());
-//            }
-//            return "MIN2::" + s.substr(2);
-//        }
-//
-//        p = q->container();
-//        q = ContainedPtr::dynamicCast(p);
-//    }
-//    while(q);
+    //    do
+    //    {
+    //        string s2 = q->scoped(); // Containing scope
+    //        s2 += "::";
+    //
+    //        if(s.find(s2) == 0)
+    //        {
+    //            if (q->scoped().find("::", 2) != string::npos)
+    //            {
+    //                return "MIN3::" + s.substr(s2.size());
+    //            }
+    //            return "MIN2::" + s.substr(2);
+    //        }
+    //
+    //        p = q->container();
+    //        q = ContainedPtr::dynamicCast(p);
+    //    }
+    //    while(q);
 
     string s2 = q->scoped(); // Containing scope
     s2 += "::";
@@ -1566,23 +1524,23 @@ Slice::GeneratorBase::getScopedMinimized(const ContainedPtr& contained, const Co
     if(s.find(s2) == 0)
     {
         string after = s.substr(s2.size());
-        if (after.find("::") == string::npos)
+        if(after.find("::") == string::npos)
         {
             return after;
         }
-//
-        if (q->scoped().find("::", 2) != string::npos)
+        //
+        if(q->scoped().find("::", 2) != string::npos)
         {
             // There are at least two components above contained.
             // Locally scoped const/member/operation
             return s.substr(s2.size());
         }
-        else if (s.find("::" + q->name()) == 0)
+        else if(s.find("::" + q->name()) == 0)
         {
             // Within this module
             return s.substr(s2.size());
         }
-//
+        //
     }
 
     p = q->container();
@@ -1591,8 +1549,7 @@ Slice::GeneratorBase::getScopedMinimized(const ContainedPtr& contained, const Co
     return s.substr(2); // s
 }
 
-StringList
-Slice::GeneratorBase::getContained(const SyntaxTreeBasePtr& p)
+StringList Slice::GeneratorBase::getContained(const SyntaxTreeBasePtr& p)
 {
     StringList result;
     if(!p)
@@ -1608,13 +1565,11 @@ Slice::GeneratorBase::getContained(const SyntaxTreeBasePtr& p)
         assert(contained);
         result.push_front(contained->name());
         c = contained->container();
-    }
-    while(!ContainerPtr::dynamicCast(c));
+    } while(!ContainerPtr::dynamicCast(c));
     return result;
 }
 
-StringList
-Slice::GeneratorBase::getContainer(const SyntaxTreeBasePtr& p)
+StringList Slice::GeneratorBase::getContainer(const SyntaxTreeBasePtr& p)
 {
     StringList result;
 
@@ -1624,11 +1579,8 @@ Slice::GeneratorBase::getContainer(const SyntaxTreeBasePtr& p)
     }
 
     ContainedPtr contained = ContainedPtr::dynamicCast(p);
-    while(contained &&
-          !ModulePtr::dynamicCast(contained) &&
-          !ExceptionPtr::dynamicCast(contained) &&
-          !ClassDefPtr::dynamicCast(contained) &&
-          !StructPtr::dynamicCast(contained) &&
+    while(contained && !ModulePtr::dynamicCast(contained) && !ExceptionPtr::dynamicCast(contained) &&
+          !ClassDefPtr::dynamicCast(contained) && !StructPtr::dynamicCast(contained) &&
           !EnumPtr::dynamicCast(contained))
     {
         contained = ContainedPtr::dynamicCast(contained->container());
@@ -1648,8 +1600,7 @@ Slice::GeneratorBase::getContainer(const SyntaxTreeBasePtr& p)
 // X::Y::Z instead of X.Y#Z).
 //
 //
-void
-Slice::GeneratorBase::warnOldStyleIdent(const string& str, const string& fileName)
+void Slice::GeneratorBase::warnOldStyleIdent(const string& str, const string& fileName)
 {
     string newName;
 
@@ -1701,7 +1652,7 @@ Slice::GeneratorBase::warnOldStyleIdent(const string& str, const string& fileNam
                    << " Use `'" << newName << "'";
         if(!alternateName.empty())
         {
-             consoleErr << " or `" << alternateName << "' if `" << lastName << "' is a member";
+            consoleErr << " or `" << alternateName << "' if `" << lastName << "' is a member";
         }
         consoleErr << endl;
     }
@@ -1711,10 +1662,8 @@ Slice::GeneratorBase::warnOldStyleIdent(const string& str, const string& fileNam
 // Convert a string of the form X.Y#Z into X::Y::Z (#Z converts to Z).
 // TODO: Remove the filename parameter once we no longer support old-style javadoc comments.
 //
-string
-Slice::GeneratorBase::toSliceID(const string& str, const string& filename)
+string Slice::GeneratorBase::toSliceID(const string& str, const string& filename)
 {
-
     const string s = IceUtilInternal::trim(str);
     string result;
     string::size_type pos;
@@ -1742,8 +1691,7 @@ Slice::GeneratorBase::toSliceID(const string& str, const string& filename)
     return result;
 }
 
-StringList
-Slice::GeneratorBase::toStringList(const ContainedPtr& c)
+StringList Slice::GeneratorBase::toStringList(const ContainedPtr& c)
 {
     string scoped = c->scoped();
     assert(scoped.size() > 2);
@@ -1768,8 +1716,7 @@ Slice::GeneratorBase::toStringList(const ContainedPtr& c)
     return ids;
 }
 
-void
-Slice::GeneratorBase::makeDir(const string& dir)
+void Slice::GeneratorBase::makeDir(const string& dir)
 {
     struct stat st;
     if(!IceUtilInternal::stat(dir, &st))
@@ -1777,8 +1724,7 @@ Slice::GeneratorBase::makeDir(const string& dir)
         if(!(st.st_mode & S_IFDIR))
         {
             ostringstream os;
-            os << "failed to create package directory `" << dir
-               << "': file already exists and is not a directory";
+            os << "failed to create package directory `" << dir << "': file already exists and is not a directory";
             throw FileException(__FILE__, __LINE__, os.str());
         }
         return;
@@ -1793,8 +1739,7 @@ Slice::GeneratorBase::makeDir(const string& dir)
     FileTracker::instance()->addDirectory(dir);
 }
 
-string
-Slice::GeneratorBase::readFile(const string& file)
+string Slice::GeneratorBase::readFile(const string& file)
 {
     std::ifstream in(file.c_str());
     if(!in)
@@ -1816,21 +1761,18 @@ Slice::GeneratorBase::readFile(const string& file)
     return result.str();
 }
 
-void
-Slice::GeneratorBase::getHeaders(const string& header, string& h1, string& h2)
+void Slice::GeneratorBase::getHeaders(const string& header, string& h1, string& h2)
 {
     // Do nothing. No headers in confluence markup.
 }
 
-string
-Slice::GeneratorBase::getFooter(const string& footer)
+string Slice::GeneratorBase::getFooter(const string& footer)
 {
-    //Confluence markup is all body, no header/footer mechanism or tags that need cleaning up
+    // Confluence markup is all body, no header/footer mechanism or tags that need cleaning up
     return "";
 }
 
-void
-Slice::GeneratorBase::readFile(const string& file, string& part1, string& part2)
+void Slice::GeneratorBase::readFile(const string& file, string& part1, string& part2)
 {
     std::ifstream in(file.c_str());
     if(!in)
@@ -1872,18 +1814,16 @@ Slice::GeneratorBase::readFile(const string& file, string& part1, string& part2)
     part2 = p2.str();
 }
 
-Slice::StartPageGenerator::StartPageGenerator(const Files& files)
-    : GeneratorBase(_out, files)
+Slice::StartPageGenerator::StartPageGenerator(const Files& files) : GeneratorBase(_out, files)
 {
     openDoc(INDEX_NAME, "Slice API Documentation");
 }
 
-static string
-getModuleName(const string& s)
+static string getModuleName(const string& s)
 {
     size_t start = s.find("[");
     size_t end = s.find("|", start);
-    if (start != string::npos && end != string::npos)
+    if(start != string::npos && end != string::npos)
     {
         start++;
         size_t len = end - start;
@@ -1896,14 +1836,12 @@ getModuleName(const string& s)
     }
 }
 
-static bool
-compareModulePtrs(const ModulePtr& p1, const ModulePtr& p2)
+static bool compareModulePtrs(const ModulePtr& p1, const ModulePtr& p2)
 {
     return Slice::GeneratorBase::compareSymbolNames(p1->name(), p2->name());
 }
 
-static bool
-compareModules(const StringPair& p1, const StringPair& p2)
+static bool compareModules(const StringPair& p1, const StringPair& p2)
 {
     return Slice::GeneratorBase::compareSymbolNames(getModuleName(p1.first), getModuleName(p2.first));
 }
@@ -1933,103 +1871,87 @@ Slice::StartPageGenerator::~StartPageGenerator()
     closeDoc();
 }
 
-void
-Slice::StartPageGenerator::generate(const ModulePtr& m)
+void Slice::StartPageGenerator::generate(const ModulePtr& m)
 {
     string name = toString(m, 0, false);
     string comment = getComment(m, m, true, true);
     _modules.push_back(make_pair(name, comment));
 }
 
-void
-Slice::StartPageGenerator::printHeaderFooter()
+void Slice::StartPageGenerator::printHeaderFooter()
 {
     // Do nothing
 }
 
-Slice::FileVisitor::FileVisitor(Files& files) :
-    _files(files)
+Slice::FileVisitor::FileVisitor(Files& files) : _files(files)
 {
 }
 
-bool
-Slice::FileVisitor::visitUnitStart(const UnitPtr& u)
+bool Slice::FileVisitor::visitUnitStart(const UnitPtr& u)
 {
     return true;
 }
 
-bool
-Slice::FileVisitor::visitModuleStart(const ModulePtr& m)
+bool Slice::FileVisitor::visitModuleStart(const ModulePtr& m)
 {
     _files.insert(m->file());
     return true;
 }
 
-bool
-Slice::FileVisitor::visitExceptionStart(const ExceptionPtr& e)
+bool Slice::FileVisitor::visitExceptionStart(const ExceptionPtr& e)
 {
     _files.insert(e->file());
     return false;
 }
 
-bool
-Slice::FileVisitor::visitClassDefStart(const ClassDefPtr& c)
+bool Slice::FileVisitor::visitClassDefStart(const ClassDefPtr& c)
 {
     _files.insert(c->file());
     return false;
 }
 
-void
-Slice::FileVisitor::visitClassDecl(const ClassDeclPtr& c)
+void Slice::FileVisitor::visitClassDecl(const ClassDeclPtr& c)
 {
     _files.insert(c->file());
 }
 
-bool
-Slice::FileVisitor::visitStructStart(const StructPtr& s)
+bool Slice::FileVisitor::visitStructStart(const StructPtr& s)
 {
     _files.insert(s->file());
     return false;
 }
 
-void
-Slice::FileVisitor::visitSequence(const SequencePtr& s)
+void Slice::FileVisitor::visitSequence(const SequencePtr& s)
 {
     _files.insert(s->file());
 }
 
-void
-Slice::FileVisitor::visitDictionary(const DictionaryPtr& d)
+void Slice::FileVisitor::visitDictionary(const DictionaryPtr& d)
 {
     _files.insert(d->file());
 }
 
-void
-Slice::FileVisitor::visitEnum(const EnumPtr& e)
+void Slice::FileVisitor::visitEnum(const EnumPtr& e)
 {
     _files.insert(e->file());
 }
 
-Slice::StartPageVisitor::StartPageVisitor(const Files& files) :
-    _spg(files)
+Slice::StartPageVisitor::StartPageVisitor(const Files& files) : _spg(files)
 {
 }
 
-bool
-Slice::StartPageVisitor::visitUnitStart(const UnitPtr& unit)
+bool Slice::StartPageVisitor::visitUnitStart(const UnitPtr& unit)
 {
     return true;
 }
 
-bool
-Slice::StartPageVisitor::visitModuleStart(const ModulePtr& m)
+bool Slice::StartPageVisitor::visitModuleStart(const ModulePtr& m)
 {
     _spg.generate(m);
     return false;
 }
 
-TOCGenerator::TOCGenerator(const Files& files, const string& header, const string& footer)
-    : GeneratorBase(_out, files)
+TOCGenerator::TOCGenerator(const Files& files, const string& header, const string& footer) : GeneratorBase(_out, files)
 {
     _footer = footer;
 
@@ -2037,17 +1959,15 @@ TOCGenerator::TOCGenerator(const Files& files, const string& header, const strin
     _out << "Slice API Index";
     end();
 
-    //ExpandCollapseButtonTable not added; no Confluence markup for buttons
+    // ExpandCollapseButtonTable not added; no Confluence markup for buttons
 }
 
-void
-TOCGenerator::generate(const ModulePtr& m)
+void TOCGenerator::generate(const ModulePtr& m)
 {
     _modules.push_back(m);
 }
 
-void
-TOCGenerator::writeTOC()
+void TOCGenerator::writeTOC()
 {
     _modules.sort(compareModulePtrs);
     _out.inc();
@@ -2061,14 +1981,12 @@ TOCGenerator::writeTOC()
     _symbols.unique();
 }
 
-const ContainedList&
-TOCGenerator::symbols() const
+const ContainedList& TOCGenerator::symbols() const
 {
     return _symbols;
 }
 
-void
-TOCGenerator::writeEntry(const ContainedPtr& c)
+void TOCGenerator::writeEntry(const ContainedPtr& c)
 {
     ContainedList cl;
 
@@ -2166,43 +2084,36 @@ TOCGenerator::writeEntry(const ContainedPtr& c)
     end();
 }
 
-TOCVisitor::TOCVisitor(const Files& files, const string& header, const string& footer) :
-    _tg(files, header, footer)
+TOCVisitor::TOCVisitor(const Files& files, const string& header, const string& footer) : _tg(files, header, footer)
 {
 }
 
-bool
-TOCVisitor::visitUnitStart(const UnitPtr&)
+bool TOCVisitor::visitUnitStart(const UnitPtr&)
 {
     return true;
 }
 
-bool
-TOCVisitor::visitModuleStart(const ModulePtr& m)
+bool TOCVisitor::visitModuleStart(const ModulePtr& m)
 {
     _tg.generate(m);
     return false;
 }
 
-void
-TOCVisitor::generate()
+void TOCVisitor::generate()
 {
     _tg.writeTOC();
 }
 
-const ContainedList&
-TOCVisitor::symbols() const
+const ContainedList& TOCVisitor::symbols() const
 {
     return _tg.symbols();
 }
 
-Slice::ModuleGenerator::ModuleGenerator(Confluence::ConfluenceOutput& o, const Files& files)
-    : GeneratorBase(o, files)
+Slice::ModuleGenerator::ModuleGenerator(Confluence::ConfluenceOutput& o, const Files& files) : GeneratorBase(o, files)
 {
 }
 
-void
-Slice::ModuleGenerator::generate(const ModulePtr& m)
+void Slice::ModuleGenerator::generate(const ModulePtr& m)
 {
 #ifndef NDEBUG
     int indent = _out.currIndent();
@@ -2249,8 +2160,7 @@ Slice::ModuleGenerator::generate(const ModulePtr& m)
     assert(_out.currIndent() == indent);
 }
 
-void
-Slice::ModuleGenerator::visitContainer(const ContainerPtr& p)
+void Slice::ModuleGenerator::visitContainer(const ContainerPtr& p)
 {
 #ifndef NDEBUG
     int indent = _out.currIndent();
@@ -2272,7 +2182,7 @@ Slice::ModuleGenerator::visitContainer(const ContainerPtr& p)
 
             string metadata;
             string summary = trim(getSummary(*q, p, (*q)->findMetaData("deprecate", metadata), false));
-            if (!summary.empty())
+            if(!summary.empty())
             {
                 start("dd");
                 _out << summary;
@@ -2310,7 +2220,7 @@ Slice::ModuleGenerator::visitContainer(const ContainerPtr& p)
 
             string metadata;
             string summary = trim(getSummary(*q, p, (*q)->findMetaData("deprecate", metadata), true));
-            if (!summary.empty())
+            if(!summary.empty())
             {
                 start("dd");
                 _out << summary;
@@ -2341,7 +2251,7 @@ Slice::ModuleGenerator::visitContainer(const ContainerPtr& p)
 
             string metadata;
             string summary = trim(getSummary(*q, p, (*q)->findMetaData("deprecate", metadata), true));
-            if (!summary.empty())
+            if(!summary.empty())
             {
                 start("dd");
                 _out << summary;
@@ -2374,7 +2284,7 @@ Slice::ModuleGenerator::visitContainer(const ContainerPtr& p)
 
             string metadata;
             string summary = trim(getSummary(*q, p, (*q)->findMetaData("deprecate", metadata), true));
-            if (!summary.empty())
+            if(!summary.empty())
             {
                 start("dd");
                 _out << summary;
@@ -2407,7 +2317,7 @@ Slice::ModuleGenerator::visitContainer(const ContainerPtr& p)
 
             string metadata;
             string summary = trim(getSummary(*q, p, (*q)->findMetaData("deprecate", metadata), true));
-            if (!summary.empty())
+            if(!summary.empty())
             {
                 start("dd");
                 _out << summary;
@@ -2440,7 +2350,7 @@ Slice::ModuleGenerator::visitContainer(const ContainerPtr& p)
 
             string metadata;
             string summary = trim(getSummary(*q, p, (*q)->findMetaData("deprecate", metadata), true));
-            if (!summary.empty())
+            if(!summary.empty())
             {
                 start("dd");
                 _out << summary;
@@ -2473,7 +2383,7 @@ Slice::ModuleGenerator::visitContainer(const ContainerPtr& p)
 
             string metadata;
             string summary = trim(getSummary(*q, p, (*q)->findMetaData("deprecate", metadata), true));
-            if (!summary.empty())
+            if(!summary.empty())
             {
                 start("dd");
                 _out << summary;
@@ -2506,7 +2416,7 @@ Slice::ModuleGenerator::visitContainer(const ContainerPtr& p)
 
             string metadata;
             string summary = trim(getSummary(*q, p, (*q)->findMetaData("deprecate", metadata), true));
-            if (!summary.empty())
+            if(!summary.empty())
             {
                 start("dd");
                 _out << summary;
@@ -2539,7 +2449,7 @@ Slice::ModuleGenerator::visitContainer(const ContainerPtr& p)
 
             string metadata;
             string summary = trim(getSummary(*q, p, (*q)->findMetaData("deprecate", metadata), true));
-            if (!summary.empty())
+            if(!summary.empty())
             {
                 start("dd");
                 _out << summary;
@@ -2612,8 +2522,8 @@ Slice::ModuleGenerator::visitContainer(const ContainerPtr& p)
             }
             TypePtr keyType = (*q)->keyType();
             TypePtr valueType = (*q)->valueType();
-            _out << "dictionary&lt;" << toString(keyType, p, false, true) << ", "
-                 << toString(valueType, p, false, true) << "&gt; " << toString(*q, p);
+            _out << "dictionary&lt;" << toString(keyType, p, false, true) << ", " << toString(valueType, p, false, true)
+                 << "&gt; " << toString(*q, p);
             end();
 
             string metadata, deprecateReason;
@@ -2646,7 +2556,7 @@ Slice::ModuleGenerator::visitContainer(const ContainerPtr& p)
             }
             else
             {
-                 _out << trim((*q)->literal());
+                _out << trim((*q)->literal());
             }
             _out << ";";
             end();
@@ -2667,13 +2577,12 @@ Slice::ModuleGenerator::visitContainer(const ContainerPtr& p)
     }
 }
 
-Slice::ExceptionGenerator::ExceptionGenerator(Confluence::ConfluenceOutput& o, const Files& files)
-    : GeneratorBase(o, files)
+Slice::ExceptionGenerator::ExceptionGenerator(Confluence::ConfluenceOutput& o, const Files& files) :
+    GeneratorBase(o, files)
 {
 }
 
-void
-Slice::ExceptionGenerator::generate(const ExceptionPtr& e)
+void Slice::ExceptionGenerator::generate(const ExceptionPtr& e)
 {
 #ifndef NDEBUG
     int indent = _out.currIndent();
@@ -2741,7 +2650,7 @@ Slice::ExceptionGenerator::generate(const ExceptionPtr& e)
 
             string metadata;
             string summary = trim(getSummary(*q, e, (*q)->findMetaData("deprecate", metadata), false));
-            if (!summary.empty())
+            if(!summary.empty())
             {
                 start("dd");
                 _out << summary;
@@ -2796,13 +2705,11 @@ Slice::ExceptionGenerator::generate(const ExceptionPtr& e)
     assert(_out.currIndent() == indent);
 }
 
-Slice::ClassGenerator::ClassGenerator(Confluence::ConfluenceOutput& o, const Files& files)
-    : GeneratorBase(o, files)
+Slice::ClassGenerator::ClassGenerator(Confluence::ConfluenceOutput& o, const Files& files) : GeneratorBase(o, files)
 {
 }
 
-void
-Slice::ClassGenerator::generate(const ClassDefPtr& c)
+void Slice::ClassGenerator::generate(const ClassDefPtr& c)
 {
 #ifndef NDEBUG
     int indent = _out.currIndent();
@@ -2840,7 +2747,7 @@ Slice::ClassGenerator::generate(const ClassDefPtr& c)
     {
         _out << "local ";
     }
-    _out << (c->isInterface() ? "interface" : "class" )<< " " << c->name();
+    _out << (c->isInterface() ? "interface" : "class") << " " << c->name();
 
     ClassList bases = c->bases();
     if(!bases.empty() && !bases.front()->isInterface())
@@ -2880,7 +2787,7 @@ Slice::ClassGenerator::generate(const ClassDefPtr& c)
             _out << toString(*q, c, false);
             end();
             string summary = trim(getSummary(*q, c, (*q)->findMetaData("deprecate", metadata), false));
-            if (!summary.empty())
+            if(!summary.empty())
             {
                 start("dd");
                 string metadata;
@@ -2910,7 +2817,7 @@ Slice::ClassGenerator::generate(const ClassDefPtr& c)
             _out << toString(*q, c, false);
             end();
             string summary = trim(getSummary(*q, c, (*q)->findMetaData("deprecate", metadata), false));
-            if (!summary.empty())
+            if(!summary.empty())
             {
                 start("dd");
                 string metadata;
@@ -2936,8 +2843,8 @@ Slice::ClassGenerator::generate(const ClassDefPtr& c)
             start("h3", "Synopsis");
             printMetaData(*q, isUserImplemented(*q, c));
             TypePtr returnType = (*q)->returnType();
-            _out << (returnType ? toString(returnType, c, false) : string("void"))
-                 << " " << trim(toString(*q, c)) << "(";
+            _out << (returnType ? toString(returnType, c, false) : string("void")) << " " << trim(toString(*q, c))
+                 << "(";
             ParamDeclList params = (*q)->parameters();
             ParamDeclList::const_iterator r = params.begin();
             while(r != params.end())
@@ -2946,8 +2853,8 @@ Slice::ClassGenerator::generate(const ClassDefPtr& c)
                 {
                     _out << "out ";
                 }
-                _out << toString((*r)->type(), ContainedPtr::dynamicCast(*q)->container(), false)
-                     << " " << (*r)->name();
+                _out << toString((*r)->type(), ContainedPtr::dynamicCast(*q)->container(), false) << " "
+                     << (*r)->name();
                 if(++r != params.end())
                 {
                     _out << ", ";
@@ -3026,13 +2933,11 @@ Slice::ClassGenerator::generate(const ClassDefPtr& c)
     assert(_out.currIndent() == indent);
 }
 
-Slice::StructGenerator::StructGenerator(Confluence::ConfluenceOutput& o, const Files& files)
-    : GeneratorBase(o, files)
+Slice::StructGenerator::StructGenerator(Confluence::ConfluenceOutput& o, const Files& files) : GeneratorBase(o, files)
 {
 }
 
-void
-Slice::StructGenerator::generate(const StructPtr& s)
+void Slice::StructGenerator::generate(const StructPtr& s)
 {
 #ifndef NDEBUG
     int indent = _out.currIndent();
@@ -3089,7 +2994,7 @@ Slice::StructGenerator::generate(const StructPtr& s)
             end();
             string metadata;
             string summary = trim(getSummary(*q, s, (*q)->findMetaData("deprecate", metadata), false));
-            if (!summary.empty())
+            if(!summary.empty())
             {
                 start("dd");
                 printSummary(*q, s, (*q)->findMetaData("deprecate", metadata), false);
@@ -3144,13 +3049,11 @@ Slice::StructGenerator::generate(const StructPtr& s)
     assert(_out.currIndent() == indent);
 }
 
-Slice::EnumGenerator::EnumGenerator(Confluence::ConfluenceOutput& o, const Files& files)
-    : GeneratorBase(o, files)
+Slice::EnumGenerator::EnumGenerator(Confluence::ConfluenceOutput& o, const Files& files) : GeneratorBase(o, files)
 {
 }
 
-void
-Slice::EnumGenerator::generate(const EnumPtr& e)
+void Slice::EnumGenerator::generate(const EnumPtr& e)
 {
 #ifndef NDEBUG
     int indent = _out.currIndent();
@@ -3206,7 +3109,7 @@ Slice::EnumGenerator::generate(const EnumPtr& e)
             _out << toString(*q, e->container(), false, true);
             end();
             string summary = trim(getSummary(*q, e->container(), false, true));
-            if (!summary.empty())
+            if(!summary.empty())
             {
                 start("dd");
                 _out << summary;
@@ -3219,7 +3122,6 @@ Slice::EnumGenerator::generate(const EnumPtr& e)
         }
         end();
         _out << "\n{ztop}\n";
-
     }
 
     if(!enumerators.empty())
@@ -3255,19 +3157,16 @@ Slice::EnumGenerator::generate(const EnumPtr& e)
     assert(_out.currIndent() == indent);
 }
 
-Slice::PageVisitor::PageVisitor(const Files& files) :
-    _files(files)
+Slice::PageVisitor::PageVisitor(const Files& files) : _files(files)
 {
 }
 
-bool
-Slice::PageVisitor::visitUnitStart(const UnitPtr& unit)
+bool Slice::PageVisitor::visitUnitStart(const UnitPtr& unit)
 {
     return true;
 }
 
-bool
-Slice::PageVisitor::visitModuleStart(const ModulePtr& m)
+bool Slice::PageVisitor::visitModuleStart(const ModulePtr& m)
 {
     Confluence::ConfluenceOutput O;
     ModuleGenerator mg(O, _files);
@@ -3275,8 +3174,7 @@ Slice::PageVisitor::visitModuleStart(const ModulePtr& m)
     return true;
 }
 
-bool
-Slice::PageVisitor::visitExceptionStart(const ExceptionPtr& e)
+bool Slice::PageVisitor::visitExceptionStart(const ExceptionPtr& e)
 {
     Confluence::ConfluenceOutput O;
     ExceptionGenerator eg(O, _files);
@@ -3284,8 +3182,7 @@ Slice::PageVisitor::visitExceptionStart(const ExceptionPtr& e)
     return true;
 }
 
-bool
-Slice::PageVisitor::visitClassDefStart(const ClassDefPtr& c)
+bool Slice::PageVisitor::visitClassDefStart(const ClassDefPtr& c)
 {
     Confluence::ConfluenceOutput O;
     ClassGenerator cg(O, _files);
@@ -3293,8 +3190,7 @@ Slice::PageVisitor::visitClassDefStart(const ClassDefPtr& c)
     return true;
 }
 
-bool
-Slice::PageVisitor::visitStructStart(const StructPtr& s)
+bool Slice::PageVisitor::visitStructStart(const StructPtr& s)
 {
     Confluence::ConfluenceOutput O;
     StructGenerator sg(O, _files);
@@ -3302,8 +3198,7 @@ Slice::PageVisitor::visitStructStart(const StructPtr& s)
     return true;
 }
 
-void
-Slice::PageVisitor::visitEnum(const EnumPtr& e)
+void Slice::PageVisitor::visitEnum(const EnumPtr& e)
 {
     Confluence::ConfluenceOutput O;
     EnumGenerator eg(O, _files);

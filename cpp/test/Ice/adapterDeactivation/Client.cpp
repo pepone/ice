@@ -19,16 +19,14 @@ using namespace std;
 using namespace Ice;
 using namespace Test;
 
-int
-run(int, char**, const Ice::CommunicatorPtr& communicator)
+int run(int, char**, const Ice::CommunicatorPtr& communicator)
 {
     TestIntfPrxPtr allTests(const CommunicatorPtr&);
     TestIntfPrxPtr obj = allTests(communicator);
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
 #ifdef ICE_STATIC_LIBS
     Ice::registerIceSSL(false);
@@ -44,6 +42,6 @@ main(int argc, char* argv[])
     catch(const Ice::Exception& ex)
     {
         cerr << ex << endl;
-        return  EXIT_FAILURE;
+        return EXIT_FAILURE;
     }
 }

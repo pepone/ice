@@ -20,82 +20,77 @@
 
 namespace IceUtil
 {
-
-template<typename T>
-class ScopedArray
-{
-public:
-
-    explicit ScopedArray(T* ptr = 0) :
-        _ptr(ptr)
+    template<typename T> class ScopedArray
     {
-    }
-
-    ScopedArray(const ScopedArray& other)
-    {
-        _ptr = other._ptr;
-        const_cast<ScopedArray&>(other)._ptr = 0;
-    }
-
-    ~ScopedArray()
-    {
-        if(_ptr != 0)
+    public:
+        explicit ScopedArray(T* ptr = 0) : _ptr(ptr)
         {
-            delete[] _ptr;
         }
-    }
 
-    void reset(T* ptr = 0)
-    {
-        assert(ptr == 0 || ptr != _ptr);
-        if(_ptr != 0)
+        ScopedArray(const ScopedArray& other)
         {
-            delete[] _ptr;
+            _ptr = other._ptr;
+            const_cast<ScopedArray&>(other)._ptr = 0;
         }
-        _ptr = ptr;
-    }
 
-    ScopedArray& operator=(const ScopedArray& other)
-    {
-        if(_ptr != 0)
+        ~ScopedArray()
         {
-            delete[] _ptr;
+            if(_ptr != 0)
+            {
+                delete[] _ptr;
+            }
         }
-        _ptr = other._ptr;
-        const_cast<ScopedArray&>(other)._ptr = 0;
-        return *this;
-    }
 
-    T& operator[](size_t i) const
-    {
-        assert(_ptr != 0);
-        assert(i >= 0);
-        return _ptr[i];
-    }
+        void reset(T* ptr = 0)
+        {
+            assert(ptr == 0 || ptr != _ptr);
+            if(_ptr != 0)
+            {
+                delete[] _ptr;
+            }
+            _ptr = ptr;
+        }
 
-    T* get() const
-    {
-        return _ptr;
-    }
+        ScopedArray& operator=(const ScopedArray& other)
+        {
+            if(_ptr != 0)
+            {
+                delete[] _ptr;
+            }
+            _ptr = other._ptr;
+            const_cast<ScopedArray&>(other)._ptr = 0;
+            return *this;
+        }
 
-    void swap(ScopedArray& a)
-    {
-        T* tmp = a._ptr;
-        a._ptr = _ptr;
-        _ptr = tmp;
-    }
+        T& operator[](size_t i) const
+        {
+            assert(_ptr != 0);
+            assert(i >= 0);
+            return _ptr[i];
+        }
 
-    T* release()
-    {
-        T* tmp = _ptr;
-        _ptr = 0;
-        return tmp;
-    }
+        T* get() const
+        {
+            return _ptr;
+        }
 
-private:
+        void swap(ScopedArray& a)
+        {
+            T* tmp = a._ptr;
+            a._ptr = _ptr;
+            _ptr = tmp;
+        }
 
-    T* _ptr;
-};
+        T* release()
+        {
+            T* tmp = _ptr;
+            _ptr = 0;
+            return tmp;
+        }
+
+    private:
+        T* _ptr;
+    };
 
 } // End of namespace IceUtil
 

@@ -17,38 +17,35 @@ using namespace std;
 #if defined(_WIN32) && !defined(ICE_OS_UWP)
 namespace
 {
+    IceUtil::Mutex* consoleMutex = 0;
+    ConsoleUtil* consoleUtil = 0;
 
-IceUtil::Mutex* consoleMutex = 0;
-ConsoleUtil* consoleUtil = 0;
-
-class Init
-{
-public:
-
-    Init()
+    class Init
     {
-        consoleMutex = new IceUtil::Mutex;
-    }
+    public:
+        Init()
+        {
+            consoleMutex = new IceUtil::Mutex;
+        }
 
-    ~Init()
-    {
-        //
-        // We leak consoleUtil object to ensure that is available
-        // during static destruction.
-        //
-        //delete consoleUtil;
-        //consoleUtil = 0;
-        delete consoleMutex;
-        consoleMutex = 0;
-    }
-};
+        ~Init()
+        {
+            //
+            // We leak consoleUtil object to ensure that is available
+            // during static destruction.
+            //
+            // delete consoleUtil;
+            // consoleUtil = 0;
+            delete consoleMutex;
+            consoleMutex = 0;
+        }
+    };
 
-Init init;
+    Init init;
 
-}
+} // namespace
 
-const ConsoleUtil&
-IceUtilInternal::getConsoleUtil()
+const ConsoleUtil& IceUtilInternal::getConsoleUtil()
 {
     IceUtilInternal::MutexPtrLock<IceUtil::Mutex> sync(consoleMutex);
     if(consoleUtil == 0)
@@ -67,8 +64,7 @@ ConsoleUtil::ConsoleUtil() :
 {
 }
 
-string
-ConsoleUtil::toConsoleEncoding(const string& message) const
+string ConsoleUtil::toConsoleEncoding(const string& message) const
 {
     try
     {
@@ -77,9 +73,8 @@ ConsoleUtil::toConsoleEncoding(const string& message) const
 
         // Then from UTF-8 to console CP
         string consoleString;
-        _consoleConverter->fromUTF8(reinterpret_cast<const IceUtil::Byte* > (u8s.data()),
-                                    reinterpret_cast<const IceUtil::Byte*>(u8s.data() + u8s.size()),
-                                    consoleString);
+        _consoleConverter->fromUTF8(reinterpret_cast<const IceUtil::Byte*>(u8s.data()),
+                                    reinterpret_cast<const IceUtil::Byte*>(u8s.data() + u8s.size()), consoleString);
 
         return consoleString;
     }
@@ -93,8 +88,7 @@ ConsoleUtil::toConsoleEncoding(const string& message) const
     }
 }
 
-void
-ConsoleUtil::output(const string& message) const
+void ConsoleUtil::output(const string& message) const
 {
     //
     // Use fprintf_s to avoid encoding conversion when stderr is connected
@@ -103,8 +97,7 @@ ConsoleUtil::output(const string& message) const
     fprintf_s(stdout, "%s", toConsoleEncoding(message).c_str());
 }
 
-void
-ConsoleUtil::error(const string& message) const
+void ConsoleUtil::error(const string& message) const
 {
     //
     // Use fprintf_s to avoid encoding conversion when stderr is connected
@@ -113,45 +106,39 @@ ConsoleUtil::error(const string& message) const
     fprintf_s(stderr, "%s", toConsoleEncoding(message).c_str());
 }
 
-ConsoleOut&
-IceUtilInternal::endl(ConsoleOut& out)
+ConsoleOut& IceUtilInternal::endl(ConsoleOut& out)
 {
     fprintf_s(stdout, "\n");
     fflush(stdout);
     return out;
 }
 
-ConsoleOut&
-IceUtilInternal::flush(ConsoleOut& out)
+ConsoleOut& IceUtilInternal::flush(ConsoleOut& out)
 {
     fflush(stdout);
     return out;
 }
 
-ConsoleOut&
-ConsoleOut::operator<<(ConsoleOut& (*pf)(ConsoleOut&))
+ConsoleOut& ConsoleOut::operator<<(ConsoleOut& (*pf)(ConsoleOut&))
 {
     pf(*this);
     return *this;
 }
 
-ConsoleErr&
-IceUtilInternal::endl(ConsoleErr& err)
+ConsoleErr& IceUtilInternal::endl(ConsoleErr& err)
 {
     fprintf_s(stderr, "\n");
     fflush(stderr);
     return err;
 }
 
-ConsoleErr&
-IceUtilInternal::flush(ConsoleErr& err)
+ConsoleErr& IceUtilInternal::flush(ConsoleErr& err)
 {
     fflush(stderr);
     return err;
 }
 
-ConsoleErr&
-ConsoleErr::operator<<(ConsoleErr& (*pf)(ConsoleErr&))
+ConsoleErr& ConsoleErr::operator<<(ConsoleErr& (*pf)(ConsoleErr&))
 {
     pf(*this);
     return *this;

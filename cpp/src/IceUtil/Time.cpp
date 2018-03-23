@@ -13,15 +13,15 @@
 #include <iomanip>
 
 #ifdef _WIN32
-#   include <sys/timeb.h>
-#   include <time.h>
+#    include <sys/timeb.h>
+#    include <time.h>
 #else
-#   include <sys/time.h>
+#    include <sys/time.h>
 #endif
 
 #ifdef __APPLE__
-#   include <mach/mach.h>
-#   include <mach/mach_time.h>
+#    include <mach/mach.h>
+#    include <mach/mach_time.h>
 #endif
 
 using namespace IceUtil;
@@ -30,78 +30,72 @@ using namespace IceUtil;
 
 namespace
 {
+    double frequency = -1.0;
 
-double frequency = -1.0;
-
-//
-// Initialize the frequency
-//
-class InitializeFrequency
-{
-public:
-
-    InitializeFrequency()
+    //
+    // Initialize the frequency
+    //
+    class InitializeFrequency
     {
-        //
-        // Get the frequency of performance counters. We also make a call to
-        // QueryPerformanceCounter to ensure it works. If it fails or if the
-        // call to QueryPerformanceFrequency fails, the frequency will remain
-        // set to -1.0 and ftime will be used instead.
-        //
-        Int64 v;
-        if(QueryPerformanceCounter(reinterpret_cast<LARGE_INTEGER*>(&v)))
+    public:
+        InitializeFrequency()
         {
-            if(QueryPerformanceFrequency(reinterpret_cast<LARGE_INTEGER*>(&v)))
+            //
+            // Get the frequency of performance counters. We also make a call to
+            // QueryPerformanceCounter to ensure it works. If it fails or if the
+            // call to QueryPerformanceFrequency fails, the frequency will remain
+            // set to -1.0 and ftime will be used instead.
+            //
+            Int64 v;
+            if(QueryPerformanceCounter(reinterpret_cast<LARGE_INTEGER*>(&v)))
             {
-                frequency = static_cast<double>(v);
+                if(QueryPerformanceFrequency(reinterpret_cast<LARGE_INTEGER*>(&v)))
+                {
+                    frequency = static_cast<double>(v);
+                }
             }
         }
-    }
-};
-InitializeFrequency frequencyInitializer;
+    };
+    InitializeFrequency frequencyInitializer;
 
-}
+} // namespace
 #endif
 
 #if defined(__APPLE__)
 namespace
 {
-
-double machMultiplier = 1.0;
-class InitializeTime
-{
-public:
-
-    InitializeTime()
+    double machMultiplier = 1.0;
+    class InitializeTime
     {
-        mach_timebase_info_data_t initTimeBase = { 0, 0 };
-        mach_timebase_info(&initTimeBase);
-        machMultiplier = static_cast<double>(initTimeBase.numer) / initTimeBase.denom / ICE_INT64(1000);
-    }
-};
-InitializeTime initializeTime;
+    public:
+        InitializeTime()
+        {
+            mach_timebase_info_data_t initTimeBase = {0, 0};
+            mach_timebase_info(&initTimeBase);
+            machMultiplier = static_cast<double>(initTimeBase.numer) / initTimeBase.denom / ICE_INT64(1000);
+        }
+    };
+    InitializeTime initializeTime;
 
-}
+} // namespace
 #endif
 
-Time::Time() :
-    _usec(0)
+Time::Time() : _usec(0)
 {
 }
 
-Time
-IceUtil::Time::now(Clock clock)
+Time IceUtil::Time::now(Clock clock)
 {
     if(clock == Realtime)
     {
 #ifdef _WIN32
-#  if defined(_MSC_VER)
+#    if defined(_MSC_VER)
         struct _timeb tb;
         _ftime(&tb);
-#  elif defined(__MINGW32__)
+#    elif defined(__MINGW32__)
         struct timeb tb;
         ftime(&tb);
-#  endif
+#    endif
         return Time(static_cast<Int64>(tb.time) * ICE_INT64(1000000) + tb.millitm * 1000);
 #else
         struct timeval tv;
@@ -128,13 +122,13 @@ IceUtil::Time::now(Clock clock)
         }
         else
         {
-#  if defined(_MSC_VER)
+#    if defined(_MSC_VER)
             struct _timeb tb;
             _ftime(&tb);
-#  elif defined(__MINGW32__)
+#    elif defined(__MINGW32__)
             struct timeb tb;
             ftime(&tb);
-#  endif
+#    endif
             return Time(static_cast<Int64>(tb.time) * ICE_INT64(1000000) + tb.millitm * 1000);
         }
 #elif defined(__hppa)
@@ -149,7 +143,7 @@ IceUtil::Time::now(Clock clock)
         }
         return Time(tv.tv_sec * ICE_INT64(1000000) + tv.tv_usec);
 #elif defined(__APPLE__)
-       return Time(mach_absolute_time() * machMultiplier);
+        return Time(mach_absolute_time() * machMultiplier);
 #else
         struct timespec ts;
         if(clock_gettime(CLOCK_MONOTONIC, &ts) < 0)
@@ -162,38 +156,32 @@ IceUtil::Time::now(Clock clock)
     }
 }
 
-Time
-IceUtil::Time::seconds(Int64 t)
+Time IceUtil::Time::seconds(Int64 t)
 {
     return Time(t * ICE_INT64(1000000));
 }
 
-Time
-IceUtil::Time::milliSeconds(Int64 t)
+Time IceUtil::Time::milliSeconds(Int64 t)
 {
     return Time(t * ICE_INT64(1000));
 }
 
-Time
-IceUtil::Time::microSeconds(Int64 t)
+Time IceUtil::Time::microSeconds(Int64 t)
 {
     return Time(t);
 }
 
-Time
-IceUtil::Time::secondsDouble(double t)
+Time IceUtil::Time::secondsDouble(double t)
 {
     return Time(Int64(t * 1000000));
 }
 
-Time
-IceUtil::Time::milliSecondsDouble(double t)
+Time IceUtil::Time::milliSecondsDouble(double t)
 {
     return Time(Int64(t * 1000));
 }
 
-Time
-IceUtil::Time::microSecondsDouble(double t)
+Time IceUtil::Time::microSecondsDouble(double t)
 {
     return Time(Int64(t));
 }
@@ -208,44 +196,37 @@ IceUtil::Time::operator timeval() const
 }
 #endif
 
-Int64
-IceUtil::Time::toSeconds() const
+Int64 IceUtil::Time::toSeconds() const
 {
     return _usec / 1000000;
 }
 
-Int64
-IceUtil::Time::toMilliSeconds() const
+Int64 IceUtil::Time::toMilliSeconds() const
 {
     return _usec / 1000;
 }
 
-Int64
-IceUtil::Time::toMicroSeconds() const
+Int64 IceUtil::Time::toMicroSeconds() const
 {
     return _usec;
 }
 
-double
-IceUtil::Time::toSecondsDouble() const
+double IceUtil::Time::toSecondsDouble() const
 {
     return _usec / 1000000.0;
 }
 
-double
-IceUtil::Time::toMilliSecondsDouble() const
+double IceUtil::Time::toMilliSecondsDouble() const
 {
     return _usec / 1000.0;
 }
 
-double
-IceUtil::Time::toMicroSecondsDouble() const
+double IceUtil::Time::toMicroSecondsDouble() const
 {
     return static_cast<double>(_usec);
 }
 
-std::string
-IceUtil::Time::toDateTime() const
+std::string IceUtil::Time::toDateTime() const
 {
     std::ostringstream os;
     os << toString("%x %H:%M:%S") << ".";
@@ -255,8 +236,7 @@ IceUtil::Time::toDateTime() const
     return os.str();
 }
 
-std::string
-IceUtil::Time::toDuration() const
+std::string IceUtil::Time::toDuration() const
 {
     Int64 usecs = _usec % 1000000;
     Int64 secs = _usec / 1000000 % 60;
@@ -280,8 +260,7 @@ IceUtil::Time::toDuration() const
     return os.str();
 }
 
-std::string
-IceUtil::Time::toString(const std::string& format) const
+std::string IceUtil::Time::toString(const std::string& format) const
 {
     time_t time = static_cast<long>(_usec / 1000000);
 
@@ -302,13 +281,11 @@ IceUtil::Time::toString(const std::string& format) const
     return std::string(buf);
 }
 
-Time::Time(Int64 usec) :
-    _usec(usec)
+Time::Time(Int64 usec) : _usec(usec)
 {
 }
 
-std::ostream&
-IceUtil::operator<<(std::ostream& out, const Time& tm)
+std::ostream& IceUtil::operator<<(std::ostream& out, const Time& tm)
 {
     return out << tm.toMicroSeconds() / 1000000.0;
 }

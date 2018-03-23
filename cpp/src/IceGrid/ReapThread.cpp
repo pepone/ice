@@ -15,46 +15,39 @@ using namespace IceGrid;
 
 namespace
 {
-
-class CloseCallbackI : public Ice::CloseCallback
-{
-public:
-
-    CloseCallbackI(const ReapThreadPtr& reaper) : _reaper(reaper)
+    class CloseCallbackI : public Ice::CloseCallback
     {
-    }
+    public:
+        CloseCallbackI(const ReapThreadPtr& reaper) : _reaper(reaper)
+        {
+        }
 
-    virtual void
-    closed(const Ice::ConnectionPtr& con)
+        virtual void closed(const Ice::ConnectionPtr& con)
+        {
+            _reaper->connectionClosed(con);
+        }
+
+    private:
+        const ReapThreadPtr _reaper;
+    };
+
+    class HeartbeatCallbackI : public Ice::HeartbeatCallback
     {
-        _reaper->connectionClosed(con);
-    }
+    public:
+        HeartbeatCallbackI(const ReapThreadPtr& reaper) : _reaper(reaper)
+        {
+        }
 
-private:
+        virtual void heartbeat(const Ice::ConnectionPtr& con)
+        {
+            _reaper->connectionHeartbeat(con);
+        }
 
-    const ReapThreadPtr _reaper;
-};
+    private:
+        const ReapThreadPtr _reaper;
+    };
 
-class HeartbeatCallbackI : public Ice::HeartbeatCallback
-{
-public:
-
-    HeartbeatCallbackI(const ReapThreadPtr& reaper) : _reaper(reaper)
-    {
-    }
-
-    virtual void
-    heartbeat(const Ice::ConnectionPtr& con)
-    {
-        _reaper->connectionHeartbeat(con);
-    }
-
-private:
-
-    const ReapThreadPtr _reaper;
-};
-
-}
+} // namespace
 
 ReapThread::ReapThread() :
     IceUtil::Thread("Icegrid reaper thread"),
@@ -64,8 +57,7 @@ ReapThread::ReapThread() :
 {
 }
 
-void
-ReapThread::run()
+void ReapThread::run()
 {
     vector<ReapableItem> reap;
     while(true)
@@ -126,7 +118,7 @@ ReapThread::run()
                 //
                 if(p->connection)
                 {
-                    map<Ice::ConnectionPtr, set<ReapablePtr> >::iterator q = _connections.find(p->connection);
+                    map<Ice::ConnectionPtr, set<ReapablePtr>>::iterator q = _connections.find(p->connection);
                     if(q != _connections.end())
                     {
                         q->second.erase(p->item);
@@ -150,8 +142,7 @@ ReapThread::run()
     }
 }
 
-void
-ReapThread::terminate()
+void ReapThread::terminate()
 {
     list<ReapableItem> reap;
     {
@@ -165,7 +156,7 @@ ReapThread::terminate()
         notify();
         reap.swap(_sessions);
 
-        for(map<Ice::ConnectionPtr, set<ReapablePtr> >::iterator p = _connections.begin(); p != _connections.end(); ++p)
+        for(map<Ice::ConnectionPtr, set<ReapablePtr>>::iterator p = _connections.begin(); p != _connections.end(); ++p)
         {
             p->first->setCloseCallback(0);
             p->first->setHeartbeatCallback(0);
@@ -181,8 +172,7 @@ ReapThread::terminate()
     }
 }
 
-void
-ReapThread::add(const ReapablePtr& reapable, int timeout, const Ice::ConnectionPtr& connection)
+void ReapThread::add(const ReapablePtr& reapable, int timeout, const Ice::ConnectionPtr& connection)
 {
     Lock sync(*this);
     if(_terminated)
@@ -211,13 +201,12 @@ ReapThread::add(const ReapablePtr& reapable, int timeout, const Ice::ConnectionP
 
     if(connection)
     {
-        map<Ice::ConnectionPtr, set<ReapablePtr> >::iterator p = _connections.find(connection);
+        map<Ice::ConnectionPtr, set<ReapablePtr>>::iterator p = _connections.find(connection);
         if(p == _connections.end())
         {
             p = _connections.insert(make_pair(connection, set<ReapablePtr>())).first;
             connection->setCloseCallback(_closeCallback);
             connection->setHeartbeatCallback(_heartbeatCallback);
-
         }
         p->second.insert(reapable);
     }
@@ -241,11 +230,10 @@ ReapThread::add(const ReapablePtr& reapable, int timeout, const Ice::ConnectionP
     }
 }
 
-void
-ReapThread::connectionHeartbeat(const Ice::ConnectionPtr& con)
+void ReapThread::connectionHeartbeat(const Ice::ConnectionPtr& con)
 {
     Lock sync(*this);
-    map<Ice::ConnectionPtr, set<ReapablePtr> >::const_iterator p = _connections.find(con);
+    map<Ice::ConnectionPtr, set<ReapablePtr>>::const_iterator p = _connections.find(con);
     if(p == _connections.end())
     {
         con->setCloseCallback(0);
@@ -259,11 +247,10 @@ ReapThread::connectionHeartbeat(const Ice::ConnectionPtr& con)
     }
 }
 
-void
-ReapThread::connectionClosed(const Ice::ConnectionPtr& con)
+void ReapThread::connectionClosed(const Ice::ConnectionPtr& con)
 {
     Lock sync(*this);
-    map<Ice::ConnectionPtr, set<ReapablePtr> >::iterator p = _connections.find(con);
+    map<Ice::ConnectionPtr, set<ReapablePtr>>::iterator p = _connections.find(con);
     if(p == _connections.end())
     {
         con->setCloseCallback(0);
@@ -282,8 +269,7 @@ ReapThread::connectionClosed(const Ice::ConnectionPtr& con)
 // Returns true if the calculated wake interval is less than the current wake
 // interval (or if the original wake interval was "forever").
 //
-bool
-ReapThread::calcWakeInterval()
+bool ReapThread::calcWakeInterval()
 {
     // Re-calculate minimum timeout
     IceUtil::Time oldWakeInterval = _wakeInterval;

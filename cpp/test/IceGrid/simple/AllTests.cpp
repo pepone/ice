@@ -16,8 +16,7 @@
 using namespace std;
 using namespace Test;
 
-void
-allTests(const Ice::CommunicatorPtr& communicator)
+void allTests(const Ice::CommunicatorPtr& communicator)
 {
     cout << "testing stringToProxy... " << flush;
     Ice::ObjectPrxPtr base = communicator->stringToProxy("test @ TestAdapter");
@@ -43,8 +42,8 @@ allTests(const Ice::CommunicatorPtr& communicator)
     Ice::Identity finderId;
     finderId.category = "Ice";
     finderId.name = "LocatorFinder";
-    Ice::LocatorFinderPrxPtr finder = ICE_CHECKED_CAST(Ice::LocatorFinderPrx,
-        communicator->getDefaultLocator()->ice_identity(finderId));
+    Ice::LocatorFinderPrxPtr finder =
+        ICE_CHECKED_CAST(Ice::LocatorFinderPrx, communicator->getDefaultLocator()->ice_identity(finderId));
     test(finder->getLocator());
     cout << "ok" << endl;
 
@@ -54,8 +53,9 @@ allTests(const Ice::CommunicatorPtr& communicator)
         cout << "testing discovery... " << flush;
         {
             // Add test well-known object
-            IceGrid::RegistryPrxPtr registry = ICE_CHECKED_CAST(IceGrid::RegistryPrx,
-                communicator->stringToProxy(communicator->getDefaultLocator()->ice_getIdentity().category + "/Registry"));
+            IceGrid::RegistryPrxPtr registry = ICE_CHECKED_CAST(
+                IceGrid::RegistryPrx, communicator->stringToProxy(
+                                          communicator->getDefaultLocator()->ice_getIdentity().category + "/Registry"));
             test(registry);
 
             IceGrid::AdminSessionPrxPtr session = registry->createAdminSession("foo", "bar");
@@ -180,8 +180,8 @@ allTests(const Ice::CommunicatorPtr& communicator)
                 ostringstream port;
                 port << getTestPort(initData.properties, 99);
                 initData.properties->setProperty("IceLocatorDiscovery.Lookup",
-                                                 "udp -h " + multicast + " --interface unknown:" +
-                                                 "udp -h " + multicast + " -p " + port.str() + intf);
+                                                 "udp -h " + multicast + " --interface unknown:" + "udp -h " +
+                                                     multicast + " -p " + port.str() + intf);
             }
             com = Ice::initialize(initData);
             test(com->getDefaultLocator());
@@ -207,8 +207,7 @@ allTests(const Ice::CommunicatorPtr& communicator)
     cout << "ok" << endl;
 }
 
-void
-allTestsWithDeploy(const Ice::CommunicatorPtr& communicator)
+void allTestsWithDeploy(const Ice::CommunicatorPtr& communicator)
 {
     cout << "testing stringToProxy... " << flush;
     Ice::ObjectPrxPtr base = communicator->stringToProxy("test @ TestAdapter");
@@ -264,7 +263,7 @@ allTestsWithDeploy(const Ice::CommunicatorPtr& communicator)
         communicator->stringToProxy("unknown/unknown")->ice_ping();
         test(false);
     }
-    catch (const Ice::NotRegisteredException& ex)
+    catch(const Ice::NotRegisteredException& ex)
     {
         test(ex.kindOfObject == "object");
         test(ex.id == "unknown/unknown");
@@ -277,20 +276,22 @@ allTestsWithDeploy(const Ice::CommunicatorPtr& communicator)
         communicator->stringToProxy("test @ TestAdapterUnknown")->ice_ping();
         test(false);
     }
-    catch (const Ice::NotRegisteredException& ex)
+    catch(const Ice::NotRegisteredException& ex)
     {
         test(ex.kindOfObject == "object adapter");
         test(ex.id == "TestAdapterUnknown");
     }
     cout << "ok" << endl;
 
-    IceGrid::RegistryPrxPtr registry = ICE_CHECKED_CAST(IceGrid::RegistryPrx,
+    IceGrid::RegistryPrxPtr registry = ICE_CHECKED_CAST(
+        IceGrid::RegistryPrx,
         communicator->stringToProxy(communicator->getDefaultLocator()->ice_getIdentity().category + "/Registry"));
     test(registry);
 
     IceGrid::AdminSessionPrxPtr session = registry->createAdminSession("foo", "bar");
 
-    session->ice_getConnection()->setACM(registry->getACMTimeout(), IceUtil::None, Ice::ICE_ENUM(ACMHeartbeat, HeartbeatAlways));
+    session->ice_getConnection()->setACM(registry->getACMTimeout(), IceUtil::None,
+                                         Ice::ICE_ENUM(ACMHeartbeat, HeartbeatAlways));
 
     IceGrid::AdminPrxPtr admin = session->getAdmin();
     test(admin);

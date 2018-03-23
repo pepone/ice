@@ -16,15 +16,14 @@
 class TestIntfI : public Test::TestIntf
 {
 public:
-
     virtual std::string getAdapterId(const Ice::Current&);
 };
 
 class ControllerI : public Test::Controller
 {
 public:
-
-    virtual void activateObjectAdapter(ICE_IN(std::string), ICE_IN(std::string), ICE_IN(std::string), const Ice::Current&);
+    virtual void activateObjectAdapter(ICE_IN(std::string), ICE_IN(std::string), ICE_IN(std::string),
+                                       const Ice::Current&);
     virtual void deactivateObjectAdapter(ICE_IN(std::string), const Ice::Current&);
 
     virtual void addObject(ICE_IN(std::string), ICE_IN(std::string), const Ice::Current&);
@@ -33,7 +32,6 @@ public:
     virtual void shutdown(const Ice::Current&);
 
 private:
-
     std::map<std::string, Ice::ObjectAdapterPtr> _adapters;
 };
 

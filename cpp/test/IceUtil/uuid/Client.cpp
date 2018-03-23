@@ -22,28 +22,26 @@ using namespace std;
 
 namespace
 {
+    Mutex* staticMutex = 0;
 
-Mutex* staticMutex = 0;
-
-class Init
-{
-public:
-
-    Init()
+    class Init
     {
-        staticMutex = new IceUtil::Mutex;
-    }
+    public:
+        Init()
+        {
+            staticMutex = new IceUtil::Mutex;
+        }
 
-    ~Init()
-    {
-        delete staticMutex;
-        staticMutex = 0;
-    }
-};
+        ~Init()
+        {
+            delete staticMutex;
+            staticMutex = 0;
+        }
+    };
 
-Init init;
+    Init init;
 
-}
+} // namespace
 
 inline void usage(const char* myName)
 {
@@ -53,11 +51,14 @@ inline void usage(const char* myName)
 template<typename T, typename GenerateFunc> class InsertThread : public Thread
 {
 public:
-
     typedef set<T> ItemSet;
 
-    InsertThread(int threadId, ItemSet& itemSet, GenerateFunc func, long howMany, bool verbose)
-        : _threadId(threadId), _itemSet(itemSet), _func(func), _howMany(howMany), _verbose(verbose)
+    InsertThread(int threadId, ItemSet& itemSet, GenerateFunc func, long howMany, bool verbose) :
+        _threadId(threadId),
+        _itemSet(itemSet),
+        _func(func),
+        _howMany(howMany),
+        _verbose(verbose)
     {
     }
 
@@ -85,7 +86,6 @@ public:
     }
 
 private:
-
     int _threadId;
     ItemSet& _itemSet;
     GenerateFunc _func;
@@ -95,8 +95,7 @@ private:
 
 struct GenerateUUID
 {
-    string
-    operator()()
+    string operator()()
     {
         return generateUUID();
     }
@@ -104,8 +103,7 @@ struct GenerateUUID
 
 struct GenerateRandomString
 {
-    string
-    operator()()
+    string operator()()
     {
         string s;
         s.resize(21);
@@ -113,7 +111,8 @@ struct GenerateRandomString
         IceUtilInternal::generateRandom(buf, sizeof(buf));
         for(unsigned int i = 0; i < sizeof(buf); ++i)
         {
-            s[i] = 33 + static_cast<unsigned char>(buf[i]) % (127 - 33); // We use ASCII 33-126 (from ! to ~, w/o space).
+            s[i] =
+                33 + static_cast<unsigned char>(buf[i]) % (127 - 33); // We use ASCII 33-126 (from ! to ~, w/o space).
         }
         // cerr << s << endl;
         return s;
@@ -123,17 +122,14 @@ struct GenerateRandomString
 struct GenerateRandomInt
 {
 public:
-
-    int
-    operator()()
+    int operator()()
     {
         return IceUtilInternal::random();
     }
-
 };
 
-template<typename T, typename GenerateFunc> void
-runTest(int threadCount, GenerateFunc func, long howMany, bool verbose, string name)
+template<typename T, typename GenerateFunc>
+void runTest(int threadCount, GenerateFunc func, long howMany, bool verbose, string name)
 {
     cout << "Generating " << howMany << " " << name << "s using " << threadCount << " thread";
     if(threadCount > 1)
@@ -171,10 +167,8 @@ runTest(int threadCount, GenerateFunc func, long howMany, bool verbose, string n
 
     if(verbose)
     {
-        cout << "Each " << name << " took an average of "
-             << (double) ((finish - start).toMicroSeconds()) / howMany
-             << " micro seconds to generate and insert into a set."
-             << endl;
+        cout << "Each " << name << " took an average of " << (double)((finish - start).toMicroSeconds()) / howMany
+             << " micro seconds to generate and insert into a set." << endl;
     }
 }
 
@@ -192,7 +186,7 @@ int main(int argc, char* argv[])
     else if(argc == 3)
     {
         howMany = atol(argv[1]);
-        if (howMany == 0)
+        if(howMany == 0)
         {
             usage(argv[0]);
             return EXIT_FAILURE;
@@ -208,7 +202,7 @@ int main(int argc, char* argv[])
     else if(argc == 2)
     {
         howMany = atol(argv[1]);
-        if (howMany == 0)
+        if(howMany == 0)
         {
             usage(argv[0]);
             return EXIT_FAILURE;

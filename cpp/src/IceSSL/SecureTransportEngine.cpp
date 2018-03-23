@@ -39,752 +39,739 @@ using namespace IceSSL::SecureTransport;
 
 namespace
 {
+    IceUtil::Mutex* staticMutex = 0;
 
-IceUtil::Mutex* staticMutex = 0;
-
-class Init
-{
-public:
-
-    Init()
+    class Init
     {
-        staticMutex = new IceUtil::Mutex;
+    public:
+        Init()
+        {
+            staticMutex = new IceUtil::Mutex;
+        }
+
+        ~Init()
+        {
+            delete staticMutex;
+            staticMutex = 0;
+        }
+    };
+
+    Init init;
+
+    class RegExp : public IceUtil::Shared
+    {
+    public:
+        RegExp(const string&);
+        ~RegExp();
+        bool match(const string&);
+
+    private:
+        regex_t _preg;
+    };
+    typedef IceUtil::Handle<RegExp> RegExpPtr;
+
+    RegExp::RegExp(const string& regexp)
+    {
+        int err = regcomp(&_preg, regexp.c_str(), REG_EXTENDED | REG_NOSUB);
+        if(err)
+        {
+            throw IceUtil::SyscallException(__FILE__, __LINE__, err);
+        }
     }
 
-    ~Init()
+    RegExp::~RegExp()
     {
-        delete staticMutex;
-        staticMutex = 0;
+        regfree(&_preg);
     }
-};
 
-Init init;
-
-class RegExp : public IceUtil::Shared
-{
-public:
-
-    RegExp(const string&);
-    ~RegExp();
-    bool match(const string&);
-
-private:
-
-    regex_t _preg;
-};
-typedef IceUtil::Handle<RegExp> RegExpPtr;
-
-RegExp::RegExp(const string& regexp)
-{
-    int err = regcomp(&_preg, regexp.c_str(), REG_EXTENDED | REG_NOSUB);
-    if(err)
+    bool RegExp::match(const string& value)
     {
-        throw IceUtil::SyscallException(__FILE__, __LINE__, err);
+        return regexec(&_preg, value.c_str(), 0, 0, 0) == 0;
     }
-}
 
-RegExp::~RegExp()
-{
-    regfree(&_preg);
-}
-
-bool
-RegExp::match(const string& value)
-{
-    return regexec(&_preg, value.c_str(), 0, 0, 0) == 0;
-}
-
-struct CipherExpression
-{
-    bool negation;
-    string cipher;
-    RegExpPtr re;
-};
-
-class CiphersHelper
-{
-public:
-
-    static void initialize();
-    static SSLCipherSuite cipherForName(const string& name);
-    static string cipherName(SSLCipherSuite cipher);
-    static map<string, SSLCipherSuite> ciphers();
-
-private:
-
-    static map<string, SSLCipherSuite> _ciphers;
-};
-
-map<string, SSLCipherSuite> CiphersHelper::_ciphers;
-
-//
-// Initialize a dictionary with the names of ciphers
-//
-void
-CiphersHelper::initialize()
-{
-    IceUtilInternal::MutexPtrLock<IceUtil::Mutex> sync(staticMutex);
-    if(_ciphers.empty())
+    struct CipherExpression
     {
-        _ciphers["NULL_WITH_NULL_NULL"] = SSL_NULL_WITH_NULL_NULL;
-        _ciphers["RSA_WITH_NULL_MD5"] = SSL_RSA_WITH_NULL_MD5;
-        _ciphers["RSA_WITH_NULL_SHA"] = SSL_RSA_WITH_NULL_SHA;
-        _ciphers["RSA_EXPORT_WITH_RC4_40_MD5"] = SSL_RSA_EXPORT_WITH_RC4_40_MD5;
-        _ciphers["RSA_WITH_RC4_128_MD5"] = SSL_RSA_WITH_RC4_128_MD5;
-        _ciphers["RSA_WITH_RC4_128_SHA"] = SSL_RSA_WITH_RC4_128_SHA;
-        _ciphers["RSA_EXPORT_WITH_RC2_CBC_40_MD5"] =    SSL_RSA_EXPORT_WITH_RC2_CBC_40_MD5;
-        _ciphers["RSA_WITH_IDEA_CBC_SHA"] = SSL_RSA_WITH_IDEA_CBC_SHA;
-        _ciphers["RSA_EXPORT_WITH_DES40_CBC_SHA"] = SSL_RSA_EXPORT_WITH_DES40_CBC_SHA;
-        _ciphers["RSA_WITH_DES_CBC_SHA"] = SSL_RSA_WITH_DES_CBC_SHA;
-        _ciphers["RSA_WITH_3DES_EDE_CBC_SHA"] = SSL_RSA_WITH_3DES_EDE_CBC_SHA;
-        _ciphers["DH_DSS_EXPORT_WITH_DES40_CBC_SHA"] = SSL_DH_DSS_EXPORT_WITH_DES40_CBC_SHA;
-        _ciphers["DH_DSS_WITH_DES_CBC_SHA"] = SSL_DH_DSS_WITH_DES_CBC_SHA;
-        _ciphers["DH_DSS_WITH_3DES_EDE_CBC_SHA"] = SSL_DH_DSS_WITH_3DES_EDE_CBC_SHA;
-        _ciphers["DH_RSA_EXPORT_WITH_DES40_CBC_SHA"] = SSL_DH_RSA_EXPORT_WITH_DES40_CBC_SHA;
-        _ciphers["DH_RSA_WITH_DES_CBC_SHA"] = SSL_DH_RSA_WITH_DES_CBC_SHA;
-        _ciphers["DH_RSA_WITH_3DES_EDE_CBC_SHA"] = SSL_DH_RSA_WITH_3DES_EDE_CBC_SHA;
-        _ciphers["DHE_DSS_EXPORT_WITH_DES40_CBC_SHA"] = SSL_DHE_DSS_EXPORT_WITH_DES40_CBC_SHA;
-        _ciphers["DHE_DSS_WITH_DES_CBC_SHA"] = SSL_DHE_DSS_WITH_DES_CBC_SHA;
-        _ciphers["DHE_DSS_WITH_3DES_EDE_CBC_SHA"] = SSL_DHE_DSS_WITH_3DES_EDE_CBC_SHA;
-        _ciphers["DHE_RSA_EXPORT_WITH_DES40_CBC_SHA"] = SSL_DHE_RSA_EXPORT_WITH_DES40_CBC_SHA;
-        _ciphers["DHE_RSA_WITH_DES_CBC_SHA"] = SSL_DHE_RSA_WITH_DES_CBC_SHA;
-        _ciphers["DHE_RSA_WITH_3DES_EDE_CBC_SHA"] = SSL_DHE_RSA_WITH_3DES_EDE_CBC_SHA;
-        _ciphers["DH_anon_EXPORT_WITH_RC4_40_MD5"] = SSL_DH_anon_EXPORT_WITH_RC4_40_MD5;
-        _ciphers["DH_anon_WITH_RC4_128_MD5"] = SSL_DH_anon_WITH_RC4_128_MD5;
-        _ciphers["DH_anon_EXPORT_WITH_DES40_CBC_SHA"] = SSL_DH_anon_EXPORT_WITH_DES40_CBC_SHA;
-        _ciphers["DH_anon_WITH_DES_CBC_SHA"] = SSL_DH_anon_WITH_DES_CBC_SHA;
-        _ciphers["DH_anon_WITH_3DES_EDE_CBC_SHA"] = SSL_DH_anon_WITH_3DES_EDE_CBC_SHA;
-        _ciphers["FORTEZZA_DMS_WITH_NULL_SHA"] = SSL_FORTEZZA_DMS_WITH_NULL_SHA;
-        _ciphers["FORTEZZA_DMS_WITH_FORTEZZA_CBC_SHA"] = SSL_FORTEZZA_DMS_WITH_FORTEZZA_CBC_SHA;
+        bool negation;
+        string cipher;
+        RegExpPtr re;
+    };
 
-        //
-        // TLS addenda using AES, per RFC 3268
-        //
-        _ciphers["RSA_WITH_AES_128_CBC_SHA"] = TLS_RSA_WITH_AES_128_CBC_SHA;
-        _ciphers["DH_DSS_WITH_AES_128_CBC_SHA"] = TLS_DH_DSS_WITH_AES_128_CBC_SHA;
-        _ciphers["DH_RSA_WITH_AES_128_CBC_SHA"] = TLS_DH_RSA_WITH_AES_128_CBC_SHA;
-        _ciphers["DHE_DSS_WITH_AES_128_CBC_SHA"] = TLS_DHE_DSS_WITH_AES_128_CBC_SHA;
-        _ciphers["DHE_RSA_WITH_AES_128_CBC_SHA"] = TLS_DHE_RSA_WITH_AES_128_CBC_SHA;
-        _ciphers["DH_anon_WITH_AES_128_CBC_SHA"] = TLS_DH_anon_WITH_AES_128_CBC_SHA;
-        _ciphers["RSA_WITH_AES_256_CBC_SHA"] = TLS_RSA_WITH_AES_256_CBC_SHA;
-        _ciphers["DH_DSS_WITH_AES_256_CBC_SHA"] = TLS_DH_DSS_WITH_AES_256_CBC_SHA;
-        _ciphers["DH_RSA_WITH_AES_256_CBC_SHA"] = TLS_DH_RSA_WITH_AES_256_CBC_SHA;
-        _ciphers["DHE_DSS_WITH_AES_256_CBC_SHA"] = TLS_DHE_DSS_WITH_AES_256_CBC_SHA;
-        _ciphers["DHE_RSA_WITH_AES_256_CBC_SHA"] = TLS_DHE_RSA_WITH_AES_256_CBC_SHA;
-        _ciphers["DH_anon_WITH_AES_256_CBC_SHA"] = TLS_DH_anon_WITH_AES_256_CBC_SHA;
-
-        //
-        // ECDSA addenda, RFC 4492
-        //
-        _ciphers["ECDH_ECDSA_WITH_NULL_SHA"] = TLS_ECDH_ECDSA_WITH_NULL_SHA;
-        _ciphers["ECDH_ECDSA_WITH_RC4_128_SHA"] = TLS_ECDH_ECDSA_WITH_RC4_128_SHA;
-        _ciphers["ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA"] = TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA;
-        _ciphers["ECDH_ECDSA_WITH_AES_128_CBC_SHA"] = TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA;
-        _ciphers["ECDH_ECDSA_WITH_AES_256_CBC_SHA"] = TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA;
-        _ciphers["ECDHE_ECDSA_WITH_NULL_SHA"] = TLS_ECDHE_ECDSA_WITH_NULL_SHA;
-        _ciphers["ECDHE_ECDSA_WITH_RC4_128_SHA"] = TLS_ECDHE_ECDSA_WITH_RC4_128_SHA;
-        _ciphers["ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA"] = TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA;
-        _ciphers["ECDHE_ECDSA_WITH_AES_128_CBC_SHA"] = TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA;
-        _ciphers["ECDHE_ECDSA_WITH_AES_256_CBC_SHA"] = TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA;
-        _ciphers["ECDH_RSA_WITH_NULL_SHA"] = TLS_ECDH_RSA_WITH_NULL_SHA;
-        _ciphers["ECDH_RSA_WITH_RC4_128_SHA"] = TLS_ECDH_RSA_WITH_RC4_128_SHA;
-        _ciphers["ECDH_RSA_WITH_3DES_EDE_CBC_SHA"] = TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA;
-        _ciphers["ECDH_RSA_WITH_AES_128_CBC_SHA"] = TLS_ECDH_RSA_WITH_AES_128_CBC_SHA;
-        _ciphers["ECDH_RSA_WITH_AES_256_CBC_SHA"] = TLS_ECDH_RSA_WITH_AES_256_CBC_SHA;
-        _ciphers["ECDHE_RSA_WITH_NULL_SHA"] = TLS_ECDHE_RSA_WITH_NULL_SHA;
-        _ciphers["ECDHE_RSA_WITH_RC4_128_SHA"] = TLS_ECDHE_RSA_WITH_RC4_128_SHA;
-        _ciphers["ECDHE_RSA_WITH_3DES_EDE_CBC_SHA"] = TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA;
-        _ciphers["ECDHE_RSA_WITH_AES_128_CBC_SHA"] = TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA;
-        _ciphers["ECDHE_RSA_WITH_AES_256_CBC_SHA"] = TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA;
-        _ciphers["ECDH_anon_WITH_NULL_SHA"] = TLS_ECDH_anon_WITH_NULL_SHA;
-        _ciphers["ECDH_anon_WITH_RC4_128_SHA"] = TLS_ECDH_anon_WITH_RC4_128_SHA;
-        _ciphers["ECDH_anon_WITH_3DES_EDE_CBC_SHA"] = TLS_ECDH_anon_WITH_3DES_EDE_CBC_SHA;
-        _ciphers["ECDH_anon_WITH_AES_128_CBC_SHA"] = TLS_ECDH_anon_WITH_AES_128_CBC_SHA;
-        _ciphers["ECDH_anon_WITH_AES_256_CBC_SHA"] = TLS_ECDH_anon_WITH_AES_256_CBC_SHA;
-
-        //
-        // TLS 1.2 addenda, RFC 5246
-        //
-        //_ciphers["NULL_WITH_NULL_NULL"] = TLS_NULL_WITH_NULL_NULL;
-
-        //
-        // Server provided RSA certificate for key exchange.
-        //
-        //_ciphers["RSA_WITH_NULL_MD5"] = TLS_RSA_WITH_NULL_MD5;
-        //_ciphers["RSA_WITH_NULL_SHA"] = TLS_RSA_WITH_NULL_SHA;
-        //_ciphers["RSA_WITH_RC4_128_MD5"] = TLS_RSA_WITH_RC4_128_MD5;
-        //_ciphers["RSA_WITH_RC4_128_SHA"] = TLS_RSA_WITH_RC4_128_SHA;
-        //_ciphers["RSA_WITH_3DES_EDE_CBC_SHA"] = TLS_RSA_WITH_3DES_EDE_CBC_SHA;
-        _ciphers["RSA_WITH_NULL_SHA256"] = TLS_RSA_WITH_NULL_SHA256;
-        _ciphers["RSA_WITH_AES_128_CBC_SHA256"] = TLS_RSA_WITH_AES_128_CBC_SHA256;
-        _ciphers["RSA_WITH_AES_256_CBC_SHA256"] = TLS_RSA_WITH_AES_256_CBC_SHA256;
-
-        //
-        // Server-authenticated (and optionally client-authenticated) Diffie-Hellman.
-        //
-        //_ciphers["DH_DSS_WITH_3DES_EDE_CBC_SHA"] = TLS_DH_DSS_WITH_3DES_EDE_CBC_SHA;
-        //_ciphers["DH_RSA_WITH_3DES_EDE_CBC_SHA"] = TLS_DH_RSA_WITH_3DES_EDE_CBC_SHA;
-        //_ciphers["DHE_DSS_WITH_3DES_EDE_CBC_SHA"] = TLS_DHE_DSS_WITH_3DES_EDE_CBC_SHA;
-        //_ciphers["DHE_RSA_WITH_3DES_EDE_CBC_SHA"] = TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA;
-        _ciphers["DH_DSS_WITH_AES_128_CBC_SHA256"] = TLS_DH_DSS_WITH_AES_128_CBC_SHA256;
-        _ciphers["DH_RSA_WITH_AES_128_CBC_SHA256"] = TLS_DH_RSA_WITH_AES_128_CBC_SHA256;
-        _ciphers["DHE_DSS_WITH_AES_128_CBC_SHA256"] = TLS_DHE_DSS_WITH_AES_128_CBC_SHA256;
-        _ciphers["DHE_RSA_WITH_AES_128_CBC_SHA256"] = TLS_DHE_RSA_WITH_AES_128_CBC_SHA256;
-        _ciphers["DH_DSS_WITH_AES_256_CBC_SHA256"] = TLS_DH_DSS_WITH_AES_256_CBC_SHA256;
-        _ciphers["DH_RSA_WITH_AES_256_CBC_SHA256"] = TLS_DH_RSA_WITH_AES_256_CBC_SHA256;
-        _ciphers["DHE_DSS_WITH_AES_256_CBC_SHA256"] = TLS_DHE_DSS_WITH_AES_256_CBC_SHA256;
-        _ciphers["DHE_RSA_WITH_AES_256_CBC_SHA256"] = TLS_DHE_RSA_WITH_AES_256_CBC_SHA256;
-
-        //
-        // Completely anonymous Diffie-Hellman
-        //
-        //_ciphers["DH_anon_WITH_RC4_128_MD5"] = TLS_DH_anon_WITH_RC4_128_MD5;
-        //_ciphers["DH_anon_WITH_3DES_EDE_CBC_SHA"] = TLS_DH_anon_WITH_3DES_EDE_CBC_SHA;
-        _ciphers["DH_anon_WITH_AES_128_CBC_SHA256"] = TLS_DH_anon_WITH_AES_128_CBC_SHA256;
-        _ciphers["DH_anon_WITH_AES_256_CBC_SHA256"] = TLS_DH_anon_WITH_AES_256_CBC_SHA256;
-
-        //
-        // Addendum from RFC 4279, TLS PSK
-        //
-        _ciphers["PSK_WITH_RC4_128_SHA"] = TLS_PSK_WITH_RC4_128_SHA;
-        _ciphers["PSK_WITH_3DES_EDE_CBC_SHA"] = TLS_PSK_WITH_3DES_EDE_CBC_SHA;
-        _ciphers["PSK_WITH_AES_128_CBC_SHA"] = TLS_PSK_WITH_AES_128_CBC_SHA;
-        _ciphers["PSK_WITH_AES_256_CBC_SHA"] = TLS_PSK_WITH_AES_256_CBC_SHA;
-        _ciphers["DHE_PSK_WITH_RC4_128_SHA"] = TLS_DHE_PSK_WITH_RC4_128_SHA;
-        _ciphers["DHE_PSK_WITH_3DES_EDE_CBC_SHA"] = TLS_DHE_PSK_WITH_3DES_EDE_CBC_SHA;
-        _ciphers["DHE_PSK_WITH_AES_128_CBC_SHA"] = TLS_DHE_PSK_WITH_AES_128_CBC_SHA;
-        _ciphers["DHE_PSK_WITH_AES_256_CBC_SHA"] = TLS_DHE_PSK_WITH_AES_256_CBC_SHA;
-        _ciphers["RSA_PSK_WITH_RC4_128_SHA"] = TLS_RSA_PSK_WITH_RC4_128_SHA;
-        _ciphers["RSA_PSK_WITH_3DES_EDE_CBC_SHA"] = TLS_RSA_PSK_WITH_3DES_EDE_CBC_SHA;
-        _ciphers["RSA_PSK_WITH_AES_128_CBC_SHA"] = TLS_RSA_PSK_WITH_AES_128_CBC_SHA;
-        _ciphers["RSA_PSK_WITH_AES_256_CBC_SHA"] = TLS_RSA_PSK_WITH_AES_256_CBC_SHA;
-
-        //
-        // RFC 4785 - Pre-Shared Key (PSK) Ciphersuites with NULL Encryption
-        //
-        _ciphers["PSK_WITH_NULL_SHA"] = TLS_PSK_WITH_NULL_SHA;
-        _ciphers["DHE_PSK_WITH_NULL_SHA"] = TLS_DHE_PSK_WITH_NULL_SHA;
-        _ciphers["RSA_PSK_WITH_NULL_SHA"] = TLS_RSA_PSK_WITH_NULL_SHA;
-
-        //
-        // Addenda from rfc 5288 AES Galois Counter Mode (GCM) Cipher Suites for TLS.
-        //
-        _ciphers["RSA_WITH_AES_128_GCM_SHA256"] = TLS_RSA_WITH_AES_128_GCM_SHA256;
-        _ciphers["RSA_WITH_AES_256_GCM_SHA384"] = TLS_RSA_WITH_AES_256_GCM_SHA384;
-        _ciphers["DHE_RSA_WITH_AES_128_GCM_SHA256"] = TLS_DHE_RSA_WITH_AES_128_GCM_SHA256;
-        _ciphers["DHE_RSA_WITH_AES_256_GCM_SHA384"] = TLS_DHE_RSA_WITH_AES_256_GCM_SHA384;
-        _ciphers["DH_RSA_WITH_AES_128_GCM_SHA256"] = TLS_DH_RSA_WITH_AES_128_GCM_SHA256;
-        _ciphers["DH_RSA_WITH_AES_256_GCM_SHA384"] = TLS_DH_RSA_WITH_AES_256_GCM_SHA384;
-        _ciphers["DHE_DSS_WITH_AES_128_GCM_SHA256"] = TLS_DHE_DSS_WITH_AES_128_GCM_SHA256;
-        _ciphers["DHE_DSS_WITH_AES_256_GCM_SHA384"] = TLS_DHE_DSS_WITH_AES_256_GCM_SHA384;
-        _ciphers["DH_DSS_WITH_AES_128_GCM_SHA256"] = TLS_DH_DSS_WITH_AES_128_GCM_SHA256;
-        _ciphers["DH_DSS_WITH_AES_256_GCM_SHA384"] = TLS_DH_DSS_WITH_AES_256_GCM_SHA384;
-        _ciphers["DH_anon_WITH_AES_128_GCM_SHA256"] = TLS_DH_anon_WITH_AES_128_GCM_SHA256;
-        _ciphers["DH_anon_WITH_AES_256_GCM_SHA384"] = TLS_DH_anon_WITH_AES_256_GCM_SHA384;
-
-        //
-        // RFC 5487 - PSK with SHA-256/384 and AES GCM
-        //
-        _ciphers["PSK_WITH_AES_128_GCM_SHA256"] = TLS_PSK_WITH_AES_128_GCM_SHA256;
-        _ciphers["PSK_WITH_AES_256_GCM_SHA384"] = TLS_PSK_WITH_AES_256_GCM_SHA384;
-        _ciphers["DHE_PSK_WITH_AES_128_GCM_SHA256"] = TLS_DHE_PSK_WITH_AES_128_GCM_SHA256;
-        _ciphers["DHE_PSK_WITH_AES_256_GCM_SHA384"] = TLS_DHE_PSK_WITH_AES_256_GCM_SHA384;
-        _ciphers["RSA_PSK_WITH_AES_128_GCM_SHA256"] = TLS_RSA_PSK_WITH_AES_128_GCM_SHA256;
-        _ciphers["RSA_PSK_WITH_AES_256_GCM_SHA384"] = TLS_RSA_PSK_WITH_AES_256_GCM_SHA384;
-
-        _ciphers["PSK_WITH_AES_128_CBC_SHA256"] = TLS_PSK_WITH_AES_128_CBC_SHA256;
-        _ciphers["PSK_WITH_AES_256_CBC_SHA384"] = TLS_PSK_WITH_AES_256_CBC_SHA384;
-        _ciphers["PSK_WITH_NULL_SHA256"] = TLS_PSK_WITH_NULL_SHA256;
-        _ciphers["PSK_WITH_NULL_SHA384"] = TLS_PSK_WITH_NULL_SHA384;
-
-        _ciphers["DHE_PSK_WITH_AES_128_CBC_SHA256"] = TLS_DHE_PSK_WITH_AES_128_CBC_SHA256;
-        _ciphers["DHE_PSK_WITH_AES_256_CBC_SHA384"] = TLS_DHE_PSK_WITH_AES_256_CBC_SHA384;
-        _ciphers["DHE_PSK_WITH_NULL_SHA256"] = TLS_DHE_PSK_WITH_NULL_SHA256;
-        _ciphers["DHE_PSK_WITH_NULL_SHA384"] = TLS_DHE_PSK_WITH_NULL_SHA384;
-
-        _ciphers["RSA_PSK_WITH_AES_128_CBC_SHA256"] = TLS_RSA_PSK_WITH_AES_128_CBC_SHA256;
-        _ciphers["RSA_PSK_WITH_AES_256_CBC_SHA384"] = TLS_RSA_PSK_WITH_AES_256_CBC_SHA384;
-        _ciphers["RSA_PSK_WITH_NULL_SHA256"] = TLS_RSA_PSK_WITH_NULL_SHA256;
-        _ciphers["RSA_PSK_WITH_NULL_SHA384"] = TLS_RSA_PSK_WITH_NULL_SHA384;
-
-        //
-        // Addenda from rfc 5289  Elliptic Curve Cipher Suites with HMAC SHA-256/384.
-        //
-        _ciphers["ECDHE_ECDSA_WITH_AES_128_CBC_SHA256"] = TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256;
-        _ciphers["ECDHE_ECDSA_WITH_AES_256_CBC_SHA384"] = TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384;
-        _ciphers["ECDH_ECDSA_WITH_AES_128_CBC_SHA256"] = TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA256;
-        _ciphers["ECDH_ECDSA_WITH_AES_256_CBC_SHA384"] = TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA384;
-        _ciphers["ECDHE_RSA_WITH_AES_128_CBC_SHA256"] = TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256;
-        _ciphers["ECDHE_RSA_WITH_AES_256_CBC_SHA384"] = TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384;
-        _ciphers["ECDH_RSA_WITH_AES_128_CBC_SHA256"] = TLS_ECDH_RSA_WITH_AES_128_CBC_SHA256;
-        _ciphers["ECDH_RSA_WITH_AES_256_CBC_SHA384"] = TLS_ECDH_RSA_WITH_AES_256_CBC_SHA384;
-
-        //
-        // Addenda from rfc 5289  Elliptic Curve Cipher Suites with SHA-256/384 and AES Galois Counter Mode (GCM)
-        //
-        _ciphers["ECDHE_ECDSA_WITH_AES_128_GCM_SHA256"] = TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256;
-        _ciphers["ECDHE_ECDSA_WITH_AES_256_GCM_SHA384"] = TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384;
-        _ciphers["ECDH_ECDSA_WITH_AES_128_GCM_SHA256"] = TLS_ECDH_ECDSA_WITH_AES_128_GCM_SHA256;
-        _ciphers["ECDH_ECDSA_WITH_AES_256_GCM_SHA384"] = TLS_ECDH_ECDSA_WITH_AES_256_GCM_SHA384;
-        _ciphers["ECDHE_RSA_WITH_AES_128_GCM_SHA256"] = TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256;
-        _ciphers["ECDHE_RSA_WITH_AES_256_GCM_SHA384"] = TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384;
-        _ciphers["ECDH_RSA_WITH_AES_128_GCM_SHA256"] = TLS_ECDH_RSA_WITH_AES_128_GCM_SHA256;
-        _ciphers["ECDH_RSA_WITH_AES_256_GCM_SHA384"] = TLS_ECDH_RSA_WITH_AES_256_GCM_SHA384;
-
-        //
-        // RFC 5746 - Secure Renegotiation
-        //
-        _ciphers["EMPTY_RENEGOTIATION_INFO_SCSV"] = TLS_EMPTY_RENEGOTIATION_INFO_SCSV;
-
-        //
-        // Tags for SSL 2 cipher kinds that are not specified for SSL 3.
-        //
-        _ciphers["RSA_WITH_RC2_CBC_MD5"] = SSL_RSA_WITH_RC2_CBC_MD5;
-        _ciphers["RSA_WITH_IDEA_CBC_MD5"] = SSL_RSA_WITH_IDEA_CBC_MD5;
-        _ciphers["RSA_WITH_DES_CBC_MD5"] = SSL_RSA_WITH_DES_CBC_MD5;
-        _ciphers["RSA_WITH_3DES_EDE_CBC_MD5"] = SSL_RSA_WITH_3DES_EDE_CBC_MD5;
-        _ciphers["NO_SUCH_CIPHERSUITE"] = SSL_NO_SUCH_CIPHERSUITE;
-    }
-}
-
-SSLCipherSuite
-CiphersHelper::cipherForName(const string& name)
-{
-    map<string, SSLCipherSuite>::const_iterator i = _ciphers.find(name);
-    if(i == _ciphers.end() || i->second == SSL_NO_SUCH_CIPHERSUITE)
+    class CiphersHelper
     {
-        throw PluginInitializationException(__FILE__, __LINE__, "IceSSL: no such cipher " + name);
-    }
-    return i->second;
-}
+    public:
+        static void initialize();
+        static SSLCipherSuite cipherForName(const string& name);
+        static string cipherName(SSLCipherSuite cipher);
+        static map<string, SSLCipherSuite> ciphers();
 
-//
-// Retrive the name of a cipher, SSLCipherSuite inlude duplicated values for TLS/SSL
-// protocol ciphers, for example SSL_RSA_WITH_RC4_128_MD5/TLS_RSA_WITH_RC4_128_MD5
-// are represeted by the same SSLCipherSuite value, the names return by this method
-// doesn't include a protocol prefix.
-//
-string
-CiphersHelper::cipherName(SSLCipherSuite cipher)
-{
-    switch(cipher)
+    private:
+        static map<string, SSLCipherSuite> _ciphers;
+    };
+
+    map<string, SSLCipherSuite> CiphersHelper::_ciphers;
+
+    //
+    // Initialize a dictionary with the names of ciphers
+    //
+    void CiphersHelper::initialize()
     {
-        case SSL_NULL_WITH_NULL_NULL:
-            return "NULL_WITH_NULL_NULL";
-        case SSL_RSA_WITH_NULL_MD5:
-            return "RSA_WITH_NULL_MD5";
-        case SSL_RSA_WITH_NULL_SHA:
-            return "RSA_WITH_NULL_SHA";
-        case SSL_RSA_EXPORT_WITH_RC4_40_MD5:
-            return "RSA_EXPORT_WITH_RC4_40_MD5";
-        case SSL_RSA_WITH_RC4_128_MD5:
-            return "RSA_WITH_RC4_128_MD5";
-        case SSL_RSA_WITH_RC4_128_SHA:
-            return "RSA_WITH_RC4_128_SHA";
-        case SSL_RSA_EXPORT_WITH_RC2_CBC_40_MD5:
-            return "RSA_EXPORT_WITH_RC2_CBC_40_MD5";
-        case SSL_RSA_WITH_IDEA_CBC_SHA:
-            return "RSA_WITH_IDEA_CBC_SHA";
-        case SSL_RSA_EXPORT_WITH_DES40_CBC_SHA:
-            return "RSA_EXPORT_WITH_DES40_CBC_SHA";
-        case SSL_RSA_WITH_DES_CBC_SHA:
-            return "RSA_WITH_DES_CBC_SHA";
-        case SSL_RSA_WITH_3DES_EDE_CBC_SHA:
-            return "RSA_WITH_3DES_EDE_CBC_SHA";
-        case SSL_DH_DSS_EXPORT_WITH_DES40_CBC_SHA:
-            return "DH_DSS_EXPORT_WITH_DES40_CBC_SHA";
-        case SSL_DH_DSS_WITH_DES_CBC_SHA:
-            return "DH_DSS_WITH_DES_CBC_SHA";
-        case SSL_DH_DSS_WITH_3DES_EDE_CBC_SHA:
-            return "DH_DSS_WITH_3DES_EDE_CBC_SHA";
-        case SSL_DH_RSA_EXPORT_WITH_DES40_CBC_SHA:
-            return "DH_RSA_EXPORT_WITH_DES40_CBC_SHA";
-        case SSL_DH_RSA_WITH_DES_CBC_SHA:
-            return "DH_RSA_WITH_DES_CBC_SHA";
-        case SSL_DH_RSA_WITH_3DES_EDE_CBC_SHA:
-            return "DH_RSA_WITH_3DES_EDE_CBC_SHA";
-        case SSL_DHE_DSS_EXPORT_WITH_DES40_CBC_SHA:
-            return "DHE_DSS_EXPORT_WITH_DES40_CBC_SHA";
-        case SSL_DHE_DSS_WITH_DES_CBC_SHA:
-            return "DHE_DSS_WITH_DES_CBC_SHA";
-        case SSL_DHE_DSS_WITH_3DES_EDE_CBC_SHA:
-            return "DHE_DSS_WITH_3DES_EDE_CBC_SHA";
-        case SSL_DHE_RSA_EXPORT_WITH_DES40_CBC_SHA:
-            return "DHE_RSA_EXPORT_WITH_DES40_CBC_SHA";
-        case SSL_DHE_RSA_WITH_DES_CBC_SHA:
-            return "DHE_RSA_WITH_DES_CBC_SHA";
-        case SSL_DHE_RSA_WITH_3DES_EDE_CBC_SHA:
-            return "DHE_RSA_WITH_3DES_EDE_CBC_SHA";
-        case SSL_DH_anon_EXPORT_WITH_RC4_40_MD5:
-            return "DH_anon_EXPORT_WITH_RC4_40_MD5";
-        case SSL_DH_anon_WITH_RC4_128_MD5:
-            return "DH_anon_WITH_RC4_128_MD5";
-        case SSL_DH_anon_EXPORT_WITH_DES40_CBC_SHA:
-            return "DH_anon_EXPORT_WITH_DES40_CBC_SHA";
-        case SSL_DH_anon_WITH_DES_CBC_SHA:
-            return "DH_anon_WITH_DES_CBC_SHA";
-        case SSL_DH_anon_WITH_3DES_EDE_CBC_SHA:
-            return "DH_anon_WITH_3DES_EDE_CBC_SHA";
-        case SSL_FORTEZZA_DMS_WITH_NULL_SHA:
-            return "FORTEZZA_DMS_WITH_NULL_SHA";
-        case SSL_FORTEZZA_DMS_WITH_FORTEZZA_CBC_SHA:
-            return "FORTEZZA_DMS_WITH_FORTEZZA_CBC_SHA";
+        IceUtilInternal::MutexPtrLock<IceUtil::Mutex> sync(staticMutex);
+        if(_ciphers.empty())
+        {
+            _ciphers["NULL_WITH_NULL_NULL"] = SSL_NULL_WITH_NULL_NULL;
+            _ciphers["RSA_WITH_NULL_MD5"] = SSL_RSA_WITH_NULL_MD5;
+            _ciphers["RSA_WITH_NULL_SHA"] = SSL_RSA_WITH_NULL_SHA;
+            _ciphers["RSA_EXPORT_WITH_RC4_40_MD5"] = SSL_RSA_EXPORT_WITH_RC4_40_MD5;
+            _ciphers["RSA_WITH_RC4_128_MD5"] = SSL_RSA_WITH_RC4_128_MD5;
+            _ciphers["RSA_WITH_RC4_128_SHA"] = SSL_RSA_WITH_RC4_128_SHA;
+            _ciphers["RSA_EXPORT_WITH_RC2_CBC_40_MD5"] = SSL_RSA_EXPORT_WITH_RC2_CBC_40_MD5;
+            _ciphers["RSA_WITH_IDEA_CBC_SHA"] = SSL_RSA_WITH_IDEA_CBC_SHA;
+            _ciphers["RSA_EXPORT_WITH_DES40_CBC_SHA"] = SSL_RSA_EXPORT_WITH_DES40_CBC_SHA;
+            _ciphers["RSA_WITH_DES_CBC_SHA"] = SSL_RSA_WITH_DES_CBC_SHA;
+            _ciphers["RSA_WITH_3DES_EDE_CBC_SHA"] = SSL_RSA_WITH_3DES_EDE_CBC_SHA;
+            _ciphers["DH_DSS_EXPORT_WITH_DES40_CBC_SHA"] = SSL_DH_DSS_EXPORT_WITH_DES40_CBC_SHA;
+            _ciphers["DH_DSS_WITH_DES_CBC_SHA"] = SSL_DH_DSS_WITH_DES_CBC_SHA;
+            _ciphers["DH_DSS_WITH_3DES_EDE_CBC_SHA"] = SSL_DH_DSS_WITH_3DES_EDE_CBC_SHA;
+            _ciphers["DH_RSA_EXPORT_WITH_DES40_CBC_SHA"] = SSL_DH_RSA_EXPORT_WITH_DES40_CBC_SHA;
+            _ciphers["DH_RSA_WITH_DES_CBC_SHA"] = SSL_DH_RSA_WITH_DES_CBC_SHA;
+            _ciphers["DH_RSA_WITH_3DES_EDE_CBC_SHA"] = SSL_DH_RSA_WITH_3DES_EDE_CBC_SHA;
+            _ciphers["DHE_DSS_EXPORT_WITH_DES40_CBC_SHA"] = SSL_DHE_DSS_EXPORT_WITH_DES40_CBC_SHA;
+            _ciphers["DHE_DSS_WITH_DES_CBC_SHA"] = SSL_DHE_DSS_WITH_DES_CBC_SHA;
+            _ciphers["DHE_DSS_WITH_3DES_EDE_CBC_SHA"] = SSL_DHE_DSS_WITH_3DES_EDE_CBC_SHA;
+            _ciphers["DHE_RSA_EXPORT_WITH_DES40_CBC_SHA"] = SSL_DHE_RSA_EXPORT_WITH_DES40_CBC_SHA;
+            _ciphers["DHE_RSA_WITH_DES_CBC_SHA"] = SSL_DHE_RSA_WITH_DES_CBC_SHA;
+            _ciphers["DHE_RSA_WITH_3DES_EDE_CBC_SHA"] = SSL_DHE_RSA_WITH_3DES_EDE_CBC_SHA;
+            _ciphers["DH_anon_EXPORT_WITH_RC4_40_MD5"] = SSL_DH_anon_EXPORT_WITH_RC4_40_MD5;
+            _ciphers["DH_anon_WITH_RC4_128_MD5"] = SSL_DH_anon_WITH_RC4_128_MD5;
+            _ciphers["DH_anon_EXPORT_WITH_DES40_CBC_SHA"] = SSL_DH_anon_EXPORT_WITH_DES40_CBC_SHA;
+            _ciphers["DH_anon_WITH_DES_CBC_SHA"] = SSL_DH_anon_WITH_DES_CBC_SHA;
+            _ciphers["DH_anon_WITH_3DES_EDE_CBC_SHA"] = SSL_DH_anon_WITH_3DES_EDE_CBC_SHA;
+            _ciphers["FORTEZZA_DMS_WITH_NULL_SHA"] = SSL_FORTEZZA_DMS_WITH_NULL_SHA;
+            _ciphers["FORTEZZA_DMS_WITH_FORTEZZA_CBC_SHA"] = SSL_FORTEZZA_DMS_WITH_FORTEZZA_CBC_SHA;
 
-        //
-        // TLS addenda using AES, per RFC 3268
-        //
-        case TLS_RSA_WITH_AES_128_CBC_SHA:
-            return "RSA_WITH_AES_128_CBC_SHA";
-        case TLS_DH_DSS_WITH_AES_128_CBC_SHA:
-            return "DH_DSS_WITH_AES_128_CBC_SHA";
-        case TLS_DH_RSA_WITH_AES_128_CBC_SHA:
-            return "DH_RSA_WITH_AES_128_CBC_SHA";
-        case TLS_DHE_DSS_WITH_AES_128_CBC_SHA:
-            return "DHE_DSS_WITH_AES_128_CBC_SHA";
-        case TLS_DHE_RSA_WITH_AES_128_CBC_SHA:
-            return "DHE_RSA_WITH_AES_128_CBC_SHA";
-        case TLS_DH_anon_WITH_AES_128_CBC_SHA:
-            return "DH_anon_WITH_AES_128_CBC_SHA";
-        case TLS_RSA_WITH_AES_256_CBC_SHA:
-            return "RSA_WITH_AES_256_CBC_SHA";
-        case TLS_DH_DSS_WITH_AES_256_CBC_SHA:
-            return "DH_DSS_WITH_AES_256_CBC_SHA";
-        case TLS_DH_RSA_WITH_AES_256_CBC_SHA:
-            return "DH_RSA_WITH_AES_256_CBC_SHA";
-        case TLS_DHE_DSS_WITH_AES_256_CBC_SHA:
-            return "DHE_DSS_WITH_AES_256_CBC_SHA";
-        case TLS_DHE_RSA_WITH_AES_256_CBC_SHA:
-            return "DHE_RSA_WITH_AES_256_CBC_SHA";
-        case TLS_DH_anon_WITH_AES_256_CBC_SHA:
-            return "DH_anon_WITH_AES_256_CBC_SHA";
+            //
+            // TLS addenda using AES, per RFC 3268
+            //
+            _ciphers["RSA_WITH_AES_128_CBC_SHA"] = TLS_RSA_WITH_AES_128_CBC_SHA;
+            _ciphers["DH_DSS_WITH_AES_128_CBC_SHA"] = TLS_DH_DSS_WITH_AES_128_CBC_SHA;
+            _ciphers["DH_RSA_WITH_AES_128_CBC_SHA"] = TLS_DH_RSA_WITH_AES_128_CBC_SHA;
+            _ciphers["DHE_DSS_WITH_AES_128_CBC_SHA"] = TLS_DHE_DSS_WITH_AES_128_CBC_SHA;
+            _ciphers["DHE_RSA_WITH_AES_128_CBC_SHA"] = TLS_DHE_RSA_WITH_AES_128_CBC_SHA;
+            _ciphers["DH_anon_WITH_AES_128_CBC_SHA"] = TLS_DH_anon_WITH_AES_128_CBC_SHA;
+            _ciphers["RSA_WITH_AES_256_CBC_SHA"] = TLS_RSA_WITH_AES_256_CBC_SHA;
+            _ciphers["DH_DSS_WITH_AES_256_CBC_SHA"] = TLS_DH_DSS_WITH_AES_256_CBC_SHA;
+            _ciphers["DH_RSA_WITH_AES_256_CBC_SHA"] = TLS_DH_RSA_WITH_AES_256_CBC_SHA;
+            _ciphers["DHE_DSS_WITH_AES_256_CBC_SHA"] = TLS_DHE_DSS_WITH_AES_256_CBC_SHA;
+            _ciphers["DHE_RSA_WITH_AES_256_CBC_SHA"] = TLS_DHE_RSA_WITH_AES_256_CBC_SHA;
+            _ciphers["DH_anon_WITH_AES_256_CBC_SHA"] = TLS_DH_anon_WITH_AES_256_CBC_SHA;
 
-        //
-        // ECDSA addenda, RFC 4492
-        //
-        case TLS_ECDH_ECDSA_WITH_NULL_SHA:
-            return "ECDH_ECDSA_WITH_NULL_SHA";
-        case TLS_ECDH_ECDSA_WITH_RC4_128_SHA:
-            return "ECDH_ECDSA_WITH_RC4_128_SHA";
-        case TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA:
-            return "ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA";
-        case TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA:
-            return "ECDH_ECDSA_WITH_AES_128_CBC_SHA";
-        case TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA:
-            return "ECDH_ECDSA_WITH_AES_256_CBC_SHA";
-        case TLS_ECDHE_ECDSA_WITH_NULL_SHA:
-            return "ECDHE_ECDSA_WITH_NULL_SHA";
-        case TLS_ECDHE_ECDSA_WITH_RC4_128_SHA:
-            return "ECDHE_ECDSA_WITH_RC4_128_SHA";
-        case TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA:
-            return "ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA";
-        case TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA:
-            return "ECDHE_ECDSA_WITH_AES_128_CBC_SHA";
-        case TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA:
-            return "ECDHE_ECDSA_WITH_AES_256_CBC_SHA";
-        case TLS_ECDH_RSA_WITH_NULL_SHA:
-            return "ECDH_RSA_WITH_NULL_SHA";
-        case TLS_ECDH_RSA_WITH_RC4_128_SHA:
-            return "ECDH_RSA_WITH_RC4_128_SHA";
-        case TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA:
-            return "ECDH_RSA_WITH_3DES_EDE_CBC_SHA";
-        case TLS_ECDH_RSA_WITH_AES_128_CBC_SHA:
-            return "ECDH_RSA_WITH_AES_128_CBC_SHA";
-        case TLS_ECDH_RSA_WITH_AES_256_CBC_SHA:
-            return "ECDH_RSA_WITH_AES_256_CBC_SHA";
-        case TLS_ECDHE_RSA_WITH_NULL_SHA:
-            return "ECDHE_RSA_WITH_NULL_SHA";
-        case TLS_ECDHE_RSA_WITH_RC4_128_SHA:
-            return "ECDHE_RSA_WITH_RC4_128_SHA";
-        case TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA:
-            return "ECDHE_RSA_WITH_3DES_EDE_CBC_SHA";
-        case TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA:
-            return "ECDHE_RSA_WITH_AES_128_CBC_SHA";
-        case TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA:
-            return "ECDHE_RSA_WITH_AES_256_CBC_SHA";
-        case TLS_ECDH_anon_WITH_NULL_SHA:
-            return "ECDH_anon_WITH_NULL_SHA";
-        case TLS_ECDH_anon_WITH_RC4_128_SHA:
-            return "ECDH_anon_WITH_RC4_128_SHA";
-        case TLS_ECDH_anon_WITH_3DES_EDE_CBC_SHA:
-            return "ECDH_anon_WITH_3DES_EDE_CBC_SHA";
-        case TLS_ECDH_anon_WITH_AES_128_CBC_SHA:
-            return "ECDH_anon_WITH_AES_128_CBC_SHA";
-        case TLS_ECDH_anon_WITH_AES_256_CBC_SHA:
-            return "ECDH_anon_WITH_AES_256_CBC_SHA";
+            //
+            // ECDSA addenda, RFC 4492
+            //
+            _ciphers["ECDH_ECDSA_WITH_NULL_SHA"] = TLS_ECDH_ECDSA_WITH_NULL_SHA;
+            _ciphers["ECDH_ECDSA_WITH_RC4_128_SHA"] = TLS_ECDH_ECDSA_WITH_RC4_128_SHA;
+            _ciphers["ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA"] = TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA;
+            _ciphers["ECDH_ECDSA_WITH_AES_128_CBC_SHA"] = TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA;
+            _ciphers["ECDH_ECDSA_WITH_AES_256_CBC_SHA"] = TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA;
+            _ciphers["ECDHE_ECDSA_WITH_NULL_SHA"] = TLS_ECDHE_ECDSA_WITH_NULL_SHA;
+            _ciphers["ECDHE_ECDSA_WITH_RC4_128_SHA"] = TLS_ECDHE_ECDSA_WITH_RC4_128_SHA;
+            _ciphers["ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA"] = TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA;
+            _ciphers["ECDHE_ECDSA_WITH_AES_128_CBC_SHA"] = TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA;
+            _ciphers["ECDHE_ECDSA_WITH_AES_256_CBC_SHA"] = TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA;
+            _ciphers["ECDH_RSA_WITH_NULL_SHA"] = TLS_ECDH_RSA_WITH_NULL_SHA;
+            _ciphers["ECDH_RSA_WITH_RC4_128_SHA"] = TLS_ECDH_RSA_WITH_RC4_128_SHA;
+            _ciphers["ECDH_RSA_WITH_3DES_EDE_CBC_SHA"] = TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA;
+            _ciphers["ECDH_RSA_WITH_AES_128_CBC_SHA"] = TLS_ECDH_RSA_WITH_AES_128_CBC_SHA;
+            _ciphers["ECDH_RSA_WITH_AES_256_CBC_SHA"] = TLS_ECDH_RSA_WITH_AES_256_CBC_SHA;
+            _ciphers["ECDHE_RSA_WITH_NULL_SHA"] = TLS_ECDHE_RSA_WITH_NULL_SHA;
+            _ciphers["ECDHE_RSA_WITH_RC4_128_SHA"] = TLS_ECDHE_RSA_WITH_RC4_128_SHA;
+            _ciphers["ECDHE_RSA_WITH_3DES_EDE_CBC_SHA"] = TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA;
+            _ciphers["ECDHE_RSA_WITH_AES_128_CBC_SHA"] = TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA;
+            _ciphers["ECDHE_RSA_WITH_AES_256_CBC_SHA"] = TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA;
+            _ciphers["ECDH_anon_WITH_NULL_SHA"] = TLS_ECDH_anon_WITH_NULL_SHA;
+            _ciphers["ECDH_anon_WITH_RC4_128_SHA"] = TLS_ECDH_anon_WITH_RC4_128_SHA;
+            _ciphers["ECDH_anon_WITH_3DES_EDE_CBC_SHA"] = TLS_ECDH_anon_WITH_3DES_EDE_CBC_SHA;
+            _ciphers["ECDH_anon_WITH_AES_128_CBC_SHA"] = TLS_ECDH_anon_WITH_AES_128_CBC_SHA;
+            _ciphers["ECDH_anon_WITH_AES_256_CBC_SHA"] = TLS_ECDH_anon_WITH_AES_256_CBC_SHA;
 
-        //
-        // TLS 1.2 addenda, RFC 5246
-        //
-        //case TLS_NULL_WITH_NULL_NULL:
-        //    return "NULL_WITH_NULL_NULL";
+            //
+            // TLS 1.2 addenda, RFC 5246
+            //
+            //_ciphers["NULL_WITH_NULL_NULL"] = TLS_NULL_WITH_NULL_NULL;
 
-        //
-        // Server provided RSA certificate for key exchange.
-        //
-        //case TLS_RSA_WITH_NULL_MD5:
-        //    return "RSA_WITH_NULL_MD5";
-        //case TLS_RSA_WITH_NULL_SHA:
-        //    return "RSA_WITH_NULL_SHA";
-        //case TLS_RSA_WITH_RC4_128_MD5:
-        //    return "RSA_WITH_RC4_128_MD5";
-        //case TLS_RSA_WITH_RC4_128_SHA:
-        //    return "RSA_WITH_RC4_128_SHA";
-        //case TLS_RSA_WITH_3DES_EDE_CBC_SHA:
-        //    return "RSA_WITH_3DES_EDE_CBC_SHA";
-        case TLS_RSA_WITH_NULL_SHA256:
-            return "RSA_WITH_NULL_SHA256";
-        case TLS_RSA_WITH_AES_128_CBC_SHA256:
-            return "RSA_WITH_AES_128_CBC_SHA256";
-        case TLS_RSA_WITH_AES_256_CBC_SHA256:
-            return "RSA_WITH_AES_256_CBC_SHA256";
+            //
+            // Server provided RSA certificate for key exchange.
+            //
+            //_ciphers["RSA_WITH_NULL_MD5"] = TLS_RSA_WITH_NULL_MD5;
+            //_ciphers["RSA_WITH_NULL_SHA"] = TLS_RSA_WITH_NULL_SHA;
+            //_ciphers["RSA_WITH_RC4_128_MD5"] = TLS_RSA_WITH_RC4_128_MD5;
+            //_ciphers["RSA_WITH_RC4_128_SHA"] = TLS_RSA_WITH_RC4_128_SHA;
+            //_ciphers["RSA_WITH_3DES_EDE_CBC_SHA"] = TLS_RSA_WITH_3DES_EDE_CBC_SHA;
+            _ciphers["RSA_WITH_NULL_SHA256"] = TLS_RSA_WITH_NULL_SHA256;
+            _ciphers["RSA_WITH_AES_128_CBC_SHA256"] = TLS_RSA_WITH_AES_128_CBC_SHA256;
+            _ciphers["RSA_WITH_AES_256_CBC_SHA256"] = TLS_RSA_WITH_AES_256_CBC_SHA256;
 
-        //
-        // Server-authenticated (and optionally client-authenticated) Diffie-Hellman.
-        //
-        //case TLS_DH_DSS_WITH_3DES_EDE_CBC_SHA:
-        //    return "DH_DSS_WITH_3DES_EDE_CBC_SHA";
-        //case TLS_DH_RSA_WITH_3DES_EDE_CBC_SHA:
-        //    return "DH_RSA_WITH_3DES_EDE_CBC_SHA";
-        //case TLS_DHE_DSS_WITH_3DES_EDE_CBC_SHA:
-        //    return "DHE_DSS_WITH_3DES_EDE_CBC_SHA";
-        //case TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA:
-        //    return "DHE_RSA_WITH_3DES_EDE_CBC_SHA";
-        case TLS_DH_DSS_WITH_AES_128_CBC_SHA256:
-            return "DH_DSS_WITH_AES_128_CBC_SHA256";
-        case TLS_DH_RSA_WITH_AES_128_CBC_SHA256:
-            return "DH_RSA_WITH_AES_128_CBC_SHA256";
-        case TLS_DHE_DSS_WITH_AES_128_CBC_SHA256:
-            return "DHE_DSS_WITH_AES_128_CBC_SHA256";
-        case TLS_DHE_RSA_WITH_AES_128_CBC_SHA256:
-            return "DHE_RSA_WITH_AES_128_CBC_SHA256";
-        case TLS_DH_DSS_WITH_AES_256_CBC_SHA256:
-            return "DH_DSS_WITH_AES_256_CBC_SHA256";
-        case TLS_DH_RSA_WITH_AES_256_CBC_SHA256:
-            return "DH_RSA_WITH_AES_256_CBC_SHA256";
-        case TLS_DHE_DSS_WITH_AES_256_CBC_SHA256:
-            return "DHE_DSS_WITH_AES_256_CBC_SHA256";
-        case TLS_DHE_RSA_WITH_AES_256_CBC_SHA256:
-            return "DHE_RSA_WITH_AES_256_CBC_SHA256";
+            //
+            // Server-authenticated (and optionally client-authenticated) Diffie-Hellman.
+            //
+            //_ciphers["DH_DSS_WITH_3DES_EDE_CBC_SHA"] = TLS_DH_DSS_WITH_3DES_EDE_CBC_SHA;
+            //_ciphers["DH_RSA_WITH_3DES_EDE_CBC_SHA"] = TLS_DH_RSA_WITH_3DES_EDE_CBC_SHA;
+            //_ciphers["DHE_DSS_WITH_3DES_EDE_CBC_SHA"] = TLS_DHE_DSS_WITH_3DES_EDE_CBC_SHA;
+            //_ciphers["DHE_RSA_WITH_3DES_EDE_CBC_SHA"] = TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA;
+            _ciphers["DH_DSS_WITH_AES_128_CBC_SHA256"] = TLS_DH_DSS_WITH_AES_128_CBC_SHA256;
+            _ciphers["DH_RSA_WITH_AES_128_CBC_SHA256"] = TLS_DH_RSA_WITH_AES_128_CBC_SHA256;
+            _ciphers["DHE_DSS_WITH_AES_128_CBC_SHA256"] = TLS_DHE_DSS_WITH_AES_128_CBC_SHA256;
+            _ciphers["DHE_RSA_WITH_AES_128_CBC_SHA256"] = TLS_DHE_RSA_WITH_AES_128_CBC_SHA256;
+            _ciphers["DH_DSS_WITH_AES_256_CBC_SHA256"] = TLS_DH_DSS_WITH_AES_256_CBC_SHA256;
+            _ciphers["DH_RSA_WITH_AES_256_CBC_SHA256"] = TLS_DH_RSA_WITH_AES_256_CBC_SHA256;
+            _ciphers["DHE_DSS_WITH_AES_256_CBC_SHA256"] = TLS_DHE_DSS_WITH_AES_256_CBC_SHA256;
+            _ciphers["DHE_RSA_WITH_AES_256_CBC_SHA256"] = TLS_DHE_RSA_WITH_AES_256_CBC_SHA256;
 
-        //
-        // Completely anonymous Diffie-Hellman
-        //
-        //case TLS_DH_anon_WITH_RC4_128_MD5:
-        //    return "DH_anon_WITH_RC4_128_MD5";
-        //case TLS_DH_anon_WITH_3DES_EDE_CBC_SHA:
-        //    return "DH_anon_WITH_3DES_EDE_CBC_SHA";
-        case TLS_DH_anon_WITH_AES_128_CBC_SHA256:
-            return "DH_anon_WITH_AES_128_CBC_SHA256";
-        case TLS_DH_anon_WITH_AES_256_CBC_SHA256:
-            return "DH_anon_WITH_AES_256_CBC_SHA256";
+            //
+            // Completely anonymous Diffie-Hellman
+            //
+            //_ciphers["DH_anon_WITH_RC4_128_MD5"] = TLS_DH_anon_WITH_RC4_128_MD5;
+            //_ciphers["DH_anon_WITH_3DES_EDE_CBC_SHA"] = TLS_DH_anon_WITH_3DES_EDE_CBC_SHA;
+            _ciphers["DH_anon_WITH_AES_128_CBC_SHA256"] = TLS_DH_anon_WITH_AES_128_CBC_SHA256;
+            _ciphers["DH_anon_WITH_AES_256_CBC_SHA256"] = TLS_DH_anon_WITH_AES_256_CBC_SHA256;
 
-        //
-        // Addendum from RFC 4279, TLS PSK
-        //
-        case TLS_PSK_WITH_RC4_128_SHA:
-            return "PSK_WITH_RC4_128_SHA";
-        case TLS_PSK_WITH_3DES_EDE_CBC_SHA:
-            return "PSK_WITH_3DES_EDE_CBC_SHA";
-        case TLS_PSK_WITH_AES_128_CBC_SHA:
-            return "PSK_WITH_AES_128_CBC_SHA";
-        case TLS_PSK_WITH_AES_256_CBC_SHA:
-            return "PSK_WITH_AES_256_CBC_SHA";
-        case TLS_DHE_PSK_WITH_RC4_128_SHA:
-            return "DHE_PSK_WITH_RC4_128_SHA";
-        case TLS_DHE_PSK_WITH_3DES_EDE_CBC_SHA:
-            return "DHE_PSK_WITH_3DES_EDE_CBC_SHA";
-        case TLS_DHE_PSK_WITH_AES_128_CBC_SHA:
-            return "DHE_PSK_WITH_AES_128_CBC_SHA";
-        case TLS_DHE_PSK_WITH_AES_256_CBC_SHA:
-            return "DHE_PSK_WITH_AES_256_CBC_SHA";
-        case TLS_RSA_PSK_WITH_RC4_128_SHA:
-            return "RSA_PSK_WITH_RC4_128_SHA";
-        case TLS_RSA_PSK_WITH_3DES_EDE_CBC_SHA:
-            return "RSA_PSK_WITH_3DES_EDE_CBC_SHA";
-        case TLS_RSA_PSK_WITH_AES_128_CBC_SHA:
-            return "RSA_PSK_WITH_AES_128_CBC_SHA";
-        case TLS_RSA_PSK_WITH_AES_256_CBC_SHA:
-            return "RSA_PSK_WITH_AES_256_CBC_SHA";
+            //
+            // Addendum from RFC 4279, TLS PSK
+            //
+            _ciphers["PSK_WITH_RC4_128_SHA"] = TLS_PSK_WITH_RC4_128_SHA;
+            _ciphers["PSK_WITH_3DES_EDE_CBC_SHA"] = TLS_PSK_WITH_3DES_EDE_CBC_SHA;
+            _ciphers["PSK_WITH_AES_128_CBC_SHA"] = TLS_PSK_WITH_AES_128_CBC_SHA;
+            _ciphers["PSK_WITH_AES_256_CBC_SHA"] = TLS_PSK_WITH_AES_256_CBC_SHA;
+            _ciphers["DHE_PSK_WITH_RC4_128_SHA"] = TLS_DHE_PSK_WITH_RC4_128_SHA;
+            _ciphers["DHE_PSK_WITH_3DES_EDE_CBC_SHA"] = TLS_DHE_PSK_WITH_3DES_EDE_CBC_SHA;
+            _ciphers["DHE_PSK_WITH_AES_128_CBC_SHA"] = TLS_DHE_PSK_WITH_AES_128_CBC_SHA;
+            _ciphers["DHE_PSK_WITH_AES_256_CBC_SHA"] = TLS_DHE_PSK_WITH_AES_256_CBC_SHA;
+            _ciphers["RSA_PSK_WITH_RC4_128_SHA"] = TLS_RSA_PSK_WITH_RC4_128_SHA;
+            _ciphers["RSA_PSK_WITH_3DES_EDE_CBC_SHA"] = TLS_RSA_PSK_WITH_3DES_EDE_CBC_SHA;
+            _ciphers["RSA_PSK_WITH_AES_128_CBC_SHA"] = TLS_RSA_PSK_WITH_AES_128_CBC_SHA;
+            _ciphers["RSA_PSK_WITH_AES_256_CBC_SHA"] = TLS_RSA_PSK_WITH_AES_256_CBC_SHA;
 
-        //
-        // RFC 4785 - Pre-Shared Key (PSK) Ciphersuites with NULL Encryption
-        //
-        case TLS_PSK_WITH_NULL_SHA:
-            return "PSK_WITH_NULL_SHA";
-        case TLS_DHE_PSK_WITH_NULL_SHA:
-            return "DHE_PSK_WITH_NULL_SHA";
-        case TLS_RSA_PSK_WITH_NULL_SHA:
-            return "RSA_PSK_WITH_NULL_SHA";
+            //
+            // RFC 4785 - Pre-Shared Key (PSK) Ciphersuites with NULL Encryption
+            //
+            _ciphers["PSK_WITH_NULL_SHA"] = TLS_PSK_WITH_NULL_SHA;
+            _ciphers["DHE_PSK_WITH_NULL_SHA"] = TLS_DHE_PSK_WITH_NULL_SHA;
+            _ciphers["RSA_PSK_WITH_NULL_SHA"] = TLS_RSA_PSK_WITH_NULL_SHA;
 
-        //
-        // Addenda from rfc 5288 AES Galois Counter Mode (GCM) Cipher Suites for TLS.
-        //
-        case TLS_RSA_WITH_AES_128_GCM_SHA256:
-            return "RSA_WITH_AES_128_GCM_SHA256";
-        case TLS_RSA_WITH_AES_256_GCM_SHA384:
-            return "RSA_WITH_AES_256_GCM_SHA384";
-        case TLS_DHE_RSA_WITH_AES_128_GCM_SHA256:
-            return "DHE_RSA_WITH_AES_128_GCM_SHA256";
-        case TLS_DHE_RSA_WITH_AES_256_GCM_SHA384:
-            return "DHE_RSA_WITH_AES_256_GCM_SHA384";
-        case TLS_DH_RSA_WITH_AES_128_GCM_SHA256:
-            return "DH_RSA_WITH_AES_128_GCM_SHA256";
-        case TLS_DH_RSA_WITH_AES_256_GCM_SHA384:
-            return "DH_RSA_WITH_AES_256_GCM_SHA384";
-        case TLS_DHE_DSS_WITH_AES_128_GCM_SHA256:
-            return "DHE_DSS_WITH_AES_128_GCM_SHA256";
-        case TLS_DHE_DSS_WITH_AES_256_GCM_SHA384:
-            return "DHE_DSS_WITH_AES_256_GCM_SHA384";
-        case TLS_DH_DSS_WITH_AES_128_GCM_SHA256:
-            return "DH_DSS_WITH_AES_128_GCM_SHA256";
-        case TLS_DH_DSS_WITH_AES_256_GCM_SHA384:
-            return "DH_DSS_WITH_AES_256_GCM_SHA384";
-        case TLS_DH_anon_WITH_AES_128_GCM_SHA256:
-            return "DH_anon_WITH_AES_128_GCM_SHA256";
-        case TLS_DH_anon_WITH_AES_256_GCM_SHA384:
-            return "DH_anon_WITH_AES_256_GCM_SHA384";
+            //
+            // Addenda from rfc 5288 AES Galois Counter Mode (GCM) Cipher Suites for TLS.
+            //
+            _ciphers["RSA_WITH_AES_128_GCM_SHA256"] = TLS_RSA_WITH_AES_128_GCM_SHA256;
+            _ciphers["RSA_WITH_AES_256_GCM_SHA384"] = TLS_RSA_WITH_AES_256_GCM_SHA384;
+            _ciphers["DHE_RSA_WITH_AES_128_GCM_SHA256"] = TLS_DHE_RSA_WITH_AES_128_GCM_SHA256;
+            _ciphers["DHE_RSA_WITH_AES_256_GCM_SHA384"] = TLS_DHE_RSA_WITH_AES_256_GCM_SHA384;
+            _ciphers["DH_RSA_WITH_AES_128_GCM_SHA256"] = TLS_DH_RSA_WITH_AES_128_GCM_SHA256;
+            _ciphers["DH_RSA_WITH_AES_256_GCM_SHA384"] = TLS_DH_RSA_WITH_AES_256_GCM_SHA384;
+            _ciphers["DHE_DSS_WITH_AES_128_GCM_SHA256"] = TLS_DHE_DSS_WITH_AES_128_GCM_SHA256;
+            _ciphers["DHE_DSS_WITH_AES_256_GCM_SHA384"] = TLS_DHE_DSS_WITH_AES_256_GCM_SHA384;
+            _ciphers["DH_DSS_WITH_AES_128_GCM_SHA256"] = TLS_DH_DSS_WITH_AES_128_GCM_SHA256;
+            _ciphers["DH_DSS_WITH_AES_256_GCM_SHA384"] = TLS_DH_DSS_WITH_AES_256_GCM_SHA384;
+            _ciphers["DH_anon_WITH_AES_128_GCM_SHA256"] = TLS_DH_anon_WITH_AES_128_GCM_SHA256;
+            _ciphers["DH_anon_WITH_AES_256_GCM_SHA384"] = TLS_DH_anon_WITH_AES_256_GCM_SHA384;
 
-        //
-        // RFC 5487 - PSK with SHA-256/384 and AES GCM
-        //
-        case TLS_PSK_WITH_AES_128_GCM_SHA256:
-            return "PSK_WITH_AES_128_GCM_SHA256";
-        case TLS_PSK_WITH_AES_256_GCM_SHA384:
-            return "PSK_WITH_AES_256_GCM_SHA384";
-        case TLS_DHE_PSK_WITH_AES_128_GCM_SHA256:
-            return "DHE_PSK_WITH_AES_128_GCM_SHA256";
-        case TLS_DHE_PSK_WITH_AES_256_GCM_SHA384:
-            return "DHE_PSK_WITH_AES_256_GCM_SHA384";
-        case TLS_RSA_PSK_WITH_AES_128_GCM_SHA256:
-            return "RSA_PSK_WITH_AES_128_GCM_SHA256";
-        case TLS_RSA_PSK_WITH_AES_256_GCM_SHA384:
-            return "RSA_PSK_WITH_AES_256_GCM_SHA384";
+            //
+            // RFC 5487 - PSK with SHA-256/384 and AES GCM
+            //
+            _ciphers["PSK_WITH_AES_128_GCM_SHA256"] = TLS_PSK_WITH_AES_128_GCM_SHA256;
+            _ciphers["PSK_WITH_AES_256_GCM_SHA384"] = TLS_PSK_WITH_AES_256_GCM_SHA384;
+            _ciphers["DHE_PSK_WITH_AES_128_GCM_SHA256"] = TLS_DHE_PSK_WITH_AES_128_GCM_SHA256;
+            _ciphers["DHE_PSK_WITH_AES_256_GCM_SHA384"] = TLS_DHE_PSK_WITH_AES_256_GCM_SHA384;
+            _ciphers["RSA_PSK_WITH_AES_128_GCM_SHA256"] = TLS_RSA_PSK_WITH_AES_128_GCM_SHA256;
+            _ciphers["RSA_PSK_WITH_AES_256_GCM_SHA384"] = TLS_RSA_PSK_WITH_AES_256_GCM_SHA384;
 
-        case TLS_PSK_WITH_AES_128_CBC_SHA256:
-            return "PSK_WITH_AES_128_CBC_SHA256";
-        case TLS_PSK_WITH_AES_256_CBC_SHA384:
-            return "PSK_WITH_AES_256_CBC_SHA384";
-        case TLS_PSK_WITH_NULL_SHA256:
-            return "WITH_NULL_SHA256";
-        case TLS_PSK_WITH_NULL_SHA384:
-            return "PSK_WITH_NULL_SHA384";
+            _ciphers["PSK_WITH_AES_128_CBC_SHA256"] = TLS_PSK_WITH_AES_128_CBC_SHA256;
+            _ciphers["PSK_WITH_AES_256_CBC_SHA384"] = TLS_PSK_WITH_AES_256_CBC_SHA384;
+            _ciphers["PSK_WITH_NULL_SHA256"] = TLS_PSK_WITH_NULL_SHA256;
+            _ciphers["PSK_WITH_NULL_SHA384"] = TLS_PSK_WITH_NULL_SHA384;
 
-        case TLS_DHE_PSK_WITH_AES_128_CBC_SHA256:
-            return "DHE_PSK_WITH_AES_128_CBC_SHA256";
-        case TLS_DHE_PSK_WITH_AES_256_CBC_SHA384:
-            return "DHE_PSK_WITH_AES_256_CBC_SHA384";
-        case TLS_DHE_PSK_WITH_NULL_SHA256:
-            return "DHE_PSK_WITH_NULL_SHA256";
-        case TLS_DHE_PSK_WITH_NULL_SHA384:
-            return "DHE_PSK_WITH_NULL_SHA384";
+            _ciphers["DHE_PSK_WITH_AES_128_CBC_SHA256"] = TLS_DHE_PSK_WITH_AES_128_CBC_SHA256;
+            _ciphers["DHE_PSK_WITH_AES_256_CBC_SHA384"] = TLS_DHE_PSK_WITH_AES_256_CBC_SHA384;
+            _ciphers["DHE_PSK_WITH_NULL_SHA256"] = TLS_DHE_PSK_WITH_NULL_SHA256;
+            _ciphers["DHE_PSK_WITH_NULL_SHA384"] = TLS_DHE_PSK_WITH_NULL_SHA384;
 
-        case TLS_RSA_PSK_WITH_AES_128_CBC_SHA256:
-            return "RSA_PSK_WITH_AES_128_CBC_SHA256";
-        case TLS_RSA_PSK_WITH_AES_256_CBC_SHA384:
-            return "RSA_PSK_WITH_AES_256_CBC_SHA384";
-        case TLS_RSA_PSK_WITH_NULL_SHA256:
-            return "RSA_PSK_WITH_NULL_SHA256";
-        case TLS_RSA_PSK_WITH_NULL_SHA384:
-            return "RSA_PSK_WITH_NULL_SHA384";
+            _ciphers["RSA_PSK_WITH_AES_128_CBC_SHA256"] = TLS_RSA_PSK_WITH_AES_128_CBC_SHA256;
+            _ciphers["RSA_PSK_WITH_AES_256_CBC_SHA384"] = TLS_RSA_PSK_WITH_AES_256_CBC_SHA384;
+            _ciphers["RSA_PSK_WITH_NULL_SHA256"] = TLS_RSA_PSK_WITH_NULL_SHA256;
+            _ciphers["RSA_PSK_WITH_NULL_SHA384"] = TLS_RSA_PSK_WITH_NULL_SHA384;
 
-        //
-        // Addenda from rfc 5289  Elliptic Curve Cipher Suites with HMAC SHA-256/384.
-        //
-        case TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256:
-            return "ECDHE_ECDSA_WITH_AES_128_CBC_SHA256";
-        case TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384:
-            return "ECDHE_ECDSA_WITH_AES_256_CBC_SHA384";
-        case TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA256:
-            return "ECDH_ECDSA_WITH_AES_128_CBC_SHA256";
-        case TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA384:
-            return "ECDH_ECDSA_WITH_AES_256_CBC_SHA384";
-        case TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256:
-            return "ECDHE_RSA_WITH_AES_128_CBC_SHA256";
-        case TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384:
-            return "ECDHE_RSA_WITH_AES_256_CBC_SHA384";
-        case TLS_ECDH_RSA_WITH_AES_128_CBC_SHA256:
-            return "ECDH_RSA_WITH_AES_128_CBC_SHA256";
-        case TLS_ECDH_RSA_WITH_AES_256_CBC_SHA384:
-            return "ECDH_RSA_WITH_AES_256_CBC_SHA384";
+            //
+            // Addenda from rfc 5289  Elliptic Curve Cipher Suites with HMAC SHA-256/384.
+            //
+            _ciphers["ECDHE_ECDSA_WITH_AES_128_CBC_SHA256"] = TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256;
+            _ciphers["ECDHE_ECDSA_WITH_AES_256_CBC_SHA384"] = TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384;
+            _ciphers["ECDH_ECDSA_WITH_AES_128_CBC_SHA256"] = TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA256;
+            _ciphers["ECDH_ECDSA_WITH_AES_256_CBC_SHA384"] = TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA384;
+            _ciphers["ECDHE_RSA_WITH_AES_128_CBC_SHA256"] = TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256;
+            _ciphers["ECDHE_RSA_WITH_AES_256_CBC_SHA384"] = TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384;
+            _ciphers["ECDH_RSA_WITH_AES_128_CBC_SHA256"] = TLS_ECDH_RSA_WITH_AES_128_CBC_SHA256;
+            _ciphers["ECDH_RSA_WITH_AES_256_CBC_SHA384"] = TLS_ECDH_RSA_WITH_AES_256_CBC_SHA384;
 
-        //
-        // Addenda from rfc 5289  Elliptic Curve Cipher Suites with SHA-256/384 and AES Galois Counter Mode (GCM)
-        //
-        case TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256:
-            return "ECDHE_ECDSA_WITH_AES_128_GCM_SHA256";
-        case TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384:
-            return "ECDHE_ECDSA_WITH_AES_256_GCM_SHA384";
-        case TLS_ECDH_ECDSA_WITH_AES_128_GCM_SHA256:
-            return "ECDH_ECDSA_WITH_AES_128_GCM_SHA256";
-        case TLS_ECDH_ECDSA_WITH_AES_256_GCM_SHA384:
-            return "ECDH_ECDSA_WITH_AES_256_GCM_SHA384";
-        case TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256:
-            return "ECDHE_RSA_WITH_AES_128_GCM_SHA256";
-        case TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384:
-            return "ECDHE_RSA_WITH_AES_256_GCM_SHA384";
-        case TLS_ECDH_RSA_WITH_AES_128_GCM_SHA256:
-            return "ECDH_RSA_WITH_AES_128_GCM_SHA256";
-        case TLS_ECDH_RSA_WITH_AES_256_GCM_SHA384:
-            return "ECDH_RSA_WITH_AES_256_GCM_SHA384";
+            //
+            // Addenda from rfc 5289  Elliptic Curve Cipher Suites with SHA-256/384 and AES Galois Counter Mode (GCM)
+            //
+            _ciphers["ECDHE_ECDSA_WITH_AES_128_GCM_SHA256"] = TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256;
+            _ciphers["ECDHE_ECDSA_WITH_AES_256_GCM_SHA384"] = TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384;
+            _ciphers["ECDH_ECDSA_WITH_AES_128_GCM_SHA256"] = TLS_ECDH_ECDSA_WITH_AES_128_GCM_SHA256;
+            _ciphers["ECDH_ECDSA_WITH_AES_256_GCM_SHA384"] = TLS_ECDH_ECDSA_WITH_AES_256_GCM_SHA384;
+            _ciphers["ECDHE_RSA_WITH_AES_128_GCM_SHA256"] = TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256;
+            _ciphers["ECDHE_RSA_WITH_AES_256_GCM_SHA384"] = TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384;
+            _ciphers["ECDH_RSA_WITH_AES_128_GCM_SHA256"] = TLS_ECDH_RSA_WITH_AES_128_GCM_SHA256;
+            _ciphers["ECDH_RSA_WITH_AES_256_GCM_SHA384"] = TLS_ECDH_RSA_WITH_AES_256_GCM_SHA384;
 
-        //
-        // RFC 5746 - Secure Renegotiation
-        //
-        case TLS_EMPTY_RENEGOTIATION_INFO_SCSV:
-            return "EMPTY_RENEGOTIATION_INFO_SCSV";
+            //
+            // RFC 5746 - Secure Renegotiation
+            //
+            _ciphers["EMPTY_RENEGOTIATION_INFO_SCSV"] = TLS_EMPTY_RENEGOTIATION_INFO_SCSV;
 
-        //
-        // Tags for SSL 2 cipher kinds that are not specified for SSL 3.
-        //
-        case SSL_RSA_WITH_RC2_CBC_MD5:
-            return "RSA_WITH_RC2_CBC_MD5";
-        case SSL_RSA_WITH_IDEA_CBC_MD5:
-            return "RSA_WITH_IDEA_CBC_MD5";
-        case SSL_RSA_WITH_DES_CBC_MD5:
-            return "RSA_WITH_DES_CBC_MD5";
-        case SSL_RSA_WITH_3DES_EDE_CBC_MD5:
-            return "RSA_WITH_3DES_EDE_CBC_MD5";
-        default:
-            return "";
+            //
+            // Tags for SSL 2 cipher kinds that are not specified for SSL 3.
+            //
+            _ciphers["RSA_WITH_RC2_CBC_MD5"] = SSL_RSA_WITH_RC2_CBC_MD5;
+            _ciphers["RSA_WITH_IDEA_CBC_MD5"] = SSL_RSA_WITH_IDEA_CBC_MD5;
+            _ciphers["RSA_WITH_DES_CBC_MD5"] = SSL_RSA_WITH_DES_CBC_MD5;
+            _ciphers["RSA_WITH_3DES_EDE_CBC_MD5"] = SSL_RSA_WITH_3DES_EDE_CBC_MD5;
+            _ciphers["NO_SUCH_CIPHERSUITE"] = SSL_NO_SUCH_CIPHERSUITE;
+        }
     }
-}
 
-map<string, SSLCipherSuite>
-CiphersHelper::ciphers()
-{
-    return _ciphers;
-}
-
-SSLProtocol
-parseProtocol(const string& p)
-{
-    const string prot = IceUtilInternal::toUpper(p);
-    if(prot == "SSL3" || prot == "SSLV3")
+    SSLCipherSuite CiphersHelper::cipherForName(const string& name)
     {
-        return kSSLProtocol3;
+        map<string, SSLCipherSuite>::const_iterator i = _ciphers.find(name);
+        if(i == _ciphers.end() || i->second == SSL_NO_SUCH_CIPHERSUITE)
+        {
+            throw PluginInitializationException(__FILE__, __LINE__, "IceSSL: no such cipher " + name);
+        }
+        return i->second;
     }
-    else if(prot == "TLS" || prot == "TLS1" || prot == "TLSV1" || prot == "TLS1_0" || prot == "TLSV1_0")
-    {
-        return kTLSProtocol1;
-    }
-    else if(prot == "TLS1_1" || prot == "TLSV1_1")
-    {
-        return kTLSProtocol11;
-    }
-    else if(prot == "TLS1_2" || prot == "TLSV1_2")
-    {
-        return kTLSProtocol12;
-    }
-    else
-    {
-        throw PluginInitializationException(__FILE__, __LINE__, "IceSSL: unrecognized protocol `" + p + "'");
-    }
-}
 
-}
+    //
+    // Retrive the name of a cipher, SSLCipherSuite inlude duplicated values for TLS/SSL
+    // protocol ciphers, for example SSL_RSA_WITH_RC4_128_MD5/TLS_RSA_WITH_RC4_128_MD5
+    // are represeted by the same SSLCipherSuite value, the names return by this method
+    // doesn't include a protocol prefix.
+    //
+    string CiphersHelper::cipherName(SSLCipherSuite cipher)
+    {
+        switch(cipher)
+        {
+            case SSL_NULL_WITH_NULL_NULL:
+                return "NULL_WITH_NULL_NULL";
+            case SSL_RSA_WITH_NULL_MD5:
+                return "RSA_WITH_NULL_MD5";
+            case SSL_RSA_WITH_NULL_SHA:
+                return "RSA_WITH_NULL_SHA";
+            case SSL_RSA_EXPORT_WITH_RC4_40_MD5:
+                return "RSA_EXPORT_WITH_RC4_40_MD5";
+            case SSL_RSA_WITH_RC4_128_MD5:
+                return "RSA_WITH_RC4_128_MD5";
+            case SSL_RSA_WITH_RC4_128_SHA:
+                return "RSA_WITH_RC4_128_SHA";
+            case SSL_RSA_EXPORT_WITH_RC2_CBC_40_MD5:
+                return "RSA_EXPORT_WITH_RC2_CBC_40_MD5";
+            case SSL_RSA_WITH_IDEA_CBC_SHA:
+                return "RSA_WITH_IDEA_CBC_SHA";
+            case SSL_RSA_EXPORT_WITH_DES40_CBC_SHA:
+                return "RSA_EXPORT_WITH_DES40_CBC_SHA";
+            case SSL_RSA_WITH_DES_CBC_SHA:
+                return "RSA_WITH_DES_CBC_SHA";
+            case SSL_RSA_WITH_3DES_EDE_CBC_SHA:
+                return "RSA_WITH_3DES_EDE_CBC_SHA";
+            case SSL_DH_DSS_EXPORT_WITH_DES40_CBC_SHA:
+                return "DH_DSS_EXPORT_WITH_DES40_CBC_SHA";
+            case SSL_DH_DSS_WITH_DES_CBC_SHA:
+                return "DH_DSS_WITH_DES_CBC_SHA";
+            case SSL_DH_DSS_WITH_3DES_EDE_CBC_SHA:
+                return "DH_DSS_WITH_3DES_EDE_CBC_SHA";
+            case SSL_DH_RSA_EXPORT_WITH_DES40_CBC_SHA:
+                return "DH_RSA_EXPORT_WITH_DES40_CBC_SHA";
+            case SSL_DH_RSA_WITH_DES_CBC_SHA:
+                return "DH_RSA_WITH_DES_CBC_SHA";
+            case SSL_DH_RSA_WITH_3DES_EDE_CBC_SHA:
+                return "DH_RSA_WITH_3DES_EDE_CBC_SHA";
+            case SSL_DHE_DSS_EXPORT_WITH_DES40_CBC_SHA:
+                return "DHE_DSS_EXPORT_WITH_DES40_CBC_SHA";
+            case SSL_DHE_DSS_WITH_DES_CBC_SHA:
+                return "DHE_DSS_WITH_DES_CBC_SHA";
+            case SSL_DHE_DSS_WITH_3DES_EDE_CBC_SHA:
+                return "DHE_DSS_WITH_3DES_EDE_CBC_SHA";
+            case SSL_DHE_RSA_EXPORT_WITH_DES40_CBC_SHA:
+                return "DHE_RSA_EXPORT_WITH_DES40_CBC_SHA";
+            case SSL_DHE_RSA_WITH_DES_CBC_SHA:
+                return "DHE_RSA_WITH_DES_CBC_SHA";
+            case SSL_DHE_RSA_WITH_3DES_EDE_CBC_SHA:
+                return "DHE_RSA_WITH_3DES_EDE_CBC_SHA";
+            case SSL_DH_anon_EXPORT_WITH_RC4_40_MD5:
+                return "DH_anon_EXPORT_WITH_RC4_40_MD5";
+            case SSL_DH_anon_WITH_RC4_128_MD5:
+                return "DH_anon_WITH_RC4_128_MD5";
+            case SSL_DH_anon_EXPORT_WITH_DES40_CBC_SHA:
+                return "DH_anon_EXPORT_WITH_DES40_CBC_SHA";
+            case SSL_DH_anon_WITH_DES_CBC_SHA:
+                return "DH_anon_WITH_DES_CBC_SHA";
+            case SSL_DH_anon_WITH_3DES_EDE_CBC_SHA:
+                return "DH_anon_WITH_3DES_EDE_CBC_SHA";
+            case SSL_FORTEZZA_DMS_WITH_NULL_SHA:
+                return "FORTEZZA_DMS_WITH_NULL_SHA";
+            case SSL_FORTEZZA_DMS_WITH_FORTEZZA_CBC_SHA:
+                return "FORTEZZA_DMS_WITH_FORTEZZA_CBC_SHA";
 
-IceUtil::Shared*
-IceSSL::SecureTransport::upCast(IceSSL::SecureTransport::SSLEngine* p)
+            //
+            // TLS addenda using AES, per RFC 3268
+            //
+            case TLS_RSA_WITH_AES_128_CBC_SHA:
+                return "RSA_WITH_AES_128_CBC_SHA";
+            case TLS_DH_DSS_WITH_AES_128_CBC_SHA:
+                return "DH_DSS_WITH_AES_128_CBC_SHA";
+            case TLS_DH_RSA_WITH_AES_128_CBC_SHA:
+                return "DH_RSA_WITH_AES_128_CBC_SHA";
+            case TLS_DHE_DSS_WITH_AES_128_CBC_SHA:
+                return "DHE_DSS_WITH_AES_128_CBC_SHA";
+            case TLS_DHE_RSA_WITH_AES_128_CBC_SHA:
+                return "DHE_RSA_WITH_AES_128_CBC_SHA";
+            case TLS_DH_anon_WITH_AES_128_CBC_SHA:
+                return "DH_anon_WITH_AES_128_CBC_SHA";
+            case TLS_RSA_WITH_AES_256_CBC_SHA:
+                return "RSA_WITH_AES_256_CBC_SHA";
+            case TLS_DH_DSS_WITH_AES_256_CBC_SHA:
+                return "DH_DSS_WITH_AES_256_CBC_SHA";
+            case TLS_DH_RSA_WITH_AES_256_CBC_SHA:
+                return "DH_RSA_WITH_AES_256_CBC_SHA";
+            case TLS_DHE_DSS_WITH_AES_256_CBC_SHA:
+                return "DHE_DSS_WITH_AES_256_CBC_SHA";
+            case TLS_DHE_RSA_WITH_AES_256_CBC_SHA:
+                return "DHE_RSA_WITH_AES_256_CBC_SHA";
+            case TLS_DH_anon_WITH_AES_256_CBC_SHA:
+                return "DH_anon_WITH_AES_256_CBC_SHA";
+
+            //
+            // ECDSA addenda, RFC 4492
+            //
+            case TLS_ECDH_ECDSA_WITH_NULL_SHA:
+                return "ECDH_ECDSA_WITH_NULL_SHA";
+            case TLS_ECDH_ECDSA_WITH_RC4_128_SHA:
+                return "ECDH_ECDSA_WITH_RC4_128_SHA";
+            case TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA:
+                return "ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA";
+            case TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA:
+                return "ECDH_ECDSA_WITH_AES_128_CBC_SHA";
+            case TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA:
+                return "ECDH_ECDSA_WITH_AES_256_CBC_SHA";
+            case TLS_ECDHE_ECDSA_WITH_NULL_SHA:
+                return "ECDHE_ECDSA_WITH_NULL_SHA";
+            case TLS_ECDHE_ECDSA_WITH_RC4_128_SHA:
+                return "ECDHE_ECDSA_WITH_RC4_128_SHA";
+            case TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA:
+                return "ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA";
+            case TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA:
+                return "ECDHE_ECDSA_WITH_AES_128_CBC_SHA";
+            case TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA:
+                return "ECDHE_ECDSA_WITH_AES_256_CBC_SHA";
+            case TLS_ECDH_RSA_WITH_NULL_SHA:
+                return "ECDH_RSA_WITH_NULL_SHA";
+            case TLS_ECDH_RSA_WITH_RC4_128_SHA:
+                return "ECDH_RSA_WITH_RC4_128_SHA";
+            case TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA:
+                return "ECDH_RSA_WITH_3DES_EDE_CBC_SHA";
+            case TLS_ECDH_RSA_WITH_AES_128_CBC_SHA:
+                return "ECDH_RSA_WITH_AES_128_CBC_SHA";
+            case TLS_ECDH_RSA_WITH_AES_256_CBC_SHA:
+                return "ECDH_RSA_WITH_AES_256_CBC_SHA";
+            case TLS_ECDHE_RSA_WITH_NULL_SHA:
+                return "ECDHE_RSA_WITH_NULL_SHA";
+            case TLS_ECDHE_RSA_WITH_RC4_128_SHA:
+                return "ECDHE_RSA_WITH_RC4_128_SHA";
+            case TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA:
+                return "ECDHE_RSA_WITH_3DES_EDE_CBC_SHA";
+            case TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA:
+                return "ECDHE_RSA_WITH_AES_128_CBC_SHA";
+            case TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA:
+                return "ECDHE_RSA_WITH_AES_256_CBC_SHA";
+            case TLS_ECDH_anon_WITH_NULL_SHA:
+                return "ECDH_anon_WITH_NULL_SHA";
+            case TLS_ECDH_anon_WITH_RC4_128_SHA:
+                return "ECDH_anon_WITH_RC4_128_SHA";
+            case TLS_ECDH_anon_WITH_3DES_EDE_CBC_SHA:
+                return "ECDH_anon_WITH_3DES_EDE_CBC_SHA";
+            case TLS_ECDH_anon_WITH_AES_128_CBC_SHA:
+                return "ECDH_anon_WITH_AES_128_CBC_SHA";
+            case TLS_ECDH_anon_WITH_AES_256_CBC_SHA:
+                return "ECDH_anon_WITH_AES_256_CBC_SHA";
+
+            //
+            // TLS 1.2 addenda, RFC 5246
+            //
+            // case TLS_NULL_WITH_NULL_NULL:
+            //    return "NULL_WITH_NULL_NULL";
+
+            //
+            // Server provided RSA certificate for key exchange.
+            //
+            // case TLS_RSA_WITH_NULL_MD5:
+            //    return "RSA_WITH_NULL_MD5";
+            // case TLS_RSA_WITH_NULL_SHA:
+            //    return "RSA_WITH_NULL_SHA";
+            // case TLS_RSA_WITH_RC4_128_MD5:
+            //    return "RSA_WITH_RC4_128_MD5";
+            // case TLS_RSA_WITH_RC4_128_SHA:
+            //    return "RSA_WITH_RC4_128_SHA";
+            // case TLS_RSA_WITH_3DES_EDE_CBC_SHA:
+            //    return "RSA_WITH_3DES_EDE_CBC_SHA";
+            case TLS_RSA_WITH_NULL_SHA256:
+                return "RSA_WITH_NULL_SHA256";
+            case TLS_RSA_WITH_AES_128_CBC_SHA256:
+                return "RSA_WITH_AES_128_CBC_SHA256";
+            case TLS_RSA_WITH_AES_256_CBC_SHA256:
+                return "RSA_WITH_AES_256_CBC_SHA256";
+
+            //
+            // Server-authenticated (and optionally client-authenticated) Diffie-Hellman.
+            //
+            // case TLS_DH_DSS_WITH_3DES_EDE_CBC_SHA:
+            //    return "DH_DSS_WITH_3DES_EDE_CBC_SHA";
+            // case TLS_DH_RSA_WITH_3DES_EDE_CBC_SHA:
+            //    return "DH_RSA_WITH_3DES_EDE_CBC_SHA";
+            // case TLS_DHE_DSS_WITH_3DES_EDE_CBC_SHA:
+            //    return "DHE_DSS_WITH_3DES_EDE_CBC_SHA";
+            // case TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA:
+            //    return "DHE_RSA_WITH_3DES_EDE_CBC_SHA";
+            case TLS_DH_DSS_WITH_AES_128_CBC_SHA256:
+                return "DH_DSS_WITH_AES_128_CBC_SHA256";
+            case TLS_DH_RSA_WITH_AES_128_CBC_SHA256:
+                return "DH_RSA_WITH_AES_128_CBC_SHA256";
+            case TLS_DHE_DSS_WITH_AES_128_CBC_SHA256:
+                return "DHE_DSS_WITH_AES_128_CBC_SHA256";
+            case TLS_DHE_RSA_WITH_AES_128_CBC_SHA256:
+                return "DHE_RSA_WITH_AES_128_CBC_SHA256";
+            case TLS_DH_DSS_WITH_AES_256_CBC_SHA256:
+                return "DH_DSS_WITH_AES_256_CBC_SHA256";
+            case TLS_DH_RSA_WITH_AES_256_CBC_SHA256:
+                return "DH_RSA_WITH_AES_256_CBC_SHA256";
+            case TLS_DHE_DSS_WITH_AES_256_CBC_SHA256:
+                return "DHE_DSS_WITH_AES_256_CBC_SHA256";
+            case TLS_DHE_RSA_WITH_AES_256_CBC_SHA256:
+                return "DHE_RSA_WITH_AES_256_CBC_SHA256";
+
+            //
+            // Completely anonymous Diffie-Hellman
+            //
+            // case TLS_DH_anon_WITH_RC4_128_MD5:
+            //    return "DH_anon_WITH_RC4_128_MD5";
+            // case TLS_DH_anon_WITH_3DES_EDE_CBC_SHA:
+            //    return "DH_anon_WITH_3DES_EDE_CBC_SHA";
+            case TLS_DH_anon_WITH_AES_128_CBC_SHA256:
+                return "DH_anon_WITH_AES_128_CBC_SHA256";
+            case TLS_DH_anon_WITH_AES_256_CBC_SHA256:
+                return "DH_anon_WITH_AES_256_CBC_SHA256";
+
+            //
+            // Addendum from RFC 4279, TLS PSK
+            //
+            case TLS_PSK_WITH_RC4_128_SHA:
+                return "PSK_WITH_RC4_128_SHA";
+            case TLS_PSK_WITH_3DES_EDE_CBC_SHA:
+                return "PSK_WITH_3DES_EDE_CBC_SHA";
+            case TLS_PSK_WITH_AES_128_CBC_SHA:
+                return "PSK_WITH_AES_128_CBC_SHA";
+            case TLS_PSK_WITH_AES_256_CBC_SHA:
+                return "PSK_WITH_AES_256_CBC_SHA";
+            case TLS_DHE_PSK_WITH_RC4_128_SHA:
+                return "DHE_PSK_WITH_RC4_128_SHA";
+            case TLS_DHE_PSK_WITH_3DES_EDE_CBC_SHA:
+                return "DHE_PSK_WITH_3DES_EDE_CBC_SHA";
+            case TLS_DHE_PSK_WITH_AES_128_CBC_SHA:
+                return "DHE_PSK_WITH_AES_128_CBC_SHA";
+            case TLS_DHE_PSK_WITH_AES_256_CBC_SHA:
+                return "DHE_PSK_WITH_AES_256_CBC_SHA";
+            case TLS_RSA_PSK_WITH_RC4_128_SHA:
+                return "RSA_PSK_WITH_RC4_128_SHA";
+            case TLS_RSA_PSK_WITH_3DES_EDE_CBC_SHA:
+                return "RSA_PSK_WITH_3DES_EDE_CBC_SHA";
+            case TLS_RSA_PSK_WITH_AES_128_CBC_SHA:
+                return "RSA_PSK_WITH_AES_128_CBC_SHA";
+            case TLS_RSA_PSK_WITH_AES_256_CBC_SHA:
+                return "RSA_PSK_WITH_AES_256_CBC_SHA";
+
+            //
+            // RFC 4785 - Pre-Shared Key (PSK) Ciphersuites with NULL Encryption
+            //
+            case TLS_PSK_WITH_NULL_SHA:
+                return "PSK_WITH_NULL_SHA";
+            case TLS_DHE_PSK_WITH_NULL_SHA:
+                return "DHE_PSK_WITH_NULL_SHA";
+            case TLS_RSA_PSK_WITH_NULL_SHA:
+                return "RSA_PSK_WITH_NULL_SHA";
+
+            //
+            // Addenda from rfc 5288 AES Galois Counter Mode (GCM) Cipher Suites for TLS.
+            //
+            case TLS_RSA_WITH_AES_128_GCM_SHA256:
+                return "RSA_WITH_AES_128_GCM_SHA256";
+            case TLS_RSA_WITH_AES_256_GCM_SHA384:
+                return "RSA_WITH_AES_256_GCM_SHA384";
+            case TLS_DHE_RSA_WITH_AES_128_GCM_SHA256:
+                return "DHE_RSA_WITH_AES_128_GCM_SHA256";
+            case TLS_DHE_RSA_WITH_AES_256_GCM_SHA384:
+                return "DHE_RSA_WITH_AES_256_GCM_SHA384";
+            case TLS_DH_RSA_WITH_AES_128_GCM_SHA256:
+                return "DH_RSA_WITH_AES_128_GCM_SHA256";
+            case TLS_DH_RSA_WITH_AES_256_GCM_SHA384:
+                return "DH_RSA_WITH_AES_256_GCM_SHA384";
+            case TLS_DHE_DSS_WITH_AES_128_GCM_SHA256:
+                return "DHE_DSS_WITH_AES_128_GCM_SHA256";
+            case TLS_DHE_DSS_WITH_AES_256_GCM_SHA384:
+                return "DHE_DSS_WITH_AES_256_GCM_SHA384";
+            case TLS_DH_DSS_WITH_AES_128_GCM_SHA256:
+                return "DH_DSS_WITH_AES_128_GCM_SHA256";
+            case TLS_DH_DSS_WITH_AES_256_GCM_SHA384:
+                return "DH_DSS_WITH_AES_256_GCM_SHA384";
+            case TLS_DH_anon_WITH_AES_128_GCM_SHA256:
+                return "DH_anon_WITH_AES_128_GCM_SHA256";
+            case TLS_DH_anon_WITH_AES_256_GCM_SHA384:
+                return "DH_anon_WITH_AES_256_GCM_SHA384";
+
+            //
+            // RFC 5487 - PSK with SHA-256/384 and AES GCM
+            //
+            case TLS_PSK_WITH_AES_128_GCM_SHA256:
+                return "PSK_WITH_AES_128_GCM_SHA256";
+            case TLS_PSK_WITH_AES_256_GCM_SHA384:
+                return "PSK_WITH_AES_256_GCM_SHA384";
+            case TLS_DHE_PSK_WITH_AES_128_GCM_SHA256:
+                return "DHE_PSK_WITH_AES_128_GCM_SHA256";
+            case TLS_DHE_PSK_WITH_AES_256_GCM_SHA384:
+                return "DHE_PSK_WITH_AES_256_GCM_SHA384";
+            case TLS_RSA_PSK_WITH_AES_128_GCM_SHA256:
+                return "RSA_PSK_WITH_AES_128_GCM_SHA256";
+            case TLS_RSA_PSK_WITH_AES_256_GCM_SHA384:
+                return "RSA_PSK_WITH_AES_256_GCM_SHA384";
+
+            case TLS_PSK_WITH_AES_128_CBC_SHA256:
+                return "PSK_WITH_AES_128_CBC_SHA256";
+            case TLS_PSK_WITH_AES_256_CBC_SHA384:
+                return "PSK_WITH_AES_256_CBC_SHA384";
+            case TLS_PSK_WITH_NULL_SHA256:
+                return "WITH_NULL_SHA256";
+            case TLS_PSK_WITH_NULL_SHA384:
+                return "PSK_WITH_NULL_SHA384";
+
+            case TLS_DHE_PSK_WITH_AES_128_CBC_SHA256:
+                return "DHE_PSK_WITH_AES_128_CBC_SHA256";
+            case TLS_DHE_PSK_WITH_AES_256_CBC_SHA384:
+                return "DHE_PSK_WITH_AES_256_CBC_SHA384";
+            case TLS_DHE_PSK_WITH_NULL_SHA256:
+                return "DHE_PSK_WITH_NULL_SHA256";
+            case TLS_DHE_PSK_WITH_NULL_SHA384:
+                return "DHE_PSK_WITH_NULL_SHA384";
+
+            case TLS_RSA_PSK_WITH_AES_128_CBC_SHA256:
+                return "RSA_PSK_WITH_AES_128_CBC_SHA256";
+            case TLS_RSA_PSK_WITH_AES_256_CBC_SHA384:
+                return "RSA_PSK_WITH_AES_256_CBC_SHA384";
+            case TLS_RSA_PSK_WITH_NULL_SHA256:
+                return "RSA_PSK_WITH_NULL_SHA256";
+            case TLS_RSA_PSK_WITH_NULL_SHA384:
+                return "RSA_PSK_WITH_NULL_SHA384";
+
+            //
+            // Addenda from rfc 5289  Elliptic Curve Cipher Suites with HMAC SHA-256/384.
+            //
+            case TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256:
+                return "ECDHE_ECDSA_WITH_AES_128_CBC_SHA256";
+            case TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384:
+                return "ECDHE_ECDSA_WITH_AES_256_CBC_SHA384";
+            case TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA256:
+                return "ECDH_ECDSA_WITH_AES_128_CBC_SHA256";
+            case TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA384:
+                return "ECDH_ECDSA_WITH_AES_256_CBC_SHA384";
+            case TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256:
+                return "ECDHE_RSA_WITH_AES_128_CBC_SHA256";
+            case TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384:
+                return "ECDHE_RSA_WITH_AES_256_CBC_SHA384";
+            case TLS_ECDH_RSA_WITH_AES_128_CBC_SHA256:
+                return "ECDH_RSA_WITH_AES_128_CBC_SHA256";
+            case TLS_ECDH_RSA_WITH_AES_256_CBC_SHA384:
+                return "ECDH_RSA_WITH_AES_256_CBC_SHA384";
+
+            //
+            // Addenda from rfc 5289  Elliptic Curve Cipher Suites with SHA-256/384 and AES Galois Counter Mode (GCM)
+            //
+            case TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256:
+                return "ECDHE_ECDSA_WITH_AES_128_GCM_SHA256";
+            case TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384:
+                return "ECDHE_ECDSA_WITH_AES_256_GCM_SHA384";
+            case TLS_ECDH_ECDSA_WITH_AES_128_GCM_SHA256:
+                return "ECDH_ECDSA_WITH_AES_128_GCM_SHA256";
+            case TLS_ECDH_ECDSA_WITH_AES_256_GCM_SHA384:
+                return "ECDH_ECDSA_WITH_AES_256_GCM_SHA384";
+            case TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256:
+                return "ECDHE_RSA_WITH_AES_128_GCM_SHA256";
+            case TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384:
+                return "ECDHE_RSA_WITH_AES_256_GCM_SHA384";
+            case TLS_ECDH_RSA_WITH_AES_128_GCM_SHA256:
+                return "ECDH_RSA_WITH_AES_128_GCM_SHA256";
+            case TLS_ECDH_RSA_WITH_AES_256_GCM_SHA384:
+                return "ECDH_RSA_WITH_AES_256_GCM_SHA384";
+
+            //
+            // RFC 5746 - Secure Renegotiation
+            //
+            case TLS_EMPTY_RENEGOTIATION_INFO_SCSV:
+                return "EMPTY_RENEGOTIATION_INFO_SCSV";
+
+            //
+            // Tags for SSL 2 cipher kinds that are not specified for SSL 3.
+            //
+            case SSL_RSA_WITH_RC2_CBC_MD5:
+                return "RSA_WITH_RC2_CBC_MD5";
+            case SSL_RSA_WITH_IDEA_CBC_MD5:
+                return "RSA_WITH_IDEA_CBC_MD5";
+            case SSL_RSA_WITH_DES_CBC_MD5:
+                return "RSA_WITH_DES_CBC_MD5";
+            case SSL_RSA_WITH_3DES_EDE_CBC_MD5:
+                return "RSA_WITH_3DES_EDE_CBC_MD5";
+            default:
+                return "";
+        }
+    }
+
+    map<string, SSLCipherSuite> CiphersHelper::ciphers()
+    {
+        return _ciphers;
+    }
+
+    SSLProtocol parseProtocol(const string& p)
+    {
+        const string prot = IceUtilInternal::toUpper(p);
+        if(prot == "SSL3" || prot == "SSLV3")
+        {
+            return kSSLProtocol3;
+        }
+        else if(prot == "TLS" || prot == "TLS1" || prot == "TLSV1" || prot == "TLS1_0" || prot == "TLSV1_0")
+        {
+            return kTLSProtocol1;
+        }
+        else if(prot == "TLS1_1" || prot == "TLSV1_1")
+        {
+            return kTLSProtocol11;
+        }
+        else if(prot == "TLS1_2" || prot == "TLSV1_2")
+        {
+            return kTLSProtocol12;
+        }
+        else
+        {
+            throw PluginInitializationException(__FILE__, __LINE__, "IceSSL: unrecognized protocol `" + p + "'");
+        }
+    }
+
+} // namespace
+
+IceUtil::Shared* IceSSL::SecureTransport::upCast(IceSSL::SecureTransport::SSLEngine* p)
 {
     return p;
 }
@@ -801,8 +788,7 @@ IceSSL::SecureTransport::SSLEngine::SSLEngine(const Ice::CommunicatorPtr& commun
 //
 // Setup the engine.
 //
-void
-IceSSL::SecureTransport::SSLEngine::initialize()
+void IceSSL::SecureTransport::SSLEngine::initialize()
 {
     IceUtil::Mutex::Lock lock(_mutex);
     if(_initialized)
@@ -893,8 +879,7 @@ IceSSL::SecureTransport::SSLEngine::initialize()
 
             if(!checkPath(file, defaultDir, false, resolved))
             {
-                throw PluginInitializationException(__FILE__, __LINE__,
-                                                    "IceSSL: certificate file not found:\n" + file);
+                throw PluginInitializationException(__FILE__, __LINE__, "IceSSL: certificate file not found:\n" + file);
             }
             file = resolved;
 
@@ -1005,25 +990,22 @@ IceSSL::SecureTransport::SSLEngine::initialize()
 //
 // Destroy the engine.
 //
-void
-IceSSL::SecureTransport::SSLEngine::destroy()
+void IceSSL::SecureTransport::SSLEngine::destroy()
 {
 }
 
 IceInternal::TransceiverPtr
 IceSSL::SecureTransport::SSLEngine::createTransceiver(const InstancePtr& instance,
                                                       const IceInternal::TransceiverPtr& delegate,
-                                                      const string& hostOrAdapterName,
-                                                      bool incoming)
+                                                      const string& hostOrAdapterName, bool incoming)
 {
     return new IceSSL::SecureTransport::TransceiverI(instance, delegate, hostOrAdapterName, incoming);
 }
 
-SSLContextRef
-IceSSL::SecureTransport::SSLEngine::newContext(bool incoming)
+SSLContextRef IceSSL::SecureTransport::SSLEngine::newContext(bool incoming)
 {
-    SSLContextRef ssl = SSLCreateContext(kCFAllocatorDefault, incoming ? kSSLServerSide : kSSLClientSide,
-                                         kSSLStreamType);
+    SSLContextRef ssl =
+        SSLCreateContext(kCFAllocatorDefault, incoming ? kSSLServerSide : kSSLClientSide, kSSLStreamType);
     if(!ssl)
     {
         throw SecurityException(__FILE__, __LINE__, "IceSSL: unable to create SSL context");
@@ -1078,15 +1060,16 @@ IceSSL::SecureTransport::SSLEngine::newContext(bool incoming)
     {
         if((err = SSLSetEnabledCiphers(ssl, &_ciphers[0], _ciphers.size())))
         {
-            throw SecurityException(__FILE__, __LINE__, "IceSSL: error while setting ciphers:\n" + sslErrorToString(err));
+            throw SecurityException(__FILE__, __LINE__,
+                                    "IceSSL: error while setting ciphers:\n" + sslErrorToString(err));
         }
     }
 
-    if((err = SSLSetSessionOption(ssl, incoming ? kSSLSessionOptionBreakOnClientAuth :
-                                                  kSSLSessionOptionBreakOnServerAuth,
-                                  true)))
+    if((err = SSLSetSessionOption(
+            ssl, incoming ? kSSLSessionOptionBreakOnClientAuth : kSSLSessionOptionBreakOnServerAuth, true)))
     {
-        throw SecurityException(__FILE__, __LINE__, "IceSSL: error while setting SSL option:\n" + sslErrorToString(err));
+        throw SecurityException(__FILE__, __LINE__,
+                                "IceSSL: error while setting SSL option:\n" + sslErrorToString(err));
     }
 
     if(_protocolVersionMax != kSSLProtocolUnknown)
@@ -1110,20 +1093,17 @@ IceSSL::SecureTransport::SSLEngine::newContext(bool incoming)
     return ssl;
 }
 
-CFArrayRef
-IceSSL::SecureTransport::SSLEngine::getCertificateAuthorities() const
+CFArrayRef IceSSL::SecureTransport::SSLEngine::getCertificateAuthorities() const
 {
     return _certificateAuthorities.get();
 }
 
-string
-IceSSL::SecureTransport::SSLEngine::getCipherName(SSLCipherSuite cipher) const
+string IceSSL::SecureTransport::SSLEngine::getCipherName(SSLCipherSuite cipher) const
 {
     return CiphersHelper::cipherName(cipher);
 }
 
-void
-IceSSL::SecureTransport::SSLEngine::parseCiphers(const string& ciphers)
+void IceSSL::SecureTransport::SSLEngine::parseCiphers(const string& ciphers)
 {
     vector<string> tokens;
     vector<CipherExpression> cipherExpressions;
@@ -1274,6 +1254,6 @@ IceSSL::SecureTransport::SSLEngine::parseCiphers(const string& ciphers)
     {
         throw PluginInitializationException(__FILE__, __LINE__,
                                             "IceSSL: invalid value for IceSSL.Ciphers:\n" + ciphers +
-                                            "\nThe result cipher list does not contain any entries");
+                                                "\nThe result cipher list does not contain any entries");
     }
 }

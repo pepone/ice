@@ -15,10 +15,10 @@
 #include <IcePatch2/ClientUtil.h>
 
 #ifdef _WIN32
-#   include <conio.h>
+#    include <conio.h>
 #else
-#   include <fcntl.h>
-#   include <termios.h>
+#    include <fcntl.h>
+#    include <termios.h>
 #endif
 
 using namespace std;
@@ -30,9 +30,7 @@ using namespace IcePatch2Internal;
 class TextPatcherFeedback : public PatcherFeedback
 {
 public:
-
-    TextPatcherFeedback() :
-        _pressAnyKeyMessage(false)
+    TextPatcherFeedback() : _pressAnyKeyMessage(false)
     {
 #ifndef _WIN32
         tcgetattr(0, &_savedTerm);
@@ -49,8 +47,7 @@ public:
 #endif
     }
 
-    virtual bool
-    noFileSummary(const string& reason)
+    virtual bool noFileSummary(const string& reason)
     {
         consoleOut << "Cannot load file summary:\n" << reason << endl;
         string answer;
@@ -63,13 +60,11 @@ public:
             {
                 return false;
             }
-        }
-        while(answer != "yes");
+        } while(answer != "yes");
         return true;
     }
 
-    virtual bool
-    checksumStart()
+    virtual bool checksumStart()
     {
         if(!_pressAnyKeyMessage)
         {
@@ -80,21 +75,18 @@ public:
         return !keyPressed();
     }
 
-    virtual bool
-    checksumProgress(const string& path)
+    virtual bool checksumProgress(const string& path)
     {
         consoleOut << "Calculating checksum for " << getBasename(path) << endl;
         return !keyPressed();
     }
 
-    virtual bool
-    checksumEnd()
+    virtual bool checksumEnd()
     {
         return !keyPressed();
     }
 
-    virtual bool
-    fileListStart()
+    virtual bool fileListStart()
     {
         if(!_pressAnyKeyMessage)
         {
@@ -107,8 +99,7 @@ public:
         return !keyPressed();
     }
 
-    virtual bool
-    fileListProgress(Int percent)
+    virtual bool fileListProgress(Int percent)
     {
         for(unsigned int i = 0; i < _lastProgress.size(); ++i)
         {
@@ -121,15 +112,13 @@ public:
         return !keyPressed();
     }
 
-    virtual bool
-    fileListEnd()
+    virtual bool fileListEnd()
     {
         consoleOut << endl;
         return !keyPressed();
     }
 
-    virtual bool
-    patchStart(const string& path, Long size, Long totalProgress, Long totalSize)
+    virtual bool patchStart(const string& path, Long size, Long totalProgress, Long totalSize)
     {
         if(!_pressAnyKeyMessage)
         {
@@ -144,8 +133,7 @@ public:
         return !keyPressed();
     }
 
-    virtual bool
-    patchProgress(Long progress, Long size, Long totalProgress, Long totalSize)
+    virtual bool patchProgress(Long progress, Long size, Long totalProgress, Long totalSize)
     {
         for(unsigned int i = 0; i < _lastProgress.size(); ++i)
         {
@@ -158,19 +146,16 @@ public:
         return !keyPressed();
     }
 
-    virtual bool
-    patchEnd()
+    virtual bool patchEnd()
     {
         consoleOut << endl;
         return !keyPressed();
     }
 
 private:
-
 #ifdef _WIN32
 
-    bool
-    keyPressed()
+    bool keyPressed()
     {
         bool pressed = false;
         while(_kbhit())
@@ -187,8 +172,7 @@ private:
 
 #else
 
-    bool
-    keyPressed()
+    bool keyPressed()
     {
         if(_block)
         {
@@ -225,8 +209,7 @@ private:
 
 #endif
 
-    bool
-    confirmAbort()
+    bool confirmAbort()
     {
 #ifndef _WIN32
         if(!_block)
@@ -246,8 +229,7 @@ private:
             {
                 return false;
             }
-        }
-        while(answer != "y");
+        } while(answer != "y");
         return true;
     }
 
@@ -258,16 +240,13 @@ private:
 class Client : public Ice::Application
 {
 public:
-
-    virtual int run(int, char*[]);
+    virtual int run(int, char* []);
 
 private:
-
     void usage(const std::string&);
 };
 
-int
-Client::run(int argc, char* argv[])
+int Client::run(int argc, char* argv[])
 {
     PropertiesPtr properties = communicator()->getProperties();
 
@@ -350,14 +329,12 @@ Client::run(int argc, char* argv[])
     }
 }
 
-void
-Client::usage(const string& appName)
+void Client::usage(const string& appName)
 {
-    string options =
-        "Options:\n"
-        "-h, --help           Show this message.\n"
-        "-v, --version        Display the Ice version.\n"
-        "-t, --thorough       Recalculate all checksums.";
+    string options = "Options:\n"
+                     "-h, --help           Show this message.\n"
+                     "-v, --version        Display the Ice version.\n"
+                     "-t, --thorough       Recalculate all checksums.";
 
     consoleErr << "Usage: " << appName << " [options] [DIR]" << endl;
     consoleErr << options << endl;
@@ -365,13 +342,11 @@ Client::usage(const string& appName)
 
 #ifdef _WIN32
 
-int
-wmain(int argc, wchar_t* argv[])
+int wmain(int argc, wchar_t* argv[])
 
 #else
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 
 #endif
 {

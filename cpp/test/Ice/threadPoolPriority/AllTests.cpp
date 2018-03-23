@@ -15,8 +15,7 @@
 
 using namespace std;
 
-Test::PriorityPrxPtr
-allTests(const Ice::CommunicatorPtr& communicator)
+Test::PriorityPrxPtr allTests(const Ice::CommunicatorPtr& communicator)
 {
     cout << "testing server priority... " << flush;
     string ref = "test:" + getTestEndpoint(communicator, 0) + " -t 10000";

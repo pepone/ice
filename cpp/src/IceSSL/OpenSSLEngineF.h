@@ -17,16 +17,14 @@
 
 namespace IceSSL
 {
+    namespace OpenSSL
+    {
+        class SSLEngine;
+        ICESSL_OPENSSL_API IceUtil::Shared* upCast(SSLEngine*);
+        typedef IceInternal::Handle<SSLEngine> SSLEnginePtr;
 
-namespace OpenSSL
-{
+    } // namespace OpenSSL
 
-class SSLEngine;
-ICESSL_OPENSSL_API IceUtil::Shared* upCast(SSLEngine*);
-typedef IceInternal::Handle<SSLEngine> SSLEnginePtr;
-
-} // OpenSSL namespace end
-
-} // IceSSL namespace end
+} // namespace IceSSL
 
 #endif

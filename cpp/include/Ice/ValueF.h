@@ -11,16 +11,15 @@
 #define ICE_VALUE_F_H
 
 #ifdef ICE_CPP11_MAPPING
-#include <Ice/Config.h>
+#    include <Ice/Config.h>
 
 namespace Ice
 {
+    class Value;
+    /// \cond INTERNAL
+    using ValuePtr = ::std::shared_ptr<Value>;
+    /// \endcond
 
-class Value;
-/// \cond INTERNAL
-using ValuePtr = ::std::shared_ptr<Value>;
-/// \endcond
-
-}
+} // namespace Ice
 #endif
 #endif

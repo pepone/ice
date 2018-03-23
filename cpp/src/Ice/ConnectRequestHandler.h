@@ -25,53 +25,51 @@
 
 namespace IceInternal
 {
-
-class ConnectRequestHandler : public RequestHandler,
-                              public Reference::GetConnectionCallback,
-                              public RouterInfo::AddProxyCallback,
-                              public IceUtil::Monitor<IceUtil::Mutex>
+    class ConnectRequestHandler : public RequestHandler,
+                                  public Reference::GetConnectionCallback,
+                                  public RouterInfo::AddProxyCallback,
+                                  public IceUtil::Monitor<IceUtil::Mutex>
 #ifdef ICE_CPP11_MAPPING
-                            , public std::enable_shared_from_this<ConnectRequestHandler>
+        ,
+                                  public std::enable_shared_from_this<ConnectRequestHandler>
 #endif
-{
-public:
+    {
+    public:
+        ConnectRequestHandler(const ReferencePtr&, const Ice::ObjectPrxPtr&);
 
-    ConnectRequestHandler(const ReferencePtr&, const Ice::ObjectPrxPtr&);
+        RequestHandlerPtr connect(const Ice::ObjectPrxPtr&);
+        virtual RequestHandlerPtr update(const RequestHandlerPtr&, const RequestHandlerPtr&);
 
-    RequestHandlerPtr connect(const Ice::ObjectPrxPtr&);
-    virtual RequestHandlerPtr update(const RequestHandlerPtr&, const RequestHandlerPtr&);
+        virtual AsyncStatus sendAsyncRequest(const ProxyOutgoingAsyncBasePtr&);
 
-    virtual AsyncStatus sendAsyncRequest(const ProxyOutgoingAsyncBasePtr&);
+        virtual void asyncRequestCanceled(const OutgoingAsyncBasePtr&, const Ice::LocalException&);
 
-    virtual void asyncRequestCanceled(const OutgoingAsyncBasePtr&, const Ice::LocalException&);
+        virtual Ice::ConnectionIPtr getConnection();
+        virtual Ice::ConnectionIPtr waitForConnection();
 
-    virtual Ice::ConnectionIPtr getConnection();
-    virtual Ice::ConnectionIPtr waitForConnection();
+        virtual void setConnection(const Ice::ConnectionIPtr&, bool);
+        virtual void setException(const Ice::LocalException&);
 
-    virtual void setConnection(const Ice::ConnectionIPtr&, bool);
-    virtual void setException(const Ice::LocalException&);
+        virtual void addedProxy();
 
-    virtual void addedProxy();
+    private:
+        bool initialized();
+        void flushRequests();
 
-private:
+        Ice::ObjectPrxPtr _proxy;
+        std::set<Ice::ObjectPrxPtr> _proxies;
 
-    bool initialized();
-    void flushRequests();
+        Ice::ConnectionIPtr _connection;
+        bool _compress;
+        IceInternal::UniquePtr<Ice::LocalException> _exception;
+        bool _initialized;
+        bool _flushing;
 
-    Ice::ObjectPrxPtr _proxy;
-    std::set<Ice::ObjectPrxPtr> _proxies;
+        std::deque<ProxyOutgoingAsyncBasePtr> _requests;
 
-    Ice::ConnectionIPtr _connection;
-    bool _compress;
-    IceInternal::UniquePtr<Ice::LocalException> _exception;
-    bool _initialized;
-    bool _flushing;
+        RequestHandlerPtr _requestHandler;
+    };
 
-    std::deque<ProxyOutgoingAsyncBasePtr> _requests;
-
-    RequestHandlerPtr _requestHandler;
-};
-
-}
+} // namespace IceInternal
 
 #endif

@@ -24,12 +24,12 @@
 // Microsoft Visual C++
 //
 #if defined(_MSC_VER)
-#    define _CRT_SECURE_NO_DEPRECATE 1  // C4996 '<C function>' was declared deprecated
-#    pragma warning( 4 : 4996 ) // C4996 '<function>' was declared deprecated
-#    pragma warning( 4 : 4800 ) // C4800 forcing value to bool 'true' or 'false' (performance warning)
+#    define _CRT_SECURE_NO_DEPRECATE 1 // C4996 '<C function>' was declared deprecated
+#    pragma warning(4 : 4996)          // C4996 '<function>' was declared deprecated
+#    pragma warning(4 : 4800)          // C4800 forcing value to bool 'true' or 'false' (performance warning)
 
-#    if (_MSC_VER < 1700)
-#       pragma warning( 4 : 4355 ) // C4355 'this' : used in base member initializer list
+#    if(_MSC_VER < 1700)
+#        pragma warning(4 : 4355) // C4355 'this' : used in base member initializer list
 #    endif
 #endif
 
@@ -37,14 +37,14 @@
 // GCC
 //
 #if defined(__GNUC__)
-#   pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#    pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
 //
 // Clang
 //
 #if defined(__clang__)
-#   pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#    pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
 #endif

@@ -15,37 +15,34 @@
 
 namespace IceObjC
 {
+    class StreamEndpointI;
 
-class StreamEndpointI;
+    class Instance;
+    typedef IceUtil::Handle<Instance> InstancePtr;
 
-class Instance;
-typedef IceUtil::Handle<Instance> InstancePtr;
+    class StreamConnector : public IceInternal::Connector
+    {
+    public:
+        virtual IceInternal::TransceiverPtr connect();
 
-class StreamConnector : public IceInternal::Connector
-{
-public:
+        virtual Ice::Short type() const;
+        virtual std::string toString() const;
 
-    virtual IceInternal::TransceiverPtr connect();
+        virtual bool operator==(const IceInternal::Connector&) const;
+        virtual bool operator<(const IceInternal::Connector&) const;
 
-    virtual Ice::Short type() const;
-    virtual std::string toString() const;
+    private:
+        StreamConnector(const InstancePtr&, const std::string&, Ice::Int, Ice::Int, const std::string&);
+        virtual ~StreamConnector();
+        friend class StreamEndpointI;
 
-    virtual bool operator==(const IceInternal::Connector&) const;
-    virtual bool operator<(const IceInternal::Connector&) const;
+        const InstancePtr _instance;
+        const std::string _host;
+        const Ice::Int _port;
+        const Ice::Int _timeout;
+        const std::string _connectionId;
+    };
 
-private:
-
-    StreamConnector(const InstancePtr&, const std::string&, Ice::Int, Ice::Int, const std::string&);
-    virtual ~StreamConnector();
-    friend class StreamEndpointI;
-
-    const InstancePtr _instance;
-    const std::string _host;
-    const Ice::Int _port;
-    const Ice::Int _timeout;
-    const std::string _connectionId;
-};
-
-}
+} // namespace IceObjC
 
 #endif

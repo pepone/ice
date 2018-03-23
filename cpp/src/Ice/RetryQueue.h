@@ -20,52 +20,48 @@
 
 namespace IceInternal
 {
-
-class RetryTask : public IceUtil::TimerTask,
-                  public CancellationHandler
+    class RetryTask : public IceUtil::TimerTask,
+                      public CancellationHandler
 #ifdef ICE_CPP11_MAPPING
-                , public std::enable_shared_from_this<RetryTask>
+        ,
+                      public std::enable_shared_from_this<RetryTask>
 #endif
-{
-public:
+    {
+    public:
+        RetryTask(const InstancePtr&, const RetryQueuePtr&, const ProxyOutgoingAsyncBasePtr&);
 
-    RetryTask(const InstancePtr&, const RetryQueuePtr&, const ProxyOutgoingAsyncBasePtr&);
+        virtual void runTimerTask();
 
-    virtual void runTimerTask();
+        virtual void asyncRequestCanceled(const OutgoingAsyncBasePtr&, const Ice::LocalException&);
 
-    virtual void asyncRequestCanceled(const OutgoingAsyncBasePtr&, const Ice::LocalException&);
+        void destroy();
 
-    void destroy();
+        bool operator<(const RetryTask&) const;
 
-    bool operator<(const RetryTask&) const;
+    private:
+        const InstancePtr _instance;
+        const RetryQueuePtr _queue;
+        const ProxyOutgoingAsyncBasePtr _outAsync;
+    };
+    ICE_DEFINE_PTR(RetryTaskPtr, RetryTask);
 
-private:
+    class RetryQueue : public IceUtil::Shared, public IceUtil::Monitor<IceUtil::Mutex>
+    {
+    public:
+        RetryQueue(const InstancePtr&);
 
-    const InstancePtr _instance;
-    const RetryQueuePtr _queue;
-    const ProxyOutgoingAsyncBasePtr _outAsync;
-};
-ICE_DEFINE_PTR(RetryTaskPtr, RetryTask);
+        void add(const ProxyOutgoingAsyncBasePtr&, int);
+        void destroy();
 
-class RetryQueue : public IceUtil::Shared, public IceUtil::Monitor<IceUtil::Mutex>
-{
-public:
+    private:
+        void remove(const RetryTaskPtr&);
+        bool cancel(const RetryTaskPtr&);
+        friend class RetryTask;
 
-    RetryQueue(const InstancePtr&);
+        InstancePtr _instance;
+        std::set<RetryTaskPtr> _requests;
+    };
 
-    void add(const ProxyOutgoingAsyncBasePtr&, int);
-    void destroy();
-
-private:
-
-    void remove(const RetryTaskPtr&);
-    bool cancel(const RetryTaskPtr&);
-    friend class RetryTask;
-
-    InstancePtr _instance;
-    std::set<RetryTaskPtr> _requests;
-};
-
-}
+} // namespace IceInternal
 
 #endif

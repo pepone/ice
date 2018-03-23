@@ -13,8 +13,7 @@
 
 using namespace std;
 
-int
-run(int argc, char* argv[], const Ice::CommunicatorPtr& communicator)
+int run(int argc, char* argv[], const Ice::CommunicatorPtr& communicator)
 {
     bool withTarget = false;
     if(argc > 1)
@@ -49,8 +48,7 @@ run(int argc, char* argv[], const Ice::CommunicatorPtr& communicator)
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
     int status;
     Ice::CommunicatorPtr communicator;

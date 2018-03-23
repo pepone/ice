@@ -22,43 +22,40 @@
 
 namespace IceInternal
 {
+    class BatchRequestQueue : public IceUtil::Shared, private IceUtil::Monitor<IceUtil::Mutex>
+    {
+    public:
+        BatchRequestQueue(const InstancePtr&, bool);
 
-class BatchRequestQueue : public IceUtil::Shared, private IceUtil::Monitor<IceUtil::Mutex>
-{
-public:
+        void prepareBatchRequest(Ice::OutputStream*);
+        void finishBatchRequest(Ice::OutputStream*, const Ice::ObjectPrxPtr&, const std::string&);
+        void abortBatchRequest(Ice::OutputStream*);
 
-    BatchRequestQueue(const InstancePtr&, bool);
+        int swap(Ice::OutputStream*, bool&);
 
-    void prepareBatchRequest(Ice::OutputStream*);
-    void finishBatchRequest(Ice::OutputStream*, const Ice::ObjectPrxPtr&, const std::string&);
-    void abortBatchRequest(Ice::OutputStream*);
+        void destroy(const Ice::LocalException&);
+        bool isEmpty();
 
-    int swap(Ice::OutputStream*, bool&);
+        void enqueueBatchRequest(const Ice::ObjectPrxPtr&);
 
-    void destroy(const Ice::LocalException&);
-    bool isEmpty();
-
-    void enqueueBatchRequest(const Ice::ObjectPrxPtr&);
-
-private:
-
-    void waitStreamInUse(bool);
+    private:
+        void waitStreamInUse(bool);
 
 #ifdef ICE_CPP11_MAPPING
-    std::function<void(const Ice::BatchRequest&, int, int)> _interceptor;
+        std::function<void(const Ice::BatchRequest&, int, int)> _interceptor;
 #else
-    Ice::BatchRequestInterceptorPtr _interceptor;
+        Ice::BatchRequestInterceptorPtr _interceptor;
 #endif
-    Ice::OutputStream _batchStream;
-    bool _batchStreamInUse;
-    bool _batchStreamCanFlush;
-    bool _batchCompress;
-    int _batchRequestNum;
-    size_t _batchMarker;
-    IceInternal::UniquePtr<Ice::LocalException> _exception;
-    size_t _maxSize;
-};
+        Ice::OutputStream _batchStream;
+        bool _batchStreamInUse;
+        bool _batchStreamCanFlush;
+        bool _batchCompress;
+        int _batchRequestNum;
+        size_t _batchMarker;
+        IceInternal::UniquePtr<Ice::LocalException> _exception;
+        size_t _maxSize;
+    };
 
-};
+}; // namespace IceInternal
 
 #endif

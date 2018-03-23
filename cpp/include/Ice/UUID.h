@@ -15,10 +15,9 @@
 
 namespace Ice
 {
+    /** Generates a UUID. */
+    using IceUtil::generateUUID;
 
-/** Generates a UUID. */
-using IceUtil::generateUUID;
-
-}
+} // namespace Ice
 
 #endif

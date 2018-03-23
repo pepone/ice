@@ -13,8 +13,14 @@
 using namespace std;
 
 #ifndef ICE_CPP11_MAPPING
-IceUtil::Shared* IceInternal::upCast(EndpointI* p) { return p; }
-IceUtil::Shared* IceInternal::upCast(EndpointI_connectors* p) { return p; }
+IceUtil::Shared* IceInternal::upCast(EndpointI* p)
+{
+    return p;
+}
+IceUtil::Shared* IceInternal::upCast(EndpointI_connectors* p)
+{
+    return p;
+}
 #endif
 
 IceInternal::EndpointI_connectors::~EndpointI_connectors()
@@ -22,16 +28,14 @@ IceInternal::EndpointI_connectors::~EndpointI_connectors()
     // Out of line to avoid weak vtable
 }
 
-void
-IceInternal::EndpointI::streamWrite(Ice::OutputStream* s) const
+void IceInternal::EndpointI::streamWrite(Ice::OutputStream* s) const
 {
     s->startEncapsulation();
     streamWriteImpl(s);
     s->endEncapsulation();
 }
 
-string
-IceInternal::EndpointI::toString() const ICE_NOEXCEPT
+string IceInternal::EndpointI::toString() const ICE_NOEXCEPT
 {
     //
     // WARNING: Certain features, such as proxy validation in Glacier2,
@@ -43,8 +47,7 @@ IceInternal::EndpointI::toString() const ICE_NOEXCEPT
     return protocol() + options();
 }
 
-void
-IceInternal::EndpointI::initWithOptions(vector<string>& args)
+void IceInternal::EndpointI::initWithOptions(vector<string>& args)
 {
     vector<string> unknown;
 
@@ -95,8 +98,7 @@ IceInternal::EndpointI::initWithOptions(vector<string>& args)
     args = unknown;
 }
 
-bool
-IceInternal::EndpointI::checkOption(const string&, const string&, const string&)
+bool IceInternal::EndpointI::checkOption(const string&, const string&, const string&)
 {
     // Must be overriden to check for options.
     return false;

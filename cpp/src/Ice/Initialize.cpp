@@ -27,32 +27,29 @@ using namespace IceInternal;
 
 namespace
 {
+    IceUtil::Mutex* globalMutex = 0;
+    Ice::LoggerPtr processLogger;
 
-IceUtil::Mutex* globalMutex = 0;
-Ice::LoggerPtr processLogger;
-
-class Init
-{
-public:
-
-    Init()
+    class Init
     {
-        globalMutex = new IceUtil::Mutex;
-    }
+    public:
+        Init()
+        {
+            globalMutex = new IceUtil::Mutex;
+        }
 
-    ~Init()
-    {
-        delete globalMutex;
-        globalMutex = 0;
-    }
-};
+        ~Init()
+        {
+            delete globalMutex;
+            globalMutex = 0;
+        }
+    };
 
-Init init;
+    Init init;
 
-}
+} // namespace
 
-StringSeq
-Ice::argsToStringSeq(int argc, const char* const argv[])
+StringSeq Ice::argsToStringSeq(int argc, const char* const argv[])
 {
     StringSeq result;
     for(int i = 0; i < argc; i++)
@@ -64,8 +61,7 @@ Ice::argsToStringSeq(int argc, const char* const argv[])
 
 #ifdef _WIN32
 
-StringSeq
-Ice::argsToStringSeq(int /*argc*/, const wchar_t* const argv[])
+StringSeq Ice::argsToStringSeq(int /*argc*/, const wchar_t* const argv[])
 {
     //
     // Don't need to use a wide string converter argv is expected to
@@ -82,8 +78,7 @@ Ice::argsToStringSeq(int /*argc*/, const wchar_t* const argv[])
 
 #endif
 
-void
-Ice::stringSeqToArgs(const StringSeq& args, int& argc, const char* argv[])
+void Ice::stringSeqToArgs(const StringSeq& args, int& argc, const char* argv[])
 {
     //
     // Shift all elements in argv which are present in args to the
@@ -120,8 +115,7 @@ Ice::stringSeqToArgs(const StringSeq& args, int& argc, const char* argv[])
 }
 
 #ifdef _WIN32
-void
-Ice::stringSeqToArgs(const StringSeq& args, int& argc, const wchar_t* argv[])
+void Ice::stringSeqToArgs(const StringSeq& args, int& argc, const wchar_t* argv[])
 {
     //
     // Don't need to use a wide string converter argv is expected to
@@ -164,20 +158,17 @@ Ice::stringSeqToArgs(const StringSeq& args, int& argc, const wchar_t* argv[])
 }
 #endif
 
-PropertiesPtr
-Ice::createProperties()
+PropertiesPtr Ice::createProperties()
 {
     return ICE_MAKE_SHARED(PropertiesI);
 }
 
-PropertiesPtr
-Ice::createProperties(StringSeq& args, const PropertiesPtr& defaults)
+PropertiesPtr Ice::createProperties(StringSeq& args, const PropertiesPtr& defaults)
 {
     return ICE_MAKE_SHARED(PropertiesI, args, defaults);
 }
 
-PropertiesPtr
-Ice::createProperties(int& argc, const char* argv[], const PropertiesPtr& defaults)
+PropertiesPtr Ice::createProperties(int& argc, const char* argv[], const PropertiesPtr& defaults)
 {
     StringSeq args = argsToStringSeq(argc, argv);
     PropertiesPtr properties = createProperties(args, defaults);
@@ -186,8 +177,7 @@ Ice::createProperties(int& argc, const char* argv[], const PropertiesPtr& defaul
 }
 
 #ifdef _WIN32
-PropertiesPtr
-Ice::createProperties(int& argc, const wchar_t* argv[], const PropertiesPtr& defaults)
+PropertiesPtr Ice::createProperties(int& argc, const wchar_t* argv[], const PropertiesPtr& defaults)
 {
     StringSeq args = argsToStringSeq(argc, argv);
     PropertiesPtr properties = createProperties(args, defaults);
@@ -197,8 +187,7 @@ Ice::createProperties(int& argc, const wchar_t* argv[], const PropertiesPtr& def
 #endif
 
 #ifdef ICE_CPP11_MAPPING
-Ice::ThreadHookPlugin::ThreadHookPlugin(const CommunicatorPtr& communicator,
-                                        function<void()> threadStart,
+Ice::ThreadHookPlugin::ThreadHookPlugin(const CommunicatorPtr& communicator, function<void()> threadStart,
                                         function<void()> threadStop)
 {
     if(communicator == nullptr)
@@ -221,66 +210,63 @@ Ice::ThreadHookPlugin::ThreadHookPlugin(const CommunicatorPtr& communicator, con
     instance->setThreadHook(threadHook);
 }
 #endif
-void
-Ice::ThreadHookPlugin::initialize()
+void Ice::ThreadHookPlugin::initialize()
 {
 }
 
-void
-Ice::ThreadHookPlugin::destroy()
+void Ice::ThreadHookPlugin::destroy()
 {
 }
 
 namespace
 {
-
-inline void checkIceVersion(int version)
-{
+    inline void checkIceVersion(int version)
+    {
 #ifndef ICE_IGNORE_VERSION
 
-#   if ICE_INT_VERSION % 100 > 50
-    //
-    // Beta version: exact match required
-    //
-    if(ICE_INT_VERSION != version)
-    {
-        throw VersionMismatchException(__FILE__, __LINE__);
-    }
-#   else
+#    if ICE_INT_VERSION % 100 > 50
+        //
+        // Beta version: exact match required
+        //
+        if(ICE_INT_VERSION != version)
+        {
+            throw VersionMismatchException(__FILE__, __LINE__);
+        }
+#    else
 
-    //
-    // Major and minor version numbers must match.
-    //
-    if(ICE_INT_VERSION / 100 != version / 100)
-    {
-        throw VersionMismatchException(__FILE__, __LINE__);
-    }
+        //
+        // Major and minor version numbers must match.
+        //
+        if(ICE_INT_VERSION / 100 != version / 100)
+        {
+            throw VersionMismatchException(__FILE__, __LINE__);
+        }
 
-    //
-    // Reject beta caller
-    //
-    if(version % 100 > 50)
-    {
-        throw VersionMismatchException(__FILE__, __LINE__);
-    }
+        //
+        // Reject beta caller
+        //
+        if(version % 100 > 50)
+        {
+            throw VersionMismatchException(__FILE__, __LINE__);
+        }
 
-    //
-    // The caller's patch level cannot be greater than library's patch level. (Patch level changes are
-    // backward-compatible, but not forward-compatible.)
-    //
-    if(version % 100 > ICE_INT_VERSION % 100)
-    {
-        throw VersionMismatchException(__FILE__, __LINE__);
-    }
+        //
+        // The caller's patch level cannot be greater than library's patch level. (Patch level changes are
+        // backward-compatible, but not forward-compatible.)
+        //
+        if(version % 100 > ICE_INT_VERSION % 100)
+        {
+            throw VersionMismatchException(__FILE__, __LINE__);
+        }
 
-#   endif
+#    endif
 #endif
-}
+    }
 
-}
+} // namespace
 
-Ice::CommunicatorPtr
-Ice::initialize(int& argc, const char* argv[], const InitializationData& initializationData, int version)
+Ice::CommunicatorPtr Ice::initialize(int& argc, const char* argv[], const InitializationData& initializationData,
+                                     int version)
 {
     checkIceVersion(version);
 
@@ -292,8 +278,7 @@ Ice::initialize(int& argc, const char* argv[], const InitializationData& initial
     return communicator;
 }
 
-Ice::CommunicatorPtr
-Ice::initialize(int& argc, const char* argv[], ICE_CONFIG_FILE_STRING configFile, int version)
+Ice::CommunicatorPtr Ice::initialize(int& argc, const char* argv[], ICE_CONFIG_FILE_STRING configFile, int version)
 {
     InitializationData initData;
     initData.properties = createProperties();
@@ -302,8 +287,8 @@ Ice::initialize(int& argc, const char* argv[], ICE_CONFIG_FILE_STRING configFile
 }
 
 #ifdef _WIN32
-Ice::CommunicatorPtr
-Ice::initialize(int& argc, const wchar_t* argv[], const InitializationData& initializationData, int version)
+Ice::CommunicatorPtr Ice::initialize(int& argc, const wchar_t* argv[], const InitializationData& initializationData,
+                                     int version)
 {
     Ice::StringSeq args = argsToStringSeq(argc, argv);
     CommunicatorPtr communicator = initialize(args, initializationData, version);
@@ -311,8 +296,7 @@ Ice::initialize(int& argc, const wchar_t* argv[], const InitializationData& init
     return communicator;
 }
 
-Ice::CommunicatorPtr
-Ice::initialize(int& argc, const wchar_t* argv[], ICE_CONFIG_FILE_STRING configFile, int version)
+Ice::CommunicatorPtr Ice::initialize(int& argc, const wchar_t* argv[], ICE_CONFIG_FILE_STRING configFile, int version)
 {
     InitializationData initData;
     initData.properties = createProperties();
@@ -321,8 +305,7 @@ Ice::initialize(int& argc, const wchar_t* argv[], ICE_CONFIG_FILE_STRING configF
 }
 #endif
 
-Ice::CommunicatorPtr
-Ice::initialize(StringSeq& args, const InitializationData& initializationData, int version)
+Ice::CommunicatorPtr Ice::initialize(StringSeq& args, const InitializationData& initializationData, int version)
 {
     IceInternal::ArgVector av(args);
     CommunicatorPtr communicator = initialize(av.argc, av.argv, initializationData, version);
@@ -330,8 +313,7 @@ Ice::initialize(StringSeq& args, const InitializationData& initializationData, i
     return communicator;
 }
 
-Ice::CommunicatorPtr
-Ice::initialize(StringSeq& args, ICE_CONFIG_FILE_STRING configFile, int version)
+Ice::CommunicatorPtr Ice::initialize(StringSeq& args, ICE_CONFIG_FILE_STRING configFile, int version)
 {
     InitializationData initData;
     initData.properties = createProperties();
@@ -339,8 +321,7 @@ Ice::initialize(StringSeq& args, ICE_CONFIG_FILE_STRING configFile, int version)
     return initialize(args, initData, version);
 }
 
-Ice::CommunicatorPtr
-Ice::initialize(const InitializationData& initData, int version)
+Ice::CommunicatorPtr Ice::initialize(const InitializationData& initData, int version)
 {
     //
     // We can't simply call the other initialize() because this one does NOT read
@@ -350,13 +331,12 @@ Ice::initialize(const InitializationData& initData, int version)
 
     CommunicatorIPtr communicator = CommunicatorI::create(initData);
     int argc = 0;
-    const char* argv[] = { 0 };
+    const char* argv[] = {0};
     communicator->finishSetup(argc, argv);
     return communicator;
 }
 
-Ice::CommunicatorPtr
-Ice::initialize(ICE_CONFIG_FILE_STRING configFile, int version)
+Ice::CommunicatorPtr Ice::initialize(ICE_CONFIG_FILE_STRING configFile, int version)
 {
     InitializationData initData;
     initData.properties = createProperties();
@@ -364,30 +344,27 @@ Ice::initialize(ICE_CONFIG_FILE_STRING configFile, int version)
     return initialize(initData, version);
 }
 
-LoggerPtr
-Ice::getProcessLogger()
+LoggerPtr Ice::getProcessLogger()
 {
     IceUtilInternal::MutexPtrLock<IceUtil::Mutex> lock(globalMutex);
 
     if(processLogger == ICE_NULLPTR)
     {
-       //
-       // TODO: Would be nice to be able to use process name as prefix by default.
-       //
-       processLogger = ICE_MAKE_SHARED(LoggerI, "", "", true);
+        //
+        // TODO: Would be nice to be able to use process name as prefix by default.
+        //
+        processLogger = ICE_MAKE_SHARED(LoggerI, "", "", true);
     }
     return processLogger;
 }
 
-void
-Ice::setProcessLogger(const LoggerPtr& logger)
+void Ice::setProcessLogger(const LoggerPtr& logger)
 {
     IceUtilInternal::MutexPtrLock<IceUtil::Mutex> lock(globalMutex);
     processLogger = logger;
 }
 
-void
-Ice::registerPluginFactory(const std::string& name, PluginFactory factory, bool loadOnInitialize)
+void Ice::registerPluginFactory(const std::string& name, PluginFactory factory, bool loadOnInitialize)
 {
     IceUtilInternal::MutexPtrLock<IceUtil::Mutex> lock(globalMutex);
     PluginManagerI::registerPluginFactory(name, factory, loadOnInitialize);
@@ -407,8 +384,7 @@ Ice::CommunicatorHolder::CommunicatorHolder(shared_ptr<Communicator> communicato
 {
 }
 
-Ice::CommunicatorHolder&
-Ice::CommunicatorHolder::operator=(shared_ptr<Communicator> communicator)
+Ice::CommunicatorHolder& Ice::CommunicatorHolder::operator=(shared_ptr<Communicator> communicator)
 {
     if(_communicator)
     {
@@ -418,8 +394,7 @@ Ice::CommunicatorHolder::operator=(shared_ptr<Communicator> communicator)
     return *this;
 }
 
-Ice::CommunicatorHolder&
-Ice::CommunicatorHolder::operator=(CommunicatorHolder&& other)
+Ice::CommunicatorHolder& Ice::CommunicatorHolder::operator=(CommunicatorHolder&& other)
 {
     if(_communicator)
     {
@@ -452,7 +427,7 @@ Ice::CommunicatorHolder::CommunicatorHolder(int& argc, char* argv[], const char*
 {
 }
 
-#   ifdef _WIN32
+#    ifdef _WIN32
 Ice::CommunicatorHolder::CommunicatorHolder(int& argc, const wchar_t* argv[], const InitializationData& initData,
                                             int version) :
     _communicator(initialize(argc, argv, initData, version))
@@ -474,7 +449,7 @@ Ice::CommunicatorHolder::CommunicatorHolder(int& argc, wchar_t* argv[], const ch
     _communicator(initialize(argc, argv, configFile, version))
 {
 }
-#   endif
+#    endif
 
 Ice::CommunicatorHolder::CommunicatorHolder(StringSeq& args, const InitializationData& initData, int version) :
     _communicator(initialize(args, initData, version))
@@ -496,13 +471,11 @@ Ice::CommunicatorHolder::CommunicatorHolder(const char* configFile, int version)
 {
 }
 
-Ice::CommunicatorHolder::CommunicatorHolder(const CommunicatorPtr& communicator) :
-    _communicator(communicator)
+Ice::CommunicatorHolder::CommunicatorHolder(const CommunicatorPtr& communicator) : _communicator(communicator)
 {
 }
 
-Ice::CommunicatorHolder&
-Ice::CommunicatorHolder::operator=(const CommunicatorPtr& communicator)
+Ice::CommunicatorHolder& Ice::CommunicatorHolder::operator=(const CommunicatorPtr& communicator)
 {
     if(_communicator)
     {
@@ -527,20 +500,17 @@ Ice::CommunicatorHolder::operator bool() const
     return _communicator != ICE_NULLPTR;
 }
 
-const Ice::CommunicatorPtr&
-Ice::CommunicatorHolder::communicator() const
+const Ice::CommunicatorPtr& Ice::CommunicatorHolder::communicator() const
 {
     return _communicator;
 }
 
-const Ice::CommunicatorPtr&
-Ice::CommunicatorHolder::operator->() const
+const Ice::CommunicatorPtr& Ice::CommunicatorHolder::operator->() const
 {
     return _communicator;
 }
 
-Ice::CommunicatorPtr
-Ice::CommunicatorHolder::release()
+Ice::CommunicatorPtr Ice::CommunicatorHolder::release()
 {
 #ifdef ICE_CPP11_MAPPING
     return std::move(_communicator);
@@ -551,24 +521,21 @@ Ice::CommunicatorHolder::release()
 #endif
 }
 
-InstancePtr
-IceInternal::getInstance(const CommunicatorPtr& communicator)
+InstancePtr IceInternal::getInstance(const CommunicatorPtr& communicator)
 {
     CommunicatorIPtr p = ICE_DYNAMIC_CAST(::Ice::CommunicatorI, communicator);
     assert(p);
     return p->_instance;
 }
 
-IceUtil::TimerPtr
-IceInternal::getInstanceTimer(const CommunicatorPtr& communicator)
+IceUtil::TimerPtr IceInternal::getInstanceTimer(const CommunicatorPtr& communicator)
 {
     CommunicatorIPtr p = ICE_DYNAMIC_CAST(::Ice::CommunicatorI, communicator);
     assert(p);
     return p->_instance->timer();
 }
 
-Identity
-Ice::stringToIdentity(const string& s)
+Identity Ice::stringToIdentity(const string& s)
 {
     Identity ident;
 
@@ -624,8 +591,8 @@ Ice::stringToIdentity(const string& s)
         }
         catch(const IceUtil::IllegalArgumentException& ex)
         {
-            throw IdentityParseException(__FILE__, __LINE__, "invalid category in identity `" + s + "': " +
-                                         ex.reason());
+            throw IdentityParseException(__FILE__, __LINE__,
+                                         "invalid category in identity `" + s + "': " + ex.reason());
         }
 
         if(slash + 1 < s.size())
@@ -636,8 +603,8 @@ Ice::stringToIdentity(const string& s)
             }
             catch(const IceUtil::IllegalArgumentException& ex)
             {
-                throw IdentityParseException(__FILE__, __LINE__, "invalid name in identity `" + s + "': " +
-                                             ex.reason());
+                throw IdentityParseException(__FILE__, __LINE__,
+                                             "invalid name in identity `" + s + "': " + ex.reason());
             }
         }
     }
@@ -645,8 +612,7 @@ Ice::stringToIdentity(const string& s)
     return ident;
 }
 
-string
-Ice::identityToString(const Identity& ident, ToStringMode toStringMode)
+string Ice::identityToString(const Identity& ident, ToStringMode toStringMode)
 {
     if(ident.category.empty())
     {

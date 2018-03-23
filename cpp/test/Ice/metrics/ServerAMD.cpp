@@ -15,8 +15,7 @@ DEFINE_TEST("serveramd")
 
 using namespace std;
 
-int
-run(int, char**, const Ice::CommunicatorPtr& communicator)
+int run(int, char**, const Ice::CommunicatorPtr& communicator)
 {
     communicator->getProperties()->setProperty("TestAdapter.Endpoints", getTestEndpoint(communicator, 0));
     Ice::ObjectAdapterPtr adapter = communicator->createObjectAdapter("TestAdapter");
@@ -34,8 +33,7 @@ run(int, char**, const Ice::CommunicatorPtr& communicator)
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
 #ifdef ICE_STATIC_LIBS
     Ice::registerIceSSL(false);
@@ -44,8 +42,8 @@ main(int argc, char* argv[])
     try
     {
         Ice::InitializationData initData = getTestInitData(argc, argv);
-        //initData.properties->setProperty("Ice.ThreadPool.Server.Size", "1");
-        //initData.properties->setProperty("Ice.ThreadPool.Server.SizeMax", "1");
+        // initData.properties->setProperty("Ice.ThreadPool.Server.Size", "1");
+        // initData.properties->setProperty("Ice.ThreadPool.Server.SizeMax", "1");
         initData.properties->setProperty("Ice.Admin.Endpoints", "tcp");
         initData.properties->setProperty("Ice.Admin.InstanceName", "server");
         initData.properties->setProperty("Ice.Warn.Connections", "0");

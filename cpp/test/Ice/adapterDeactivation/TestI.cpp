@@ -15,25 +15,22 @@
 using namespace std;
 using namespace Ice;
 
-void
-TestI::transient(const Current& current)
+void TestI::transient(const Current& current)
 {
     CommunicatorPtr communicator = current.adapter->getCommunicator();
-    ObjectAdapterPtr adapter = communicator->createObjectAdapterWithEndpoints("TransientTestAdapter",
-                                                                              getTestEndpoint(communicator, 1));
+    ObjectAdapterPtr adapter =
+        communicator->createObjectAdapterWithEndpoints("TransientTestAdapter", getTestEndpoint(communicator, 1));
     adapter->activate();
     adapter->destroy();
 }
 
-void
-TestI::deactivate(const Current& current)
+void TestI::deactivate(const Current& current)
 {
     current.adapter->deactivate();
     IceUtil::ThreadControl::sleep(IceUtil::Time::milliSeconds(100));
 }
 
-string
-CookieI::message() const
+string CookieI::message() const
 {
     return "blahblah";
 }

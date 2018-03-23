@@ -15,11 +15,9 @@
 class CreateTest : public TestBase
 {
 public:
-
     CreateTest();
 
 private:
-
     virtual void run();
 };
 

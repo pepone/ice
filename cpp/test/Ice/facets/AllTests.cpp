@@ -19,8 +19,7 @@ class EmptyI : public virtual Empty
 {
 };
 
-GPrxPtr
-allTests(const Ice::CommunicatorPtr& communicator)
+GPrxPtr allTests(const Ice::CommunicatorPtr& communicator)
 {
 #ifdef ICE_OS_UWP
     bool uwp = true;
@@ -65,7 +64,7 @@ allTests(const Ice::CommunicatorPtr& communicator)
     }
     communicator->getProperties()->setProperty("FacetExceptionTestAdapter.Endpoints", localOAEndpoint);
     if(uwp || (communicator->getProperties()->getProperty("Ice.Default.Protocol") != "ssl" &&
-                 communicator->getProperties()->getProperty("Ice.Default.Protocol") != "wss"))
+               communicator->getProperties()->getProperty("Ice.Default.Protocol") != "wss"))
     {
         Ice::ObjectAdapterPtr adapter = communicator->createObjectAdapter("FacetExceptionTestAdapter");
         Ice::ObjectPtr obj = ICE_MAKE_SHARED(EmptyI);

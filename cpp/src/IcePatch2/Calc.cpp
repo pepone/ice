@@ -20,19 +20,17 @@ using namespace IceInternal;
 using namespace IcePatch2;
 using namespace IcePatch2Internal;
 
-struct FileInfoPathLess: public binary_function<const LargeFileInfo&, const LargeFileInfo&, bool>
+struct FileInfoPathLess : public binary_function<const LargeFileInfo&, const LargeFileInfo&, bool>
 {
-    bool
-    operator()(const LargeFileInfo& lhs, const LargeFileInfo& rhs)
+    bool operator()(const LargeFileInfo& lhs, const LargeFileInfo& rhs)
     {
         return lhs.path < rhs.path;
     }
 };
 
-struct IFileInfoPathEqual: public binary_function<const LargeFileInfo&, const LargeFileInfo&, bool>
+struct IFileInfoPathEqual : public binary_function<const LargeFileInfo&, const LargeFileInfo&, bool>
 {
-    bool
-    operator()(const LargeFileInfo& lhs, const LargeFileInfo& rhs)
+    bool operator()(const LargeFileInfo& lhs, const LargeFileInfo& rhs)
     {
         if(lhs.path.size() != rhs.path.size())
         {
@@ -51,10 +49,9 @@ struct IFileInfoPathEqual: public binary_function<const LargeFileInfo&, const La
     }
 };
 
-struct IFileInfoPathLess: public binary_function<const LargeFileInfo&, const LargeFileInfo&, bool>
+struct IFileInfoPathLess : public binary_function<const LargeFileInfo&, const LargeFileInfo&, bool>
 {
-    bool
-    operator()(const LargeFileInfo& lhs, const LargeFileInfo& rhs)
+    bool operator()(const LargeFileInfo& lhs, const LargeFileInfo& rhs)
     {
         for(string::size_type i = 0; i < lhs.path.size() && i < rhs.path.size(); ++i)
         {
@@ -75,53 +72,44 @@ struct IFileInfoPathLess: public binary_function<const LargeFileInfo&, const Lar
 class CalcCB : public GetFileInfoSeqCB
 {
 public:
-
-    virtual bool
-    remove(const string& path)
+    virtual bool remove(const string& path)
     {
         consoleOut << "removing: " << path << endl;
         return true;
     }
 
-    virtual bool
-    checksum(const string& path)
+    virtual bool checksum(const string& path)
     {
         consoleOut << "checksum: " << path << endl;
         return true;
     }
 
-    virtual bool
-    compress(const string& path)
+    virtual bool compress(const string& path)
     {
         consoleOut << "compress: " << path << endl;
         return true;
     }
 };
 
-void
-usage(const string& appName)
+void usage(const string& appName)
 {
     consoleErr << "Usage: " << appName << " [options] DIR [FILES...]\n";
-    consoleErr <<
-        "Options:\n"
-        "-h, --help              Show this message.\n"
-        "-v, --version           Display the Ice version.\n"
-        "-z, --compress          Always compress files.\n"
-        "-Z, --no-compress       Never compress files.\n"
-        "-i, --case-insensitive  Files must not differ in case only.\n"
-        "-V, --verbose           Verbose mode.\n"
-        ;
+    consoleErr << "Options:\n"
+                  "-h, --help              Show this message.\n"
+                  "-v, --version           Display the Ice version.\n"
+                  "-z, --compress          Always compress files.\n"
+                  "-Z, --no-compress       Never compress files.\n"
+                  "-i, --case-insensitive  Files must not differ in case only.\n"
+                  "-V, --verbose           Verbose mode.\n";
 }
 
 #ifdef _WIN32
 
-int
-wmain(int argc, wchar_t* argv[])
+int wmain(int argc, wchar_t* argv[])
 
 #else
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 
 #endif
 {
@@ -263,24 +251,16 @@ main(int argc, char* argv[])
                 LargeFileInfoSeq newInfoSeq;
                 newInfoSeq.reserve(infoSeq.size());
 
-                set_difference(infoSeq.begin(),
-                               infoSeq.end(),
-                               partialInfoSeq.begin(),
-                               partialInfoSeq.end(),
-                               back_inserter(newInfoSeq),
-                               FileInfoPathLess());
+                set_difference(infoSeq.begin(), infoSeq.end(), partialInfoSeq.begin(), partialInfoSeq.end(),
+                               back_inserter(newInfoSeq), FileInfoPathLess());
 
                 infoSeq.swap(newInfoSeq);
 
                 newInfoSeq.clear();
                 newInfoSeq.reserve(infoSeq.size() + partialInfoSeq.size());
 
-                set_union(infoSeq.begin(),
-                          infoSeq.end(),
-                          partialInfoSeq.begin(),
-                          partialInfoSeq.end(),
-                          back_inserter(newInfoSeq),
-                          FileInfoPathLess());
+                set_union(infoSeq.begin(), infoSeq.end(), partialInfoSeq.begin(), partialInfoSeq.end(),
+                          back_inserter(newInfoSeq), FileInfoPathLess());
 
                 infoSeq.swap(newInfoSeq);
             }
@@ -298,8 +278,7 @@ main(int argc, char* argv[])
                 {
                     reason += '\n' + dataDir + '/' + p->path;
                     ++p;
-                }
-                while(p < newInfoSeq.end() && IFileInfoPathEqual()(*(p - 1), *p));
+                } while(p < newInfoSeq.end() && IFileInfoPathEqual()(*(p - 1), *p));
             }
 
             if(!reason.empty())

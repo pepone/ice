@@ -12,26 +12,22 @@
 
 using namespace Test;
 
-TestI::TestI() :
-    _failed(false)
+TestI::TestI() : _failed(false)
 {
 }
 
-void
-TestI::fail(const Ice::Current& current)
+void TestI::fail(const Ice::Current& current)
 {
     _failed = true;
     current.adapter->getCommunicator()->shutdown();
 }
 
-void
-TestI::shutdown(const Ice::Current& current)
+void TestI::shutdown(const Ice::Current& current)
 {
     current.adapter->getCommunicator()->shutdown();
 }
 
-bool
-TestI::isFailed() const
+bool TestI::isFailed() const
 {
     return _failed;
 }

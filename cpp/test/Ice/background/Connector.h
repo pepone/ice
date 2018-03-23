@@ -16,7 +16,6 @@
 class Connector : public IceInternal::Connector
 {
 public:
-
     IceInternal::TransceiverPtr connect();
 
     Ice::Short type() const;
@@ -28,7 +27,6 @@ public:
     Connector(const IceInternal::ConnectorPtr& connector);
 
 private:
-
     const IceInternal::ConnectorPtr _connector;
     const ConfigurationPtr _configuration;
 };

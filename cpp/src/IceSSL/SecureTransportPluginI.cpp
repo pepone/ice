@@ -18,42 +18,36 @@ using namespace std;
 
 namespace
 {
+    class PluginI : public IceSSL::PluginI
+    {
+    public:
+        PluginI(const Ice::CommunicatorPtr&);
 
-class PluginI : public IceSSL::PluginI
-{
-public:
+        virtual IceSSL::CertificatePtr create(SecCertificateRef) const;
+        virtual IceSSL::CertificatePtr load(const std::string&) const;
+        virtual IceSSL::CertificatePtr decode(const std::string&) const;
+    };
 
-    PluginI(const Ice::CommunicatorPtr&);
-
-    virtual IceSSL::CertificatePtr create(SecCertificateRef) const;
-    virtual IceSSL::CertificatePtr load(const std::string&) const;
-    virtual IceSSL::CertificatePtr decode(const std::string&) const;
-};
-
-} // anonymous namespace end
+} // namespace
 
 //
 // Plugin implementation.
 //
-PluginI::PluginI(const Ice::CommunicatorPtr& com) :
-    IceSSL::PluginI(com, new IceSSL::SecureTransport::SSLEngine(com))
+PluginI::PluginI(const Ice::CommunicatorPtr& com) : IceSSL::PluginI(com, new IceSSL::SecureTransport::SSLEngine(com))
 {
 }
 
-IceSSL::CertificatePtr
-PluginI::create(SecCertificateRef cert) const
+IceSSL::CertificatePtr PluginI::create(SecCertificateRef cert) const
 {
     return IceSSL::SecureTransport::Certificate::create(cert);
 }
 
-IceSSL::CertificatePtr
-PluginI::load(const std::string& file) const
+IceSSL::CertificatePtr PluginI::load(const std::string& file) const
 {
     return IceSSL::SecureTransport::Certificate::load(file);
 }
 
-IceSSL::CertificatePtr
-PluginI::decode(const std::string& encoding) const
+IceSSL::CertificatePtr PluginI::decode(const std::string& encoding) const
 {
     return IceSSL::SecureTransport::Certificate::load(encoding);
 }
@@ -61,20 +55,18 @@ PluginI::decode(const std::string& encoding) const
 //
 // Plug-in factory function.
 //
-extern "C" ICESSL_API Ice::Plugin*
-createIceSSL(const Ice::CommunicatorPtr& communicator, const string& /*name*/, const Ice::StringSeq& /*args*/)
+extern "C" ICESSL_API Ice::Plugin* createIceSSL(const Ice::CommunicatorPtr& communicator, const string& /*name*/,
+                                                const Ice::StringSeq& /*args*/)
 {
     return new PluginI(communicator);
 }
 
-IceSSL::CertificatePtr
-IceSSL::Certificate::load(const std::string& file)
+IceSSL::CertificatePtr IceSSL::Certificate::load(const std::string& file)
 {
     return IceSSL::SecureTransport::Certificate::load(file);
 }
 
-IceSSL::CertificatePtr
-IceSSL::Certificate::decode(const std::string& encoding)
+IceSSL::CertificatePtr IceSSL::Certificate::decode(const std::string& encoding)
 {
     return IceSSL::SecureTransport::Certificate::decode(encoding);
 }

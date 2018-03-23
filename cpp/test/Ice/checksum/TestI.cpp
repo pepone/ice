@@ -15,14 +15,12 @@ ChecksumI::ChecksumI()
 {
 }
 
-Ice::SliceChecksumDict
-ChecksumI::getSliceChecksums(const Ice::Current&) const
+Ice::SliceChecksumDict ChecksumI::getSliceChecksums(const Ice::Current&) const
 {
     return Ice::sliceChecksums();
 }
 
-void
-ChecksumI::shutdown(const Ice::Current& current)
+void ChecksumI::shutdown(const Ice::Current& current)
 {
     current.adapter->getCommunicator()->shutdown();
 }

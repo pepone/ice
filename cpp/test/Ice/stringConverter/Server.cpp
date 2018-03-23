@@ -21,17 +21,14 @@ using namespace std;
 class MyObjectI : public Test::MyObject
 {
 public:
-
     virtual wstring widen(ICE_IN(string) msg, const Ice::Current&)
     {
-        return stringToWstring(msg, Ice::getProcessStringConverter(),
-                               Ice::getProcessWstringConverter());
+        return stringToWstring(msg, Ice::getProcessStringConverter(), Ice::getProcessWstringConverter());
     }
 
     virtual string narrow(ICE_IN(wstring) wmsg, const Ice::Current&)
     {
-        return wstringToString(wmsg, Ice::getProcessStringConverter(),
-                               Ice::getProcessWstringConverter());
+        return wstringToString(wmsg, Ice::getProcessStringConverter(), Ice::getProcessWstringConverter());
     }
 
     virtual void shutdown(const Ice::Current& current)
@@ -40,8 +37,7 @@ public:
     }
 };
 
-int
-run(int, char**, const Ice::CommunicatorPtr& communicator)
+int run(int, char**, const Ice::CommunicatorPtr& communicator)
 {
     communicator->getProperties()->setProperty("TestAdapter.Endpoints", getTestEndpoint(communicator, 0));
     Ice::ObjectAdapterPtr adapter = communicator->createObjectAdapter("TestAdapter");
@@ -53,8 +49,7 @@ run(int, char**, const Ice::CommunicatorPtr& communicator)
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
 #ifdef ICE_STATIC_LIBS
     Ice::registerIceSSL(false);

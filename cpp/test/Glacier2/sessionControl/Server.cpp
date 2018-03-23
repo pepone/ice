@@ -19,20 +19,17 @@ using namespace Test;
 class SessionControlServer : public Application
 {
 public:
-
-    virtual int run(int, char*[]);
+    virtual int run(int, char* []);
 };
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
     SessionControlServer app;
     Ice::InitializationData initData = getTestInitData(argc, argv);
     return app.main(argc, argv, initData);
 }
 
-int
-SessionControlServer::run(int, char**)
+int SessionControlServer::run(int, char**)
 {
     communicator()->getProperties()->setProperty("SessionControlAdapter.Endpoints", getTestEndpoint(communicator(), 0));
     ObjectAdapterPtr adapter = communicator()->createObjectAdapter("SessionControlAdapter");

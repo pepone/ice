@@ -20,44 +20,41 @@
 
 namespace IceBT
 {
+    class AcceptorI : public IceInternal::Acceptor, public IceInternal::NativeInfo
+    {
+    public:
+        virtual IceInternal::NativeInfoPtr getNativeInfo();
 
-class AcceptorI : public IceInternal::Acceptor, public IceInternal::NativeInfo
-{
-public:
+        virtual void close();
+        virtual IceInternal::EndpointIPtr listen();
+        virtual IceInternal::TransceiverPtr accept();
+        virtual std::string protocol() const;
+        virtual std::string toString() const;
+        virtual std::string toDetailedString() const;
 
-    virtual IceInternal::NativeInfoPtr getNativeInfo();
+        int effectiveChannel() const;
 
-    virtual void close();
-    virtual IceInternal::EndpointIPtr listen();
-    virtual IceInternal::TransceiverPtr accept();
-    virtual std::string protocol() const;
-    virtual std::string toString() const;
-    virtual std::string toDetailedString() const;
+        void newConnection(int);
 
-    int effectiveChannel() const;
+    private:
+        AcceptorI(const EndpointIPtr&, const InstancePtr&, const std::string&, const std::string&, const std::string&,
+                  const std::string&, int);
+        virtual ~AcceptorI();
+        friend class EndpointI;
 
-    void newConnection(int);
+        EndpointIPtr _endpoint;
+        const InstancePtr _instance;
+        const std::string _adapterName;
+        const std::string _addr;
+        const std::string _uuid;
+        const std::string _name;
+        const int _channel;
+        std::string _path;
 
-private:
+        IceUtil::Monitor<IceUtil::Mutex> _lock;
+        std::stack<IceInternal::TransceiverPtr> _transceivers;
+    };
 
-    AcceptorI(const EndpointIPtr&, const InstancePtr&, const std::string&, const std::string&, const std::string&,
-              const std::string&, int);
-    virtual ~AcceptorI();
-    friend class EndpointI;
-
-    EndpointIPtr _endpoint;
-    const InstancePtr _instance;
-    const std::string _adapterName;
-    const std::string _addr;
-    const std::string _uuid;
-    const std::string _name;
-    const int _channel;
-    std::string _path;
-
-    IceUtil::Monitor<IceUtil::Mutex> _lock;
-    std::stack<IceInternal::TransceiverPtr> _transceivers;
-};
-
-}
+} // namespace IceBT
 
 #endif

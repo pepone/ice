@@ -36,7 +36,6 @@ private:
 class SessionI : public Test::TestSession
 {
 public:
-
     SessionI(const Glacier2::SessionControlPrx&, const TestControllerIPtr&);
     virtual void destroySession(const Ice::Current&);
     virtual void shutdown(const Ice::Current&);
@@ -44,7 +43,6 @@ public:
     virtual void destroy(const Ice::Current&);
 
 private:
-
     Glacier2::SessionControlPrx _sessionControl;
     TestControllerIPtr _controller;
 };

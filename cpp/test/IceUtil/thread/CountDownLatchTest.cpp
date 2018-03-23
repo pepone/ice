@@ -24,7 +24,6 @@ static const int magic = 0xbeef;
 class CountDownLatchTestThread : public Thread
 {
 public:
-
     CountDownLatchTestThread(CountDownLatch& latch, int& val, bool takeOne) :
         _latch(latch),
         _val(val),
@@ -34,7 +33,6 @@ public:
 
     virtual void run()
     {
-
         if(_takeOne)
         {
             _latch.countDown();
@@ -51,19 +49,16 @@ public:
     }
 
 private:
-
     CountDownLatch& _latch;
     int& _val;
     bool _takeOne;
 };
 
-CountDownLatchTest::CountDownLatchTest() :
-    TestBase(testName)
+CountDownLatchTest::CountDownLatchTest() : TestBase(testName)
 {
 }
 
-void
-CountDownLatchTest::run()
+void CountDownLatchTest::run()
 {
     const int fullCount = 11;
 

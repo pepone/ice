@@ -15,27 +15,26 @@
 
 namespace IceBT
 {
+    class Instance;
+    IceUtil::Shared* upCast(Instance*);
+    typedef IceInternal::Handle<Instance> InstancePtr;
 
-class Instance;
-IceUtil::Shared* upCast(Instance*);
-typedef IceInternal::Handle<Instance> InstancePtr;
-
-class EndpointI;
+    class EndpointI;
 #ifdef ICE_CPP11_MAPPING
-using EndpointIPtr = ::std::shared_ptr<EndpointI>;
+    using EndpointIPtr = ::std::shared_ptr<EndpointI>;
 #else
-IceUtil::Shared* upCast(EndpointI*);
-typedef IceInternal::Handle<EndpointI> EndpointIPtr;
+    IceUtil::Shared* upCast(EndpointI*);
+    typedef IceInternal::Handle<EndpointI> EndpointIPtr;
 #endif
 
-class TransceiverI;
-IceUtil::Shared* upCast(TransceiverI*);
-typedef IceInternal::Handle<TransceiverI> TransceiverIPtr;
+    class TransceiverI;
+    IceUtil::Shared* upCast(TransceiverI*);
+    typedef IceInternal::Handle<TransceiverI> TransceiverIPtr;
 
-class AcceptorI;
-IceUtil::Shared* upCast(AcceptorI*);
-typedef IceInternal::Handle<AcceptorI> AcceptorIPtr;
+    class AcceptorI;
+    IceUtil::Shared* upCast(AcceptorI*);
+    typedef IceInternal::Handle<AcceptorI> AcceptorIPtr;
 
-}
+} // namespace IceBT
 
 #endif

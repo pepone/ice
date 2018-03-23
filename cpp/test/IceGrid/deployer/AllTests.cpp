@@ -21,63 +21,53 @@ using namespace IceGrid;
 
 namespace
 {
-
-void
-writeLongLine(ostream& os)
-{
-    os << 'a';
-    for(int i = 0; i < 2400; i++)
+    void writeLongLine(ostream& os)
     {
-        os << 'b';
+        os << 'a';
+        for(int i = 0; i < 2400; i++)
+        {
+            os << 'b';
+        }
+        os << 'c';
     }
-    os << 'c';
-}
 
-bool
-isLongLineStart(const string& line)
+    bool isLongLineStart(const string& line)
+    {
+        test(line.size() < 1024);
+        return line.size() > 1 && line[0] == 'a' && line[1] == 'b';
+    }
+
+    bool isLongLineContent(const string& line)
+    {
+        test(line.size() < 1024);
+        return line.size() > 1 && line[0] == 'b' && line[line.size() - 1] == 'b';
+    }
+
+    bool isLongLineEnd(const string& line)
+    {
+        test(line.size() < 1024);
+        return line.size() > 1 && line[line.size() - 2] == 'b' && line[line.size() - 1] == 'c';
+    }
+
+} // namespace
+
+struct ProxyIdentityEqual : public std::binary_function<Ice::ObjectPrx, string, bool>
 {
-    test(line.size() < 1024);
-    return line.size() > 1 && line[0] == 'a' && line[1] == 'b';
-}
-
-bool
-isLongLineContent(const string& line)
-{
-    test(line.size() < 1024);
-    return line.size() > 1 && line[0] == 'b' && line[line.size() - 1] == 'b';
-}
-
-bool isLongLineEnd(const string& line)
-{
-    test(line.size() < 1024);
-    return line.size() > 1 && line[line.size() - 2] == 'b' && line[line.size() - 1] == 'c';
-}
-
-}
-
-struct ProxyIdentityEqual : public std::binary_function<Ice::ObjectPrx,string,bool>
-{
-
 public:
-
-    ProxyIdentityEqual(const Ice::CommunicatorPtr& communicator) :
-        _communicator(communicator)
+    ProxyIdentityEqual(const Ice::CommunicatorPtr& communicator) : _communicator(communicator)
     {
     }
 
-    bool
-    operator()(const Ice::ObjectPrx& p1, const string& id) const
+    bool operator()(const Ice::ObjectPrx& p1, const string& id) const
     {
         return p1->ice_getIdentity() == Ice::stringToIdentity(id);
     }
 
 private:
-
     Ice::CommunicatorPtr _communicator;
 };
 
-void
-logTests(const Ice::CommunicatorPtr& comm, const AdminSessionPrx& session)
+void logTests(const Ice::CommunicatorPtr& comm, const AdminSessionPrx& session)
 {
     cout << "testing stderr/stdout/log files... " << flush;
     string testDir = comm->getProperties()->getProperty("TestDir");
@@ -334,10 +324,10 @@ logTests(const Ice::CommunicatorPtr& comm, const AdminSessionPrx& session)
         os << endl;
         writeLongLine(os);
         os.flush();
-        test(!it->read(1024, lines) && lines.size() == 1 &&  isLongLineStart(lines[0]));
-        test(!it->read(1024, lines) && lines.size() == 1 &&  isLongLineContent(lines[0]));
+        test(!it->read(1024, lines) && lines.size() == 1 && isLongLineStart(lines[0]));
+        test(!it->read(1024, lines) && lines.size() == 1 && isLongLineContent(lines[0]));
         test(!it->read(1024, lines) && lines.size() == 2 && isLongLineEnd(lines[0]) && isLongLineStart(lines[1]));
-        test(!it->read(1024, lines) && lines.size() == 1 &&  isLongLineContent(lines[0]));
+        test(!it->read(1024, lines) && lines.size() == 1 && isLongLineContent(lines[0]));
         test(!it->read(1024, lines) && lines.size() == 2 && isLongLineEnd(lines[0]) && isLongLineStart(lines[1]));
         test(!it->read(1024, lines) && lines.size() == 1 && isLongLineContent(lines[0]));
         test(!it->read(1024, lines) && lines.size() == 1 && isLongLineContent(lines[0]));
@@ -375,8 +365,7 @@ logTests(const Ice::CommunicatorPtr& comm, const AdminSessionPrx& session)
     cout << "ok" << endl;
 }
 
-void
-allTests(const Ice::CommunicatorPtr& comm)
+void allTests(const Ice::CommunicatorPtr& comm)
 {
     IceGrid::RegistryPrx registry = IceGrid::RegistryPrx::checkedCast(
         comm->stringToProxy(comm->getDefaultLocator()->ice_getIdentity().category + "/Registry"));
@@ -387,12 +376,13 @@ allTests(const Ice::CommunicatorPtr& comm)
 
     AdminSessionPrx session = registry->createAdminSession("foo", "bar");
 
-    session->ice_getConnection()->setACM(registry->getACMTimeout(), IceUtil::None, Ice::ICE_ENUM(ACMHeartbeat, HeartbeatAlways));
+    session->ice_getConnection()->setACM(registry->getACMTimeout(), IceUtil::None,
+                                         Ice::ICE_ENUM(ACMHeartbeat, HeartbeatAlways));
 
     AdminPrx admin = session->getAdmin();
     test(admin);
 
-    cout << "testing server registration... "  << flush;
+    cout << "testing server registration... " << flush;
     Ice::StringSeq serverIds = admin->getAllServerIds();
     test(find(serverIds.begin(), serverIds.end(), "Server1") != serverIds.end());
     test(find(serverIds.begin(), serverIds.end(), "Server2") != serverIds.end());
@@ -418,15 +408,16 @@ allTests(const Ice::CommunicatorPtr& comm)
 
     cout << "testing object registration... " << flush;
     Ice::ObjectProxySeq objs = query->findAllObjectsByType("::Test");
-    test(find_if(objs.begin(), objs.end(), bind2nd(ProxyIdentityEqual(comm),"Server1")) != objs.end());
-    test(find_if(objs.begin(), objs.end(), bind2nd(ProxyIdentityEqual(comm),"Server2")) != objs.end());
-    test(find_if(objs.begin(), objs.end(), bind2nd(ProxyIdentityEqual(comm),"SimpleServer")) != objs.end());
-    test(find_if(objs.begin(), objs.end(), bind2nd(ProxyIdentityEqual(comm),"IceBox1-Service1")) != objs.end());
-    test(find_if(objs.begin(), objs.end(), bind2nd(ProxyIdentityEqual(comm),"IceBox1-Service2")) != objs.end());
-    test(find_if(objs.begin(), objs.end(), bind2nd(ProxyIdentityEqual(comm),"IceBox2-Service1")) != objs.end());
-    test(find_if(objs.begin(), objs.end(), bind2nd(ProxyIdentityEqual(comm),"IceBox2-Service2")) != objs.end());
-    test(find_if(objs.begin(), objs.end(), bind2nd(ProxyIdentityEqual(comm),"SimpleIceBox-SimpleService")) != objs.end());
-    test(find_if(objs.begin(), objs.end(), bind2nd(ProxyIdentityEqual(comm),"ReplicatedObject")) != objs.end());
+    test(find_if(objs.begin(), objs.end(), bind2nd(ProxyIdentityEqual(comm), "Server1")) != objs.end());
+    test(find_if(objs.begin(), objs.end(), bind2nd(ProxyIdentityEqual(comm), "Server2")) != objs.end());
+    test(find_if(objs.begin(), objs.end(), bind2nd(ProxyIdentityEqual(comm), "SimpleServer")) != objs.end());
+    test(find_if(objs.begin(), objs.end(), bind2nd(ProxyIdentityEqual(comm), "IceBox1-Service1")) != objs.end());
+    test(find_if(objs.begin(), objs.end(), bind2nd(ProxyIdentityEqual(comm), "IceBox1-Service2")) != objs.end());
+    test(find_if(objs.begin(), objs.end(), bind2nd(ProxyIdentityEqual(comm), "IceBox2-Service1")) != objs.end());
+    test(find_if(objs.begin(), objs.end(), bind2nd(ProxyIdentityEqual(comm), "IceBox2-Service2")) != objs.end());
+    test(find_if(objs.begin(), objs.end(), bind2nd(ProxyIdentityEqual(comm), "SimpleIceBox-SimpleService")) !=
+         objs.end());
+    test(find_if(objs.begin(), objs.end(), bind2nd(ProxyIdentityEqual(comm), "ReplicatedObject")) != objs.end());
 
     {
         test(comm->identityToString(query->findObjectByType("::TestId1")->ice_getIdentity()) == "cat/name1");
@@ -439,18 +430,16 @@ allTests(const Ice::CommunicatorPtr& comm)
     {
         Ice::ObjectPrx obj = query->findObjectByType("::Test");
         string id = comm->identityToString(obj->ice_getIdentity());
-        test(id == "Server1" || id == "Server2" || id == "SimpleServer" ||
-             id == "IceBox1-Service1" || id == "IceBox1-Service2" ||
-             id == "IceBox2-Service1" || id == "IceBox2-Service2" ||
+        test(id == "Server1" || id == "Server2" || id == "SimpleServer" || id == "IceBox1-Service1" ||
+             id == "IceBox1-Service2" || id == "IceBox2-Service1" || id == "IceBox2-Service2" ||
              id == "SimpleIceBox-SimpleService" || "ReplicatedObject");
     }
 
     {
         Ice::ObjectPrx obj = query->findObjectByTypeOnLeastLoadedNode("::Test", LoadSample5);
         string id = comm->identityToString(obj->ice_getIdentity());
-        test(id == "Server1" || id == "Server2" || id == "SimpleServer" ||
-             id == "IceBox1-Service1" || id == "IceBox1-Service2" ||
-             id == "IceBox2-Service1" || id == "IceBox2-Service2" ||
+        test(id == "Server1" || id == "Server2" || id == "SimpleServer" || id == "IceBox1-Service1" ||
+             id == "IceBox1-Service2" || id == "IceBox2-Service1" || id == "IceBox2-Service2" ||
              id == "SimpleIceBox-SimpleService" || "ReplicatedObject");
     }
 
@@ -544,7 +533,8 @@ allTests(const Ice::CommunicatorPtr& comm)
     test(obj->getProperty("PropertyWithHash") == "foo#bar");
     test(obj->getProperty("PropertyWithTab") == "foo\tbar");
     test(obj->getProperty("PropertyWithEscapeSpace") == "foo\\ ");
-    test(obj->getProperty("PropertyWithProperty") == "Plugin.EntryPoint=foo:bar --Ice.Config=\\\\\\server\\foo bar\\file.cfg");
+    test(obj->getProperty("PropertyWithProperty") ==
+         "Plugin.EntryPoint=foo:bar --Ice.Config=\\\\\\server\\foo bar\\file.cfg");
     cout << "ok" << endl;
 
     cout << "testing service configuration... " << flush;
@@ -562,7 +552,8 @@ allTests(const Ice::CommunicatorPtr& comm)
     test(obj->getProperty("PropertyWithHash") == "foo#bar");
     test(obj->getProperty("PropertyWithTab") == "foo\tbar");
     test(obj->getProperty("PropertyWithEscapeSpace") == "foo\\ ");
-    test(obj->getProperty("PropertyWithProperty") == "Plugin.EntryPoint=foo:bar --Ice.Config=\\\\\\server\\foo bar\\file.cfg");
+    test(obj->getProperty("PropertyWithProperty") ==
+         "Plugin.EntryPoint=foo:bar --Ice.Config=\\\\\\server\\foo bar\\file.cfg");
 
     obj = TestIntfPrx::checkedCast(comm->stringToProxy("IceBox2-Service2@IceBox2Service2Adapter"));
     test(obj->getProperty("Service2.Type") == "nonstandard");
@@ -644,12 +635,12 @@ allTests(const Ice::CommunicatorPtr& comm)
     // getApplicationDescriptor doesn't return the instantiated
     // application descriptor...
     //
-//     ApplicationDescriptor desc = admin->getApplicationDescriptor("test");
-//     test(desc.description == "APP AppVar");
-//     test(desc.nodes["localnode"].description == "NODE NodeVar");
-//     test(desc.replicaGroups[0].description == "REPLICA GROUP AppVar");
-//     test(desc.nodes["localnode"].servers.size() == 2);
-//    const int idx = desc.nodes["localnode"].servers[0]->id == "SimpleServer" ? 0 : 1;
+    //     ApplicationDescriptor desc = admin->getApplicationDescriptor("test");
+    //     test(desc.description == "APP AppVar");
+    //     test(desc.nodes["localnode"].description == "NODE NodeVar");
+    //     test(desc.replicaGroups[0].description == "REPLICA GROUP AppVar");
+    //     test(desc.nodes["localnode"].servers.size() == 2);
+    //    const int idx = desc.nodes["localnode"].servers[0]->id == "SimpleServer" ? 0 : 1;
     ServerInfo info = admin->getServerInfo("SimpleServer");
     test(info.descriptor->id == "SimpleServer");
     test(info.descriptor->description == "SERVER NodeVar");
@@ -743,8 +734,7 @@ allTests(const Ice::CommunicatorPtr& comm)
     session->destroy();
 }
 
-void
-allTestsWithTarget(const Ice::CommunicatorPtr& comm)
+void allTestsWithTarget(const Ice::CommunicatorPtr& comm)
 {
     RegistryPrx registry = IceGrid::RegistryPrx::checkedCast(
         comm->stringToProxy(comm->getDefaultLocator()->ice_getIdentity().category + "/Registry"));

@@ -31,11 +31,11 @@ ReplicaCache::ReplicaCache(const Ice::CommunicatorPtr& communicator, const IceSt
     }
 
     const_cast<IceStorm::TopicPrx&>(_topic) = IceStorm::TopicPrx::uncheckedCast(t->ice_endpoints(Ice::EndpointSeq()));
-    const_cast<ReplicaObserverPrx&>(_observers) = ReplicaObserverPrx::uncheckedCast(_topic->getPublisher()->ice_endpoints(Ice::EndpointSeq()));
+    const_cast<ReplicaObserverPrx&>(_observers) =
+        ReplicaObserverPrx::uncheckedCast(_topic->getPublisher()->ice_endpoints(Ice::EndpointSeq()));
 }
 
-ReplicaEntryPtr
-ReplicaCache::add(const string& name, const ReplicaSessionIPtr& session)
+ReplicaEntryPtr ReplicaCache::add(const string& name, const ReplicaSessionIPtr& session)
 {
     Lock sync(*this);
 
@@ -104,8 +104,7 @@ ReplicaCache::add(const string& name, const ReplicaSessionIPtr& session)
     return addImpl(name, new ReplicaEntry(name, session));
 }
 
-ReplicaEntryPtr
-ReplicaCache::remove(const string& name, bool shutdown)
+ReplicaEntryPtr ReplicaCache::remove(const string& name, bool shutdown)
 {
     Lock sync(*this);
 
@@ -148,8 +147,7 @@ ReplicaCache::remove(const string& name, bool shutdown)
     return entry;
 }
 
-ReplicaEntryPtr
-ReplicaCache::get(const string& name) const
+ReplicaEntryPtr ReplicaCache::get(const string& name) const
 {
     Lock sync(*this);
     ReplicaEntryPtr entry = getImpl(name);
@@ -160,8 +158,7 @@ ReplicaCache::get(const string& name) const
     return entry;
 }
 
-void
-ReplicaCache::subscribe(const ReplicaObserverPrx& observer)
+void ReplicaCache::subscribe(const ReplicaObserverPrx& observer)
 {
     try
     {
@@ -196,8 +193,7 @@ ReplicaCache::subscribe(const ReplicaObserverPrx& observer)
     }
 }
 
-void
-ReplicaCache::unsubscribe(const ReplicaObserverPrx& observer)
+void ReplicaCache::unsubscribe(const ReplicaObserverPrx& observer)
 {
     try
     {
@@ -222,8 +218,7 @@ ReplicaCache::unsubscribe(const ReplicaObserverPrx& observer)
     }
 }
 
-Ice::ObjectPrx
-ReplicaCache::getEndpoints(const string& name, const Ice::ObjectPrx& proxy) const
+Ice::ObjectPrx ReplicaCache::getEndpoints(const string& name, const Ice::ObjectPrx& proxy) const
 {
     Ice::EndpointSeq endpoints;
 
@@ -247,8 +242,7 @@ ReplicaCache::getEndpoints(const string& name, const Ice::ObjectPrx& proxy) cons
     return _communicator->stringToProxy("dummy")->ice_endpoints(endpoints);
 }
 
-void
-ReplicaCache::setInternalRegistry(const InternalRegistryPrx& proxy)
+void ReplicaCache::setInternalRegistry(const InternalRegistryPrx& proxy)
 {
     //
     // Setup this replica internal registry proxy.
@@ -256,8 +250,7 @@ ReplicaCache::setInternalRegistry(const InternalRegistryPrx& proxy)
     _self = proxy;
 }
 
-InternalRegistryPrx
-ReplicaCache::getInternalRegistry() const
+InternalRegistryPrx ReplicaCache::getInternalRegistry() const
 {
     //
     // This replica internal registry proxy.
@@ -265,9 +258,7 @@ ReplicaCache::getInternalRegistry() const
     return _self;
 }
 
-ReplicaEntry::ReplicaEntry(const std::string& name, const ReplicaSessionIPtr& session) :
-    _name(name),
-    _session(session)
+ReplicaEntry::ReplicaEntry(const std::string& name, const ReplicaSessionIPtr& session) : _name(name), _session(session)
 {
 }
 
@@ -275,26 +266,22 @@ ReplicaEntry::~ReplicaEntry()
 {
 }
 
-const ReplicaSessionIPtr&
-ReplicaEntry::getSession() const
+const ReplicaSessionIPtr& ReplicaEntry::getSession() const
 {
     return _session;
 }
 
-InternalReplicaInfoPtr
-ReplicaEntry::getInfo() const
+InternalReplicaInfoPtr ReplicaEntry::getInfo() const
 {
     return _session->getInfo();
 }
 
-InternalRegistryPrx
-ReplicaEntry::getProxy() const
+InternalRegistryPrx ReplicaEntry::getProxy() const
 {
     return _session->getInternalRegistry();
 }
 
-Ice::ObjectPrx
-ReplicaEntry::getAdminProxy() const
+Ice::ObjectPrx ReplicaEntry::getAdminProxy() const
 {
     Ice::ObjectPrx prx = getProxy();
     assert(prx);

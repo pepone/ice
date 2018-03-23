@@ -19,9 +19,9 @@ using namespace std;
 using namespace Test;
 using namespace IceGrid;
 
-void
-instantiateServer(const AdminPrx& admin, const string& templ, const string& node, const map<string, string>& params,
-                  const string& application = string("Test"), bool startServer = true)
+void instantiateServer(const AdminPrx& admin, const string& templ, const string& node,
+                       const map<string, string>& params, const string& application = string("Test"),
+                       bool startServer = true)
 {
     ServerInstanceDescriptor desc;
     desc._cpp_template = templ;
@@ -65,8 +65,7 @@ instantiateServer(const AdminPrx& admin, const string& templ, const string& node
     }
 }
 
-void
-removeServer(const AdminPrx& admin, const string& id)
+void removeServer(const AdminPrx& admin, const string& id)
 {
     try
     {
@@ -104,8 +103,7 @@ removeServer(const AdminPrx& admin, const string& id)
     }
 }
 
-void
-allTests(const Ice::CommunicatorPtr& comm)
+void allTests(const Ice::CommunicatorPtr& comm)
 {
     IceGrid::RegistryPrx registry = IceGrid::RegistryPrx::checkedCast(
         comm->stringToProxy(comm->getDefaultLocator()->ice_getIdentity().category + "/Registry"));
@@ -115,7 +113,8 @@ allTests(const Ice::CommunicatorPtr& comm)
     test(query);
     AdminSessionPrx session = registry->createAdminSession("foo", "bar");
 
-    session->ice_getConnection()->setACM(registry->getACMTimeout(), IceUtil::None, Ice::ICE_ENUM(ACMHeartbeat, HeartbeatAlways));
+    session->ice_getConnection()->setACM(registry->getACMTimeout(), IceUtil::None,
+                                         Ice::ICE_ENUM(ACMHeartbeat, HeartbeatAlways));
 
     AdminPrx admin = session->getAdmin();
     test(admin);
@@ -545,14 +544,17 @@ allTests(const Ice::CommunicatorPtr& comm)
                  "Server2.ReplicatedAdapter");
 
             ctx["server"] = "Server3";
-            test(query->ice_context(ctx)->findObjectByTypeOnLeastLoadedNode(
-                     "::Test::TestIntf2", LoadSample5)->ice_getAdapterId() == "Server3.Service.Service");
+            test(query->ice_context(ctx)
+                     ->findObjectByTypeOnLeastLoadedNode("::Test::TestIntf2", LoadSample5)
+                     ->ice_getAdapterId() == "Server3.Service.Service");
             ctx["server"] = "Server1";
-            test(query->ice_context(ctx)->findObjectByTypeOnLeastLoadedNode(
-                     "::Test::TestIntf2", LoadSample5)->ice_getAdapterId() == "Server1.ReplicatedAdapter");
+            test(query->ice_context(ctx)
+                     ->findObjectByTypeOnLeastLoadedNode("::Test::TestIntf2", LoadSample5)
+                     ->ice_getAdapterId() == "Server1.ReplicatedAdapter");
             ctx["server"] = "Server2";
-            test(query->ice_context(ctx)->findObjectByTypeOnLeastLoadedNode(
-                     "::Test::TestIntf2", LoadSample5)->ice_getAdapterId() == "Server2.ReplicatedAdapter");
+            test(query->ice_context(ctx)
+                     ->findObjectByTypeOnLeastLoadedNode("::Test::TestIntf2", LoadSample5)
+                     ->ice_getAdapterId() == "Server2.ReplicatedAdapter");
 
             ctx["server"] = "Server3";
             test(query->ice_context(ctx)->findAllObjectsByType("::Test::TestIntf2")[0]->ice_getAdapterId() ==
@@ -709,7 +711,6 @@ allTests(const Ice::CommunicatorPtr& comm)
         removeServer(admin, "Server1");
         removeServer(admin, "Server2");
         removeServer(admin, "Server3");
-
     }
     {
         TestIntfPrx obj = TestIntfPrx::uncheckedCast(comm->stringToProxy("RoundRobin-All"));
@@ -766,7 +767,6 @@ allTests(const Ice::CommunicatorPtr& comm)
         removeServer(admin, "Server1");
         removeServer(admin, "Server2");
         removeServer(admin, "Server3");
-
     }
     cout << "ok" << endl;
 
@@ -1073,65 +1073,64 @@ allTests(const Ice::CommunicatorPtr& comm)
     cout << "ok" << endl;
 
     cout << "testing dynamic and deployed replica groups... " << flush;
+    {{map<string, string> params;
+    params["replicaGroup"] = "Random";
+    params["id"] = "Server1";
+    instantiateServer(admin, "Server", "localnode", params);
+
+    params["replicaGroup"] = "Random";
+    params["id"] = "Server2";
+    instantiateServer(admin, "DynamicallyRegisteredServer", "localnode", params, "Test", false);
+
+    try
     {
-        {
-            map<string, string> params;
-            params["replicaGroup"] = "Random";
-            params["id"] = "Server1";
-            instantiateServer(admin, "Server", "localnode", params);
+        admin->startServer("Server2");
+        test(false);
+    }
+    catch(const ServerStartException&)
+    {
+        // Server should fail to start because it can't regsiter dynamically an OA
+        // with a deployed replica group.
+    }
+    catch(const Ice::Exception& ex)
+    {
+        cerr << ex << endl;
+        test(false);
+    }
 
-            params["replicaGroup"] = "Random";
-            params["id"] = "Server2";
-            instantiateServer(admin, "DynamicallyRegisteredServer", "localnode", params, "Test", false);
+    removeServer(admin, "Server1");
+    removeServer(admin, "Server2");
+}
+{
+    map<string, string> params;
+    params["replicaGroup"] = "DynamicRandomRG";
+    params["id"] = "Server1";
+    instantiateServer(admin, "DynamicallyRegisteredServer", "localnode", params);
 
-            try
-            {
-                admin->startServer("Server2");
-                test(false);
-            }
-            catch(const ServerStartException&)
-            {
-                // Server should fail to start because it can't regsiter dynamically an OA
-                // with a deployed replica group.
-            }
-            catch(const Ice::Exception& ex)
-            {
-                cerr << ex << endl;
-                test(false);
-            }
+    ApplicationInfo app = admin->getApplicationInfo("Test");
+    app.descriptor.name = "Test1";
+    app.descriptor.replicaGroups.clear();
+    app.descriptor.nodes.clear();
+    ReplicaGroupDescriptor replicaGroup;
+    replicaGroup.id = "DynamicRandomRG";
+    replicaGroup.loadBalancing = new RandomLoadBalancingPolicy("1");
+    app.descriptor.replicaGroups.push_back(replicaGroup);
+    try
+    {
+        admin->addApplication(app.descriptor);
+        test(false);
+    }
+    catch(const DeploymentException&)
+    {
+        // Expected, can't register a replica group if it has been registered
+        // with dynamic registration.
+    }
 
-            removeServer(admin, "Server1");
-            removeServer(admin, "Server2");
-        }
-        {
-            map<string, string> params;
-            params["replicaGroup"] = "DynamicRandomRG";
-            params["id"] = "Server1";
-            instantiateServer(admin, "DynamicallyRegisteredServer", "localnode", params);
+    removeServer(admin, "Server1");
+}
+}
+;
+cout << "ok" << endl;
 
-            ApplicationInfo app = admin->getApplicationInfo("Test");
-            app.descriptor.name = "Test1";
-            app.descriptor.replicaGroups.clear();
-            app.descriptor.nodes.clear();
-            ReplicaGroupDescriptor replicaGroup;
-            replicaGroup.id = "DynamicRandomRG";
-            replicaGroup.loadBalancing = new RandomLoadBalancingPolicy("1");
-            app.descriptor.replicaGroups.push_back(replicaGroup);
-            try
-            {
-                admin->addApplication(app.descriptor);
-                test(false);
-            }
-            catch(const DeploymentException&)
-            {
-                // Expected, can't register a replica group if it has been registered
-                // with dynamic registration.
-            }
-
-            removeServer(admin, "Server1");
-        }
-    };
-    cout << "ok" << endl;
-
-    session->destroy();
+session->destroy();
 }

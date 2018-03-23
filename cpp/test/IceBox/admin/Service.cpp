@@ -17,33 +17,28 @@ using namespace Ice;
 class ServiceI : public ::IceBox::Service
 {
 public:
-
     ServiceI(const CommunicatorPtr&);
     virtual ~ServiceI();
 
-    virtual void start(const string&,
-                       const CommunicatorPtr&,
-                       const StringSeq&);
+    virtual void start(const string&, const CommunicatorPtr&, const StringSeq&);
 
     virtual void stop();
 };
 
 extern "C"
 {
-
-//
-// Factory function
-//
-ICE_DECLSPEC_EXPORT ::IceBox::Service*
+    //
+    // Factory function
+    //
+    ICE_DECLSPEC_EXPORT ::IceBox::Service*
 #ifdef ICE_CPP11_MAPPING
-create(const shared_ptr<Communicator>& communicator)
+    create(const shared_ptr<Communicator>& communicator)
 #else
-create(CommunicatorPtr communicator)
+    create(CommunicatorPtr communicator)
 #endif
-{
-    return new ServiceI(communicator);
-}
-
+    {
+        return new ServiceI(communicator);
+    }
 }
 
 ServiceI::ServiceI(const CommunicatorPtr& serviceManagerCommunicator)
@@ -74,12 +69,10 @@ ServiceI::~ServiceI()
 {
 }
 
-void
-ServiceI::start(const string&, const CommunicatorPtr&, const StringSeq&)
+void ServiceI::start(const string&, const CommunicatorPtr&, const StringSeq&)
 {
 }
 
-void
-ServiceI::stop()
+void ServiceI::stop()
 {
 }

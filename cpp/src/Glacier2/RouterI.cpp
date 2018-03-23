@@ -54,7 +54,7 @@ Glacier2::RouterI::RouterI(const InstancePtr& instance, const ConnectionPtr& con
         for(unsigned int i = 0; i < sizeof(buf); ++i)
         {
             const unsigned char c = static_cast<unsigned char>(buf[i]); // A value between 0-255
-            ident.category[i] = 33 + c % (127-33); // We use ASCII 33-126 (from ! to ~, w/o space).
+            ident.category[i] = 33 + c % (127 - 33);                    // We use ASCII 33-126 (from ! to ~, w/o space).
         }
         serverProxy = _instance->serverObjectAdapter()->createProxy(ident);
 
@@ -72,8 +72,7 @@ Glacier2::RouterI::~RouterI()
 {
 }
 
-void
-Glacier2::RouterI::updateObserver(const Glacier2::Instrumentation::RouterObserverPtr& observer)
+void Glacier2::RouterI::updateObserver(const Glacier2::Instrumentation::RouterObserverPtr& observer)
 {
     // Can only be called with the SessionRouterI mutex locked
 
@@ -85,8 +84,7 @@ Glacier2::RouterI::updateObserver(const Glacier2::Instrumentation::RouterObserve
     }
 }
 
-void
-Glacier2::RouterI::destroy(const Callback_Session_destroyPtr& asyncCB)
+void Glacier2::RouterI::destroy(const Callback_Session_destroyPtr& asyncCB)
 {
     if(_session)
     {
@@ -129,76 +127,65 @@ Glacier2::RouterI::destroy(const Callback_Session_destroyPtr& asyncCB)
     _routingTable->destroy();
 }
 
-ObjectPrx
-Glacier2::RouterI::getClientProxy(IceUtil::Optional<bool>& hasRoutingTable, const Current&) const
+ObjectPrx Glacier2::RouterI::getClientProxy(IceUtil::Optional<bool>& hasRoutingTable, const Current&) const
 {
     // No mutex lock necessary, _clientProxy is immutable and is never destroyed.
     hasRoutingTable = true;
     return _clientProxy;
 }
 
-ObjectPrx
-Glacier2::RouterI::getServerProxy(const Current&) const
+ObjectPrx Glacier2::RouterI::getServerProxy(const Current&) const
 {
     // No mutex lock necessary, _serverProxy is immutable and is never destroyed.
     return _serverProxy;
 }
 
-ObjectProxySeq
-Glacier2::RouterI::addProxies(const ObjectProxySeq& proxies, const Current& current)
+ObjectProxySeq Glacier2::RouterI::addProxies(const ObjectProxySeq& proxies, const Current& current)
 {
     return _routingTable->add(proxies, current);
 }
 
-string
-Glacier2::RouterI::getCategoryForClient(const Ice::Current&) const
+string Glacier2::RouterI::getCategoryForClient(const Ice::Current&) const
 {
     assert(false); // Must not be called in this router implementation.
     return 0;
 }
 
-void
-Glacier2::RouterI::createSession_async(const AMD_Router_createSessionPtr&, const std::string&, const std::string&,
-                                       const Current&)
+void Glacier2::RouterI::createSession_async(const AMD_Router_createSessionPtr&, const std::string&, const std::string&,
+                                            const Current&)
 {
     assert(false); // Must not be called in this router implementation.
 }
 
-void
-Glacier2::RouterI::createSessionFromSecureConnection_async(const AMD_Router_createSessionFromSecureConnectionPtr&,
-                                                           const Current&)
+void Glacier2::RouterI::createSessionFromSecureConnection_async(const AMD_Router_createSessionFromSecureConnectionPtr&,
+                                                                const Current&)
 {
     assert(false); // Must not be called in this router implementation.
 }
 
-void
-Glacier2::RouterI::refreshSession_async(const AMD_Router_refreshSessionPtr&, const ::Ice::Current&)
+void Glacier2::RouterI::refreshSession_async(const AMD_Router_refreshSessionPtr&, const ::Ice::Current&)
 {
     assert(false); // Must not be called in this router implementation.
 }
 
-void
-Glacier2::RouterI::destroySession(const Current&)
+void Glacier2::RouterI::destroySession(const Current&)
 {
     assert(false); // Must not be called in this router implementation.
 }
 
-Ice::Long
-Glacier2::RouterI::getSessionTimeout(const Current&) const
+Ice::Long Glacier2::RouterI::getSessionTimeout(const Current&) const
 {
     assert(false); // Must not be called in this router implementation.
     return 0;
 }
 
-Ice::Int
-Glacier2::RouterI::getACMTimeout(const Current&) const
+Ice::Int Glacier2::RouterI::getACMTimeout(const Current&) const
 {
     assert(false); // Must not be called in this router implementation.
     return 0;
 }
 
-ClientBlobjectPtr
-Glacier2::RouterI::getClientBlobject() const
+ClientBlobjectPtr Glacier2::RouterI::getClientBlobject() const
 {
     // Can only be called with the SessionRouterI mutex locked
     if(!_clientBlobjectBuffered && _observer)
@@ -208,8 +195,7 @@ Glacier2::RouterI::getClientBlobject() const
     return _clientBlobject;
 }
 
-ServerBlobjectPtr
-Glacier2::RouterI::getServerBlobject() const
+ServerBlobjectPtr Glacier2::RouterI::getServerBlobject() const
 {
     // Can only be called with the SessionRouterI mutex locked
     if(!_serverBlobjectBuffered && _observer)
@@ -219,28 +205,24 @@ Glacier2::RouterI::getServerBlobject() const
     return _serverBlobject;
 }
 
-SessionPrx
-Glacier2::RouterI::getSession() const
+SessionPrx Glacier2::RouterI::getSession() const
 {
     return _session; // No mutex lock necessary, _session is immutable.
 }
 
-IceUtil::Time
-Glacier2::RouterI::getTimestamp() const
+IceUtil::Time Glacier2::RouterI::getTimestamp() const
 {
     // Can only be called with the SessionRouterI mutex locked
     return _timestamp;
 }
 
-void
-Glacier2::RouterI::updateTimestamp() const
+void Glacier2::RouterI::updateTimestamp() const
 {
     // Can only be called with the SessionRouterI mutex locked
     _timestamp = IceUtil::Time::now(IceUtil::Time::Monotonic);
 }
 
-string
-Glacier2::RouterI::toString() const
+string Glacier2::RouterI::toString() const
 {
     ostringstream out;
 

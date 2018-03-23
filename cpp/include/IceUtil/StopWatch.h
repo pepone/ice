@@ -14,40 +14,39 @@
 
 namespace IceUtilInternal
 {
-
-class StopWatch
-{
-public:
-
-    StopWatch() { }
-
-    void start()
+    class StopWatch
     {
-        _s = IceUtil::Time::now(IceUtil::Time::Monotonic);
-    }
+    public:
+        StopWatch()
+        {
+        }
 
-    IceUtil::Int64 stop()
-    {
-        assert(isStarted());
-        IceUtil::Int64 d = (IceUtil::Time::now(IceUtil::Time::Monotonic) - _s).toMicroSeconds();
-        _s = IceUtil::Time();
-        return d;
-    }
+        void start()
+        {
+            _s = IceUtil::Time::now(IceUtil::Time::Monotonic);
+        }
 
-    bool isStarted() const
-    {
-        return _s != IceUtil::Time();
-    }
+        IceUtil::Int64 stop()
+        {
+            assert(isStarted());
+            IceUtil::Int64 d = (IceUtil::Time::now(IceUtil::Time::Monotonic) - _s).toMicroSeconds();
+            _s = IceUtil::Time();
+            return d;
+        }
 
-    IceUtil::Int64 delay()
-    {
-        return (IceUtil::Time::now(IceUtil::Time::Monotonic) - _s).toMicroSeconds();
-    }
+        bool isStarted() const
+        {
+            return _s != IceUtil::Time();
+        }
 
-private:
+        IceUtil::Int64 delay()
+        {
+            return (IceUtil::Time::now(IceUtil::Time::Monotonic) - _s).toMicroSeconds();
+        }
 
-    IceUtil::Time _s;
-};
+    private:
+        IceUtil::Time _s;
+    };
 
 } // End namespace IceUtilInternal
 

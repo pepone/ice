@@ -14,16 +14,14 @@
 using namespace std;
 using namespace Test;
 
-int
-run(int, char**, const Ice::CommunicatorPtr& communicator)
+int run(int, char**, const Ice::CommunicatorPtr& communicator)
 {
     void allTests(const Ice::CommunicatorPtr&);
     allTests(communicator);
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
     int status;
     Ice::CommunicatorPtr communicator;

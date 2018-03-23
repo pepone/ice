@@ -26,73 +26,69 @@ typedef struct bio_st BIO;
 
 namespace IceSSL
 {
+    namespace OpenSSL
+    {
+        class TransceiverI : public IceInternal::Transceiver
+        {
+        public:
+            virtual IceInternal::NativeInfoPtr getNativeInfo();
 
-namespace OpenSSL
-{
-
-class TransceiverI : public IceInternal::Transceiver
-{
-public:
-
-    virtual IceInternal::NativeInfoPtr getNativeInfo();
-
-    virtual IceInternal::SocketOperation initialize(IceInternal::Buffer&, IceInternal::Buffer&);
-    virtual IceInternal::SocketOperation closing(bool, const Ice::LocalException&);
-    virtual void close();
-    virtual IceInternal::SocketOperation write(IceInternal::Buffer&);
-    virtual IceInternal::SocketOperation read(IceInternal::Buffer&);
+            virtual IceInternal::SocketOperation initialize(IceInternal::Buffer&, IceInternal::Buffer&);
+            virtual IceInternal::SocketOperation closing(bool, const Ice::LocalException&);
+            virtual void close();
+            virtual IceInternal::SocketOperation write(IceInternal::Buffer&);
+            virtual IceInternal::SocketOperation read(IceInternal::Buffer&);
 #ifdef ICE_USE_IOCP
-    virtual bool startWrite(IceInternal::Buffer&);
-    virtual void finishWrite(IceInternal::Buffer&);
-    virtual void startRead(IceInternal::Buffer&);
-    virtual void finishRead(IceInternal::Buffer&);
+            virtual bool startWrite(IceInternal::Buffer&);
+            virtual void finishWrite(IceInternal::Buffer&);
+            virtual void startRead(IceInternal::Buffer&);
+            virtual void finishRead(IceInternal::Buffer&);
 #endif
-    virtual std::string protocol() const;
-    virtual std::string toString() const;
-    virtual std::string toDetailedString() const;
-    virtual Ice::ConnectionInfoPtr getInfo() const;
-    virtual void checkSendSize(const IceInternal::Buffer&);
-    virtual void setBufferSize(int rcvSize, int sndSize);
+            virtual std::string protocol() const;
+            virtual std::string toString() const;
+            virtual std::string toDetailedString() const;
+            virtual Ice::ConnectionInfoPtr getInfo() const;
+            virtual void checkSendSize(const IceInternal::Buffer&);
+            virtual void setBufferSize(int rcvSize, int sndSize);
 
-    int verifyCallback(int , X509_STORE_CTX*);
+            int verifyCallback(int, X509_STORE_CTX*);
 
-private:
-
-    TransceiverI(const InstancePtr&, const IceInternal::TransceiverPtr&, const std::string&, bool);
-    virtual ~TransceiverI();
+        private:
+            TransceiverI(const InstancePtr&, const IceInternal::TransceiverPtr&, const std::string&, bool);
+            virtual ~TransceiverI();
 
 #ifdef ICE_USE_IOCP
-    bool receive();
-    bool send();
+            bool receive();
+            bool send();
 #endif
 
-    friend class IceSSL::OpenSSL::SSLEngine;
+            friend class IceSSL::OpenSSL::SSLEngine;
 
-    const InstancePtr _instance;
-    const IceSSL::OpenSSL::SSLEnginePtr _engine;
-    const std::string _host;
-    const std::string _adapterName;
-    const bool _incoming;
-    const IceInternal::TransceiverPtr _delegate;
-    bool _connected;
-    std::string _cipher;
-    std::vector<IceSSL::CertificatePtr> _certs;
-    bool _verified;
+            const InstancePtr _instance;
+            const IceSSL::OpenSSL::SSLEnginePtr _engine;
+            const std::string _host;
+            const std::string _adapterName;
+            const bool _incoming;
+            const IceInternal::TransceiverPtr _delegate;
+            bool _connected;
+            std::string _cipher;
+            std::vector<IceSSL::CertificatePtr> _certs;
+            bool _verified;
 
-    SSL* _ssl;
+            SSL* _ssl;
 #ifdef ICE_USE_IOCP
-    BIO* _iocpBio;
-    IceInternal::Buffer _writeBuffer;
-    IceInternal::Buffer _readBuffer;
-    int _sentBytes;
-    size_t _maxSendPacketSize;
-    size_t _maxRecvPacketSize;
+            BIO* _iocpBio;
+            IceInternal::Buffer _writeBuffer;
+            IceInternal::Buffer _readBuffer;
+            int _sentBytes;
+            size_t _maxSendPacketSize;
+            size_t _maxRecvPacketSize;
 #endif
-};
-typedef IceUtil::Handle<TransceiverI> TransceiverIPtr;
+        };
+        typedef IceUtil::Handle<TransceiverI> TransceiverIPtr;
 
-} // OpenSSL namespace end
+    } // namespace OpenSSL
 
-} // IceSSL namespace end
+} // namespace IceSSL
 
 #endif

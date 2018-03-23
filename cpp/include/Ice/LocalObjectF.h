@@ -16,11 +16,10 @@
 
 namespace Ice
 {
+    class LocalObject;
+    ICE_API IceUtil::Shared* upCast(::Ice::LocalObject*);
+    typedef IceInternal::Handle<LocalObject> LocalObjectPtr;
 
-class LocalObject;
-ICE_API IceUtil::Shared* upCast(::Ice::LocalObject*);
-typedef IceInternal::Handle< LocalObject > LocalObjectPtr;
-
-}
+} // namespace Ice
 
 #endif

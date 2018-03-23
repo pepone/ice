@@ -40,98 +40,87 @@ using namespace Platform::Collections;
 
 namespace
 {
+    typedef int (*MAIN_ENTRY_POINT)(int, char**, Test::MainHelper*);
+    typedef int (*SHUTDOWN_ENTRY_POINT)();
 
-typedef int(*MAIN_ENTRY_POINT)(int, char**, Test::MainHelper*);
-typedef int(*SHUTDOWN_ENTRY_POINT)();
-
-class MainHelperI : public Test::MainHelper
-{
-public:
-
-    MainHelperI(ViewController^, const string&, const StringSeq&);
-
-    virtual void serverReady();
-    virtual void shutdown();
-    virtual void waitForCompleted()
+    class MainHelperI : public Test::MainHelper
     {
-    }
-    virtual bool redirect();
-    virtual void print(const std::string&);
+    public:
+        MainHelperI(ViewController ^, const string&, const StringSeq&);
 
-    virtual void run();
-    void join();
-    void completed(int);
-    void waitReady(int) const;
-    int waitSuccess(int) const;
-    string getOutput() const;
+        virtual void serverReady();
+        virtual void shutdown();
+        virtual void waitForCompleted()
+        {
+        }
+        virtual bool redirect();
+        virtual void print(const std::string&);
 
-private:
+        virtual void run();
+        void join();
+        void completed(int);
+        void waitReady(int) const;
+        int waitSuccess(int) const;
+        string getOutput() const;
 
-    ViewController^ _controller;
-    string _dll;
-    StringSeq _args;
-    FARPROC _dllTestShutdown;
-    bool _ready;
-    bool _completed;
-    int _status;
-    ostringstream _out;
-    thread _thread;
-    mutable mutex _mutex;
-    mutable condition_variable _condition;
-};
+    private:
+        ViewController ^ _controller;
+        string _dll;
+        StringSeq _args;
+        FARPROC _dllTestShutdown;
+        bool _ready;
+        bool _completed;
+        int _status;
+        ostringstream _out;
+        thread _thread;
+        mutable mutex _mutex;
+        mutable condition_variable _condition;
+    };
 
-class ProcessI : public Process
-{
-public:
+    class ProcessI : public Process
+    {
+    public:
+        ProcessI(ViewController ^, shared_ptr<MainHelperI>);
 
-    ProcessI(ViewController^, shared_ptr<MainHelperI>);
+        void waitReady(int, const Ice::Current&);
+        int waitSuccess(int, const Ice::Current&);
+        string terminate(const Ice::Current&);
 
-    void waitReady(int, const Ice::Current&);
-    int waitSuccess(int, const Ice::Current&);
-    string terminate(const Ice::Current&);
+    private:
+        ViewController ^ _controller;
+        shared_ptr<MainHelperI> _helper;
+    };
 
-private:
+    class ProcessControllerI : public ProcessController
+    {
+    public:
+        ProcessControllerI(ViewController ^);
+        shared_ptr<ProcessPrx> start(string, string, StringSeq, const Ice::Current&);
+        virtual string getHost(string, bool, const Ice::Current&);
 
-    ViewController^ _controller;
-    shared_ptr<MainHelperI> _helper;
-};
+    private:
+        ViewController ^ _controller;
+        string _host;
+    };
 
-class ProcessControllerI : public ProcessController
-{
-public:
+    class ControllerHelper
+    {
+    public:
+        ControllerHelper(ViewController ^);
+        virtual ~ControllerHelper();
 
-    ProcessControllerI(ViewController^);
-    shared_ptr<ProcessPrx> start(string, string, StringSeq, const Ice::Current&);
-    virtual string getHost(string, bool, const Ice::Current&);
+        void registerProcessController(ViewController ^, const Ice::ObjectAdapterPtr&,
+                                       const shared_ptr<ProcessControllerRegistryPrx>&,
+                                       const shared_ptr<ProcessControllerPrx>&);
 
-private:
+    private:
+        shared_ptr<Ice::Communicator> _communicator;
+        shared_ptr<Test::Common::ProcessControllerRegistryPrx> _registry;
+    };
 
-    ViewController^ _controller;
-    string _host;
-};
+} // namespace
 
-class ControllerHelper
-{
-public:
-
-    ControllerHelper(ViewController^);
-    virtual ~ControllerHelper();
-
-    void
-    registerProcessController(ViewController^,
-                              const Ice::ObjectAdapterPtr&,
-                              const shared_ptr<ProcessControllerRegistryPrx>&,
-                              const shared_ptr<ProcessControllerPrx>&);
-
-private:
-
-    shared_ptr<Ice::Communicator> _communicator;
-    shared_ptr<Test::Common::ProcessControllerRegistryPrx> _registry;
-};
-
-}
-
-MainHelperI::MainHelperI(ViewController^ controller, const string& dll, const StringSeq& args) :
+MainHelperI::MainHelperI(ViewController ^ controller, const string& dll, const StringSeq& args) :
     _controller(controller),
     _dll(dll),
     _args(args),
@@ -141,16 +130,14 @@ MainHelperI::MainHelperI(ViewController^ controller, const string& dll, const St
 {
 }
 
-void
-MainHelperI::serverReady()
+void MainHelperI::serverReady()
 {
     unique_lock<mutex> lock(_mutex);
     _ready = true;
     _condition.notify_all();
 }
 
-void
-MainHelperI::shutdown()
+void MainHelperI::shutdown()
 {
     unique_lock<mutex> lock(_mutex);
     if(_completed)
@@ -164,8 +151,7 @@ MainHelperI::shutdown()
     }
 }
 
-bool
-MainHelperI::redirect()
+bool MainHelperI::redirect()
 {
     return _dll.find("client") != string::npos || _dll.find("collocated") != string::npos;
 }
@@ -178,11 +164,9 @@ MainHelperI::print(const std::string& msg)
     //_controller->println(msg);
 }
 
-void
-MainHelperI::run()
+void MainHelperI::run()
 {
-    thread t([this]()
-    {
+    thread t([this]() {
         HINSTANCE hnd = _controller->loadDll(_dll);
         if(hnd == 0)
         {
@@ -238,14 +222,12 @@ MainHelperI::run()
     _thread = move(t);
 }
 
-void
-MainHelperI::join()
+void MainHelperI::join()
 {
     _thread.join();
 }
 
-void
-MainHelperI::completed(int status)
+void MainHelperI::completed(int status)
 {
     unique_lock<mutex> lock(_mutex);
     _completed = true;
@@ -253,13 +235,11 @@ MainHelperI::completed(int status)
     _condition.notify_all();
 }
 
-void
-MainHelperI::waitReady(int timeout) const
+void MainHelperI::waitReady(int timeout) const
 {
     unique_lock<mutex> lock(_mutex);
     while(!_ready && !_completed)
     {
-
         if(_condition.wait_for(lock, chrono::seconds(timeout)) == cv_status::timeout)
         {
             throw ProcessFailedException("timed out waiting for the process to be ready");
@@ -271,8 +251,7 @@ MainHelperI::waitReady(int timeout) const
     }
 }
 
-int
-MainHelperI::waitSuccess(int timeout) const
+int MainHelperI::waitSuccess(int timeout) const
 {
     unique_lock<mutex> lock(_mutex);
     while(!_completed)
@@ -285,31 +264,29 @@ MainHelperI::waitSuccess(int timeout) const
     return _status;
 }
 
-string
-MainHelperI::getOutput() const
+string MainHelperI::getOutput() const
 {
     assert(_completed);
     return _out.str();
 }
 
-ProcessI::ProcessI(ViewController^ controller, shared_ptr<MainHelperI> helper) : _controller(controller), _helper(helper)
+ProcessI::ProcessI(ViewController ^ controller, shared_ptr<MainHelperI> helper) :
+    _controller(controller),
+    _helper(helper)
 {
 }
 
-void
-ProcessI::waitReady(int timeout, const Ice::Current&)
+void ProcessI::waitReady(int timeout, const Ice::Current&)
 {
     _helper->waitReady(timeout);
 }
 
-int
-ProcessI::waitSuccess(int timeout, const Ice::Current&)
+int ProcessI::waitSuccess(int timeout, const Ice::Current&)
 {
     return _helper->waitSuccess(timeout);
 }
 
-string
-ProcessI::terminate(const Ice::Current& current)
+string ProcessI::terminate(const Ice::Current& current)
 {
     _helper->shutdown();
     current.adapter->remove(current.id);
@@ -317,14 +294,13 @@ ProcessI::terminate(const Ice::Current& current)
     return _helper->getOutput();
 }
 
-ProcessControllerI::ProcessControllerI(ViewController^ controller) :
+ProcessControllerI::ProcessControllerI(ViewController ^ controller) :
     _controller(controller),
     _host(_controller->getHost())
 {
 }
 
-shared_ptr<ProcessPrx>
-ProcessControllerI::start(string testSuite, string exe, StringSeq args, const Ice::Current& c)
+shared_ptr<ProcessPrx> ProcessControllerI::start(string testSuite, string exe, StringSeq args, const Ice::Current& c)
 {
     ostringstream os;
     os << "starting " << testSuite << " " << exe << "... ";
@@ -336,21 +312,20 @@ ProcessControllerI::start(string testSuite, string exe, StringSeq args, const Ic
     return Ice::uncheckedCast<ProcessPrx>(c.adapter->addWithUUID(make_shared<ProcessI>(_controller, helper)));
 }
 
-string
-ProcessControllerI::getHost(string, bool, const Ice::Current&)
+string ProcessControllerI::getHost(string, bool, const Ice::Current&)
 {
     return _host;
 }
 
-ControllerHelper::ControllerHelper(ViewController^ controller)
+ControllerHelper::ControllerHelper(ViewController ^ controller)
 {
     Ice::InitializationData initData = Ice::InitializationData();
     initData.properties = Ice::createProperties();
     initData.properties->setProperty("Ice.ThreadPool.Client.SizeMax", "10");
     initData.properties->setProperty("Ice.Default.Host", "127.0.0.1");
     initData.properties->setProperty("Ice.Override.ConnectTimeout", "1000");
-    //initData.properties->setProperty("Ice.Trace.Network", "3");
-    //initData.properties->setProperty("Ice.Trace.Protocol", "1");
+    // initData.properties->setProperty("Ice.Trace.Network", "3");
+    // initData.properties->setProperty("Ice.Trace.Protocol", "1");
     initData.properties->setProperty("ControllerAdapter.AdapterId", Ice::generateUUID());
 
     _communicator = Ice::initialize(initData);
@@ -358,7 +333,7 @@ ControllerHelper::ControllerHelper(ViewController^ controller)
     auto registry = Ice::uncheckedCast<ProcessControllerRegistryPrx>(
         _communicator->stringToProxy("Util/ProcessControllerRegistry:tcp -h 127.0.0.1 -p 15001"));
     Ice::ObjectAdapterPtr adapter = _communicator->createObjectAdapterWithEndpoints("ControllerAdapter", "");
-    Ice::Identity ident = { "ProcessController", "UWP"};
+    Ice::Identity ident = {"ProcessController", "UWP"};
     auto processController =
         Ice::uncheckedCast<ProcessControllerPrx>(adapter->add(make_shared<ProcessControllerI>(controller), ident));
     adapter->activate();
@@ -366,45 +341,38 @@ ControllerHelper::ControllerHelper(ViewController^ controller)
     registerProcessController(controller, adapter, registry, processController);
 }
 
-void
-ControllerHelper::registerProcessController(ViewController^ controller,
-                                            const Ice::ObjectAdapterPtr& adapter,
-                                            const shared_ptr<ProcessControllerRegistryPrx>& registry,
-                                            const shared_ptr<ProcessControllerPrx>& processController)
+void ControllerHelper::registerProcessController(ViewController ^ controller, const Ice::ObjectAdapterPtr& adapter,
+                                                 const shared_ptr<ProcessControllerRegistryPrx>& registry,
+                                                 const shared_ptr<ProcessControllerPrx>& processController)
 {
     registry->ice_pingAsync(
-        [this, controller, adapter, registry, processController]()
-        {
+        [this, controller, adapter, registry, processController]() {
             auto connection = registry->ice_getCachedConnection();
             connection->setAdapter(adapter);
             connection->setACM(5, Ice::ACMClose::CloseOff, Ice::ACMHeartbeat::HeartbeatAlways);
-            connection->setCloseCallback([=](const shared_ptr<Ice::Connection>&)
-                {
-                    controller->println("connection with process controller registry closed");
-                    std::this_thread::sleep_for(2s);
-                    registerProcessController(controller, adapter, registry, processController);
-                });
+            connection->setCloseCallback([=](const shared_ptr<Ice::Connection>&) {
+                controller->println("connection with process controller registry closed");
+                std::this_thread::sleep_for(2s);
+                registerProcessController(controller, adapter, registry, processController);
+            });
 
-            registry->setProcessControllerAsync(processController, nullptr,
-                [controller](exception_ptr e)
+            registry->setProcessControllerAsync(processController, nullptr, [controller](exception_ptr e) {
+                try
                 {
-                    try
-                    {
-                        rethrow_exception(e);
-                    }
-                    catch(const Ice::CommunicatorDestroyedException&)
-                    {
-                    }
-                    catch(const std::exception& ex)
-                    {
-                        ostringstream os;
-                        os << "unexpected exception while connecting to process controller registry:\n" << ex.what();
-                        controller->println(os.str());
-                    }
-                });
+                    rethrow_exception(e);
+                }
+                catch(const Ice::CommunicatorDestroyedException&)
+                {
+                }
+                catch(const std::exception& ex)
+                {
+                    ostringstream os;
+                    os << "unexpected exception while connecting to process controller registry:\n" << ex.what();
+                    controller->println(os.str());
+                }
+            });
         },
-        [this, controller, adapter, registry, processController](exception_ptr e)
-        {
+        [this, controller, adapter, registry, processController](exception_ptr e) {
             try
             {
                 rethrow_exception(e);
@@ -454,14 +422,13 @@ ViewController::ViewController()
     ipv4Addresses->SelectedIndex = 0;
 }
 
-string
-ViewController::getHost() const
+string ViewController::getHost() const
 {
     return Ice::wstringToString(ipv4Addresses->SelectedItem->ToString()->Data());
 }
 
-void
-ViewController::Hostname_SelectionChanged(Platform::Object^, Windows::UI::Xaml::Controls::SelectionChangedEventArgs^)
+void ViewController::Hostname_SelectionChanged(Platform::Object ^,
+                                               Windows::UI::Xaml::Controls::SelectionChangedEventArgs ^)
 {
     if(controllerHelper)
     {
@@ -471,20 +438,17 @@ ViewController::Hostname_SelectionChanged(Platform::Object^, Windows::UI::Xaml::
     controllerHelper = new ControllerHelper(this);
 }
 
-void
-ViewController::println(const string& s)
+void ViewController::println(const string& s)
 {
     if(s.empty())
     {
         return;
     }
-    this->Dispatcher->RunAsync(CoreDispatcherPriority::Normal, ref new DispatchedHandler(
-        [=]()
-        {
-            Output->Items->Append(ref new String(Ice::stringToWstring(s).c_str()));
-            Output->SelectedIndex = Output->Items->Size - 1;
-            Output->ScrollIntoView(Output->SelectedItem);
-        }));
+    this->Dispatcher->RunAsync(CoreDispatcherPriority::Normal, ref new DispatchedHandler([=]() {
+                                   Output->Items->Append(ref new String(Ice::stringToWstring(s).c_str()));
+                                   Output->SelectedIndex = Output->Items->Size - 1;
+                                   Output->ScrollIntoView(Output->SelectedItem);
+                               }));
 }
 
 HINSTANCE
@@ -501,8 +465,7 @@ ViewController::loadDll(const string& name)
     return p->second.first;
 }
 
-void
-ViewController::unloadDll(const string& name)
+void ViewController::unloadDll(const string& name)
 {
     unique_lock<mutex> lock(_mutex);
     map<string, pair<HINSTANCE, unsigned int>>::iterator p = _dlls.find(name);

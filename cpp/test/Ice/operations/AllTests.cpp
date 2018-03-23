@@ -14,8 +14,7 @@
 
 using namespace std;
 
-Test::MyClassPrxPtr
-allTests(const Ice::CommunicatorPtr& communicator)
+Test::MyClassPrxPtr allTests(const Ice::CommunicatorPtr& communicator)
 {
     string ref = "test:" + getTestEndpoint(communicator, 0);
     Ice::ObjectPrxPtr base = communicator->stringToProxy(ref);

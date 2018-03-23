@@ -20,8 +20,7 @@
 
 std::list<TestBasePtr> allTests;
 
-void
-initializeTestSuite()
+void initializeTestSuite()
 {
     allTests.push_back(new MutexTest);
     allTests.push_back(new CountDownLatchTest);

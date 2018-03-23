@@ -25,72 +25,63 @@ using namespace IceMX;
 
 namespace
 {
+    const string suffixes[] = {
+        "Disabled", "GroupBy", "Accept.*", "Reject.*", "RetainDetached", "Map.*",
+    };
 
-const string suffixes[] =
-{
-    "Disabled",
-    "GroupBy",
-    "Accept.*",
-    "Reject.*",
-    "RetainDetached",
-    "Map.*",
-};
-
-void
-validateProperties(const string& prefix, const PropertiesPtr& properties)
-{
-    vector<string> unknownProps;
-    PropertyDict props = properties->getPropertiesForPrefix(prefix);
-    for(PropertyDict::const_iterator p = props.begin(); p != props.end(); ++p)
+    void validateProperties(const string& prefix, const PropertiesPtr& properties)
     {
-        bool valid = false;
-        for(size_t i = 0; i < sizeof(suffixes) / sizeof(*suffixes); ++i)
+        vector<string> unknownProps;
+        PropertyDict props = properties->getPropertiesForPrefix(prefix);
+        for(PropertyDict::const_iterator p = props.begin(); p != props.end(); ++p)
         {
-            string prop = prefix + suffixes[i];
-            if(IceUtilInternal::match(p->first, prop))
+            bool valid = false;
+            for(size_t i = 0; i < sizeof(suffixes) / sizeof(*suffixes); ++i)
             {
-                valid = true;
-                break;
+                string prop = prefix + suffixes[i];
+                if(IceUtilInternal::match(p->first, prop))
+                {
+                    valid = true;
+                    break;
+                }
+            }
+            if(!valid)
+            {
+                unknownProps.push_back(p->first);
             }
         }
-        if(!valid)
+
+        if(!unknownProps.empty() && properties->getPropertyAsIntWithDefault("Ice.Warn.UnknownProperties", 1) > 0)
         {
-            unknownProps.push_back(p->first);
+            Warning out(getProcessLogger());
+            out << "found unknown IceMX properties for '" << prefix.substr(0, prefix.size() - 1) << "':";
+            for(vector<string>::const_iterator p = unknownProps.begin(); p != unknownProps.end(); ++p)
+            {
+                out << "\n    " << *p;
+                properties->setProperty(*p, ""); // Clear the known property to prevent further warnings.
+            }
         }
     }
 
-    if(!unknownProps.empty() && properties->getPropertyAsIntWithDefault("Ice.Warn.UnknownProperties", 1) > 0)
+    vector<MetricsMapI::RegExpPtr> parseRule(const PropertiesPtr& properties, const string& name)
     {
-        Warning out(getProcessLogger());
-        out << "found unknown IceMX properties for '" << prefix.substr(0, prefix.size() - 1) << "':";
-        for(vector<string>::const_iterator p = unknownProps.begin(); p != unknownProps.end(); ++p)
+        vector<MetricsMapI::RegExpPtr> regexps;
+        PropertyDict rules = properties->getPropertiesForPrefix(name + '.');
+        for(PropertyDict::const_iterator p = rules.begin(); p != rules.end(); ++p)
         {
-            out << "\n    " << *p;
-            properties->setProperty(*p, ""); // Clear the known property to prevent further warnings.
+            try
+            {
+                regexps.push_back(ICE_MAKE_SHARED(MetricsMapI::RegExp, p->first.substr(name.length() + 1), p->second));
+            }
+            catch(const std::exception&)
+            {
+                throw invalid_argument("invalid regular expression `" + p->second + "' for `" + p->first + "'");
+            }
         }
+        return regexps;
     }
-}
 
-vector<MetricsMapI::RegExpPtr>
-parseRule(const PropertiesPtr& properties, const string& name)
-{
-    vector<MetricsMapI::RegExpPtr> regexps;
-    PropertyDict rules = properties->getPropertiesForPrefix(name + '.');
-    for(PropertyDict::const_iterator p = rules.begin(); p != rules.end(); ++p)
-    {
-        try
-        {
-            regexps.push_back(ICE_MAKE_SHARED(MetricsMapI::RegExp, p->first.substr(name.length() + 1), p->second));
-        }
-        catch(const std::exception&)
-        {
-            throw invalid_argument("invalid regular expression `" + p->second + "' for `" + p->first + "'");
-        }
-    }
-    return regexps;
-}
-
-}
+} // namespace
 
 MetricsMapI::RegExp::RegExp(const string& attribute, const string& regexp) : _attribute(attribute)
 {
@@ -105,11 +96,11 @@ MetricsMapI::RegExp::RegExp(const string& attribute, const string& regexp) : _at
         throw SyscallException(__FILE__, __LINE__);
     }
 #else
-#   if _MSC_VER < 1600
+#    if _MSC_VER < 1600
     _regex = std::tr1::regex(regexp, std::tr1::regex_constants::extended | std::tr1::regex_constants::nosubs);
-#   else
+#    else
     _regex = regex(regexp, std::regex_constants::extended | std::regex_constants::nosubs);
-#   endif
+#    endif
 #endif
 }
 
@@ -125,8 +116,7 @@ MetricsMapI::RegExp::~RegExp()
 #endif
 }
 
-bool
-MetricsMapI::RegExp::match(const string& value)
+bool MetricsMapI::RegExp::match(const string& value)
 {
 #ifdef __MINGW32__
     //
@@ -137,11 +127,11 @@ MetricsMapI::RegExp::match(const string& value)
 #elif !defined(ICE_CPP11_COMPILER_REGEXP)
     return regexec(&_preg, value.c_str(), 0, 0, 0) == 0;
 #else
-#   if _MSC_VER < 1600
+#    if _MSC_VER < 1600
     return std::tr1::regex_match(value, _regex);
-#   else
+#    else
     return regex_match(value, _regex);
-#   endif
+#    endif
 #endif
 }
 
@@ -212,8 +202,7 @@ MetricsMapI::MetricsMapI(const MetricsMapI& map) :
 {
 }
 
-const ::Ice::PropertyDict&
-MetricsMapI::getProperties() const
+const ::Ice::PropertyDict& MetricsMapI::getProperties() const
 {
     return _properties;
 }
@@ -227,8 +216,7 @@ MetricsMapFactory::MetricsMapFactory(Updater* updater) : _updater(updater)
 {
 }
 
-void
-MetricsMapFactory::update()
+void MetricsMapFactory::update()
 {
     assert(_updater);
     _updater->update();
@@ -238,8 +226,7 @@ MetricsViewI::MetricsViewI(const string& name) : _name(name)
 {
 }
 
-void
-MetricsViewI::destroy()
+void MetricsViewI::destroy()
 {
     for(map<string, MetricsMapIPtr>::const_iterator p = _maps.begin(); p != _maps.end(); ++p)
     {
@@ -247,9 +234,8 @@ MetricsViewI::destroy()
     }
 }
 
-bool
-MetricsViewI::addOrUpdateMap(const PropertiesPtr& properties, const string& mapName,
-                             const MetricsMapFactoryPtr& factory, const ::Ice::LoggerPtr& logger)
+bool MetricsViewI::addOrUpdateMap(const PropertiesPtr& properties, const string& mapName,
+                                  const MetricsMapFactoryPtr& factory, const ::Ice::LoggerPtr& logger)
 {
     const string viewPrefix = "IceMX.Metrics." + _name + ".";
     const string mapsPrefix = viewPrefix + "Map.";
@@ -318,8 +304,7 @@ MetricsViewI::addOrUpdateMap(const PropertiesPtr& properties, const string& mapN
     return true;
 }
 
-bool
-MetricsViewI::removeMap(const string& mapName)
+bool MetricsViewI::removeMap(const string& mapName)
 {
     map<string, MetricsMapIPtr>::iterator q = _maps.find(mapName);
     if(q != _maps.end())
@@ -331,8 +316,7 @@ MetricsViewI::removeMap(const string& mapName)
     return false;
 }
 
-MetricsView
-MetricsViewI::getMetrics()
+MetricsView MetricsViewI::getMetrics()
 {
     MetricsView metrics;
     for(map<string, MetricsMapIPtr>::const_iterator p = _maps.begin(); p != _maps.end(); ++p)
@@ -342,8 +326,7 @@ MetricsViewI::getMetrics()
     return metrics;
 }
 
-MetricsFailuresSeq
-MetricsViewI::getFailures(const string& mapName)
+MetricsFailuresSeq MetricsViewI::getFailures(const string& mapName)
 {
     map<string, MetricsMapIPtr>::const_iterator p = _maps.find(mapName);
     if(p != _maps.end())
@@ -353,8 +336,7 @@ MetricsViewI::getFailures(const string& mapName)
     return MetricsFailuresSeq();
 }
 
-MetricsFailures
-MetricsViewI::getFailures(const string& mapName, const string& id)
+MetricsFailures MetricsViewI::getFailures(const string& mapName, const string& id)
 {
     map<string, MetricsMapIPtr>::const_iterator p = _maps.find(mapName);
     if(p != _maps.end())
@@ -364,8 +346,7 @@ MetricsViewI::getFailures(const string& mapName, const string& id)
     return MetricsFailures();
 }
 
-vector<string>
-MetricsViewI::getMaps() const
+vector<string> MetricsViewI::getMaps() const
 {
     vector<string> maps;
     for(map<string, MetricsMapIPtr>::const_iterator p = _maps.begin(); p != _maps.end(); ++p)
@@ -375,8 +356,7 @@ MetricsViewI::getMaps() const
     return maps;
 }
 
-MetricsMapIPtr
-MetricsViewI::getMap(const string& mapName) const
+MetricsMapIPtr MetricsViewI::getMap(const string& mapName) const
 {
     map<string, MetricsMapIPtr>::const_iterator p = _maps.find(mapName);
     if(p != _maps.end())
@@ -387,7 +367,8 @@ MetricsViewI::getMap(const string& mapName) const
 }
 
 MetricsAdminI::MetricsAdminI(const PropertiesPtr& properties, const LoggerPtr& logger) :
-    _logger(logger), _properties(properties)
+    _logger(logger),
+    _properties(properties)
 {
     updateViews();
 }
@@ -396,8 +377,7 @@ MetricsAdminI::~MetricsAdminI()
 {
 }
 
-void
-MetricsAdminI::destroy()
+void MetricsAdminI::destroy()
 {
     Lock sync(*this);
     for(map<string, MetricsViewIPtr>::const_iterator p = _views.begin(); p != _views.end(); ++p)
@@ -406,8 +386,7 @@ MetricsAdminI::destroy()
     }
 }
 
-void
-MetricsAdminI::updateViews()
+void MetricsAdminI::updateViews()
 {
     set<MetricsMapFactoryPtr> updatedMaps;
     {
@@ -444,7 +423,10 @@ MetricsAdminI::updateViews()
             map<string, MetricsViewIPtr>::const_iterator q = _views.find(viewName);
             if(q == _views.end())
             {
-                q = views.insert(map<string, MetricsViewIPtr>::value_type(viewName, ICE_MAKE_SHARED(MetricsViewI, viewName))).first;
+                q = views
+                        .insert(
+                            map<string, MetricsViewIPtr>::value_type(viewName, ICE_MAKE_SHARED(MetricsViewI, viewName)))
+                        .first;
             }
             else
             {
@@ -487,8 +469,7 @@ MetricsAdminI::updateViews()
     }
 }
 
-void
-MetricsAdminI::unregisterMap(const std::string& mapName)
+void MetricsAdminI::unregisterMap(const std::string& mapName)
 {
     bool updated;
     MetricsMapFactoryPtr factory;
@@ -509,8 +490,7 @@ MetricsAdminI::unregisterMap(const std::string& mapName)
     }
 }
 
-Ice::StringSeq
-MetricsAdminI::getMetricsViewNames(Ice::StringSeq& disabledViews, const Current&)
+Ice::StringSeq MetricsAdminI::getMetricsViewNames(Ice::StringSeq& disabledViews, const Current&)
 {
     Ice::StringSeq enabledViews;
 
@@ -612,8 +592,7 @@ MetricsAdminI::getMetricsFailures(const string& viewName, const string& map, con
     return MetricsFailures();
 }
 
-vector<MetricsMapIPtr>
-MetricsAdminI::getMaps(const string& mapName) const
+vector<MetricsMapIPtr> MetricsAdminI::getMaps(const string& mapName) const
 {
     Lock sync(*this);
     vector<MetricsMapIPtr> maps;
@@ -628,14 +607,12 @@ MetricsAdminI::getMaps(const string& mapName) const
     return maps;
 }
 
-const LoggerPtr&
-MetricsAdminI::getLogger() const
+const LoggerPtr& MetricsAdminI::getLogger() const
 {
     return _logger;
 }
 
-MetricsViewIPtr
-MetricsAdminI::getMetricsView(const std::string& name)
+MetricsViewIPtr MetricsAdminI::getMetricsView(const std::string& name)
 {
     std::map<string, MetricsViewIPtr>::const_iterator p = _views.find(name);
     if(p == _views.end())
@@ -649,8 +626,7 @@ MetricsAdminI::getMetricsView(const std::string& name)
     return p->second;
 }
 
-void
-MetricsAdminI::updated(const PropertyDict& props)
+void MetricsAdminI::updated(const PropertyDict& props)
 {
     for(PropertyDict::const_iterator p = props.begin(); p != props.end(); ++p)
     {
@@ -671,8 +647,7 @@ MetricsAdminI::updated(const PropertyDict& props)
     }
 }
 
-bool
-MetricsAdminI::addOrUpdateMap(const std::string& mapName, const MetricsMapFactoryPtr& factory)
+bool MetricsAdminI::addOrUpdateMap(const std::string& mapName, const MetricsMapFactoryPtr& factory)
 {
     bool updated = false;
     for(std::map<string, MetricsViewIPtr>::const_iterator p = _views.begin(); p != _views.end(); ++p)
@@ -682,8 +657,7 @@ MetricsAdminI::addOrUpdateMap(const std::string& mapName, const MetricsMapFactor
     return updated;
 }
 
-bool
-MetricsAdminI::removeMap(const std::string& mapName)
+bool MetricsAdminI::removeMap(const std::string& mapName)
 {
     bool updated = false;
     for(std::map<string, MetricsViewIPtr>::const_iterator p = _views.begin(); p != _views.end(); ++p)

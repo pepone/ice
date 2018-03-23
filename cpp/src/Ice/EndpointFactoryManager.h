@@ -19,34 +19,29 @@
 
 namespace Ice
 {
-
-class InputStream;
-
+    class InputStream;
 }
 
 namespace IceInternal
 {
+    class EndpointFactoryManager : public ::IceUtil::Shared, public ::IceUtil::Mutex
+    {
+    public:
+        void initialize() const;
+        void add(const EndpointFactoryPtr&);
+        EndpointFactoryPtr get(::Ice::Short) const;
+        EndpointIPtr create(const std::string&, bool) const;
+        EndpointIPtr read(Ice::InputStream*) const;
 
-class EndpointFactoryManager : public ::IceUtil::Shared, public ::IceUtil::Mutex
-{
-public:
+    private:
+        EndpointFactoryManager(const InstancePtr&);
+        void destroy();
+        friend class Instance;
 
-    void initialize() const;
-    void add(const EndpointFactoryPtr&);
-    EndpointFactoryPtr get(::Ice::Short) const;
-    EndpointIPtr create(const std::string&, bool) const;
-    EndpointIPtr read(Ice::InputStream*) const;
+        InstancePtr _instance;
+        std::vector<EndpointFactoryPtr> _factories;
+    };
 
-private:
-
-    EndpointFactoryManager(const InstancePtr&);
-    void destroy();
-    friend class Instance;
-
-    InstancePtr _instance;
-    std::vector<EndpointFactoryPtr> _factories;
-};
-
-}
+} // namespace IceInternal
 
 #endif

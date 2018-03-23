@@ -16,46 +16,42 @@ using namespace Ice;
 
 namespace
 {
+    SliceChecksumDict* _sliceChecksums = 0;
 
-SliceChecksumDict* _sliceChecksums = 0;
+    IceUtil::Mutex* _mutex = 0;
 
-IceUtil::Mutex* _mutex = 0;
-
-class Init
-{
-public:
-
-    Init()
+    class Init
     {
-        _mutex = new IceUtil::Mutex;
-    }
+    public:
+        Init()
+        {
+            _mutex = new IceUtil::Mutex;
+        }
 
-    ~Init()
+        ~Init()
+        {
+            delete _mutex;
+            _mutex = 0;
+        }
+    };
+
+    Init init;
+
+    class SliceChecksumDictDestroyer
     {
-        delete _mutex;
-        _mutex = 0;
-    }
-};
+    public:
+        ~SliceChecksumDictDestroyer()
+        {
+            delete _sliceChecksums;
+            _sliceChecksums = 0;
+        }
+    };
 
-Init init;
+    SliceChecksumDictDestroyer destroyer;
 
-class SliceChecksumDictDestroyer
-{
-public:
+} // namespace
 
-    ~SliceChecksumDictDestroyer()
-    {
-        delete _sliceChecksums;
-        _sliceChecksums = 0;
-    }
-};
-
-SliceChecksumDictDestroyer destroyer;
-
-}
-
-SliceChecksumDict
-Ice::sliceChecksums()
+SliceChecksumDict Ice::sliceChecksums()
 {
     IceUtilInternal::MutexPtrLock<IceUtil::Mutex> lock(_mutex);
     if(_sliceChecksums == 0)

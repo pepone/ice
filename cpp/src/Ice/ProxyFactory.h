@@ -22,41 +22,37 @@
 
 namespace Ice
 {
+    class OutputStream;
+    class InputStream;
 
-class OutputStream;
-class InputStream;
-
-}
+} // namespace Ice
 
 namespace IceInternal
 {
+    class ProxyFactory : public IceUtil::Shared
+    {
+    public:
+        Ice::ObjectPrxPtr stringToProxy(const std::string&) const;
+        std::string proxyToString(const Ice::ObjectPrxPtr&) const;
 
-class ProxyFactory : public IceUtil::Shared
-{
-public:
+        Ice::ObjectPrxPtr propertyToProxy(const std::string&) const;
+        Ice::PropertyDict proxyToProperty(const Ice::ObjectPrxPtr&, const std::string&) const;
 
-    Ice::ObjectPrxPtr stringToProxy(const std::string&) const;
-    std::string proxyToString(const Ice::ObjectPrxPtr&) const;
+        Ice::ObjectPrxPtr streamToProxy(Ice::InputStream*) const;
 
-    Ice::ObjectPrxPtr propertyToProxy(const std::string&) const;
-    Ice::PropertyDict proxyToProperty(const Ice::ObjectPrxPtr&, const std::string&) const;
+        Ice::ObjectPrxPtr referenceToProxy(const ReferencePtr&) const;
 
-    Ice::ObjectPrxPtr streamToProxy(Ice::InputStream*) const;
+        int checkRetryAfterException(const Ice::LocalException&, const ReferencePtr&, int&) const;
 
-    Ice::ObjectPrxPtr referenceToProxy(const ReferencePtr&) const;
+    private:
+        ProxyFactory(const InstancePtr&);
+        virtual ~ProxyFactory();
+        friend class Instance;
 
-    int checkRetryAfterException(const Ice::LocalException&, const ReferencePtr&, int&) const;
+        InstancePtr _instance;
+        std::vector<int> _retryIntervals;
+    };
 
-private:
-
-    ProxyFactory(const InstancePtr&);
-    virtual ~ProxyFactory();
-    friend class Instance;
-
-    InstancePtr _instance;
-    std::vector<int> _retryIntervals;
-};
-
-}
+} // namespace IceInternal
 
 #endif

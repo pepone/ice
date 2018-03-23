@@ -11,13 +11,12 @@
 #include <TestCommon.h>
 
 #if defined(_MSC_VER)
-#   pragma comment(lib, ICE_LIBNAME("gencode"))
+#    pragma comment(lib, ICE_LIBNAME("gencode"))
 #endif
 
 using namespace std;
 
-ICE_DECLSPEC_EXPORT void
-consume(const Ice::ObjectPtr& o, const Ice::ObjectPrxPtr& p)
+ICE_DECLSPEC_EXPORT void consume(const Ice::ObjectPtr& o, const Ice::ObjectPrxPtr& p)
 {
     cout << "testing dynamic cast across libraries... " << flush;
 

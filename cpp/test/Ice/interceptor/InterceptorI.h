@@ -16,7 +16,6 @@
 class InterceptorI : public Ice::DispatchInterceptor
 {
 public:
-
     InterceptorI(const Ice::ObjectPtr&);
 
     virtual bool dispatch(Ice::Request& request);

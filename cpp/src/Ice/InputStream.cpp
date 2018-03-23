@@ -27,9 +27,9 @@
 #include <iterator>
 
 #ifndef ICE_UNALIGNED
-#   if defined(__i386) || defined(_M_IX86) || defined(__x86_64) || defined(_M_X64)
-#       define ICE_UNALIGNED
-#   endif
+#    if defined(__i386) || defined(_M_IX86) || defined(__x86_64) || defined(_M_X64)
+#        define ICE_UNALIGNED
+#    endif
 #endif
 
 using namespace std;
@@ -41,20 +41,17 @@ Ice::InputStream::InputStream()
     initialize(currentEncoding);
 }
 
-Ice::InputStream::InputStream(const vector<Byte>& v) :
-    Buffer(v)
+Ice::InputStream::InputStream(const vector<Byte>& v) : Buffer(v)
 {
     initialize(currentEncoding);
 }
 
-Ice::InputStream::InputStream(const pair<const Byte*, const Byte*>& p) :
-    Buffer(p.first, p.second)
+Ice::InputStream::InputStream(const pair<const Byte*, const Byte*>& p) : Buffer(p.first, p.second)
 {
     initialize(currentEncoding);
 }
 
-Ice::InputStream::InputStream(Buffer& buf, bool adopt) :
-    Buffer(buf, adopt)
+Ice::InputStream::InputStream(Buffer& buf, bool adopt) : Buffer(buf, adopt)
 {
     initialize(currentEncoding);
 }
@@ -64,8 +61,7 @@ Ice::InputStream::InputStream(const CommunicatorPtr& communicator)
     initialize(communicator);
 }
 
-Ice::InputStream::InputStream(const CommunicatorPtr& communicator, const vector<Byte>& v) :
-    Buffer(v)
+Ice::InputStream::InputStream(const CommunicatorPtr& communicator, const vector<Byte>& v) : Buffer(v)
 {
     initialize(communicator);
 }
@@ -76,8 +72,7 @@ Ice::InputStream::InputStream(const CommunicatorPtr& communicator, const pair<co
     initialize(communicator);
 }
 
-Ice::InputStream::InputStream(const CommunicatorPtr& communicator, Buffer& buf, bool adopt) :
-    Buffer(buf, adopt)
+Ice::InputStream::InputStream(const CommunicatorPtr& communicator, Buffer& buf, bool adopt) : Buffer(buf, adopt)
 {
     initialize(communicator);
 }
@@ -87,8 +82,7 @@ Ice::InputStream::InputStream(const EncodingVersion& encoding)
     initialize(encoding);
 }
 
-Ice::InputStream::InputStream(const EncodingVersion& encoding, const vector<Byte>& v) :
-    Buffer(v)
+Ice::InputStream::InputStream(const EncodingVersion& encoding, const vector<Byte>& v) : Buffer(v)
 {
     initialize(encoding);
 }
@@ -99,8 +93,7 @@ Ice::InputStream::InputStream(const EncodingVersion& encoding, const pair<const 
     initialize(encoding);
 }
 
-Ice::InputStream::InputStream(const EncodingVersion& encoding, Buffer& buf, bool adopt) :
-    Buffer(buf, adopt)
+Ice::InputStream::InputStream(const EncodingVersion& encoding, Buffer& buf, bool adopt) : Buffer(buf, adopt)
 {
     initialize(encoding);
 }
@@ -124,8 +117,8 @@ Ice::InputStream::InputStream(const CommunicatorPtr& communicator, const Encodin
     initialize(communicator, encoding);
 }
 
-Ice::InputStream::InputStream(const CommunicatorPtr& communicator, const EncodingVersion& encoding,
-                              Buffer& buf, bool adopt) :
+Ice::InputStream::InputStream(const CommunicatorPtr& communicator, const EncodingVersion& encoding, Buffer& buf,
+                              bool adopt) :
     Buffer(buf, adopt)
 {
     initialize(communicator, encoding);
@@ -142,21 +135,18 @@ Ice::InputStream::InputStream(Instance* instance, const EncodingVersion& encodin
     initialize(instance, encoding);
 }
 
-void
-Ice::InputStream::initialize(const CommunicatorPtr& communicator)
+void Ice::InputStream::initialize(const CommunicatorPtr& communicator)
 {
     Instance* instance = getInstance(communicator).get();
     initialize(instance, instance->defaultsAndOverrides()->defaultEncoding);
 }
 
-void
-Ice::InputStream::initialize(const CommunicatorPtr& communicator, const EncodingVersion& encoding)
+void Ice::InputStream::initialize(const CommunicatorPtr& communicator, const EncodingVersion& encoding)
 {
     initialize(getInstance(communicator).get(), encoding);
 }
 
-void
-Ice::InputStream::initialize(Instance* instance, const EncodingVersion& encoding)
+void Ice::InputStream::initialize(Instance* instance, const EncodingVersion& encoding)
 {
     initialize(encoding);
 
@@ -169,8 +159,7 @@ Ice::InputStream::initialize(Instance* instance, const EncodingVersion& encoding
     _classGraphDepthMax = _instance->classGraphDepthMax();
 }
 
-void
-Ice::InputStream::initialize(const EncodingVersion& encoding)
+void Ice::InputStream::initialize(const EncodingVersion& encoding)
 {
     _instance = 0;
     _encoding = encoding;
@@ -186,8 +175,7 @@ Ice::InputStream::initialize(const EncodingVersion& encoding)
     _minSeqSize = 0;
 }
 
-void
-Ice::InputStream::clear()
+void Ice::InputStream::clear()
 {
     while(_currentEncaps && _currentEncaps != &_preAllocatedEncaps)
     {
@@ -200,14 +188,12 @@ Ice::InputStream::clear()
     _sliceValues = true;
 }
 
-void
-Ice::InputStream::setValueFactoryManager(const ValueFactoryManagerPtr& vfm)
+void Ice::InputStream::setValueFactoryManager(const ValueFactoryManagerPtr& vfm)
 {
     _valueFactoryManager = vfm;
 }
 
-void
-Ice::InputStream::setLogger(const LoggerPtr& logger)
+void Ice::InputStream::setLogger(const LoggerPtr& logger)
 {
     _logger = logger;
 }
@@ -223,27 +209,23 @@ Ice::InputStream::setCompactIdResolver(const CompactIdResolverPtr& r)
 }
 
 #ifndef ICE_CPP11_MAPPING
-void
-Ice::InputStream::setCollectObjects(bool b)
+void Ice::InputStream::setCollectObjects(bool b)
 {
     _collectObjects = b;
 }
 #endif
 
-void
-Ice::InputStream::setSliceValues(bool b)
+void Ice::InputStream::setSliceValues(bool b)
 {
     _sliceValues = b;
 }
 
-void
-Ice::InputStream::setTraceSlicing(bool b)
+void Ice::InputStream::setTraceSlicing(bool b)
 {
     _traceSlicing = b;
 }
 
-void
-Ice::InputStream::setClassGraphDepthMax(size_t classGraphDepthMax)
+void Ice::InputStream::setClassGraphDepthMax(size_t classGraphDepthMax)
 {
     if(classGraphDepthMax < 1)
     {
@@ -255,22 +237,19 @@ Ice::InputStream::setClassGraphDepthMax(size_t classGraphDepthMax)
     }
 }
 
-void*
-Ice::InputStream::getClosure() const
+void* Ice::InputStream::getClosure() const
 {
     return _closure;
 }
 
-void*
-Ice::InputStream::setClosure(void* p)
+void* Ice::InputStream::setClosure(void* p)
 {
     void* prev = _closure;
     _closure = p;
     return prev;
 }
 
-void
-Ice::InputStream::swap(InputStream& other)
+void Ice::InputStream::swap(InputStream& other)
 {
     swapBuffer(other);
 
@@ -300,8 +279,7 @@ Ice::InputStream::swap(InputStream& other)
     std::swap(_compactIdResolver, other._compactIdResolver);
 }
 
-void
-Ice::InputStream::resetEncapsulation()
+void Ice::InputStream::resetEncapsulation()
 {
     while(_currentEncaps && _currentEncaps != &_preAllocatedEncaps)
     {
@@ -313,15 +291,13 @@ Ice::InputStream::resetEncapsulation()
     _preAllocatedEncaps.reset();
 }
 
-Int
-Ice::InputStream::getEncapsulationSize()
+Int Ice::InputStream::getEncapsulationSize()
 {
     assert(_currentEncaps);
     return _currentEncaps->sz - static_cast<Int>(sizeof(Int)) - 2;
 }
 
-EncodingVersion
-Ice::InputStream::skipEncapsulation()
+EncodingVersion Ice::InputStream::skipEncapsulation()
 {
     Int sz;
     read(sz);
@@ -340,8 +316,7 @@ Ice::InputStream::skipEncapsulation()
     return encoding;
 }
 
-void
-Ice::InputStream::readPendingValues()
+void Ice::InputStream::readPendingValues()
 {
     if(_currentEncaps && _currentEncaps->decoder)
     {
@@ -362,8 +337,7 @@ Ice::InputStream::readPendingValues()
     }
 }
 
-Int
-Ice::InputStream::readAndCheckSeqSize(int minSize)
+Int Ice::InputStream::readAndCheckSeqSize(int minSize)
 {
     Int sz = readSize();
 
@@ -412,8 +386,7 @@ Ice::InputStream::readAndCheckSeqSize(int minSize)
     return sz;
 }
 
-void
-Ice::InputStream::readBlob(vector<Byte>& v, Int sz)
+void Ice::InputStream::readBlob(vector<Byte>& v, Int sz)
 {
     if(sz > 0)
     {
@@ -430,8 +403,7 @@ Ice::InputStream::readBlob(vector<Byte>& v, Int sz)
     }
 }
 
-void
-Ice::InputStream::read(std::vector<Ice::Byte>& v)
+void Ice::InputStream::read(std::vector<Ice::Byte>& v)
 {
     std::pair<const Ice::Byte*, const Ice::Byte*> p;
     read(p);
@@ -446,8 +418,7 @@ Ice::InputStream::read(std::vector<Ice::Byte>& v)
     }
 }
 
-void
-Ice::InputStream::read(pair<const Byte*, const Byte*>& v)
+void Ice::InputStream::read(pair<const Byte*, const Byte*>& v)
 {
     Int sz = readAndCheckSeqSize(1);
     if(sz > 0)
@@ -462,8 +433,7 @@ Ice::InputStream::read(pair<const Byte*, const Byte*>& v)
     }
 }
 
-void
-Ice::InputStream::read(vector<bool>& v)
+void Ice::InputStream::read(vector<bool>& v)
 {
     Int sz = readAndCheckSeqSize(1);
     if(sz > 0)
@@ -480,39 +450,35 @@ Ice::InputStream::read(vector<bool>& v)
 
 namespace
 {
-
-template<size_t boolSize>
-struct ReadBoolHelper
-{
-    static bool* read(pair<const bool*, const bool*>& v, Int sz, InputStream::Container::iterator& i)
+    template<size_t boolSize> struct ReadBoolHelper
     {
-        bool* array = new bool[sz];
-        for(int idx = 0; idx < sz; ++idx)
+        static bool* read(pair<const bool*, const bool*>& v, Int sz, InputStream::Container::iterator& i)
         {
-            array[idx] = static_cast<bool>(*(i + idx));
+            bool* array = new bool[sz];
+            for(int idx = 0; idx < sz; ++idx)
+            {
+                array[idx] = static_cast<bool>(*(i + idx));
+            }
+            v.first = array;
+            v.second = array + sz;
+            return array;
         }
-        v.first = array;
-        v.second = array + sz;
-        return array;
-    }
-};
+    };
 
-template<>
-struct ReadBoolHelper<1>
-{
-    static bool* read(pair<const bool*, const bool*>& v, Int sz, InputStream::Container::iterator& i)
+    template<> struct ReadBoolHelper<1>
     {
-        v.first = reinterpret_cast<bool*>(i);
-        v.second = reinterpret_cast<bool*>(i) + sz;
-        return 0;
-    }
-};
+        static bool* read(pair<const bool*, const bool*>& v, Int sz, InputStream::Container::iterator& i)
+        {
+            v.first = reinterpret_cast<bool*>(i);
+            v.second = reinterpret_cast<bool*>(i) + sz;
+            return 0;
+        }
+    };
 
-}
+} // namespace
 
 #ifdef ICE_CPP11_MAPPING
-void
-Ice::InputStream::read(pair<const bool*, const bool*>& v)
+void Ice::InputStream::read(pair<const bool*, const bool*>& v)
 {
     Int sz = readAndCheckSeqSize(1);
     if(sz > 0)
@@ -531,8 +497,7 @@ Ice::InputStream::read(pair<const bool*, const bool*>& v)
 }
 
 #else
-void
-Ice::InputStream::read(pair<const bool*, const bool*>& v, IceUtil::ScopedArray<bool>& result)
+void Ice::InputStream::read(pair<const bool*, const bool*>& v, IceUtil::ScopedArray<bool>& result)
 {
     Int sz = readAndCheckSeqSize(1);
     if(sz > 0)
@@ -548,8 +513,7 @@ Ice::InputStream::read(pair<const bool*, const bool*>& v, IceUtil::ScopedArray<b
 }
 #endif
 
-void
-Ice::InputStream::read(Short& v)
+void Ice::InputStream::read(Short& v)
 {
     if(b.end() - i < static_cast<int>(sizeof(Short)))
     {
@@ -568,8 +532,7 @@ Ice::InputStream::read(Short& v)
 #endif
 }
 
-void
-Ice::InputStream::read(vector<Short>& v)
+void Ice::InputStream::read(vector<Short>& v)
 {
     Int sz = readAndCheckSeqSize(static_cast<int>(sizeof(Short)));
     if(sz > 0)
@@ -580,7 +543,7 @@ Ice::InputStream::read(vector<Short>& v)
 #ifdef ICE_BIG_ENDIAN
         const Byte* src = &(*begin);
         Byte* dest = reinterpret_cast<Byte*>(&v[0]) + sizeof(Short) - 1;
-        for(int j = 0 ; j < sz ; ++j)
+        for(int j = 0; j < sz; ++j)
         {
             *dest-- = *src++;
             *dest-- = *src++;
@@ -597,11 +560,9 @@ Ice::InputStream::read(vector<Short>& v)
 }
 
 #ifdef ICE_CPP11_MAPPING
-void
-Ice::InputStream::read(pair<const short*, const short*>& v)
+void Ice::InputStream::read(pair<const short*, const short*>& v)
 #else
-void
-Ice::InputStream::read(pair<const Short*, const Short*>& v, IceUtil::ScopedArray<Short>& result)
+void Ice::InputStream::read(pair<const Short*, const Short*>& v, IceUtil::ScopedArray<Short>& result)
 #endif
 {
     Int sz = readAndCheckSeqSize(static_cast<int>(sizeof(Short)));
@@ -612,31 +573,31 @@ Ice::InputStream::read(pair<const Short*, const Short*>& v, IceUtil::ScopedArray
         i += sz * static_cast<int>(sizeof(Short));
         v.second = reinterpret_cast<Short*>(i);
 #else
-#  ifdef ICE_CPP11_MAPPING
+#    ifdef ICE_CPP11_MAPPING
         auto result = new short[sz];
         _deleters.push_back([result] { delete[] result; });
         v.first = result;
         v.second = result + sz;
-#  else
+#    else
         result.reset(new Short[sz]);
         v.first = result.get();
         v.second = result.get() + sz;
-#   endif
+#    endif
 
         Container::iterator begin = i;
         i += sz * static_cast<int>(sizeof(Short));
-#  ifdef ICE_BIG_ENDIAN
+#    ifdef ICE_BIG_ENDIAN
         const Byte* src = &(*begin);
         Byte* dest = reinterpret_cast<Byte*>(&result[0]) + sizeof(Short) - 1;
-        for(int j = 0 ; j < sz ; ++j)
+        for(int j = 0; j < sz; ++j)
         {
             *dest-- = *src++;
             *dest-- = *src++;
             dest += 2 * sizeof(Short);
         }
-#  else
+#    else
         copy(begin, i, reinterpret_cast<Byte*>(&result[0]));
-#  endif
+#    endif
 #endif
     }
     else
@@ -648,8 +609,7 @@ Ice::InputStream::read(pair<const Short*, const Short*>& v, IceUtil::ScopedArray
     }
 }
 
-void
-Ice::InputStream::read(vector<Int>& v)
+void Ice::InputStream::read(vector<Int>& v)
 {
     Int sz = readAndCheckSeqSize(static_cast<int>(sizeof(Int)));
     if(sz > 0)
@@ -660,7 +620,7 @@ Ice::InputStream::read(vector<Int>& v)
 #ifdef ICE_BIG_ENDIAN
         const Byte* src = &(*begin);
         Byte* dest = reinterpret_cast<Byte*>(&v[0]) + sizeof(Int) - 1;
-        for(int j = 0 ; j < sz ; ++j)
+        for(int j = 0; j < sz; ++j)
         {
             *dest-- = *src++;
             *dest-- = *src++;
@@ -679,11 +639,9 @@ Ice::InputStream::read(vector<Int>& v)
 }
 
 #ifdef ICE_CPP11_MAPPING
-void
-Ice::InputStream::read(pair<const Int*, const Int*>& v)
+void Ice::InputStream::read(pair<const Int*, const Int*>& v)
 #else
-void
-Ice::InputStream::read(pair<const Int*, const Int*>& v, ::IceUtil::ScopedArray<Int>& result)
+void Ice::InputStream::read(pair<const Int*, const Int*>& v, ::IceUtil::ScopedArray<Int>& result)
 #endif
 {
     Int sz = readAndCheckSeqSize(static_cast<int>(sizeof(Int)));
@@ -695,23 +653,23 @@ Ice::InputStream::read(pair<const Int*, const Int*>& v, ::IceUtil::ScopedArray<I
         v.second = reinterpret_cast<Int*>(i);
 #else
 
-#  ifdef ICE_CPP11_MAPPING
+#    ifdef ICE_CPP11_MAPPING
         auto result = new int[sz];
         _deleters.push_back([result] { delete[] result; });
         v.first = result;
         v.second = result + sz;
-#  else
+#    else
         result.reset(new Int[sz]);
         v.first = result.get();
         v.second = result.get() + sz;
-#  endif
+#    endif
 
         Container::iterator begin = i;
         i += sz * static_cast<int>(sizeof(Int));
-#  ifdef ICE_BIG_ENDIAN
+#    ifdef ICE_BIG_ENDIAN
         const Byte* src = &(*begin);
         Byte* dest = reinterpret_cast<Byte*>(&result[0]) + sizeof(Int) - 1;
-        for(int j = 0 ; j < sz ; ++j)
+        for(int j = 0; j < sz; ++j)
         {
             *dest-- = *src++;
             *dest-- = *src++;
@@ -719,9 +677,9 @@ Ice::InputStream::read(pair<const Int*, const Int*>& v, ::IceUtil::ScopedArray<I
             *dest-- = *src++;
             dest += 2 * sizeof(Int);
         }
-#  else
+#    else
         copy(begin, i, reinterpret_cast<Byte*>(&result[0]));
-#  endif
+#    endif
 #endif
     }
     else
@@ -733,8 +691,7 @@ Ice::InputStream::read(pair<const Int*, const Int*>& v, ::IceUtil::ScopedArray<I
     }
 }
 
-void
-Ice::InputStream::read(Long& v)
+void Ice::InputStream::read(Long& v)
 {
     if(b.end() - i < static_cast<int>(sizeof(Long)))
     {
@@ -765,8 +722,7 @@ Ice::InputStream::read(Long& v)
 #endif
 }
 
-void
-Ice::InputStream::read(vector<Long>& v)
+void Ice::InputStream::read(vector<Long>& v)
 {
     Int sz = readAndCheckSeqSize(static_cast<int>(sizeof(Long)));
     if(sz > 0)
@@ -777,7 +733,7 @@ Ice::InputStream::read(vector<Long>& v)
 #ifdef ICE_BIG_ENDIAN
         const Byte* src = &(*begin);
         Byte* dest = reinterpret_cast<Byte*>(&v[0]) + sizeof(Long) - 1;
-        for(int j = 0 ; j < sz ; ++j)
+        for(int j = 0; j < sz; ++j)
         {
             *dest-- = *src++;
             *dest-- = *src++;
@@ -800,11 +756,9 @@ Ice::InputStream::read(vector<Long>& v)
 }
 
 #ifdef ICE_CPP11_MAPPING
-void
-Ice::InputStream::read(pair<const Long*, const Long*>& v)
+void Ice::InputStream::read(pair<const Long*, const Long*>& v)
 #else
-void
-Ice::InputStream::read(pair<const Long*, const Long*>& v, IceUtil::ScopedArray<Long>& result)
+void Ice::InputStream::read(pair<const Long*, const Long*>& v, IceUtil::ScopedArray<Long>& result)
 #endif
 {
     Int sz = readAndCheckSeqSize(static_cast<int>(sizeof(Long)));
@@ -816,23 +770,23 @@ Ice::InputStream::read(pair<const Long*, const Long*>& v, IceUtil::ScopedArray<L
         v.second = reinterpret_cast<Long*>(i);
 #else
 
-#  ifdef ICE_CPP11_MAPPING
+#    ifdef ICE_CPP11_MAPPING
         auto result = new long long[sz];
         _deleters.push_back([result] { delete[] result; });
         v.first = result;
         v.second = result + sz;
-#  else
+#    else
         result.reset(new Long[sz]);
         v.first = result.get();
         v.second = result.get() + sz;
-#  endif
+#    endif
 
         Container::iterator begin = i;
         i += sz * static_cast<int>(sizeof(Long));
-#  ifdef ICE_BIG_ENDIAN
+#    ifdef ICE_BIG_ENDIAN
         const Byte* src = &(*begin);
         Byte* dest = reinterpret_cast<Byte*>(&result[0]) + sizeof(Long) - 1;
-        for(int j = 0 ; j < sz ; ++j)
+        for(int j = 0; j < sz; ++j)
         {
             *dest-- = *src++;
             *dest-- = *src++;
@@ -844,9 +798,9 @@ Ice::InputStream::read(pair<const Long*, const Long*>& v, IceUtil::ScopedArray<L
             *dest-- = *src++;
             dest += 2 * sizeof(Long);
         }
-#  else
+#    else
         copy(begin, i, reinterpret_cast<Byte*>(&result[0]));
-#  endif
+#    endif
 #endif
     }
     else
@@ -858,8 +812,7 @@ Ice::InputStream::read(pair<const Long*, const Long*>& v, IceUtil::ScopedArray<L
     }
 }
 
-void
-Ice::InputStream::read(Float& v)
+void Ice::InputStream::read(Float& v)
 {
     if(b.end() - i < static_cast<int>(sizeof(Float)))
     {
@@ -882,8 +835,7 @@ Ice::InputStream::read(Float& v)
 #endif
 }
 
-void
-Ice::InputStream::read(vector<Float>& v)
+void Ice::InputStream::read(vector<Float>& v)
 {
     Int sz = readAndCheckSeqSize(static_cast<int>(sizeof(Float)));
     if(sz > 0)
@@ -894,7 +846,7 @@ Ice::InputStream::read(vector<Float>& v)
 #ifdef ICE_BIG_ENDIAN
         const Byte* src = &(*begin);
         Byte* dest = reinterpret_cast<Byte*>(&v[0]) + sizeof(Float) - 1;
-        for(int j = 0 ; j < sz ; ++j)
+        for(int j = 0; j < sz; ++j)
         {
             *dest-- = *src++;
             *dest-- = *src++;
@@ -913,11 +865,9 @@ Ice::InputStream::read(vector<Float>& v)
 }
 
 #ifdef ICE_CPP11_MAPPING
-void
-Ice::InputStream::read(pair<const Float*, const Float*>& v)
+void Ice::InputStream::read(pair<const Float*, const Float*>& v)
 #else
-void
-Ice::InputStream::read(pair<const Float*, const Float*>& v, IceUtil::ScopedArray<Float>& result)
+void Ice::InputStream::read(pair<const Float*, const Float*>& v, IceUtil::ScopedArray<Float>& result)
 #endif
 {
     Int sz = readAndCheckSeqSize(static_cast<int>(sizeof(Float)));
@@ -929,23 +879,23 @@ Ice::InputStream::read(pair<const Float*, const Float*>& v, IceUtil::ScopedArray
         v.second = reinterpret_cast<Float*>(i);
 #else
 
-#  ifdef ICE_CPP11_MAPPING
+#    ifdef ICE_CPP11_MAPPING
         auto result = new float[sz];
         _deleters.push_back([result] { delete[] result; });
         v.first = result;
         v.second = result + sz;
-#  else
+#    else
         result.reset(new Float[sz]);
         v.first = result.get();
         v.second = result.get() + sz;
-#  endif
+#    endif
 
         Container::iterator begin = i;
         i += sz * static_cast<int>(sizeof(Float));
-#  ifdef ICE_BIG_ENDIAN
+#    ifdef ICE_BIG_ENDIAN
         const Byte* src = &(*begin);
         Byte* dest = reinterpret_cast<Byte*>(&result[0]) + sizeof(Float) - 1;
-        for(int j = 0 ; j < sz ; ++j)
+        for(int j = 0; j < sz; ++j)
         {
             *dest-- = *src++;
             *dest-- = *src++;
@@ -953,9 +903,9 @@ Ice::InputStream::read(pair<const Float*, const Float*>& v, IceUtil::ScopedArray
             *dest-- = *src++;
             dest += 2 * sizeof(Float);
         }
-#  else
+#    else
         copy(begin, i, reinterpret_cast<Byte*>(&result[0]));
-#  endif
+#    endif
 #endif
     }
     else
@@ -967,8 +917,7 @@ Ice::InputStream::read(pair<const Float*, const Float*>& v, IceUtil::ScopedArray
     }
 }
 
-void
-Ice::InputStream::read(Double& v)
+void Ice::InputStream::read(Double& v)
 {
     if(b.end() - i < static_cast<int>(sizeof(Double)))
     {
@@ -988,7 +937,7 @@ Ice::InputStream::read(Double& v)
     *dest = *src;
 #else
     Byte* dest = reinterpret_cast<Byte*>(&v);
-#  if defined(ICE_LITTLEBYTE_BIGWORD)
+#    if defined(ICE_LITTLEBYTE_BIGWORD)
     dest[4] = *src++;
     dest[5] = *src++;
     dest[6] = *src++;
@@ -997,7 +946,7 @@ Ice::InputStream::read(Double& v)
     dest[1] = *src++;
     dest[2] = *src++;
     dest[3] = *src;
-#  else
+#    else
     *dest++ = *src++;
     *dest++ = *src++;
     *dest++ = *src++;
@@ -1006,12 +955,11 @@ Ice::InputStream::read(Double& v)
     *dest++ = *src++;
     *dest++ = *src++;
     *dest = *src;
-#  endif
+#    endif
 #endif
 }
 
-void
-Ice::InputStream::read(vector<Double>& v)
+void Ice::InputStream::read(vector<Double>& v)
 {
     Int sz = readAndCheckSeqSize(static_cast<int>(sizeof(Double)));
     if(sz > 0)
@@ -1022,7 +970,7 @@ Ice::InputStream::read(vector<Double>& v)
 #ifdef ICE_BIG_ENDIAN
         const Byte* src = &(*begin);
         Byte* dest = reinterpret_cast<Byte*>(&v[0]) + sizeof(Double) - 1;
-        for(int j = 0 ; j < sz ; ++j)
+        for(int j = 0; j < sz; ++j)
         {
             *dest-- = *src++;
             *dest-- = *src++;
@@ -1037,7 +985,7 @@ Ice::InputStream::read(vector<Double>& v)
 #elif defined(ICE_LITTLEBYTE_BIGWORD)
         const Byte* src = &(*begin);
         Byte* dest = reinterpret_cast<Byte*>(&v[0]);
-        for(int j = 0 ; j < sz ; ++j)
+        for(int j = 0; j < sz; ++j)
         {
             dest[4] = *src++;
             dest[5] = *src++;
@@ -1060,11 +1008,9 @@ Ice::InputStream::read(vector<Double>& v)
 }
 
 #ifdef ICE_CPP11_MAPPING
-void
-Ice::InputStream::read(pair<const Double*, const Double*>& v)
+void Ice::InputStream::read(pair<const Double*, const Double*>& v)
 #else
-void
-Ice::InputStream::read(pair<const Double*, const Double*>& v, IceUtil::ScopedArray<Double>& result)
+void Ice::InputStream::read(pair<const Double*, const Double*>& v, IceUtil::ScopedArray<Double>& result)
 #endif
 {
     Int sz = readAndCheckSeqSize(static_cast<int>(sizeof(Double)));
@@ -1076,23 +1022,23 @@ Ice::InputStream::read(pair<const Double*, const Double*>& v, IceUtil::ScopedArr
         v.second = reinterpret_cast<Double*>(i);
 #else
 
-#  ifdef ICE_CPP11_MAPPING
+#    ifdef ICE_CPP11_MAPPING
         auto result = new double[sz];
         _deleters.push_back([result] { delete[] result; });
         v.first = result;
         v.second = result + sz;
-#  else
+#    else
         result.reset(new Double[sz]);
         v.first = result.get();
         v.second = result.get() + sz;
-#  endif
+#    endif
 
         Container::iterator begin = i;
         i += sz * static_cast<int>(sizeof(Double));
-#  ifdef ICE_BIG_ENDIAN
+#    ifdef ICE_BIG_ENDIAN
         const Byte* src = &(*begin);
         Byte* dest = reinterpret_cast<Byte*>(&result[0]) + sizeof(Double) - 1;
-        for(int j = 0 ; j < sz ; ++j)
+        for(int j = 0; j < sz; ++j)
         {
             *dest-- = *src++;
             *dest-- = *src++;
@@ -1104,10 +1050,10 @@ Ice::InputStream::read(pair<const Double*, const Double*>& v, IceUtil::ScopedArr
             *dest-- = *src++;
             dest += 2 * sizeof(Double);
         }
-#  elif defined(ICE_LITTLEBYTE_BIGWORD)
+#    elif defined(ICE_LITTLEBYTE_BIGWORD)
         const Byte* src = &(*begin);
         Byte* dest = reinterpret_cast<Byte*>(&result[0]);
-        for(int j = 0 ; j < sz ; ++j)
+        for(int j = 0; j < sz; ++j)
         {
             dest[4] = *src++;
             dest[5] = *src++;
@@ -1120,9 +1066,9 @@ Ice::InputStream::read(pair<const Double*, const Double*>& v, IceUtil::ScopedArr
             dest += sizeof(Double);
         }
 
-#  else
+#    else
         copy(begin, i, reinterpret_cast<Byte*>(&result[0]));
-#  endif
+#    endif
 #endif
     }
     else
@@ -1134,8 +1080,7 @@ Ice::InputStream::read(pair<const Double*, const Double*>& v, IceUtil::ScopedArr
     }
 }
 
-void
-Ice::InputStream::read(std::string& v, bool convert)
+void Ice::InputStream::read(std::string& v, bool convert)
 {
     Int sz = readSize();
     if(sz > 0)
@@ -1158,8 +1103,7 @@ Ice::InputStream::read(std::string& v, bool convert)
 }
 
 #ifdef ICE_CPP11_MAPPING
-void
-Ice::InputStream::read(const char*& vdata, size_t& vsize, bool convert)
+void Ice::InputStream::read(const char*& vdata, size_t& vsize, bool convert)
 {
     int sz = readSize();
     if(sz > 0)
@@ -1214,8 +1158,7 @@ Ice::InputStream::read(const char*& vdata, size_t& vsize, bool convert)
 
 #else
 
-void
-Ice::InputStream::read(const char*& vdata, size_t& vsize)
+void Ice::InputStream::read(const char*& vdata, size_t& vsize)
 {
     Int sz = readSize();
     if(sz > 0)
@@ -1236,8 +1179,7 @@ Ice::InputStream::read(const char*& vdata, size_t& vsize)
     }
 }
 
-void
-Ice::InputStream::read(const char*& vdata, size_t& vsize, string& holder)
+void Ice::InputStream::read(const char*& vdata, size_t& vsize, string& holder)
 {
     Int sz = readSize();
     if(sz > 0)
@@ -1268,8 +1210,7 @@ Ice::InputStream::read(const char*& vdata, size_t& vsize, string& holder)
 }
 #endif
 
-bool
-Ice::InputStream::readConverted(string& v, int sz)
+bool Ice::InputStream::readConverted(string& v, int sz)
 {
     try
     {
@@ -1307,8 +1248,7 @@ Ice::InputStream::readConverted(string& v, int sz)
     }
 }
 
-void
-Ice::InputStream::read(vector<string>& v, bool convert)
+void Ice::InputStream::read(vector<string>& v, bool convert)
 {
     Int sz = readAndCheckSeqSize(1);
     if(sz > 0)
@@ -1321,12 +1261,11 @@ Ice::InputStream::read(vector<string>& v, bool convert)
     }
     else
     {
-       v.clear();
+        v.clear();
     }
 }
 
-void
-Ice::InputStream::read(wstring& v)
+void Ice::InputStream::read(wstring& v)
 {
     Int sz = readSize();
     if(sz > 0)
@@ -1362,8 +1301,7 @@ Ice::InputStream::read(wstring& v)
     }
 }
 
-void
-Ice::InputStream::read(vector<wstring>& v)
+void Ice::InputStream::read(vector<wstring>& v)
 {
     Int sz = readAndCheckSeqSize(1);
     if(sz > 0)
@@ -1376,13 +1314,12 @@ Ice::InputStream::read(vector<wstring>& v)
     }
     else
     {
-       v.clear();
+        v.clear();
     }
 }
 
 #ifdef ICE_CPP11_MAPPING
-shared_ptr<ObjectPrx>
-Ice::InputStream::readProxy()
+shared_ptr<ObjectPrx> Ice::InputStream::readProxy()
 {
     if(!_instance)
     {
@@ -1392,8 +1329,7 @@ Ice::InputStream::readProxy()
     return _instance->proxyFactory()->streamToProxy(this);
 }
 #else
-void
-Ice::InputStream::read(ObjectPrx& v)
+void Ice::InputStream::read(ObjectPrx& v)
 {
     if(!_instance)
     {
@@ -1404,8 +1340,7 @@ Ice::InputStream::read(ObjectPrx& v)
 }
 #endif
 
-Int
-Ice::InputStream::readEnum(Int maxValue)
+Int Ice::InputStream::readEnum(Int maxValue)
 {
     if(getEncoding() == Encoding_1_0)
     {
@@ -1434,15 +1369,13 @@ Ice::InputStream::readEnum(Int maxValue)
     }
 }
 
-void
-Ice::InputStream::throwException(ICE_IN(ICE_DELEGATE(UserExceptionFactory)) factory)
+void Ice::InputStream::throwException(ICE_IN(ICE_DELEGATE(UserExceptionFactory)) factory)
 {
     initEncaps();
     _currentEncaps->decoder->throwException(factory);
 }
 
-bool
-Ice::InputStream::readOptImpl(Int readTag, OptionalFormat expectedFormat)
+bool Ice::InputStream::readOptImpl(Int readTag, OptionalFormat expectedFormat)
 {
     if(getEncoding() == Encoding_1_0)
     {
@@ -1474,7 +1407,7 @@ Ice::InputStream::readOptImpl(Int readTag, OptionalFormat expectedFormat)
         if(tag > readTag)
         {
             i -= tag < 30 ? 1 : (tag < 255 ? 2 : 6); // Rewind
-            return false; // No optional data members with the requested tag.
+            return false;                            // No optional data members with the requested tag.
         }
         else if(tag < readTag)
         {
@@ -1494,8 +1427,7 @@ Ice::InputStream::readOptImpl(Int readTag, OptionalFormat expectedFormat)
     return true; // Keep the compiler happy.
 }
 
-void
-Ice::InputStream::skipOptional(OptionalFormat type)
+void Ice::InputStream::skipOptional(OptionalFormat type)
 {
     switch(type)
     {
@@ -1548,8 +1480,7 @@ Ice::InputStream::skipOptional(OptionalFormat type)
     }
 }
 
-void
-Ice::InputStream::skipOptionals()
+void Ice::InputStream::skipOptionals()
 {
     //
     // Skip remaining un-read optional members.
@@ -1577,20 +1508,17 @@ Ice::InputStream::skipOptionals()
     }
 }
 
-void
-Ice::InputStream::throwUnmarshalOutOfBoundsException(const char* file, int line)
+void Ice::InputStream::throwUnmarshalOutOfBoundsException(const char* file, int line)
 {
     throw UnmarshalOutOfBoundsException(file, line);
 }
 
-void
-Ice::InputStream::throwEncapsulationException(const char* file, int line)
+void Ice::InputStream::throwEncapsulationException(const char* file, int line)
 {
     throw EncapsulationException(file, line);
 }
 
-string
-Ice::InputStream::resolveCompactId(int id) const
+string Ice::InputStream::resolveCompactId(int id) const
 {
     string type;
 
@@ -1637,8 +1565,7 @@ Ice::InputStream::resolveCompactId(int id) const
     return type;
 }
 
-void
-Ice::InputStream::postUnmarshal(const ValuePtr& v) const
+void Ice::InputStream::postUnmarshal(const ValuePtr& v) const
 {
     try
     {
@@ -1668,8 +1595,7 @@ Ice::InputStream::postUnmarshal(const ValuePtr& v) const
     }
 }
 
-void
-Ice::InputStream::traceSkipSlice(const string& typeId, SliceType sliceType) const
+void Ice::InputStream::traceSkipSlice(const string& typeId, SliceType sliceType) const
 {
     if(_traceSlicing && logger())
     {
@@ -1677,8 +1603,7 @@ Ice::InputStream::traceSkipSlice(const string& typeId, SliceType sliceType) cons
     }
 }
 
-ValueFactoryManagerPtr
-Ice::InputStream::valueFactoryManager() const
+ValueFactoryManagerPtr Ice::InputStream::valueFactoryManager() const
 {
     if(_valueFactoryManager)
     {
@@ -1692,8 +1617,7 @@ Ice::InputStream::valueFactoryManager() const
     return 0;
 }
 
-LoggerPtr
-Ice::InputStream::logger() const
+LoggerPtr Ice::InputStream::logger() const
 {
     if(_logger)
     {
@@ -1708,8 +1632,7 @@ Ice::InputStream::logger() const
 }
 
 #ifdef ICE_CPP11_MAPPING
-function<string(int)>
-Ice::InputStream::compactIdResolver() const
+function<string(int)> Ice::InputStream::compactIdResolver() const
 {
     if(_compactIdResolver)
     {
@@ -1723,8 +1646,7 @@ Ice::InputStream::compactIdResolver() const
     return nullptr;
 }
 #else
-CompactIdResolverPtr
-Ice::InputStream::compactIdResolver() const
+CompactIdResolverPtr Ice::InputStream::compactIdResolver() const
 {
     if(_compactIdResolver)
     {
@@ -1739,8 +1661,7 @@ Ice::InputStream::compactIdResolver() const
 }
 #endif
 
-void
-Ice::InputStream::initEncaps()
+void Ice::InputStream::initEncaps()
 {
     if(!_currentEncaps) // Lazy initialization.
     {
@@ -1768,8 +1689,7 @@ Ice::InputStream::EncapsDecoder::~EncapsDecoder()
     // Out of line to avoid weak vtable
 }
 
-string
-Ice::InputStream::EncapsDecoder::readTypeId(bool isIndex)
+string Ice::InputStream::EncapsDecoder::readTypeId(bool isIndex)
 {
     if(isIndex)
     {
@@ -1790,8 +1710,7 @@ Ice::InputStream::EncapsDecoder::readTypeId(bool isIndex)
     }
 }
 
-Ice::ValuePtr
-Ice::InputStream::EncapsDecoder::newInstance(const string& typeId)
+Ice::ValuePtr Ice::InputStream::EncapsDecoder::newInstance(const string& typeId)
 {
     Ice::ValuePtr v;
 
@@ -1860,8 +1779,7 @@ Ice::InputStream::EncapsDecoder::newInstance(const string& typeId)
     return v;
 }
 
-void
-Ice::InputStream::EncapsDecoder::addPatchEntry(Int index, PatchFunc patchFunc, void* patchAddr)
+void Ice::InputStream::EncapsDecoder::addPatchEntry(Int index, PatchFunc patchFunc, void* patchAddr)
 {
     assert(index > 0);
 
@@ -1902,8 +1820,7 @@ Ice::InputStream::EncapsDecoder::addPatchEntry(Int index, PatchFunc patchFunc, v
     q->second.push_back(e);
 }
 
-void
-Ice::InputStream::EncapsDecoder::unmarshal(Int index, const Ice::ValuePtr& v)
+void Ice::InputStream::EncapsDecoder::unmarshal(Int index, const Ice::ValuePtr& v)
 {
     //
     // Add the object to the map of unmarshaled instances, this must
@@ -1964,8 +1881,7 @@ Ice::InputStream::EncapsDecoder::unmarshal(Int index, const Ice::ValuePtr& v)
     }
 }
 
-void
-Ice::InputStream::EncapsDecoder10::read(PatchFunc patchFunc, void* patchAddr)
+void Ice::InputStream::EncapsDecoder10::read(PatchFunc patchFunc, void* patchAddr)
 {
     assert(patchFunc && patchAddr);
 
@@ -1995,8 +1911,7 @@ Ice::InputStream::EncapsDecoder10::read(PatchFunc patchFunc, void* patchAddr)
     }
 }
 
-void
-Ice::InputStream::EncapsDecoder10::throwException(ICE_IN(ICE_DELEGATE(UserExceptionFactory)) factory)
+void Ice::InputStream::EncapsDecoder10::throwException(ICE_IN(ICE_DELEGATE(UserExceptionFactory)) factory)
 {
     assert(_sliceType == NoSlice);
 
@@ -2088,15 +2003,14 @@ void
 #ifndef NDEBUG
 Ice::InputStream::EncapsDecoder10::startInstance(SliceType sliceType)
 #else
-Ice::InputStream::EncapsDecoder10::startInstance(SliceType)
+    Ice::InputStream::EncapsDecoder10::startInstance(SliceType)
 #endif
 {
     assert(_sliceType == sliceType);
     _skipFirstSlice = true;
 }
 
-SlicedDataPtr
-Ice::InputStream::EncapsDecoder10::endInstance(bool)
+SlicedDataPtr Ice::InputStream::EncapsDecoder10::endInstance(bool)
 {
     //
     // Read the Ice::Value slice.
@@ -2115,8 +2029,7 @@ Ice::InputStream::EncapsDecoder10::endInstance(bool)
     return 0;
 }
 
-const std::string&
-Ice::InputStream::EncapsDecoder10::startSlice()
+const std::string& Ice::InputStream::EncapsDecoder10::startSlice()
 {
     //
     // If first slice, don't read the header, it was already read in
@@ -2153,21 +2066,18 @@ Ice::InputStream::EncapsDecoder10::startSlice()
     return _typeId;
 }
 
-void
-Ice::InputStream::EncapsDecoder10::endSlice()
+void Ice::InputStream::EncapsDecoder10::endSlice()
 {
 }
 
-void
-Ice::InputStream::EncapsDecoder10::skipSlice()
+void Ice::InputStream::EncapsDecoder10::skipSlice()
 {
     _stream->traceSkipSlice(_typeId, _sliceType);
     assert(_sliceSize >= 4);
     _stream->skip(_sliceSize - sizeof(Int));
 }
 
-void
-Ice::InputStream::EncapsDecoder10::readPendingValues()
+void Ice::InputStream::EncapsDecoder10::readPendingValues()
 {
     Int num;
     do
@@ -2177,8 +2087,7 @@ Ice::InputStream::EncapsDecoder10::readPendingValues()
         {
             readInstance();
         }
-    }
-    while(num);
+    } while(num);
 
     if(!_patchMap.empty())
     {
@@ -2190,8 +2099,7 @@ Ice::InputStream::EncapsDecoder10::readPendingValues()
     }
 }
 
-void
-Ice::InputStream::EncapsDecoder10::readInstance()
+void Ice::InputStream::EncapsDecoder10::readInstance()
 {
     Int index;
     _stream->read(index);
@@ -2237,7 +2145,7 @@ Ice::InputStream::EncapsDecoder10::readInstance()
         if(!_sliceValues)
         {
             throw NoValueFactoryException(__FILE__, __LINE__, "no value factory found and value slicing is disabled",
-                                           _typeId);
+                                          _typeId);
         }
 
         //
@@ -2277,8 +2185,7 @@ Ice::InputStream::EncapsDecoder10::readInstance()
     unmarshal(index, v);
 }
 
-void
-Ice::InputStream::EncapsDecoder11::read(PatchFunc patchFunc, void* patchAddr)
+void Ice::InputStream::EncapsDecoder11::read(PatchFunc patchFunc, void* patchAddr)
 {
     Int index = _stream->readSize();
     if(index < 0)
@@ -2325,8 +2232,7 @@ Ice::InputStream::EncapsDecoder11::read(PatchFunc patchFunc, void* patchAddr)
     }
 }
 
-void
-Ice::InputStream::EncapsDecoder11::throwException(ICE_IN(ICE_DELEGATE(UserExceptionFactory)) factory)
+void Ice::InputStream::EncapsDecoder11::throwException(ICE_IN(ICE_DELEGATE(UserExceptionFactory)) factory)
 {
     assert(!_current);
 
@@ -2396,15 +2302,14 @@ void
 #ifndef NDEBUG
 Ice::InputStream::EncapsDecoder11::startInstance(SliceType sliceType)
 #else
-Ice::InputStream::EncapsDecoder11::startInstance(SliceType)
+    Ice::InputStream::EncapsDecoder11::startInstance(SliceType)
 #endif
 {
     assert(_current->sliceType == sliceType);
     _current->skipFirstSlice = true;
 }
 
-SlicedDataPtr
-Ice::InputStream::EncapsDecoder11::endInstance(bool preserve)
+SlicedDataPtr Ice::InputStream::EncapsDecoder11::endInstance(bool preserve)
 {
     SlicedDataPtr slicedData;
     if(preserve)
@@ -2417,8 +2322,7 @@ Ice::InputStream::EncapsDecoder11::endInstance(bool preserve)
     return slicedData;
 }
 
-const std::string&
-Ice::InputStream::EncapsDecoder11::startSlice()
+const std::string& Ice::InputStream::EncapsDecoder11::startSlice()
 {
     //
     // If first slice, don't read the header, it was already read in
@@ -2480,8 +2384,7 @@ Ice::InputStream::EncapsDecoder11::startSlice()
     return _current->typeId;
 }
 
-void
-Ice::InputStream::EncapsDecoder11::endSlice()
+void Ice::InputStream::EncapsDecoder11::endSlice()
 {
     if(_current->sliceFlags & FLAG_HAS_OPTIONAL_MEMBERS)
     {
@@ -2530,8 +2433,7 @@ Ice::InputStream::EncapsDecoder11::endSlice()
     }
 }
 
-void
-Ice::InputStream::EncapsDecoder11::skipSlice()
+void Ice::InputStream::EncapsDecoder11::skipSlice()
 {
     _stream->traceSkipSlice(_current->typeId, _current->sliceType);
 
@@ -2601,8 +2503,7 @@ Ice::InputStream::EncapsDecoder11::skipSlice()
     _current->slices.push_back(info);
 }
 
-bool
-Ice::InputStream::EncapsDecoder11::readOptional(Ice::Int readTag, Ice::OptionalFormat expectedFormat)
+bool Ice::InputStream::EncapsDecoder11::readOptional(Ice::Int readTag, Ice::OptionalFormat expectedFormat)
 {
     if(!_current)
     {
@@ -2615,8 +2516,7 @@ Ice::InputStream::EncapsDecoder11::readOptional(Ice::Int readTag, Ice::OptionalF
     return false;
 }
 
-Int
-Ice::InputStream::EncapsDecoder11::readInstance(Int index, PatchFunc patchFunc, void* patchAddr)
+Int Ice::InputStream::EncapsDecoder11::readInstance(Int index, PatchFunc patchFunc, void* patchAddr)
 {
     assert(index > 0);
 
@@ -2735,8 +2635,7 @@ Ice::InputStream::EncapsDecoder11::readInstance(Int index, PatchFunc patchFunc, 
     return index;
 }
 
-SlicedDataPtr
-Ice::InputStream::EncapsDecoder11::readSlicedData()
+SlicedDataPtr Ice::InputStream::EncapsDecoder11::readSlicedData()
 {
     if(_current->slices.empty()) // No preserved slices.
     {

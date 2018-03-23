@@ -17,36 +17,29 @@ using namespace Test;
 
 namespace
 {
-
-class Server : public Ice::Application
-{
-public:
-
-    virtual int run(int, char*[]);
-};
-
-class CallbackI : public Callback
-{
-
-public:
-
-    virtual void
-    initiateCallback(ICE_IN(CallbackReceiverPrxPtr) proxy, const Ice::Current& current)
+    class Server : public Ice::Application
     {
-        proxy->callback(current.ctx);
-    }
+    public:
+        virtual int run(int, char* []);
+    };
 
-    virtual void
-    shutdown(const Ice::Current& current)
+    class CallbackI : public Callback
     {
-        current.adapter->getCommunicator()->shutdown();
-    }
-};
+    public:
+        virtual void initiateCallback(ICE_IN(CallbackReceiverPrxPtr) proxy, const Ice::Current& current)
+        {
+            proxy->callback(current.ctx);
+        }
 
-}
+        virtual void shutdown(const Ice::Current& current)
+        {
+            current.adapter->getCommunicator()->shutdown();
+        }
+    };
 
-int
-Server::run(int, char**)
+} // namespace
+
+int Server::run(int, char**)
 {
     communicator()->getProperties()->setProperty("DeactivatedAdapter.Endpoints", getTestEndpoint(communicator(), 1));
     communicator()->createObjectAdapter("DeactivatedAdapter");
@@ -60,8 +53,7 @@ Server::run(int, char**)
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
 #ifdef ICE_STATIC_LIBS
     Ice::registerIceSSL(false);

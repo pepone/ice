@@ -23,7 +23,10 @@ using namespace std;
 using namespace IceInternal;
 
 #ifndef ICE_CPP11_MAPPING
-IceUtil::Shared* IceInternal::upCast(ConnectRequestHandler* p) { return p; }
+IceUtil::Shared* IceInternal::upCast(ConnectRequestHandler* p)
+{
+    return p;
+}
 #endif
 
 ConnectRequestHandler::ConnectRequestHandler(const ReferencePtr& ref, const Ice::ObjectPrxPtr& proxy) :
@@ -34,8 +37,7 @@ ConnectRequestHandler::ConnectRequestHandler(const ReferencePtr& ref, const Ice:
 {
 }
 
-RequestHandlerPtr
-ConnectRequestHandler::connect(const Ice::ObjectPrxPtr& proxy)
+RequestHandlerPtr ConnectRequestHandler::connect(const Ice::ObjectPrxPtr& proxy)
 {
     Lock sync(*this);
     if(!initialized())
@@ -45,14 +47,13 @@ ConnectRequestHandler::connect(const Ice::ObjectPrxPtr& proxy)
     return _requestHandler ? _requestHandler : ICE_SHARED_FROM_THIS;
 }
 
-RequestHandlerPtr
-ConnectRequestHandler::update(const RequestHandlerPtr& previousHandler, const RequestHandlerPtr& newHandler)
+RequestHandlerPtr ConnectRequestHandler::update(const RequestHandlerPtr& previousHandler,
+                                                const RequestHandlerPtr& newHandler)
 {
     return previousHandler.get() == this ? newHandler : ICE_SHARED_FROM_THIS;
 }
 
-AsyncStatus
-ConnectRequestHandler::sendAsyncRequest(const ProxyOutgoingAsyncBasePtr& out)
+AsyncStatus ConnectRequestHandler::sendAsyncRequest(const ProxyOutgoingAsyncBasePtr& out)
 {
     {
         Lock sync(*this);
@@ -70,8 +71,7 @@ ConnectRequestHandler::sendAsyncRequest(const ProxyOutgoingAsyncBasePtr& out)
     return out->invokeRemote(_connection, _compress, _response);
 }
 
-void
-ConnectRequestHandler::asyncRequestCanceled(const OutgoingAsyncBasePtr& outAsync, const Ice::LocalException& ex)
+void ConnectRequestHandler::asyncRequestCanceled(const OutgoingAsyncBasePtr& outAsync, const Ice::LocalException& ex)
 {
     {
         Lock sync(*this);
@@ -99,8 +99,7 @@ ConnectRequestHandler::asyncRequestCanceled(const OutgoingAsyncBasePtr& outAsync
     _connection->asyncRequestCanceled(outAsync, ex);
 }
 
-Ice::ConnectionIPtr
-ConnectRequestHandler::getConnection()
+Ice::ConnectionIPtr ConnectRequestHandler::getConnection()
 {
     Lock sync(*this);
     //
@@ -119,8 +118,7 @@ ConnectRequestHandler::getConnection()
     return ICE_NULLPTR;
 }
 
-Ice::ConnectionIPtr
-ConnectRequestHandler::waitForConnection()
+Ice::ConnectionIPtr ConnectRequestHandler::waitForConnection()
 {
     Lock sync(*this);
     if(_exception)
@@ -146,8 +144,7 @@ ConnectRequestHandler::waitForConnection()
     }
 }
 
-void
-ConnectRequestHandler::setConnection(const Ice::ConnectionIPtr& connection, bool compress)
+void ConnectRequestHandler::setConnection(const Ice::ConnectionIPtr& connection, bool compress)
 {
     {
         Lock sync(*this);
@@ -172,8 +169,7 @@ ConnectRequestHandler::setConnection(const Ice::ConnectionIPtr& connection, bool
     flushRequests();
 }
 
-void
-ConnectRequestHandler::setException(const Ice::LocalException& ex)
+void ConnectRequestHandler::setException(const Ice::LocalException& ex)
 {
     {
         Lock sync(*this);
@@ -214,8 +210,7 @@ ConnectRequestHandler::setException(const Ice::LocalException& ex)
     }
 }
 
-void
-ConnectRequestHandler::addedProxy()
+void ConnectRequestHandler::addedProxy()
 {
     //
     // The proxy was added to the router info, we're now ready to send the
@@ -224,8 +219,7 @@ ConnectRequestHandler::addedProxy()
     flushRequests();
 }
 
-bool
-ConnectRequestHandler::initialized()
+bool ConnectRequestHandler::initialized()
 {
     // Must be called with the mutex locked.
 
@@ -263,8 +257,7 @@ ConnectRequestHandler::initialized()
     }
 }
 
-void
-ConnectRequestHandler::flushRequests()
+void ConnectRequestHandler::flushRequests()
 {
     {
         Lock sync(*this);

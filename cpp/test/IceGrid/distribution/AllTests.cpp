@@ -19,15 +19,15 @@ using namespace std;
 using namespace Test;
 using namespace IceGrid;
 
-void
-allTests(const Ice::CommunicatorPtr& communicator)
+void allTests(const Ice::CommunicatorPtr& communicator)
 {
     IceGrid::RegistryPrx registry = IceGrid::RegistryPrx::checkedCast(
         communicator->stringToProxy(communicator->getDefaultLocator()->ice_getIdentity().category + "/Registry"));
     test(registry);
     AdminSessionPrx session = registry->createAdminSession("foo", "bar");
 
-    session->ice_getConnection()->setACM(registry->getACMTimeout(), IceUtil::None, Ice::ICE_ENUM(ACMHeartbeat, HeartbeatAlways));
+    session->ice_getConnection()->setACM(registry->getACMTimeout(), IceUtil::None,
+                                         Ice::ICE_ENUM(ACMHeartbeat, HeartbeatAlways));
 
     AdminPrx admin = session->getAdmin();
     test(admin);

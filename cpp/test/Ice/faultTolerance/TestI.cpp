@@ -14,26 +14,22 @@ TestI::TestI()
 {
 }
 
-void
-TestI::shutdown(const Ice::Current& current)
+void TestI::shutdown(const Ice::Current& current)
 {
     current.adapter->getCommunicator()->shutdown();
 }
 
-void
-TestI::abort(const Ice::Current&)
+void TestI::abort(const Ice::Current&)
 {
     _exit(0);
 }
 
-void
-TestI::idempotentAbort(const Ice::Current&)
+void TestI::idempotentAbort(const Ice::Current&)
 {
     _exit(0);
 }
 
-Ice::Int
-TestI::pid(const Ice::Current&)
+Ice::Int TestI::pid(const Ice::Current&)
 {
 #ifdef _MSC_VER
     return _getpid();

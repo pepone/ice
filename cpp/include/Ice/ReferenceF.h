@@ -16,19 +16,18 @@
 
 namespace IceInternal
 {
+    class Reference;
+    ICE_API IceUtil::Shared* upCast(Reference*);
+    typedef IceInternal::Handle<Reference> ReferencePtr;
 
-class Reference;
-ICE_API IceUtil::Shared* upCast(Reference*);
-typedef IceInternal::Handle<Reference> ReferencePtr;
+    class FixedReference;
+    ICE_API IceUtil::Shared* upCast(FixedReference*);
+    typedef IceInternal::Handle<FixedReference> FixedReferencePtr;
 
-class FixedReference;
-ICE_API IceUtil::Shared* upCast(FixedReference*);
-typedef IceInternal::Handle<FixedReference> FixedReferencePtr;
+    class RoutableReference;
+    ICE_API IceUtil::Shared* upCast(RoutableReference*);
+    typedef IceInternal::Handle<RoutableReference> RoutableReferencePtr;
 
-class RoutableReference;
-ICE_API IceUtil::Shared* upCast(RoutableReference*);
-typedef IceInternal::Handle<RoutableReference> RoutableReferencePtr;
-
-}
+} // namespace IceInternal
 
 #endif

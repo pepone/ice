@@ -17,47 +17,44 @@
 
 namespace IceInternal
 {
+    class TcpConnector;
+    class TcpAcceptor;
 
-class TcpConnector;
-class TcpAcceptor;
+    class TcpTransceiver : public Transceiver
+    {
+    public:
+        virtual NativeInfoPtr getNativeInfo();
 
-class TcpTransceiver : public Transceiver
-{
-public:
+        virtual SocketOperation initialize(Buffer&, Buffer&);
+        virtual SocketOperation closing(bool, const Ice::LocalException&);
 
-    virtual NativeInfoPtr getNativeInfo();
-
-    virtual SocketOperation initialize(Buffer&, Buffer&);
-    virtual SocketOperation closing(bool, const Ice::LocalException&);
-
-    virtual void close();
-    virtual SocketOperation write(Buffer&);
-    virtual SocketOperation read(Buffer&);
+        virtual void close();
+        virtual SocketOperation write(Buffer&);
+        virtual SocketOperation read(Buffer&);
 #if defined(ICE_USE_IOCP) || defined(ICE_OS_UWP)
-    virtual bool startWrite(Buffer&);
-    virtual void finishWrite(Buffer&);
-    virtual void startRead(Buffer&);
-    virtual void finishRead(Buffer&);
+        virtual bool startWrite(Buffer&);
+        virtual void finishWrite(Buffer&);
+        virtual void startRead(Buffer&);
+        virtual void finishRead(Buffer&);
 #endif
-    virtual std::string protocol() const;
-    virtual std::string toString() const;
-    virtual std::string toDetailedString() const;
-    virtual Ice::ConnectionInfoPtr getInfo() const;
-    virtual void checkSendSize(const Buffer&);
-    virtual void setBufferSize(int rcvSize, int sndSize);
+        virtual std::string protocol() const;
+        virtual std::string toString() const;
+        virtual std::string toDetailedString() const;
+        virtual Ice::ConnectionInfoPtr getInfo() const;
+        virtual void checkSendSize(const Buffer&);
+        virtual void setBufferSize(int rcvSize, int sndSize);
 
-private:
+    private:
+        TcpTransceiver(const ProtocolInstancePtr&, const StreamSocketPtr&);
+        virtual ~TcpTransceiver();
 
-    TcpTransceiver(const ProtocolInstancePtr&, const StreamSocketPtr&);
-    virtual ~TcpTransceiver();
+        friend class TcpConnector;
+        friend class TcpAcceptor;
 
-    friend class TcpConnector;
-    friend class TcpAcceptor;
+        const ProtocolInstancePtr _instance;
+        const StreamSocketPtr _stream;
+    };
 
-    const ProtocolInstancePtr _instance;
-    const StreamSocketPtr _stream;
-};
-
-}
+} // namespace IceInternal
 
 #endif

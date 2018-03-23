@@ -20,26 +20,21 @@ TimerTask::~TimerTask()
     // Out of line to avoid weak vtable
 }
 
-Timer::Timer() :
-    Thread("IceUtil timer thread"),
-    _destroyed(false)
+Timer::Timer() : Thread("IceUtil timer thread"), _destroyed(false)
 {
     __setNoDelete(true);
     start();
     __setNoDelete(false);
 }
 
-Timer::Timer(int priority) :
-    Thread("IceUtil timer thread"),
-    _destroyed(false)
+Timer::Timer(int priority) : Thread("IceUtil timer thread"), _destroyed(false)
 {
     __setNoDelete(true);
     start(0, priority);
     __setNoDelete(false);
 }
 
-void
-Timer::destroy()
+void Timer::destroy()
 {
     {
         IceUtil::Monitor<IceUtil::Mutex>::Lock sync(_monitor);
@@ -63,8 +58,7 @@ Timer::destroy()
     }
 }
 
-void
-Timer::schedule(const TimerTaskPtr& task, const IceUtil::Time& delay)
+void Timer::schedule(const TimerTaskPtr& task, const IceUtil::Time& delay)
 {
     IceUtil::Monitor<IceUtil::Mutex>::Lock sync(_monitor);
     if(_destroyed)
@@ -92,8 +86,7 @@ Timer::schedule(const TimerTaskPtr& task, const IceUtil::Time& delay)
     }
 }
 
-void
-Timer::scheduleRepeated(const TimerTaskPtr& task, const IceUtil::Time& delay)
+void Timer::scheduleRepeated(const TimerTaskPtr& task, const IceUtil::Time& delay)
 {
     IceUtil::Monitor<IceUtil::Mutex>::Lock sync(_monitor);
     if(_destroyed)
@@ -121,8 +114,7 @@ Timer::scheduleRepeated(const TimerTaskPtr& task, const IceUtil::Time& delay)
     }
 }
 
-bool
-Timer::cancel(const TimerTaskPtr& task)
+bool Timer::cancel(const TimerTaskPtr& task)
 {
     IceUtil::Monitor<IceUtil::Mutex>::Lock sync(_monitor);
     if(_destroyed)
@@ -142,8 +134,7 @@ Timer::cancel(const TimerTaskPtr& task)
     return true;
 }
 
-void
-Timer::run()
+void Timer::run()
 {
     Token token(IceUtil::Time(), IceUtil::Time(), 0);
     while(true)
@@ -251,8 +242,7 @@ Timer::run()
     }
 }
 
-void
-Timer::runTimerTask(const TimerTaskPtr& task)
+void Timer::runTimerTask(const TimerTaskPtr& task)
 {
     task->runTimerTask();
 }

@@ -16,48 +16,44 @@
 
 namespace IceUtil
 {
-
-//
-// This monitor implements the Mesa monitor semantics. That is any
-// calls to notify() or notifyAll() are delayed until the monitor is
-// unlocked.
-//
-template <class T>
-class Monitor
-{
-public:
-
-    typedef LockT<Monitor<T> > Lock;
-    typedef TryLockT<Monitor<T> > TryLock;
-
-    Monitor();
-    ~Monitor();
-
     //
-    // Note that lock/tryLock & unlock in general should not be used
-    // directly. Instead use Lock & TryLock.
+    // This monitor implements the Mesa monitor semantics. That is any
+    // calls to notify() or notifyAll() are delayed until the monitor is
+    // unlocked.
     //
-    void lock() const;
-    void unlock() const;
-    bool tryLock() const;
+    template<class T> class Monitor
+    {
+    public:
+        typedef LockT<Monitor<T>> Lock;
+        typedef TryLockT<Monitor<T>> TryLock;
 
-    void wait() const;
-    bool timedWait(const Time&) const;
-    void notify();
-    void notifyAll();
+        Monitor();
+        ~Monitor();
 
-private:
+        //
+        // Note that lock/tryLock & unlock in general should not be used
+        // directly. Instead use Lock & TryLock.
+        //
+        void lock() const;
+        void unlock() const;
+        bool tryLock() const;
 
-    // noncopyable
-    Monitor(const Monitor&);
-    void operator=(const Monitor&);
+        void wait() const;
+        bool timedWait(const Time&) const;
+        void notify();
+        void notifyAll();
 
-    void notifyImpl(int) const;
+    private:
+        // noncopyable
+        Monitor(const Monitor&);
+        void operator=(const Monitor&);
 
-    mutable Cond _cond;
-    T _mutex;
-    mutable int _nnotify;
-};
+        void notifyImpl(int) const;
+
+        mutable Cond _cond;
+        T _mutex;
+        mutable int _nnotify;
+    };
 
 } // End namespace IceUtil
 
@@ -72,19 +68,15 @@ private:
 // to lock(), or a return from wait().
 //
 
-template <class T> inline
-IceUtil::Monitor<T>::Monitor() :
-    _nnotify(0)
+template<class T> inline IceUtil::Monitor<T>::Monitor() : _nnotify(0)
 {
 }
 
-template <class T> inline
-IceUtil::Monitor<T>::~Monitor()
+template<class T> inline IceUtil::Monitor<T>::~Monitor()
 {
 }
 
-template <class T> inline void
-IceUtil::Monitor<T>::lock() const
+template<class T> inline void IceUtil::Monitor<T>::lock() const
 {
     _mutex.lock();
     if(_mutex.willUnlock())
@@ -97,8 +89,7 @@ IceUtil::Monitor<T>::lock() const
     }
 }
 
-template <class T> inline void
-IceUtil::Monitor<T>::unlock() const
+template<class T> inline void IceUtil::Monitor<T>::unlock() const
 {
     if(_mutex.willUnlock())
     {
@@ -109,20 +100,19 @@ IceUtil::Monitor<T>::unlock() const
     }
     _mutex.unlock();
 
-/*
-    int nnotify = _nnotify;
-    if(_mutex.unlock())
-    {
-        //
-        // Perform any pending notifications.
-        //
-        notifyImpl(nnotify);
-    }
-*/
+    /*
+        int nnotify = _nnotify;
+        if(_mutex.unlock())
+        {
+            //
+            // Perform any pending notifications.
+            //
+            notifyImpl(nnotify);
+        }
+    */
 }
 
-template <class T> inline bool
-IceUtil::Monitor<T>::tryLock() const
+template<class T> inline bool IceUtil::Monitor<T>::tryLock() const
 {
     bool result = _mutex.tryLock();
     if(result && _mutex.willUnlock())
@@ -136,8 +126,7 @@ IceUtil::Monitor<T>::tryLock() const
     return result;
 }
 
-template <class T> inline void
-IceUtil::Monitor<T>::wait() const
+template<class T> inline void IceUtil::Monitor<T>::wait() const
 {
     //
     // Perform any pending notifies
@@ -163,8 +152,7 @@ IceUtil::Monitor<T>::wait() const
     _nnotify = 0;
 }
 
-template <class T> inline bool
-IceUtil::Monitor<T>::timedWait(const Time& timeout) const
+template<class T> inline bool IceUtil::Monitor<T>::timedWait(const Time& timeout) const
 {
     //
     // Perform any pending notifies.
@@ -193,8 +181,7 @@ IceUtil::Monitor<T>::timedWait(const Time& timeout) const
     return rc;
 }
 
-template <class T> inline void
-IceUtil::Monitor<T>::notify()
+template<class T> inline void IceUtil::Monitor<T>::notify()
 {
     //
     // Increment the _nnotify flag, unless a broadcast has already
@@ -206,8 +193,7 @@ IceUtil::Monitor<T>::notify()
     }
 }
 
-template <class T> inline void
-IceUtil::Monitor<T>::notifyAll()
+template<class T> inline void IceUtil::Monitor<T>::notifyAll()
 {
     //
     // -1 (indicates broadcast)
@@ -215,8 +201,7 @@ IceUtil::Monitor<T>::notifyAll()
     _nnotify = -1;
 }
 
-template <class T> inline void
-IceUtil::Monitor<T>::notifyImpl(int nnotify) const
+template<class T> inline void IceUtil::Monitor<T>::notifyImpl(int nnotify) const
 {
     //
     // Zero indicates no notifies.

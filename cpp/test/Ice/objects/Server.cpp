@@ -17,19 +17,14 @@ using namespace std;
 using namespace Test;
 
 #ifdef ICE_CPP11_MAPPING
-template<typename T>
-function<shared_ptr<T>(string)> makeFactory()
+template<typename T> function<shared_ptr<T>(string)> makeFactory()
 {
-    return [](string)
-        {
-            return make_shared<T>();
-        };
+    return [](string) { return make_shared<T>(); };
 }
 #else
 class MyValueFactory : public Ice::ValueFactory
 {
 public:
-
     virtual Ice::ObjectPtr create(const string& type)
     {
         if(type == "::Test::I")
@@ -48,12 +43,10 @@ public:
         assert(false); // Should never be reached
         return 0;
     }
-
 };
 #endif
 
-int
-run(int, char**, const Ice::CommunicatorPtr& communicator)
+int run(int, char**, const Ice::CommunicatorPtr& communicator)
 {
 #ifdef ICE_CPP11_MAPPING
     communicator->getValueFactoryManager()->add(makeFactory<II>(), "::Test::I");
@@ -78,8 +71,7 @@ run(int, char**, const Ice::CommunicatorPtr& communicator)
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
 #ifdef ICE_STATIC_LIBS
     Ice::registerIceSSL(false);
@@ -96,6 +88,6 @@ main(int argc, char* argv[])
     catch(const Ice::Exception& ex)
     {
         cerr << ex << endl;
-        return  EXIT_FAILURE;
+        return EXIT_FAILURE;
     }
 }

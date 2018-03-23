@@ -17,55 +17,45 @@
 
 namespace IceStorm
 {
+    class TopicObserverI : public IceStorm::Instrumentation::TopicObserver, public IceMX::ObserverT<IceMX::TopicMetrics>
+    {
+    public:
+        virtual void published();
+        virtual void forwarded();
+    };
 
-class TopicObserverI : public IceStorm::Instrumentation::TopicObserver,
-                       public IceMX::ObserverT<IceMX::TopicMetrics>
-{
-public:
+    class SubscriberObserverI : public IceStorm::Instrumentation::SubscriberObserver,
+                                public IceMX::ObserverT<IceMX::SubscriberMetrics>
+    {
+    public:
+        virtual void queued(int);
+        virtual void outstanding(int);
+        virtual void delivered(int);
+    };
 
-    virtual void published();
-    virtual void forwarded();
-};
+    class TopicManagerObserverI : public IceStorm::Instrumentation::TopicManagerObserver
+    {
+    public:
+        TopicManagerObserverI(const IceInternal::MetricsAdminIPtr&);
 
-class SubscriberObserverI : public IceStorm::Instrumentation::SubscriberObserver,
-                            public IceMX::ObserverT<IceMX::SubscriberMetrics>
-{
-public:
+        virtual void setObserverUpdater(const IceStorm::Instrumentation::ObserverUpdaterPtr&);
 
-    virtual void queued(int);
-    virtual void outstanding(int);
-    virtual void delivered(int);
-};
+        virtual IceStorm::Instrumentation::TopicObserverPtr
+        getTopicObserver(const std::string&, const std::string&, const IceStorm::Instrumentation::TopicObserverPtr&);
 
-class TopicManagerObserverI : public IceStorm::Instrumentation::TopicManagerObserver
-{
-public:
+        virtual IceStorm::Instrumentation::SubscriberObserverPtr
+        getSubscriberObserver(const std::string&, const std::string&, const Ice::ObjectPrx&, const IceStorm::QoS&,
+                              const IceStorm::TopicPrx&, IceStorm::Instrumentation::SubscriberState,
+                              const IceStorm::Instrumentation::SubscriberObserverPtr&);
 
-    TopicManagerObserverI(const IceInternal::MetricsAdminIPtr&);
+    private:
+        const IceInternal::MetricsAdminIPtr _metrics;
 
-    virtual void setObserverUpdater(const IceStorm::Instrumentation::ObserverUpdaterPtr&);
+        IceMX::ObserverFactoryT<TopicObserverI> _topics;
+        IceMX::ObserverFactoryT<SubscriberObserverI> _subscribers;
+    };
+    typedef IceUtil::Handle<TopicManagerObserverI> TopicManagerObserverIPtr;
 
-    virtual IceStorm::Instrumentation::TopicObserverPtr getTopicObserver(
-        const std::string&, const std::string&, const IceStorm::Instrumentation::TopicObserverPtr&);
-
-    virtual IceStorm::Instrumentation::SubscriberObserverPtr getSubscriberObserver(
-        const std::string&,
-        const std::string&,
-        const Ice::ObjectPrx&,
-        const IceStorm::QoS&,
-        const IceStorm::TopicPrx&,
-        IceStorm::Instrumentation::SubscriberState,
-        const IceStorm::Instrumentation::SubscriberObserverPtr&);
-
-private:
-
-    const IceInternal::MetricsAdminIPtr _metrics;
-
-    IceMX::ObserverFactoryT<TopicObserverI> _topics;
-    IceMX::ObserverFactoryT<SubscriberObserverI> _subscribers;
-};
-typedef IceUtil::Handle<TopicManagerObserverI> TopicManagerObserverIPtr;
-
-};
+}; // namespace IceStorm
 
 #endif

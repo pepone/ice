@@ -15,186 +15,164 @@
 
 namespace Confluence
 {
+    // ----------------------------------------------------------------------
+    // ConfluenceOutput
+    // ----------------------------------------------------------------------
 
-// ----------------------------------------------------------------------
-// ConfluenceOutput
-// ----------------------------------------------------------------------
+    class ConfluenceOutput : public IceUtilInternal::OutputBase
+    {
+    public:
+        ConfluenceOutput();
+        ConfluenceOutput(std::ostream&);
+        ConfluenceOutput(const char*);
 
-class ConfluenceOutput : public IceUtilInternal::OutputBase
-{
-public:
+        virtual ~ConfluenceOutput(){};
 
-    ConfluenceOutput();
-    ConfluenceOutput(std::ostream&);
-    ConfluenceOutput(const char*);
+        virtual void print(const std::string&); // Print a string.
 
-    virtual ~ConfluenceOutput(){};
+        virtual void newline(); // Print newline.
 
-    virtual void print(const std::string&); // Print a string.
+        void startElement(const std::string&);             // Start an element.
+        void endElement();                                 // End an element.
+        void attr(const std::string&, const std::string&); // Add an attribute to an element.
 
-    virtual void newline(); // Print newline.
+        std::string convertCommentHTML(std::string comment);
+        std::string escapeComment(std::string comment);
 
-    void startElement(const std::string&); // Start an element.
-    void endElement(); // End an element.
-    void attr(const std::string&, const std::string&); // Add an attribute to an element.
+        std::string getAnchorMarkup(const std::string&, const std::string& = "");
+        std::string getLinkMarkup(const std::string&, const std::string& = "", const std::string& = "",
+                                  const std::string& = "");
+        std::string getImageMarkup(const std::string&, const std::string& = "");
+        std::string getNavMarkup(const std::string&, const std::string&);
 
-    std::string convertCommentHTML(std::string comment);
-    std::string escapeComment(std::string comment);
+        void startEscapes();
+        void endEscapes();
 
-    std::string getAnchorMarkup(const std::string&, const std::string& = "");
-    std::string getLinkMarkup(const std::string&, const std::string& = "", const std::string& = "", const std::string& = "");
-    std::string getImageMarkup(const std::string&, const std::string& = "");
-    std::string getNavMarkup(const std::string&, const std::string&);
+        std::string currentElement() const;
 
-    void startEscapes();
-    void endEscapes();
+        /**
+         * Wrap sections in these markers to prevent them from being confluence-escaped.
+         * The regular confluence-escaping process will remove these markers.
+         */
+        const static std::string TEMP_ESCAPER_START; // wrap sections
+        const static std::string TEMP_ESCAPER_END;   // wrap sections
 
-    std::string currentElement() const;
+        /**
+         * Gets the start and end positions of all TEMP_ESCAPED sections of the given string.
+         */
+        std::list<std::pair<unsigned int, unsigned int>> getMarkerLimits(const std::string&);
 
-    /**
-     * Wrap sections in these markers to prevent them from being confluence-escaped.
-     * The regular confluence-escaping process will remove these markers.
-     */
-    const static std::string TEMP_ESCAPER_START; // wrap sections
-    const static std::string TEMP_ESCAPER_END; // wrap sections
+        std::string removeMarkers(std::string);
 
-    /**
-     * Gets the start and end positions of all TEMP_ESCAPED sections of the given string.
-     */
-    std::list<std::pair<unsigned int,unsigned int> > getMarkerLimits(const std::string&);
+    private:
+        std::string escape(const ::std::string&) const;
 
-    std::string removeMarkers(std::string);
+        std::stack<std::string> _elementStack;
 
-private:
+        bool _se;
+        bool _text;
 
-    std::string escape(const ::std::string&) const;
+        bool _escape;
 
-    std::stack<std::string> _elementStack;
+        std::string _listMarkers;
+        std::string _commentListMarkers;
+    };
 
-    bool _se;
-    bool _text;
+    template<typename T> inline ConfluenceOutput& operator<<(ConfluenceOutput& out, const T& val)
+    {
+        std::ostringstream s;
+        s << val;
+        out.print(s.str().c_str());
+        return out;
+    }
 
-    bool _escape;
+    template<> inline ConfluenceOutput& operator<<(ConfluenceOutput& o, const IceUtilInternal::NextLine&)
+    {
+        o.newline();
+        return o;
+    }
 
-    std::string _listMarkers;
-    std::string _commentListMarkers;
-};
+    template<> inline ConfluenceOutput& operator<<(ConfluenceOutput& o, const IceUtilInternal::Separator&)
+    {
+        o.separator();
+        return o;
+    }
 
-template<typename T>
-inline ConfluenceOutput&
-operator<<(ConfluenceOutput& out, const T& val)
-{
-    std::ostringstream s;
-    s << val;
-    out.print(s.str().c_str());
-    return out;
-}
+    class EndElement
+    {
+    };
+    extern EndElement ee;
 
-template<>
-inline ConfluenceOutput&
-operator<<(ConfluenceOutput& o, const IceUtilInternal::NextLine&)
-{
-    o.newline();
-    return o;
-}
+    template<> inline ConfluenceOutput& operator<<(ConfluenceOutput& o, const EndElement&)
+    {
+        o.endElement();
+        return o;
+    }
 
-template<>
-inline ConfluenceOutput&
-operator<<(ConfluenceOutput& o, const IceUtilInternal::Separator&)
-{
-    o.separator();
-    return o;
-}
+    class StartElement
+    {
+    public:
+        StartElement(const std::string&);
 
-class EndElement
-{
-};
-extern EndElement ee;
+        const std::string& getName() const;
 
-template<>
-inline ConfluenceOutput&
-operator<<(ConfluenceOutput& o, const EndElement&)
-{
-    o.endElement();
-    return o;
-}
+    private:
+        const std::string _name;
+    };
 
-class StartElement
-{
-public:
+    typedef StartElement se;
 
-    StartElement(const std::string&);
+    template<> inline ConfluenceOutput& operator<<(ConfluenceOutput& o, const StartElement& e)
+    {
+        o.startElement(e.getName());
+        return o;
+    }
 
-    const std::string& getName() const;
+    class Attribute
+    {
+    public:
+        Attribute(const ::std::string&, const ::std::string&);
 
-private:
+        const ::std::string& getName() const;
+        const ::std::string& getValue() const;
 
-    const std::string _name;
-};
+    private:
+        const ::std::string _name;
+        const ::std::string _value;
+    };
 
-typedef StartElement se;
+    typedef Attribute attr;
 
-template<>
-inline ConfluenceOutput&
-operator<<(ConfluenceOutput& o, const StartElement& e)
-{
-    o.startElement(e.getName());
-    return o;
-}
+    template<> inline ConfluenceOutput& operator<<(ConfluenceOutput& o, const Attribute& e)
+    {
+        o.attr(e.getName(), e.getValue());
+        return o;
+    }
 
-class Attribute
-{
-public:
+    class StartEscapes
+    {
+    };
+    extern StartEscapes startEscapes;
 
-    Attribute(const ::std::string&, const ::std::string&);
+    class EndEscapes
+    {
+    };
+    extern EndEscapes endEscapes;
 
-    const ::std::string& getName() const;
-    const ::std::string& getValue() const;
+    template<> inline ConfluenceOutput& operator<<(ConfluenceOutput& o, const StartEscapes&)
+    {
+        o.startEscapes();
+        return o;
+    }
 
-private:
+    template<> inline ConfluenceOutput& operator<<(ConfluenceOutput& o, const EndEscapes&)
+    {
+        o.endEscapes();
+        return o;
+    }
 
-    const ::std::string _name;
-    const ::std::string _value;
-};
+    ConfluenceOutput& operator<<(ConfluenceOutput&, std::ios_base& (*)(std::ios_base&));
 
-typedef Attribute attr;
-
-template<>
-inline ConfluenceOutput&
-operator<<(ConfluenceOutput& o, const Attribute& e)
-{
-    o.attr(e.getName(), e.getValue());
-    return o;
-}
-
-class StartEscapes
-{
-};
-extern StartEscapes startEscapes;
-
-class EndEscapes
-{
-};
-extern EndEscapes endEscapes;
-
-template<>
-inline ConfluenceOutput&
-operator<<(ConfluenceOutput& o, const StartEscapes&)
-{
-    o.startEscapes();
-    return o;
-}
-
-template<>
-inline ConfluenceOutput&
-operator<<(ConfluenceOutput& o, const EndEscapes&)
-{
-    o.endEscapes();
-    return o;
-}
-
-ConfluenceOutput& operator<<(ConfluenceOutput&, std::ios_base& (*)(std::ios_base&));
-
-}
+} // namespace Confluence
 
 #endif

@@ -19,11 +19,11 @@ ICE_DEFINE_PTR(EndpointIPtr, EndpointI);
 
 class EndpointI : public IceInternal::EndpointI
 #ifdef ICE_CPP11_MAPPING
-                , public std::enable_shared_from_this<EndpointI>
+    ,
+                  public std::enable_shared_from_this<EndpointI>
 #endif
 {
 public:
-
     static Ice::Short TYPE_BASE;
 
     EndpointI(const IceInternal::EndpointIPtr&);
@@ -68,7 +68,6 @@ public:
     using IceInternal::EndpointI::connectionId;
 
 private:
-
     friend class EndpointFactory;
 
     const IceInternal::EndpointIPtr _endpoint;

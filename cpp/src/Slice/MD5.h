@@ -14,31 +14,28 @@
 
 extern "C"
 {
-struct md5_state_s;
+    struct md5_state_s;
 }
 
 namespace Slice
 {
+    class MD5
+    {
+    public:
+        MD5();
+        MD5(const unsigned char*, int);
+        ~MD5();
 
-class MD5
-{
-public:
+        void update(const unsigned char*, int);
+        void finish();
 
-    MD5();
-    MD5(const unsigned char*, int);
-    ~MD5();
+        void getDigest(unsigned char*) const;
 
-    void update(const unsigned char*, int);
-    void finish();
+    private:
+        md5_state_s* _state;
+        unsigned char _digest[16];
+    };
 
-    void getDigest(unsigned char*) const;
-
-private:
-
-    md5_state_s* _state;
-    unsigned char _digest[16];
-};
-
-}
+} // namespace Slice
 
 #endif

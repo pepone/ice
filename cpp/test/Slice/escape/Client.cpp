@@ -17,11 +17,8 @@ using namespace std;
 class breakI : public _cpp_and::_cpp_break
 {
 public:
-
 #ifdef ICE_CPP11_MAPPING
-    virtual void caseAsync(::Ice::Int,
-                           function<void(int)> response,
-                           function<void(exception_ptr)>,
+    virtual void caseAsync(::Ice::Int, function<void(int)> response, function<void(exception_ptr)>,
                            const ::Ice::Current&)
     {
         response(0);
@@ -34,10 +31,9 @@ public:
 #endif
 };
 
-class charI: public _cpp_and::_cpp_char
+class charI : public _cpp_and::_cpp_char
 {
 public:
-
 #ifndef NDEBUG
     virtual void _cpp_explicit(const ::Ice::Current& current)
 #else
@@ -48,7 +44,7 @@ public:
     }
 };
 
-class switchI: public _cpp_and::_cpp_switch
+class switchI : public _cpp_and::_cpp_switch
 {
 public:
 #ifdef ICE_CPP11_MAPPING
@@ -64,9 +60,7 @@ class doI : public _cpp_and::_cpp_do
 {
 public:
 #ifdef ICE_CPP11_MAPPING
-    virtual void caseAsync(int,
-                           ::std::function<void(int)>,
-                           ::std::function<void(::std::exception_ptr)>,
+    virtual void caseAsync(int, ::std::function<void(int)>, ::std::function<void(::std::exception_ptr)>,
                            const ::Ice::Current&)
     {
     }
@@ -86,30 +80,25 @@ public:
 class friendI : public _cpp_and::_cpp_friend
 {
 public:
-    virtual _cpp_and::_cpp_auto
-    _cpp_goto(_cpp_and::_cpp_continue,
-              const _cpp_and::_cpp_auto&,
+    virtual _cpp_and::_cpp_auto _cpp_goto(_cpp_and::_cpp_continue, const _cpp_and::_cpp_auto&,
 #ifdef ICE_CPP11_MAPPING
-              const _cpp_and::_cpp_delete&,
+                                          const _cpp_and::_cpp_delete&,
 #else
-              const _cpp_and::deletePtr&,
+                                          const _cpp_and::deletePtr&,
 #endif
-              const _cpp_and::switchPtr&,
+                                          const _cpp_and::switchPtr&,
 #ifdef ICE_CPP11_MAPPING
-              const ::std::shared_ptr<::Ice::Value>&,
+                                          const ::std::shared_ptr<::Ice::Value>&,
 #else
-              const _cpp_and::doPtr&,
+                                          const _cpp_and::doPtr&,
 #endif
-              const _cpp_and::breakPrxPtr&,
-              const _cpp_and::charPrxPtr&,
+                                          const _cpp_and::breakPrxPtr&, const _cpp_and::charPrxPtr&,
 #ifdef ICE_CPP11_MAPPING
-              const ::std::shared_ptr<::Ice::ObjectPrx>&,
+                                          const ::std::shared_ptr<::Ice::ObjectPrx>&,
 #else
-              const _cpp_and::switchPrxPtr&,
+                                          const _cpp_and::switchPrxPtr&,
 #endif
-              const _cpp_and::doPrxPtr&,
-              ::Ice::Int, ::Ice::Int,
-              ::Ice::Int, ::Ice::Int)
+                                          const _cpp_and::doPrxPtr&, ::Ice::Int, ::Ice::Int, ::Ice::Int, ::Ice::Int)
     {
         return _cpp_and::_cpp_auto();
     }
@@ -119,8 +108,7 @@ public:
 // This section of the test is present to ensure that the C++ types
 // are named correctly. It is not expected to run.
 //
-void
-testtypes()
+void testtypes()
 {
 #ifdef ICE_CPP11_MAPPING
     _cpp_and::_cpp_continue a = _cpp_and::_cpp_continue::_cpp_asm;
@@ -170,14 +158,13 @@ testtypes()
 
     _cpp_and::friendPtr l = ICE_MAKE_SHARED(friendI);
 
-    const int m  = _cpp_and::_cpp_template;
+    const int m = _cpp_and::_cpp_template;
     test(m == _cpp_and::_cpp_template);
 
     test(_cpp_and::_cpp_xor_eq == 0);
 }
 
-int
-run(const Ice::CommunicatorPtr& communicator)
+int run(const Ice::CommunicatorPtr& communicator)
 {
     communicator->getProperties()->setProperty("TestAdapter.Endpoints", "default");
     Ice::ObjectAdapterPtr adapter = communicator->createObjectAdapter("TestAdapter");
@@ -185,16 +172,14 @@ run(const Ice::CommunicatorPtr& communicator)
     adapter->activate();
 
     cout << "Testing operation name... " << flush;
-    _cpp_and::charPrxPtr p = ICE_UNCHECKED_CAST(_cpp_and::charPrx,
-        adapter->createProxy(Ice::stringToIdentity("test")));
+    _cpp_and::charPrxPtr p = ICE_UNCHECKED_CAST(_cpp_and::charPrx, adapter->createProxy(Ice::stringToIdentity("test")));
     p->_cpp_explicit();
     cout << "ok" << endl;
 
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
     try
     {
@@ -204,6 +189,6 @@ main(int argc, char* argv[])
     catch(const Ice::Exception& ex)
     {
         cerr << ex << endl;
-        return  EXIT_FAILURE;
+        return EXIT_FAILURE;
     }
 }

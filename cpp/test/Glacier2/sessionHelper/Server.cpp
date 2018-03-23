@@ -17,42 +17,34 @@ using namespace Test;
 
 namespace
 {
-
-class SessionHelperServer : public Ice::Application
-{
-public:
-
-    virtual int run(int, char*[]);
-};
-
-class CallbackI : public Callback
-{
-
-public:
-
-    virtual void
-    initiateCallback(ICE_IN(CallbackReceiverPrxPtr) proxy, const Ice::Current& current)
+    class SessionHelperServer : public Ice::Application
     {
-        proxy->callback(current.ctx);
-    }
+    public:
+        virtual int run(int, char* []);
+    };
 
-    virtual void
-    initiateCallbackEx(ICE_IN(CallbackReceiverPrxPtr) proxy, const Ice::Current& current)
+    class CallbackI : public Callback
     {
-        proxy->callbackEx(current.ctx);
-    }
+    public:
+        virtual void initiateCallback(ICE_IN(CallbackReceiverPrxPtr) proxy, const Ice::Current& current)
+        {
+            proxy->callback(current.ctx);
+        }
 
-    virtual void
-    shutdown(const Ice::Current& current)
-    {
-        current.adapter->getCommunicator()->shutdown();
-    }
-};
+        virtual void initiateCallbackEx(ICE_IN(CallbackReceiverPrxPtr) proxy, const Ice::Current& current)
+        {
+            proxy->callbackEx(current.ctx);
+        }
 
-}
+        virtual void shutdown(const Ice::Current& current)
+        {
+            current.adapter->getCommunicator()->shutdown();
+        }
+    };
 
-int
-SessionHelperServer::run(int, char**)
+} // namespace
+
+int SessionHelperServer::run(int, char**)
 {
     communicator()->getProperties()->setProperty("DeactivatedAdapter.Endpoints", getTestEndpoint(communicator(), 1));
     communicator()->createObjectAdapter("DeactivatedAdapter");
@@ -66,8 +58,7 @@ SessionHelperServer::run(int, char**)
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
     SessionHelperServer app;
     Ice::InitializationData initData = getTestInitData(argc, argv);

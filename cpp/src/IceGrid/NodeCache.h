@@ -17,96 +17,100 @@
 
 namespace IceGrid
 {
+    class NodeCache;
 
-class NodeCache;
+    class SessionI;
+    typedef IceUtil::Handle<SessionI> SessionIPtr;
 
-class SessionI;
-typedef IceUtil::Handle<SessionI> SessionIPtr;
+    class NodeSessionI;
+    typedef IceUtil::Handle<NodeSessionI> NodeSessionIPtr;
 
-class NodeSessionI;
-typedef IceUtil::Handle<NodeSessionI> NodeSessionIPtr;
+    class ServerEntry;
+    typedef IceUtil::Handle<ServerEntry> ServerEntryPtr;
+    typedef std::vector<ServerEntryPtr> ServerEntrySeq;
 
-class ServerEntry;
-typedef IceUtil::Handle<ServerEntry> ServerEntryPtr;
-typedef std::vector<ServerEntryPtr> ServerEntrySeq;
+    class ReplicaCache;
 
-class ReplicaCache;
+    class NodeEntry : private IceUtil::Monitor<IceUtil::RecMutex>
+    {
+    public:
+        NodeEntry(NodeCache&, const std::string&);
+        virtual ~NodeEntry();
 
-class NodeEntry : private IceUtil::Monitor<IceUtil::RecMutex>
-{
-public:
+        void addDescriptor(const std::string&, const NodeDescriptor&);
+        void removeDescriptor(const std::string&);
 
-    NodeEntry(NodeCache&, const std::string&);
-    virtual ~NodeEntry();
+        void addServer(const ServerEntryPtr&);
+        void removeServer(const ServerEntryPtr&);
+        void setSession(const NodeSessionIPtr&);
 
-    void addDescriptor(const std::string&, const NodeDescriptor&);
-    void removeDescriptor(const std::string&);
+        NodePrx getProxy() const;
+        InternalNodeInfoPtr getInfo() const;
+        ServerEntrySeq getServers() const;
+        LoadInfo getLoadInfoAndLoadFactor(const std::string&, float&) const;
+        NodeSessionIPtr getSession() const;
 
-    void addServer(const ServerEntryPtr&);
-    void removeServer(const ServerEntryPtr&);
-    void setSession(const NodeSessionIPtr&);
+        Ice::ObjectPrx getAdminProxy() const;
 
-    NodePrx getProxy() const;
-    InternalNodeInfoPtr getInfo() const;
-    ServerEntrySeq getServers() const;
-    LoadInfo getLoadInfoAndLoadFactor(const std::string&, float&) const;
-    NodeSessionIPtr getSession() const;
+        bool canRemove();
 
-    Ice::ObjectPrx getAdminProxy() const;
+        void loadServer(const ServerEntryPtr&, const ServerInfo&, const SessionIPtr&, int, bool);
+        void destroyServer(const ServerEntryPtr&, const ServerInfo&, int, bool);
 
-    bool canRemove();
+        ServerInfo getServerInfo(const ServerInfo&, const SessionIPtr&);
+        InternalServerDescriptorPtr getInternalServerDescriptor(const ServerInfo&, const SessionIPtr&);
 
-    void loadServer(const ServerEntryPtr&, const ServerInfo&, const SessionIPtr&, int, bool);
-    void destroyServer(const ServerEntryPtr&, const ServerInfo&, int, bool);
+        void __incRef();
+        void __decRef();
 
-    ServerInfo getServerInfo(const ServerInfo&, const SessionIPtr&);
-    InternalServerDescriptorPtr getInternalServerDescriptor(const ServerInfo&, const SessionIPtr&);
+        void checkSession() const;
+        void setProxy(const NodePrx&);
+        void finishedRegistration();
+        void finishedRegistration(const Ice::Exception&);
 
-    void __incRef();
-    void __decRef();
+    private:
+        ServerDescriptorPtr getServerDescriptor(const ServerInfo&, const SessionIPtr&);
+        InternalServerDescriptorPtr getInternalServerDescriptor(const ServerInfo&) const;
 
-    void checkSession() const;
-    void setProxy(const NodePrx&);
-    void finishedRegistration();
-    void finishedRegistration(const Ice::Exception&);
+        NodeCache& _cache;
+        IceUtil::Mutex _refMutex;
+        int _ref;
+        const std::string _name;
+        NodeSessionIPtr _session;
+        std::map<std::string, ServerEntryPtr> _servers;
+        std::map<std::string, NodeDescriptor> _descriptors;
 
-private:
+        mutable bool _registering;
+        mutable NodePrx _proxy;
+    };
+    typedef IceUtil::Handle<NodeEntry> NodeEntryPtr;
 
-    ServerDescriptorPtr getServerDescriptor(const ServerInfo&, const SessionIPtr&);
-    InternalServerDescriptorPtr getInternalServerDescriptor(const ServerInfo&) const;
+    class NodeCache : public CacheByString<NodeEntry>
+    {
+    public:
+        NodeCache(const Ice::CommunicatorPtr&, ReplicaCache&, const std::string&);
 
-    NodeCache& _cache;
-    IceUtil::Mutex _refMutex;
-    int _ref;
-    const std::string _name;
-    NodeSessionIPtr _session;
-    std::map<std::string, ServerEntryPtr> _servers;
-    std::map<std::string, NodeDescriptor> _descriptors;
+        NodeEntryPtr get(const std::string&, bool = false) const;
 
-    mutable bool _registering;
-    mutable NodePrx _proxy;
-};
-typedef IceUtil::Handle<NodeEntry> NodeEntryPtr;
+        const Ice::CommunicatorPtr& getCommunicator() const
+        {
+            return _communicator;
+        }
+        const std::string& getReplicaName() const
+        {
+            return _replicaName;
+        }
+        ReplicaCache& getReplicaCache() const
+        {
+            return _replicaCache;
+        }
 
-class NodeCache : public CacheByString<NodeEntry>
-{
-public:
+    private:
+        const Ice::CommunicatorPtr _communicator;
+        const std::string _replicaName;
+        ReplicaCache& _replicaCache;
+    };
 
-    NodeCache(const Ice::CommunicatorPtr&, ReplicaCache&, const std::string&);
-
-    NodeEntryPtr get(const std::string&, bool = false) const;
-
-    const Ice::CommunicatorPtr& getCommunicator() const { return _communicator; }
-    const std::string& getReplicaName() const { return _replicaName; }
-    ReplicaCache& getReplicaCache() const { return _replicaCache; }
-
-private:
-
-    const Ice::CommunicatorPtr _communicator;
-    const std::string _replicaName;
-    ReplicaCache& _replicaCache;
-};
-
-};
+}; // namespace IceGrid
 
 #endif

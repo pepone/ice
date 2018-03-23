@@ -15,34 +15,31 @@
 
 namespace Slice
 {
+    class JsGenerator : private ::IceUtil::noncopyable
+    {
+    public:
+        virtual ~JsGenerator(){};
 
-class JsGenerator : private ::IceUtil::noncopyable
-{
-public:
+    protected:
+        static bool isClassType(const TypePtr&);
+        static std::string fixId(const std::string&);
+        static std::string fixId(const ContainedPtr&);
+        static std::string typeToString(const TypePtr&);
+        static std::string getLocalScope(const std::string&, const std::string& separator = ".");
+        static std::string getReference(const std::string&, const std::string&);
 
-    virtual ~JsGenerator() {};
+        static std::string getHelper(const TypePtr&);
+        //
+        // Generate code to marshal or unmarshal a type
+        //
+        void writeMarshalUnmarshalCode(::IceUtilInternal::Output&, const TypePtr&, const std::string&, bool);
+        void writeOptionalMarshalUnmarshalCode(::IceUtilInternal::Output&, const TypePtr&, const std::string&, int,
+                                               bool);
 
-protected:
+    private:
+        std::vector<std::string> _seenProxy;
+    };
 
-    static bool isClassType(const TypePtr&);
-    static std::string fixId(const std::string&);
-    static std::string fixId(const ContainedPtr&);
-    static std::string typeToString(const TypePtr&);
-    static std::string getLocalScope(const std::string&, const std::string& separator = ".");
-    static std::string getReference(const std::string&, const std::string&);
-
-    static std::string getHelper(const TypePtr&);
-    //
-    // Generate code to marshal or unmarshal a type
-    //
-    void writeMarshalUnmarshalCode(::IceUtilInternal::Output&, const TypePtr&, const std::string&, bool);
-    void writeOptionalMarshalUnmarshalCode(::IceUtilInternal::Output&, const TypePtr&, const std::string&, int, bool);
-
-private:
-
-    std::vector< std::string> _seenProxy;
-};
-
-}
+} // namespace Slice
 
 #endif

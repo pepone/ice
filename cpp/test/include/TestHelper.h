@@ -17,73 +17,68 @@
 
 namespace Test
 {
-
-class MainHelper : public std::streambuf
-{
-public:
-
-    MainHelper()
+    class MainHelper : public std::streambuf
     {
-        setp(&data[0], &data[sizeof(data) - 1]);
-    }
-
-    virtual void serverReady() = 0;
-
-    virtual void shutdown() = 0;
-
-    virtual void waitForCompleted() = 0;
-
-    virtual bool redirect() = 0;
-
-    virtual void print(const std::string& msg) = 0;
-
-    virtual void
-    flush()
-    {
-    }
-
-    virtual void
-    newLine()
-    {
-        print("\n");
-    }
-
-private:
-
-    //
-    // streambuf redirection implementation
-    //
-
-    int sync()
-    {
-        std::streamsize n = pptr() - pbase();
-        print(std::string(pbase(), static_cast<int>(n)));
-        pbump(-static_cast<int>(pptr() - pbase()));
-        return 0;
-    }
-
-    int overflow(int ch)
-    {
-        sync();
-        if(ch != EOF)
+    public:
+        MainHelper()
         {
-            assert(pptr() != epptr());
-            sputc(ch);
+            setp(&data[0], &data[sizeof(data) - 1]);
         }
-        return 0;
-    }
 
-    int sputc(char c)
-    {
-        if(c == '\n')
+        virtual void serverReady() = 0;
+
+        virtual void shutdown() = 0;
+
+        virtual void waitForCompleted() = 0;
+
+        virtual bool redirect() = 0;
+
+        virtual void print(const std::string& msg) = 0;
+
+        virtual void flush()
         {
-            pubsync();
         }
-        return std::streambuf::sputc(c);
-    }
 
-    char data[1024];
-};
+        virtual void newLine()
+        {
+            print("\n");
+        }
 
-}
+    private:
+        //
+        // streambuf redirection implementation
+        //
+
+        int sync()
+        {
+            std::streamsize n = pptr() - pbase();
+            print(std::string(pbase(), static_cast<int>(n)));
+            pbump(-static_cast<int>(pptr() - pbase()));
+            return 0;
+        }
+
+        int overflow(int ch)
+        {
+            sync();
+            if(ch != EOF)
+            {
+                assert(pptr() != epptr());
+                sputc(ch);
+            }
+            return 0;
+        }
+
+        int sputc(char c)
+        {
+            if(c == '\n')
+            {
+                pubsync();
+            }
+            return std::streambuf::sputc(c);
+        }
+
+        char data[1024];
+    };
+
+} // namespace Test
 #endif

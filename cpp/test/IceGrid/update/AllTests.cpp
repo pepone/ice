@@ -17,8 +17,7 @@ using namespace std;
 using namespace Test;
 using namespace IceGrid;
 
-void
-addProperty(const CommunicatorDescriptorPtr& communicator, const string& name, const string& value)
+void addProperty(const CommunicatorDescriptorPtr& communicator, const string& name, const string& value)
 {
     PropertyDescriptor prop;
     prop.name = name;
@@ -26,8 +25,7 @@ addProperty(const CommunicatorDescriptorPtr& communicator, const string& name, c
     communicator->propertySet.properties.push_back(prop);
 }
 
-string
-getProperty(const PropertyDescriptorSeq& properties, const string& name)
+string getProperty(const PropertyDescriptorSeq& properties, const string& name)
 {
     for(PropertyDescriptorSeq::const_iterator q = properties.begin(); q != properties.end(); ++q)
     {
@@ -39,8 +37,7 @@ getProperty(const PropertyDescriptorSeq& properties, const string& name)
     return "";
 }
 
-PropertyDescriptor
-createProperty(const string& name, const string& value)
+PropertyDescriptor createProperty(const string& name, const string& value)
 {
     PropertyDescriptor prop;
     prop.name = name;
@@ -48,8 +45,7 @@ createProperty(const string& name, const string& value)
     return prop;
 }
 
-bool
-hasProperty(const CommunicatorDescriptorPtr& desc, const string& name, const string& value)
+bool hasProperty(const CommunicatorDescriptorPtr& desc, const string& name, const string& value)
 {
     for(PropertyDescriptorSeq::const_iterator p = desc->propertySet.properties.begin();
         p != desc->propertySet.properties.end(); ++p)
@@ -62,15 +58,15 @@ hasProperty(const CommunicatorDescriptorPtr& desc, const string& name, const str
     return false;
 }
 
-void
-allTests(const Ice::CommunicatorPtr& communicator)
+void allTests(const Ice::CommunicatorPtr& communicator)
 {
     IceGrid::RegistryPrx registry = IceGrid::RegistryPrx::checkedCast(
         communicator->stringToProxy(communicator->getDefaultLocator()->ice_getIdentity().category + "/Registry"));
     test(registry);
     AdminSessionPrx session = registry->createAdminSession("foo", "bar");
 
-    session->ice_getConnection()->setACM(registry->getACMTimeout(), IceUtil::None, Ice::ICE_ENUM(ACMHeartbeat, HeartbeatAlways));
+    session->ice_getConnection()->setACM(registry->getACMTimeout(), IceUtil::None,
+                                         Ice::ICE_ENUM(ACMHeartbeat, HeartbeatAlways));
 
     AdminPrx admin = session->getAdmin();
     test(admin);
@@ -777,7 +773,7 @@ allTests(const Ice::CommunicatorPtr& communicator)
         catch(const DeploymentException&)
         {
             // Missing app variable
-            //cerr << ex.reason << endl;
+            // cerr << ex.reason << endl;
         }
         catch(const Ice::Exception& ex)
         {
@@ -798,7 +794,7 @@ allTests(const Ice::CommunicatorPtr& communicator)
         catch(const DeploymentException&)
         {
             // Missing node variable
-            //cerr << ex.reason << endl;
+            // cerr << ex.reason << endl;
         }
         catch(const Ice::Exception& ex)
         {
@@ -822,7 +818,7 @@ allTests(const Ice::CommunicatorPtr& communicator)
         catch(const DeploymentException&)
         {
             // Missing parameter
-            //cerr << ex.reason << endl;
+            // cerr << ex.reason << endl;
         }
         catch(const Ice::Exception& ex)
         {
@@ -890,7 +886,7 @@ allTests(const Ice::CommunicatorPtr& communicator)
 
         ServiceInstanceDescriptor serviceInstance;
         serviceInstance._cpp_template = "ServiceTemplate";
-        serviceInstance.parameterValues["name"] =  "Service";
+        serviceInstance.parameterValues["name"] = "Service";
         serviceInstance.propertySet.properties.push_back(createProperty("ServiceInstanceProp", "test"));
 
         IceBoxDescriptorPtr server = new IceBoxDescriptor();
@@ -913,7 +909,7 @@ allTests(const Ice::CommunicatorPtr& communicator)
         testApp.variables["appvar"] = "AppValue";
         testApp.serverTemplates["ServerTemplate"] = templ;
         testApp.serviceTemplates["ServiceTemplate"] = svcTempl;
-        testApp.propertySets["ApplicationPropertySet"].properties.push_back(createProperty("ApplicationProp","test"));
+        testApp.propertySets["ApplicationPropertySet"].properties.push_back(createProperty("ApplicationProp", "test"));
         testApp.propertySets["ApplicationPropertySet1"].properties.push_back(createProperty("ApplicationProp", "d"));
 
         NodeDescriptor node;
@@ -1003,8 +999,7 @@ allTests(const Ice::CommunicatorPtr& communicator)
         nodeUpdate.name = "node1";
         nodeUpdate.serverInstances.clear();
         nodeUpdate.propertySets["NodePropertySet"].properties.clear();
-        nodeUpdate.propertySets["NodePropertySet"].properties.push_back(
-            createProperty("NodeProp", "updated"));
+        nodeUpdate.propertySets["NodePropertySet"].properties.push_back(createProperty("NodeProp", "updated"));
         nodeUpdate.removePropertySets.push_back("NodePropertySet1");
         update.nodes.push_back(nodeUpdate);
         admin->updateApplication(update);
@@ -1023,8 +1018,7 @@ allTests(const Ice::CommunicatorPtr& communicator)
         info = admin->getServerInfo("Server");
         test(hasProperty(info.descriptor, "ApplicationProp", "updated"));
         updatedApplication = admin->getApplicationInfo("TestApp").descriptor;
-        test(updatedApplication.propertySets.find("ApplicationPropertySet1") ==
-             updatedApplication.propertySets.end());
+        test(updatedApplication.propertySets.find("ApplicationPropertySet1") == updatedApplication.propertySets.end());
 
         admin->removeApplication("TestApp");
         cout << "ok" << endl;

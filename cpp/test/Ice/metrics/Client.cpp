@@ -17,8 +17,7 @@ DEFINE_TEST("client")
 using namespace std;
 using namespace Test;
 
-int
-run(int, char**, const Ice::CommunicatorPtr& communicator, const CommunicatorObserverIPtr& observer)
+int run(int, char**, const Ice::CommunicatorPtr& communicator, const CommunicatorObserverIPtr& observer)
 {
     MetricsPrxPtr allTests(const Ice::CommunicatorPtr&, const CommunicatorObserverIPtr&);
     MetricsPrxPtr metrics = allTests(communicator, observer);
@@ -26,8 +25,7 @@ run(int, char**, const Ice::CommunicatorPtr& communicator, const CommunicatorObs
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
 #ifdef ICE_STATIC_LIBS
     Ice::registerIceSSL(false);

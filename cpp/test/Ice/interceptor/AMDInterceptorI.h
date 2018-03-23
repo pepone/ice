@@ -17,7 +17,6 @@
 class AMDInterceptorI : public InterceptorI
 {
 public:
-
     AMDInterceptorI(const Ice::ObjectPtr&);
 
     virtual bool dispatch(Ice::Request&);
@@ -28,7 +27,6 @@ public:
     void setException(const IceUtil::Exception&);
 
 private:
-
 #ifndef ICE_CPP11_MAPPING
     Ice::DispatchInterceptorAsyncCallbackPtr _defaultCb;
 #endif
@@ -42,7 +40,6 @@ ICE_DEFINE_PTR(AMDInterceptorIPtr, AMDInterceptorI);
 class DispatchInterceptorAsyncCallbackI : public Ice::DispatchInterceptorAsyncCallback
 {
 public:
-
     DispatchInterceptorAsyncCallbackI(AMDInterceptorI&);
 
     virtual bool response();

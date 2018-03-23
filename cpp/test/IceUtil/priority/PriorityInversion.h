@@ -15,11 +15,9 @@
 class PriorityInversionTest : public TestBase
 {
 public:
-
     PriorityInversionTest();
 
 private:
-
     virtual void run();
 };
 

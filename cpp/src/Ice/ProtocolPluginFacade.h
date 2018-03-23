@@ -21,49 +21,46 @@
 
 namespace IceInternal
 {
-
-//
-// Global function to obtain a ProtocolPluginFacade given a Communicator
-// instance.
-//
-ICE_API ProtocolPluginFacadePtr getProtocolPluginFacade(const Ice::CommunicatorPtr&);
-
-//
-// ProtocolPluginFacade wraps the internal operations that protocol
-// plug-ins may need.
-//
-class ICE_API ProtocolPluginFacade : public ::IceUtil::Shared
-{
-public:
-
-    virtual ~ProtocolPluginFacade();
+    //
+    // Global function to obtain a ProtocolPluginFacade given a Communicator
+    // instance.
+    //
+    ICE_API ProtocolPluginFacadePtr getProtocolPluginFacade(const Ice::CommunicatorPtr&);
 
     //
-    // Get the Communicator instance with which this facade is
-    // associated.
+    // ProtocolPluginFacade wraps the internal operations that protocol
+    // plug-ins may need.
     //
-    Ice::CommunicatorPtr getCommunicator() const;
+    class ICE_API ProtocolPluginFacade : public ::IceUtil::Shared
+    {
+    public:
+        virtual ~ProtocolPluginFacade();
 
-    //
-    // Register an EndpointFactory.
-    //
-    void addEndpointFactory(const EndpointFactoryPtr&) const;
+        //
+        // Get the Communicator instance with which this facade is
+        // associated.
+        //
+        Ice::CommunicatorPtr getCommunicator() const;
 
-    //
-    // Get an EndpointFactory.
-    //
-    EndpointFactoryPtr getEndpointFactory(Ice::Short) const;
+        //
+        // Register an EndpointFactory.
+        //
+        void addEndpointFactory(const EndpointFactoryPtr&) const;
 
-private:
+        //
+        // Get an EndpointFactory.
+        //
+        EndpointFactoryPtr getEndpointFactory(Ice::Short) const;
 
-    ProtocolPluginFacade(const Ice::CommunicatorPtr&);
+    private:
+        ProtocolPluginFacade(const Ice::CommunicatorPtr&);
 
-    friend ICE_API ProtocolPluginFacadePtr getProtocolPluginFacade(const Ice::CommunicatorPtr&);
+        friend ICE_API ProtocolPluginFacadePtr getProtocolPluginFacade(const Ice::CommunicatorPtr&);
 
-    InstancePtr _instance;
-    Ice::CommunicatorPtr _communicator;
-};
+        InstancePtr _instance;
+        Ice::CommunicatorPtr _communicator;
+    };
 
-}
+} // namespace IceInternal
 
 #endif

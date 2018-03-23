@@ -22,7 +22,6 @@ using namespace Test;
 class ControllerI : public Controller
 {
 public:
-
     virtual void stop(const Ice::Current& c)
     {
         c.adapter->getCommunicator()->shutdown();
@@ -32,11 +31,7 @@ public:
 class PublishThread : public IceUtil::Thread, public IceUtil::Mutex
 {
 public:
-
-    PublishThread(const SinglePrx& single) :
-        _single(single),
-        _published(0),
-        _destroy(false)
+    PublishThread(const SinglePrx& single) : _single(single), _published(0), _destroy(false)
     {
     }
 
@@ -74,15 +69,13 @@ public:
     }
 
 private:
-
     const SinglePrx _single;
     int _published;
     bool _destroy;
 };
 typedef IceUtil::Handle<PublishThread> PublishThreadPtr;
 
-int
-run(int, char* argv[], const CommunicatorPtr& communicator)
+int run(int, char* argv[], const CommunicatorPtr& communicator)
 {
     PropertiesPtr properties = communicator->getProperties();
     const char* managerProxyProperty = "IceStormAdmin.TopicManager.Default";
@@ -93,8 +86,8 @@ run(int, char* argv[], const CommunicatorPtr& communicator)
         return EXIT_FAILURE;
     }
 
-    IceStorm::TopicManagerPrx manager = IceStorm::TopicManagerPrx::checkedCast(
-        communicator->stringToProxy(managerProxy));
+    IceStorm::TopicManagerPrx manager =
+        IceStorm::TopicManagerPrx::checkedCast(communicator->stringToProxy(managerProxy));
     if(!manager)
     {
         cerr << argv[0] << ": `" << managerProxy << "' is not running" << endl;
@@ -110,7 +103,6 @@ run(int, char* argv[], const CommunicatorPtr& communicator)
     {
         cerr << argv[0] << ": NoSuchTopic: " << e.name << endl;
         return EXIT_FAILURE;
-
     }
     assert(topic);
 
@@ -136,8 +128,7 @@ run(int, char* argv[], const CommunicatorPtr& communicator)
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
     int status;
     CommunicatorPtr communicator;

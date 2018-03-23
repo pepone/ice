@@ -15,11 +15,10 @@
 
 namespace IceInternal
 {
+    class BatchRequestQueue;
+    ICE_API IceUtil::Shared* upCast(BatchRequestQueue*);
+    typedef IceInternal::Handle<BatchRequestQueue> BatchRequestQueuePtr;
 
-class BatchRequestQueue;
-ICE_API IceUtil::Shared* upCast(BatchRequestQueue*);
-typedef IceInternal::Handle<BatchRequestQueue> BatchRequestQueuePtr;
-
-}
+} // namespace IceInternal
 
 #endif

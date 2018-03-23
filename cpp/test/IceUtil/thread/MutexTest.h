@@ -15,11 +15,9 @@
 class MutexTest : public TestBase
 {
 public:
-
     MutexTest();
 
 private:
-
     virtual void run();
 };
 

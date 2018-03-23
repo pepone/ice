@@ -19,7 +19,6 @@ using namespace std;
 class ServantLocatorI : public Ice::ServantLocator
 {
 public:
-
     ServantLocatorI(bool array, bool async)
     {
         if(array)
@@ -47,40 +46,33 @@ public:
     }
 
 #ifdef ICE_CPP11_MAPPING
-    virtual Ice::ObjectPtr
-    locate(const Ice::Current&, shared_ptr<void>&)
+    virtual Ice::ObjectPtr locate(const Ice::Current&, shared_ptr<void>&)
     {
         return _blobject;
     }
 
-    virtual void
-    finished(const Ice::Current&, const Ice::ObjectPtr&, const shared_ptr<void>&)
+    virtual void finished(const Ice::Current&, const Ice::ObjectPtr&, const shared_ptr<void>&)
     {
     }
 #else
-    virtual Ice::ObjectPtr
-    locate(const Ice::Current&, Ice::LocalObjectPtr&)
+    virtual Ice::ObjectPtr locate(const Ice::Current&, Ice::LocalObjectPtr&)
     {
         return _blobject;
     }
 
-    virtual void
-    finished(const Ice::Current&, const Ice::ObjectPtr&, const Ice::LocalObjectPtr&)
+    virtual void finished(const Ice::Current&, const Ice::ObjectPtr&, const Ice::LocalObjectPtr&)
     {
     }
 #endif
-    virtual void
-    deactivate(const string&)
+    virtual void deactivate(const string&)
     {
     }
 
 private:
-
     Ice::ObjectPtr _blobject;
 };
 
-int
-run(int argc, char* argv[], const Ice::CommunicatorPtr& communicator)
+int run(int argc, char* argv[], const Ice::CommunicatorPtr& communicator)
 {
     IceUtilInternal::Options opts;
     opts.addOpt("", "array");
@@ -110,8 +102,7 @@ run(int argc, char* argv[], const Ice::CommunicatorPtr& communicator)
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
 #ifdef ICE_STATIC_LIBS
     Ice::registerIceSSL(false);

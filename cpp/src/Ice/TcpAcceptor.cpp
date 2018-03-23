@@ -18,7 +18,7 @@
 #include <IceUtil/StringUtil.h>
 
 #if defined(ICE_USE_IOCP)
-#  include <Mswsock.h>
+#    include <Mswsock.h>
 #elif defined(ICE_OS_UWP)
 using namespace Platform;
 using namespace Windows::Foundation;
@@ -31,23 +31,24 @@ using namespace Windows::Networking::Sockets;
 // Use the system default for the listen() backlog or 511 if not defined.
 //
 #ifndef SOMAXCONN
-#  define SOMAXCONN 511
+#    define SOMAXCONN 511
 #endif
 
 using namespace std;
 using namespace Ice;
 using namespace IceInternal;
 
-IceUtil::Shared* IceInternal::upCast(TcpAcceptor* p) { return p; }
+IceUtil::Shared* IceInternal::upCast(TcpAcceptor* p)
+{
+    return p;
+}
 
-NativeInfoPtr
-IceInternal::TcpAcceptor::getNativeInfo()
+NativeInfoPtr IceInternal::TcpAcceptor::getNativeInfo()
 {
     return this;
 }
 
-void
-IceInternal::TcpAcceptor::close()
+void IceInternal::TcpAcceptor::close()
 {
 #if defined(ICE_OS_UWP)
     IceUtil::Mutex::Lock lock(_mutex);
@@ -59,7 +60,7 @@ IceInternal::TcpAcceptor::close()
     }
     else if(!_accepted.empty())
     {
-        for(deque<Windows::Networking::Sockets::StreamSocket^>::const_iterator p = _accepted.begin();
+        for(deque<Windows::Networking::Sockets::StreamSocket ^>::const_iterator p = _accepted.begin();
             p != _accepted.end(); ++p)
         {
             closeSocket(*p);
@@ -82,8 +83,7 @@ IceInternal::TcpAcceptor::close()
     }
 }
 
-EndpointIPtr
-IceInternal::TcpAcceptor::listen()
+EndpointIPtr IceInternal::TcpAcceptor::listen()
 {
     try
     {
@@ -103,27 +103,18 @@ IceInternal::TcpAcceptor::listen()
 
 #if defined(ICE_USE_IOCP)
 
-AsyncInfo*
-IceInternal::TcpAcceptor::getAsyncInfo(SocketOperation)
+AsyncInfo* IceInternal::TcpAcceptor::getAsyncInfo(SocketOperation)
 {
     return &_info;
 }
 
-void
-IceInternal::TcpAcceptor::startAccept()
+void IceInternal::TcpAcceptor::startAccept()
 {
     LPFN_ACCEPTEX AcceptEx = ICE_NULLPTR; // a pointer to the 'AcceptEx()' function
-    GUID GuidAcceptEx = WSAID_ACCEPTEX; // The Guid
+    GUID GuidAcceptEx = WSAID_ACCEPTEX;   // The Guid
     DWORD dwBytes;
-    if(WSAIoctl(_fd,
-                SIO_GET_EXTENSION_FUNCTION_POINTER,
-                &GuidAcceptEx,
-                sizeof(GuidAcceptEx),
-                &AcceptEx,
-                sizeof(AcceptEx),
-                &dwBytes,
-                ICE_NULLPTR,
-                ICE_NULLPTR) == SOCKET_ERROR)
+    if(WSAIoctl(_fd, SIO_GET_EXTENSION_FUNCTION_POINTER, &GuidAcceptEx, sizeof(GuidAcceptEx), &AcceptEx,
+                sizeof(AcceptEx), &dwBytes, ICE_NULLPTR, ICE_NULLPTR) == SOCKET_ERROR)
     {
         throw SocketException(__FILE__, __LINE__, getSocketErrno());
     }
@@ -140,8 +131,7 @@ IceInternal::TcpAcceptor::startAccept()
     }
 }
 
-void
-IceInternal::TcpAcceptor::finishAccept()
+void IceInternal::TcpAcceptor::finishAccept()
 {
     if(static_cast<int>(_info.count) == SOCKET_ERROR || _fd == INVALID_SOCKET)
     {
@@ -151,8 +141,7 @@ IceInternal::TcpAcceptor::finishAccept()
     }
 }
 
-TransceiverPtr
-IceInternal::TcpAcceptor::accept()
+TransceiverPtr IceInternal::TcpAcceptor::accept()
 {
     if(_acceptFd == INVALID_SOCKET)
     {
@@ -173,14 +162,12 @@ IceInternal::TcpAcceptor::accept()
 
 #elif defined(ICE_OS_UWP)
 
-AsyncInfo*
-IceInternal::TcpAcceptor::getAsyncInfo(SocketOperation)
+AsyncInfo* IceInternal::TcpAcceptor::getAsyncInfo(SocketOperation)
 {
     return 0; // Not used
 }
 
-void
-IceInternal::TcpAcceptor::startAccept()
+void IceInternal::TcpAcceptor::startAccept()
 {
     assert(_fd != INVALID_SOCKET);
 
@@ -203,8 +190,7 @@ IceInternal::TcpAcceptor::startAccept()
     }
 }
 
-void
-IceInternal::TcpAcceptor::finishAccept()
+void IceInternal::TcpAcceptor::finishAccept()
 {
     //
     // Nothing to do, we just check there's at least one accepted
@@ -214,8 +200,7 @@ IceInternal::TcpAcceptor::finishAccept()
     assert(!_acceptPending && (!_accepted.empty() || _fd == INVALID_SOCKET));
 }
 
-TransceiverPtr
-IceInternal::TcpAcceptor::accept()
+TransceiverPtr IceInternal::TcpAcceptor::accept()
 {
     if(_fd == INVALID_SOCKET) // Acceptor closed.
     {
@@ -223,7 +208,7 @@ IceInternal::TcpAcceptor::accept()
         throw SocketException(__FILE__, __LINE__);
     }
 
-    Windows::Networking::Sockets::StreamSocket^ fd;
+    Windows::Networking::Sockets::StreamSocket ^ fd;
     {
         IceUtil::Mutex::Lock lock(_mutex);
         assert(!_accepted.empty());
@@ -236,28 +221,24 @@ IceInternal::TcpAcceptor::accept()
 
 #else
 
-TransceiverPtr
-IceInternal::TcpAcceptor::accept()
+TransceiverPtr IceInternal::TcpAcceptor::accept()
 {
     return new TcpTransceiver(_instance, new StreamSocket(_instance, doAccept(_fd)));
 }
 
 #endif
 
-string
-IceInternal::TcpAcceptor::protocol() const
+string IceInternal::TcpAcceptor::protocol() const
 {
     return _instance->protocol();
 }
 
-string
-IceInternal::TcpAcceptor::toString() const
+string IceInternal::TcpAcceptor::toString() const
 {
     return addrToString(_addr);
 }
 
-string
-IceInternal::TcpAcceptor::toDetailedString() const
+string IceInternal::TcpAcceptor::toDetailedString() const
 {
     ostringstream os;
     os << "local address = " << toString();
@@ -270,52 +251,50 @@ IceInternal::TcpAcceptor::toDetailedString() const
     return os.str();
 }
 
-int
-IceInternal::TcpAcceptor::effectivePort() const
+int IceInternal::TcpAcceptor::effectivePort() const
 {
     return getPort(_addr);
 }
 
-IceInternal::TcpAcceptor::TcpAcceptor(const TcpEndpointIPtr& endpoint,
-                                      const ProtocolInstancePtr& instance,
-                                      const string& host,
-                                      int port) :
+IceInternal::TcpAcceptor::TcpAcceptor(const TcpEndpointIPtr& endpoint, const ProtocolInstancePtr& instance,
+                                      const string& host, int port) :
     _endpoint(endpoint),
     _instance(instance),
     _addr(getAddressForServer(host, port, _instance->protocolSupport(), instance->preferIPv6(), true))
 #ifdef ICE_USE_IOCP
-    , _acceptFd(INVALID_SOCKET), _info(SocketOperationRead)
+    ,
+    _acceptFd(INVALID_SOCKET),
+    _info(SocketOperationRead)
 #endif
 {
     _backlog = instance->properties()->getPropertyAsIntWithDefault("Ice.TCP.Backlog", SOMAXCONN);
 
 #if defined(ICE_OS_UWP)
     _fd = ref new StreamSocketListener();
-    safe_cast<StreamSocketListener^>(_fd)->ConnectionReceived +=
-        ref new TypedEventHandler<StreamSocketListener^, StreamSocketListenerConnectionReceivedEventArgs^>(
-            [=](StreamSocketListener^, StreamSocketListenerConnectionReceivedEventArgs^ args)
+    safe_cast<StreamSocketListener ^>(_fd)->ConnectionReceived +=
+        ref new TypedEventHandler<StreamSocketListener ^, StreamSocketListenerConnectionReceivedEventArgs ^>(
+            [=](StreamSocketListener ^, StreamSocketListenerConnectionReceivedEventArgs ^ args) {
+                IceUtil::Mutex::Lock lock(_mutex);
+                if(_fd == INVALID_SOCKET) // Acceptor was closed.
                 {
-                    IceUtil::Mutex::Lock lock(_mutex);
-                    if(_fd == INVALID_SOCKET) // Acceptor was closed.
-                    {
-                        closeSocket(args->Socket);
-                        return;
-                    }
-                    _accepted.push_back(args->Socket);
+                    closeSocket(args->Socket);
+                    return;
+                }
+                _accepted.push_back(args->Socket);
 
-                    //
-                    // If the acceptor is waiting for a socket to be accepted, notify
-                    // the selector that the acceptor is ready for "read". This will
-                    // in turn caused finishAccept() and accept() to be called by the
-                    // thread pool. If the acceptor isn't ready to accept the socket,
-                    // it is just queued, when startAccept is called it will be dequed.
-                    //
-                    if(_acceptPending)
-                    {
-                        completed(SocketOperationRead);
-                        _acceptPending = false;
-                    }
-                });
+                //
+                // If the acceptor is waiting for a socket to be accepted, notify
+                // the selector that the acceptor is ready for "read". This will
+                // in turn caused finishAccept() and accept() to be called by the
+                // thread pool. If the acceptor isn't ready to accept the socket,
+                // it is just queued, when startAccept is called it will be dequed.
+                //
+                if(_acceptPending)
+                {
+                    completed(SocketOperationRead);
+                    _acceptPending = false;
+                }
+            });
 #else
     _fd = createServerSocket(false, _addr, instance->protocolSupport());
 #endif

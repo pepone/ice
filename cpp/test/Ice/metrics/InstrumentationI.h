@@ -15,53 +15,45 @@
 class ObserverI : public virtual Ice::Instrumentation::Observer, public IceUtil::Mutex
 {
 public:
-
-    virtual void
-    reset()
+    virtual void reset()
     {
         total = 0;
         current = 0;
         failedCount = 0;
     }
 
-    virtual void
-    attach()
+    virtual void attach()
     {
         IceUtil::Mutex::Lock sync(*this);
         ++total;
         ++current;
     }
 
-    virtual void
-    detach()
+    virtual void detach()
     {
         IceUtil::Mutex::Lock sync(*this);
         --current;
     }
 
-    virtual void
-    failed(const std::string&)
+    virtual void failed(const std::string&)
     {
         IceUtil::Mutex::Lock sync(*this);
         ++failedCount;
     }
 
-    Ice::Int
-    getTotal() const
+    Ice::Int getTotal() const
     {
         IceUtil::Mutex::Lock sync(*this);
         return total;
     }
 
-    Ice::Int
-    getCurrent() const
+    Ice::Int getCurrent() const
     {
         IceUtil::Mutex::Lock sync(*this);
         return current;
     }
 
-    Ice::Int
-    getFailedCount() const
+    Ice::Int getFailedCount() const
     {
         IceUtil::Mutex::Lock sync(*this);
         return failedCount;
@@ -76,9 +68,7 @@ ICE_DEFINE_PTR(ObserverIPtr, ObserverI);
 class ConnectionObserverI : public Ice::Instrumentation::ConnectionObserver, public ObserverI
 {
 public:
-
-    virtual void
-    reset()
+    virtual void reset()
     {
         IceUtil::Mutex::Lock sync(*this);
         ObserverI::reset();
@@ -86,15 +76,13 @@ public:
         sent = 0;
     }
 
-    virtual void
-    sentBytes(Ice::Int s)
+    virtual void sentBytes(Ice::Int s)
     {
         IceUtil::Mutex::Lock sync(*this);
         sent += s;
     }
 
-    virtual void
-    receivedBytes(Ice::Int s)
+    virtual void receivedBytes(Ice::Int s)
     {
         IceUtil::Mutex::Lock sync(*this);
         received += s;
@@ -108,17 +96,14 @@ ICE_DEFINE_PTR(ConnectionObserverIPtr, ConnectionObserverI);
 class ThreadObserverI : public Ice::Instrumentation::ThreadObserver, public ObserverI
 {
 public:
-
-    virtual void
-    reset()
+    virtual void reset()
     {
         IceUtil::Mutex::Lock sync(*this);
         ObserverI::reset();
         states = 0;
     }
 
-    virtual void
-    stateChanged(Ice::Instrumentation::ThreadState, Ice::Instrumentation::ThreadState)
+    virtual void stateChanged(Ice::Instrumentation::ThreadState, Ice::Instrumentation::ThreadState)
     {
         IceUtil::Mutex::Lock sync(*this);
         ++states;
@@ -131,7 +116,6 @@ ICE_DEFINE_PTR(ThreadObserverIPtr, ThreadObserverI);
 class DispatchObserverI : public Ice::Instrumentation::DispatchObserver, public ObserverI
 {
 public:
-
     virtual void reset()
     {
         IceUtil::Mutex::Lock sync(*this);
@@ -140,15 +124,13 @@ public:
         replySize = 0;
     }
 
-    virtual void
-    userException()
+    virtual void userException()
     {
         IceUtil::Mutex::Lock sync(*this);
         ++userExceptionCount;
     }
 
-    virtual void
-    reply(Ice::Int s)
+    virtual void reply(Ice::Int s)
     {
         IceUtil::Mutex::Lock sync(*this);
         replySize += s;
@@ -162,17 +144,14 @@ ICE_DEFINE_PTR(DispatchObserverIPtr, DispatchObserverI);
 class ChildInvocationObserverI : public virtual Ice::Instrumentation::ChildInvocationObserver, public ObserverI
 {
 public:
-
-    virtual void
-    reset()
+    virtual void reset()
     {
         IceUtil::Mutex::Lock sync(*this);
         ObserverI::reset();
         replySize = 0;
     }
 
-    virtual void
-    reply(Ice::Int s)
+    virtual void reply(Ice::Int s)
     {
         IceUtil::Mutex::Lock sync(*this);
         replySize += s;
@@ -195,7 +174,6 @@ ICE_DEFINE_PTR(CollocatedObserverIPtr, CollocatedObserverI);
 class InvocationObserverI : public Ice::Instrumentation::InvocationObserver, public ObserverI
 {
 public:
-
     virtual void reset()
     {
         IceUtil::Mutex::Lock sync(*this);
@@ -212,22 +190,20 @@ public:
         }
     }
 
-    virtual void
-    retried()
+    virtual void retried()
     {
         IceUtil::Mutex::Lock sync(*this);
         ++retriedCount;
     }
 
-    virtual void
-    userException()
+    virtual void userException()
     {
         IceUtil::Mutex::Lock sync(*this);
         ++userExceptionCount;
     }
 
-    virtual Ice::Instrumentation::RemoteObserverPtr
-    getRemoteObserver(const Ice::ConnectionInfoPtr& c, const Ice::EndpointPtr& e, Ice::Int, Ice::Int)
+    virtual Ice::Instrumentation::RemoteObserverPtr getRemoteObserver(const Ice::ConnectionInfoPtr& c,
+                                                                      const Ice::EndpointPtr& e, Ice::Int, Ice::Int)
     {
         IceUtil::Mutex::Lock sync(*this);
         if(!remoteObserver)
@@ -238,8 +214,8 @@ public:
         return remoteObserver;
     }
 
-    virtual Ice::Instrumentation::CollocatedObserverPtr
-    getCollocatedObserver(const Ice::ObjectAdapterPtr&, Ice::Int, Ice::Int)
+    virtual Ice::Instrumentation::CollocatedObserverPtr getCollocatedObserver(const Ice::ObjectAdapterPtr&, Ice::Int,
+                                                                              Ice::Int)
     {
         IceUtil::Mutex::Lock sync(*this);
         if(!collocatedObserver)
@@ -261,15 +237,13 @@ ICE_DEFINE_PTR(InvocationObserverIPtr, InvocationObserverI);
 class CommunicatorObserverI : public Ice::Instrumentation::CommunicatorObserver, public IceUtil::Mutex
 {
 public:
-
-    virtual void
-    setObserverUpdater(const Ice::Instrumentation::ObserverUpdaterPtr& u)
+    virtual void setObserverUpdater(const Ice::Instrumentation::ObserverUpdaterPtr& u)
     {
         updater = u;
     }
 
-    virtual Ice::Instrumentation::ObserverPtr
-    getConnectionEstablishmentObserver(const Ice::EndpointPtr&, const std::string&)
+    virtual Ice::Instrumentation::ObserverPtr getConnectionEstablishmentObserver(const Ice::EndpointPtr&,
+                                                                                 const std::string&)
     {
         IceUtil::Mutex::Lock sync(*this);
         if(!connectionEstablishmentObserver)
@@ -280,8 +254,7 @@ public:
         return connectionEstablishmentObserver;
     }
 
-    virtual Ice::Instrumentation::ObserverPtr
-    getEndpointLookupObserver(const Ice::EndpointPtr&)
+    virtual Ice::Instrumentation::ObserverPtr getEndpointLookupObserver(const Ice::EndpointPtr&)
     {
         IceUtil::Mutex::Lock sync(*this);
         if(!endpointLookupObserver)
@@ -293,9 +266,7 @@ public:
     }
 
     virtual Ice::Instrumentation::ConnectionObserverPtr
-    getConnectionObserver(const Ice::ConnectionInfoPtr&,
-                          const Ice::EndpointPtr&,
-                          Ice::Instrumentation::ConnectionState,
+    getConnectionObserver(const Ice::ConnectionInfoPtr&, const Ice::EndpointPtr&, Ice::Instrumentation::ConnectionState,
                           const Ice::Instrumentation::ConnectionObserverPtr& old)
     {
         IceUtil::Mutex::Lock sync(*this);
@@ -320,10 +291,10 @@ public:
             threadObserver->reset();
         }
         return threadObserver;
-   }
+    }
 
-    virtual Ice::Instrumentation::InvocationObserverPtr
-    getInvocationObserver(const Ice::ObjectPrxPtr&, const std::string&, const Ice::Context&)
+    virtual Ice::Instrumentation::InvocationObserverPtr getInvocationObserver(const Ice::ObjectPrxPtr&,
+                                                                              const std::string&, const Ice::Context&)
     {
         IceUtil::Mutex::Lock sync(*this);
         if(!invocationObserver)
@@ -334,8 +305,7 @@ public:
         return invocationObserver;
     }
 
-    virtual Ice::Instrumentation::DispatchObserverPtr
-    getDispatchObserver(const Ice::Current&, Ice::Int)
+    virtual Ice::Instrumentation::DispatchObserverPtr getDispatchObserver(const Ice::Current&, Ice::Int)
     {
         IceUtil::Mutex::Lock sync(*this);
         if(!dispatchObserver)

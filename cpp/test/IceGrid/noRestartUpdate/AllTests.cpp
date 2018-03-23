@@ -17,8 +17,7 @@ using namespace std;
 using namespace Test;
 using namespace IceGrid;
 
-void
-addProperty(const CommunicatorDescriptorPtr& communicator, const string& name, const string& value)
+void addProperty(const CommunicatorDescriptorPtr& communicator, const string& name, const string& value)
 {
     PropertyDescriptor prop;
     prop.name = name;
@@ -26,8 +25,7 @@ addProperty(const CommunicatorDescriptorPtr& communicator, const string& name, c
     communicator->propertySet.properties.push_back(prop);
 }
 
-string
-getProperty(const CommunicatorDescriptorPtr& communicator, const string& name)
+string getProperty(const CommunicatorDescriptorPtr& communicator, const string& name)
 {
     PropertyDescriptorSeq& properties = communicator->propertySet.properties;
     for(PropertyDescriptorSeq::const_iterator q = properties.begin(); q != properties.end(); ++q)
@@ -40,8 +38,7 @@ getProperty(const CommunicatorDescriptorPtr& communicator, const string& name)
     return "";
 }
 
-void
-removeProperty(const CommunicatorDescriptorPtr& communicator, const string& name)
+void removeProperty(const CommunicatorDescriptorPtr& communicator, const string& name)
 {
     PropertyDescriptorSeq& properties = communicator->propertySet.properties;
     for(PropertyDescriptorSeq::iterator q = properties.begin(); q != properties.end(); ++q)
@@ -54,8 +51,7 @@ removeProperty(const CommunicatorDescriptorPtr& communicator, const string& name
     }
 }
 
-PropertyDescriptor
-createProperty(const string& name, const string& value)
+PropertyDescriptor createProperty(const string& name, const string& value)
 {
     PropertyDescriptor prop;
     prop.name = name;
@@ -63,8 +59,7 @@ createProperty(const string& name, const string& value)
     return prop;
 }
 
-bool
-hasProperty(const CommunicatorDescriptorPtr& desc, const string& name, const string& value)
+bool hasProperty(const CommunicatorDescriptorPtr& desc, const string& name, const string& value)
 {
     for(PropertyDescriptorSeq::const_iterator p = desc->propertySet.properties.begin();
         p != desc->propertySet.properties.end(); ++p)
@@ -77,8 +72,7 @@ hasProperty(const CommunicatorDescriptorPtr& desc, const string& name, const str
     return false;
 }
 
-void
-updateServerRuntimeProperties(const AdminPrx& admin, const string&, const ServerDescriptorPtr& desc)
+void updateServerRuntimeProperties(const AdminPrx& admin, const string&, const ServerDescriptorPtr& desc)
 {
     ApplicationUpdateDescriptor update;
     update.name = "TestApp";
@@ -97,8 +91,7 @@ updateServerRuntimeProperties(const AdminPrx& admin, const string&, const Server
     }
 }
 
-ServiceDescriptorPtr
-getServiceDescriptor(const AdminPrx& admin, const string& service)
+ServiceDescriptorPtr getServiceDescriptor(const AdminPrx& admin, const string& service)
 {
     ServerInfo info = admin->getServerInfo("IceBox");
     test(info.descriptor);
@@ -113,8 +106,7 @@ getServiceDescriptor(const AdminPrx& admin, const string& service)
     return 0;
 }
 
-void
-updateServiceRuntimeProperties(const AdminPrx& admin, const ServiceDescriptorPtr& desc)
+void updateServiceRuntimeProperties(const AdminPrx& admin, const ServiceDescriptorPtr& desc)
 {
     ServerInfo info = admin->getServerInfo("IceBox");
     test(info.descriptor);
@@ -148,15 +140,15 @@ updateServiceRuntimeProperties(const AdminPrx& admin, const ServiceDescriptorPtr
     }
 }
 
-void
-allTests(const Ice::CommunicatorPtr& communicator)
+void allTests(const Ice::CommunicatorPtr& communicator)
 {
     IceGrid::RegistryPrx registry = IceGrid::RegistryPrx::checkedCast(
         communicator->stringToProxy(communicator->getDefaultLocator()->ice_getIdentity().category + "/Registry"));
     test(registry);
     AdminSessionPrx session = registry->createAdminSession("foo", "bar");
 
-    session->ice_getConnection()->setACM(registry->getACMTimeout(), IceUtil::None, Ice::ICE_ENUM(ACMHeartbeat, HeartbeatAlways));
+    session->ice_getConnection()->setACM(registry->getACMTimeout(), IceUtil::None,
+                                         Ice::ICE_ENUM(ACMHeartbeat, HeartbeatAlways));
 
     AdminPrx admin = session->getAdmin();
     test(admin);
@@ -526,7 +518,7 @@ allTests(const Ice::CommunicatorPtr& communicator)
 
         ServiceDescriptorPtr service = new ServiceDescriptor();
         addProperty(service, "Ice.Warn.UnknownProperties", "0");
-        //addProperty(service, "Ice.Trace.Admin.Properties", "1");
+        // addProperty(service, "Ice.Trace.Admin.Properties", "1");
         service->name = "Service1";
 
         service->entry = properties->getProperty("ServiceDir") + "/TestService:create";

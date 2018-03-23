@@ -15,58 +15,48 @@ using namespace std;
 using namespace Ice;
 
 #ifdef ICE_CPP11_MAPPING
-void
-TestAMDI::requestFailedExceptionAsync(function<void()> response, function<void(exception_ptr)>, const Current&)
+void TestAMDI::requestFailedExceptionAsync(function<void()> response, function<void(exception_ptr)>, const Current&)
 {
     response();
 }
 
-void
-TestAMDI::unknownUserExceptionAsync(function<void()> response, function<void(exception_ptr)>, const Current&)
+void TestAMDI::unknownUserExceptionAsync(function<void()> response, function<void(exception_ptr)>, const Current&)
 {
     response();
 }
 
-void
-TestAMDI::unknownLocalExceptionAsync(function<void()> response, function<void(exception_ptr)>, const Current&)
+void TestAMDI::unknownLocalExceptionAsync(function<void()> response, function<void(exception_ptr)>, const Current&)
 {
     response();
 }
 
-void
-TestAMDI::unknownExceptionAsync(function<void()> response, function<void(exception_ptr)>, const Current&)
+void TestAMDI::unknownExceptionAsync(function<void()> response, function<void(exception_ptr)>, const Current&)
 {
     response();
 }
 
-void
-TestAMDI::userExceptionAsync(function<void()> response, function<void(exception_ptr)>, const Current&)
+void TestAMDI::userExceptionAsync(function<void()> response, function<void(exception_ptr)>, const Current&)
 {
     response();
 }
 
-void
-TestAMDI::localExceptionAsync(function<void()> response, function<void(exception_ptr)>, const Current&)
+void TestAMDI::localExceptionAsync(function<void()> response, function<void(exception_ptr)>, const Current&)
 {
     response();
 }
 
-void
-TestAMDI::stdExceptionAsync(function<void()> response, function<void(exception_ptr)>, const Current&)
+void TestAMDI::stdExceptionAsync(function<void()> response, function<void(exception_ptr)>, const Current&)
 {
     response();
 }
 
-void
-TestAMDI::cppExceptionAsync(function<void()> response, function<void(exception_ptr)>, const Current&)
+void TestAMDI::cppExceptionAsync(function<void()> response, function<void(exception_ptr)>, const Current&)
 {
     response();
 }
 
-void
-TestAMDI::unknownExceptionWithServantExceptionAsync(function<void()>,
-                                                    function<void(exception_ptr)> error,
-                                                    const Current&)
+void TestAMDI::unknownExceptionWithServantExceptionAsync(function<void()>, function<void(exception_ptr)> error,
+                                                         const Current&)
 {
     try
     {
@@ -78,11 +68,8 @@ TestAMDI::unknownExceptionWithServantExceptionAsync(function<void()>,
     }
 }
 
-void
-TestAMDI::impossibleExceptionAsync(bool _cpp_throw,
-                                   function<void(const string&)> response,
-                                   function<void(exception_ptr)> error,
-                                   const Current&)
+void TestAMDI::impossibleExceptionAsync(bool _cpp_throw, function<void(const string&)> response,
+                                        function<void(exception_ptr)> error, const Current&)
 {
     if(_cpp_throw)
     {
@@ -105,11 +92,8 @@ TestAMDI::impossibleExceptionAsync(bool _cpp_throw,
     }
 }
 
-void
-TestAMDI::intfUserExceptionAsync(bool _cpp_throw,
-                                 function<void(const string&)> response,
-                                 function<void(exception_ptr)> error,
-                                 const Current&)
+void TestAMDI::intfUserExceptionAsync(bool _cpp_throw, function<void(const string&)> response,
+                                      function<void(exception_ptr)> error, const Current&)
 {
     if(_cpp_throw)
     {
@@ -132,19 +116,13 @@ TestAMDI::intfUserExceptionAsync(bool _cpp_throw,
     }
 }
 
-void
-TestAMDI::asyncResponseAsync(function<void()> response,
-                             function<void(exception_ptr)>,
-                             const Current&)
+void TestAMDI::asyncResponseAsync(function<void()> response, function<void(exception_ptr)>, const Current&)
 {
     response();
     throw Ice::ObjectNotExistException(__FILE__, __LINE__);
 }
 
-void
-TestAMDI::asyncExceptionAsync(function<void()> response,
-                              function<void(exception_ptr)> error,
-                              const Current&)
+void TestAMDI::asyncExceptionAsync(function<void()> response, function<void(exception_ptr)> error, const Current&)
 {
     try
     {
@@ -157,72 +135,60 @@ TestAMDI::asyncExceptionAsync(function<void()> response,
     throw Ice::ObjectNotExistException(__FILE__, __LINE__);
 }
 
-void
-TestAMDI::shutdownAsync(function<void()> response,
-                        function<void(exception_ptr)> error,
-                        const Current& current)
+void TestAMDI::shutdownAsync(function<void()> response, function<void(exception_ptr)> error, const Current& current)
 {
     current.adapter->deactivate();
     response();
 }
 #else
-void
-TestAMDI::requestFailedException_async(const Test::AMD_TestIntf_requestFailedExceptionPtr& cb, const Current&)
+void TestAMDI::requestFailedException_async(const Test::AMD_TestIntf_requestFailedExceptionPtr& cb, const Current&)
 {
     cb->ice_response();
 }
 
-void
-TestAMDI::unknownUserException_async(const Test::AMD_TestIntf_unknownUserExceptionPtr& cb, const Current&)
+void TestAMDI::unknownUserException_async(const Test::AMD_TestIntf_unknownUserExceptionPtr& cb, const Current&)
 {
     cb->ice_response();
 }
 
-void
-TestAMDI::unknownLocalException_async(const Test::AMD_TestIntf_unknownLocalExceptionPtr& cb, const Current&)
+void TestAMDI::unknownLocalException_async(const Test::AMD_TestIntf_unknownLocalExceptionPtr& cb, const Current&)
 {
     cb->ice_response();
 }
 
-void
-TestAMDI::unknownException_async(const Test::AMD_TestIntf_unknownExceptionPtr& cb, const Current&)
+void TestAMDI::unknownException_async(const Test::AMD_TestIntf_unknownExceptionPtr& cb, const Current&)
 {
     cb->ice_response();
 }
 
-void
-TestAMDI::userException_async(const Test::AMD_TestIntf_userExceptionPtr& cb, const Current&)
+void TestAMDI::userException_async(const Test::AMD_TestIntf_userExceptionPtr& cb, const Current&)
 {
     cb->ice_response();
 }
 
-void
-TestAMDI::localException_async(const Test::AMD_TestIntf_localExceptionPtr& cb, const Current&)
+void TestAMDI::localException_async(const Test::AMD_TestIntf_localExceptionPtr& cb, const Current&)
 {
     cb->ice_response();
 }
 
-void
-TestAMDI::stdException_async(const Test::AMD_TestIntf_stdExceptionPtr& cb, const Current&)
+void TestAMDI::stdException_async(const Test::AMD_TestIntf_stdExceptionPtr& cb, const Current&)
 {
     cb->ice_response();
 }
 
-void
-TestAMDI::cppException_async(const Test::AMD_TestIntf_cppExceptionPtr& cb, const Current&)
+void TestAMDI::cppException_async(const Test::AMD_TestIntf_cppExceptionPtr& cb, const Current&)
 {
     cb->ice_response();
 }
 
-void
-TestAMDI::unknownExceptionWithServantException_async(const Test::AMD_TestIntf_unknownExceptionWithServantExceptionPtr& cb, const Current&)
+void TestAMDI::unknownExceptionWithServantException_async(
+    const Test::AMD_TestIntf_unknownExceptionWithServantExceptionPtr& cb, const Current&)
 {
     cb->ice_exception(Ice::ObjectNotExistException(__FILE__, __LINE__));
 }
 
-void
-TestAMDI::impossibleException_async(const Test::AMD_TestIntf_impossibleExceptionPtr& cb, bool _cpp_throw,
-                                    const Current&)
+void TestAMDI::impossibleException_async(const Test::AMD_TestIntf_impossibleExceptionPtr& cb, bool _cpp_throw,
+                                         const Current&)
 {
     if(_cpp_throw)
     {
@@ -238,8 +204,8 @@ TestAMDI::impossibleException_async(const Test::AMD_TestIntf_impossibleException
     }
 }
 
-void
-TestAMDI::intfUserException_async(const Test::AMD_TestIntf_intfUserExceptionPtr& cb, bool _cpp_throw, const Current&)
+void TestAMDI::intfUserException_async(const Test::AMD_TestIntf_intfUserExceptionPtr& cb, bool _cpp_throw,
+                                       const Current&)
 {
     if(_cpp_throw)
     {
@@ -255,30 +221,26 @@ TestAMDI::intfUserException_async(const Test::AMD_TestIntf_intfUserExceptionPtr&
     }
 }
 
-void
-TestAMDI::asyncResponse_async(const Test::AMD_TestIntf_asyncResponsePtr& cb, const Current&)
+void TestAMDI::asyncResponse_async(const Test::AMD_TestIntf_asyncResponsePtr& cb, const Current&)
 {
     cb->ice_response();
     throw Ice::ObjectNotExistException(__FILE__, __LINE__);
 }
 
-void
-TestAMDI::asyncException_async(const Test::AMD_TestIntf_asyncExceptionPtr& cb, const Current&)
+void TestAMDI::asyncException_async(const Test::AMD_TestIntf_asyncExceptionPtr& cb, const Current&)
 {
     cb->ice_exception(Test::TestIntfUserException());
     throw Ice::ObjectNotExistException(__FILE__, __LINE__);
 }
 
-void
-TestAMDI::shutdown_async(const Test::AMD_TestIntf_shutdownPtr& cb, const Current& current)
+void TestAMDI::shutdown_async(const Test::AMD_TestIntf_shutdownPtr& cb, const Current& current)
 {
     current.adapter->deactivate();
     cb->ice_response();
 }
 #endif
 
-string
-CookieI::message() const
+string CookieI::message() const
 {
     return "blahblah";
 }

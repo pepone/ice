@@ -16,8 +16,7 @@ DEFINE_TEST("server")
 using namespace std;
 using namespace Test;
 
-int
-run(int, char**, const Ice::CommunicatorPtr& communicator)
+int run(int, char**, const Ice::CommunicatorPtr& communicator)
 {
     communicator->getProperties()->setProperty("TestAdapter.Endpoints", getTestEndpoint(communicator, 0));
     Ice::ObjectAdapterPtr adapter = communicator->createObjectAdapter("TestAdapter");
@@ -35,8 +34,7 @@ run(int, char**, const Ice::CommunicatorPtr& communicator)
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
 #ifdef ICE_STATIC_LIBS
     Ice::registerIceSSL(false);
@@ -52,6 +50,6 @@ main(int argc, char* argv[])
     catch(const Ice::Exception& ex)
     {
         cerr << ex << endl;
-        return  EXIT_FAILURE;
+        return EXIT_FAILURE;
     }
 }

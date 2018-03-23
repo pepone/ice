@@ -31,10 +31,10 @@
    version 2.2 of Bison.  */
 
 #ifndef YY_YY_SRC_ICESTORM_GRAMMAR_HPP_INCLUDED
-# define YY_YY_SRC_ICESTORM_GRAMMAR_HPP_INCLUDED
+#define YY_YY_SRC_ICESTORM_GRAMMAR_HPP_INCLUDED
 /* Enabling traces.  */
 #ifndef YYDEBUG
-# define YYDEBUG 1
+#    define YYDEBUG 1
 #endif
 #if YYDEBUG
 extern int yydebug;
@@ -42,46 +42,45 @@ extern int yydebug;
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
-# define YYTOKENTYPE
-   /* Put the tokens into the symbol table, so that GDB and other debuggers
-      know about them.  */
-   enum yytokentype {
-     ICE_STORM_HELP = 258,
-     ICE_STORM_EXIT = 259,
-     ICE_STORM_CURRENT = 260,
-     ICE_STORM_CREATE = 261,
-     ICE_STORM_DESTROY = 262,
-     ICE_STORM_LINK = 263,
-     ICE_STORM_UNLINK = 264,
-     ICE_STORM_LINKS = 265,
-     ICE_STORM_TOPICS = 266,
-     ICE_STORM_REPLICA = 267,
-     ICE_STORM_SUBSCRIBERS = 268,
-     ICE_STORM_STRING = 269
-   };
+#    define YYTOKENTYPE
+/* Put the tokens into the symbol table, so that GDB and other debuggers
+   know about them.  */
+enum yytokentype
+{
+    ICE_STORM_HELP = 258,
+    ICE_STORM_EXIT = 259,
+    ICE_STORM_CURRENT = 260,
+    ICE_STORM_CREATE = 261,
+    ICE_STORM_DESTROY = 262,
+    ICE_STORM_LINK = 263,
+    ICE_STORM_UNLINK = 264,
+    ICE_STORM_LINKS = 265,
+    ICE_STORM_TOPICS = 266,
+    ICE_STORM_REPLICA = 267,
+    ICE_STORM_SUBSCRIBERS = 268,
+    ICE_STORM_STRING = 269
+};
 #endif
 
-
-#if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
+#if !defined YYSTYPE && !defined YYSTYPE_IS_DECLARED
 typedef int YYSTYPE;
-# define YYSTYPE_IS_TRIVIAL 1
-# define yystype YYSTYPE /* obsolescent; will be withdrawn */
-# define YYSTYPE_IS_DECLARED 1
+#    define YYSTYPE_IS_TRIVIAL 1
+#    define yystype YYSTYPE /* obsolescent; will be withdrawn */
+#    define YYSTYPE_IS_DECLARED 1
 #endif
-
 
 #ifdef YYPARSE_PARAM
-#if defined __STDC__ || defined __cplusplus
-int yyparse (void *YYPARSE_PARAM);
-#else
-int yyparse ();
-#endif
+#    if defined __STDC__ || defined __cplusplus
+int yyparse(void* YYPARSE_PARAM);
+#    else
+int yyparse();
+#    endif
 #else /* ! YYPARSE_PARAM */
-#if defined __STDC__ || defined __cplusplus
-int yyparse (void);
-#else
-int yyparse ();
-#endif
+#    if defined __STDC__ || defined __cplusplus
+int yyparse(void);
+#    else
+int yyparse();
+#    endif
 #endif /* ! YYPARSE_PARAM */
 
 #endif /* !YY_YY_SRC_ICESTORM_GRAMMAR_HPP_INCLUDED  */

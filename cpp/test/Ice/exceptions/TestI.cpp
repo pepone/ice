@@ -18,34 +18,29 @@ ThrowerI::ThrowerI()
 {
 }
 
-void
-ThrowerI::shutdown(const Ice::Current& current)
+void ThrowerI::shutdown(const Ice::Current& current)
 {
     current.adapter->getCommunicator()->shutdown();
 }
 
-bool
-ThrowerI::supportsUndeclaredExceptions(const Ice::Current&)
+bool ThrowerI::supportsUndeclaredExceptions(const Ice::Current&)
 {
     return true;
 }
 
-bool
-ThrowerI::supportsAssertException(const Ice::Current&)
+bool ThrowerI::supportsAssertException(const Ice::Current&)
 {
     return false;
 }
 
-void
-ThrowerI::throwAasA(Ice::Int a, const Ice::Current&)
+void ThrowerI::throwAasA(Ice::Int a, const Ice::Current&)
 {
     A ex;
     ex.aMem = a;
     throw ex;
 }
 
-void
-ThrowerI::throwAorDasAorD(Ice::Int a, const Ice::Current&)
+void ThrowerI::throwAorDasAorD(Ice::Int a, const Ice::Current&)
 {
     if(a > 0)
     {
@@ -61,20 +56,17 @@ ThrowerI::throwAorDasAorD(Ice::Int a, const Ice::Current&)
     }
 }
 
-void
-ThrowerI::throwBasA(Ice::Int a, Ice::Int b, const Ice::Current& current)
+void ThrowerI::throwBasA(Ice::Int a, Ice::Int b, const Ice::Current& current)
 {
     throwBasB(a, b, current);
 }
 
-void
-ThrowerI::throwCasA(Ice::Int a, Ice::Int b, Ice::Int c, const Ice::Current& current)
+void ThrowerI::throwCasA(Ice::Int a, Ice::Int b, Ice::Int c, const Ice::Current& current)
 {
     throwCasC(a, b, c, current);
 }
 
-void
-ThrowerI::throwBasB(Ice::Int a, Ice::Int b, const Ice::Current&)
+void ThrowerI::throwBasB(Ice::Int a, Ice::Int b, const Ice::Current&)
 {
     B ex;
     ex.aMem = a;
@@ -82,14 +74,12 @@ ThrowerI::throwBasB(Ice::Int a, Ice::Int b, const Ice::Current&)
     throw ex;
 }
 
-void
-ThrowerI::throwCasB(Ice::Int a, Ice::Int b, Ice::Int c, const Ice::Current& current)
+void ThrowerI::throwCasB(Ice::Int a, Ice::Int b, Ice::Int c, const Ice::Current& current)
 {
     throwCasC(a, b, c, current);
 }
 
-void
-ThrowerI::throwCasC(Ice::Int a, Ice::Int b, Ice::Int c, const Ice::Current&)
+void ThrowerI::throwCasC(Ice::Int a, Ice::Int b, Ice::Int c, const Ice::Current&)
 {
     C ex;
     ex.aMem = a;
@@ -98,8 +88,7 @@ ThrowerI::throwCasC(Ice::Int a, Ice::Int b, Ice::Int c, const Ice::Current&)
     throw ex;
 }
 
-void
-ThrowerI::throwModA(Ice::Int a, Ice::Int a2, const Ice::Current&)
+void ThrowerI::throwModA(Ice::Int a, Ice::Int a2, const Ice::Current&)
 {
     Mod::A ex;
     ex.aMem = a;
@@ -107,16 +96,14 @@ ThrowerI::throwModA(Ice::Int a, Ice::Int a2, const Ice::Current&)
     throw ex;
 }
 
-void
-ThrowerI::throwUndeclaredA(Ice::Int a, const Ice::Current&)
+void ThrowerI::throwUndeclaredA(Ice::Int a, const Ice::Current&)
 {
     A ex;
     ex.aMem = a;
     throw ex;
 }
 
-void
-ThrowerI::throwUndeclaredB(Ice::Int a, Ice::Int b, const Ice::Current&)
+void ThrowerI::throwUndeclaredB(Ice::Int a, Ice::Int b, const Ice::Current&)
 {
     B ex;
     ex.aMem = a;
@@ -124,8 +111,7 @@ ThrowerI::throwUndeclaredB(Ice::Int a, Ice::Int b, const Ice::Current&)
     throw ex;
 }
 
-void
-ThrowerI::throwUndeclaredC(Ice::Int a, Ice::Int b, Ice::Int c, const Ice::Current&)
+void ThrowerI::throwUndeclaredC(Ice::Int a, Ice::Int b, Ice::Int c, const Ice::Current&)
 {
     C ex;
     ex.aMem = a;
@@ -134,46 +120,39 @@ ThrowerI::throwUndeclaredC(Ice::Int a, Ice::Int b, Ice::Int c, const Ice::Curren
     throw ex;
 }
 
-void
-ThrowerI::throwLocalException(const Ice::Current&)
+void ThrowerI::throwLocalException(const Ice::Current&)
 {
     throw Ice::TimeoutException(__FILE__, __LINE__);
 }
 
-void
-ThrowerI::throwNonIceException(const Ice::Current&)
+void ThrowerI::throwNonIceException(const Ice::Current&)
 {
     throw int(12345);
 }
 
-void
-ThrowerI::throwAssertException(const Ice::Current&)
+void ThrowerI::throwAssertException(const Ice::Current&)
 {
     assert(false); // Not supported in C++.
 }
 
-Ice::ByteSeq
-ThrowerI::throwMemoryLimitException(ICE_IN(Ice::ByteSeq), const Ice::Current&)
+Ice::ByteSeq ThrowerI::throwMemoryLimitException(ICE_IN(Ice::ByteSeq), const Ice::Current&)
 {
     return Ice::ByteSeq(1024 * 20); // 20 KB.
 }
 
-void
-ThrowerI::throwLocalExceptionIdempotent(const Ice::Current&)
+void ThrowerI::throwLocalExceptionIdempotent(const Ice::Current&)
 {
     throw Ice::TimeoutException(__FILE__, __LINE__);
 }
 
-void
-ThrowerI::throwAfterResponse(const Ice::Current&)
+void ThrowerI::throwAfterResponse(const Ice::Current&)
 {
     //
     // Only relevant for AMD.
     //
 }
 
-void
-ThrowerI::throwAfterException(const Ice::Current&)
+void ThrowerI::throwAfterException(const Ice::Current&)
 {
     //
     // Only relevant for AMD.

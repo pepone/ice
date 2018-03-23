@@ -15,7 +15,7 @@
 #ifdef _WIN32
 const DWORD SIGHUP = CTRL_LOGOFF_EVENT;
 #else
-#   include <csignal>
+#    include <csignal>
 #endif
 
 using namespace std;
@@ -41,22 +41,21 @@ Ice::Application* Ice::Application::_application = 0;
 
 namespace
 {
+    //
+    // Variables than can change while run() and communicator->destroy() are running!
+    //
+    bool _released = true;
+    CtrlCHandlerCallback _previousCallback = ICE_NULLPTR;
 
-//
-// Variables than can change while run() and communicator->destroy() are running!
-//
-bool _released = true;
-CtrlCHandlerCallback _previousCallback = ICE_NULLPTR;
+    //
+    // Variables that are immutable during run() and until communicator->destroy() has returned;
+    // before and after run(), and once communicator->destroy() has returned, we assume that
+    // only the main thread and CtrlCHandler threads are running.
+    //
+    CtrlCHandler* _ctrlCHandler = 0;
+    bool _nohup = false;
 
-//
-// Variables that are immutable during run() and until communicator->destroy() has returned;
-// before and after run(), and once communicator->destroy() has returned, we assume that
-// only the main thread and CtrlCHandler threads are running.
-//
-CtrlCHandler* _ctrlCHandler = 0;
-bool _nohup = false;
-
-}
+} // namespace
 
 Ice::Application::Application(SignalPolicy signalPolicy)
 {
@@ -67,8 +66,7 @@ Ice::Application::~Application()
 {
 }
 
-int
-Ice::Application::main(int argc, const char* const argv[], ICE_CONFIG_FILE_STRING configFile, int version)
+int Ice::Application::main(int argc, const char* const argv[], ICE_CONFIG_FILE_STRING configFile, int version)
 {
     _appName = "";
     if(argc > 0)
@@ -114,8 +112,7 @@ Ice::Application::main(int argc, const char* const argv[], ICE_CONFIG_FILE_STRIN
 }
 
 #ifdef _WIN32
-int
-Ice::Application::main(int argc, const wchar_t* const argv[], const Ice::InitializationData& initData, int version)
+int Ice::Application::main(int argc, const wchar_t* const argv[], const Ice::InitializationData& initData, int version)
 {
     //
     // On Windows the given wchar_t* strings are UTF16 and therefore
@@ -124,21 +121,22 @@ Ice::Application::main(int argc, const wchar_t* const argv[], const Ice::Initial
     return main(argsToStringSeq(argc, argv), initData, version);
 }
 
-int
-Ice::Application::main(int argc, const wchar_t* const argv[], ICE_CONFIG_FILE_STRING config, int version)
+int Ice::Application::main(int argc, const wchar_t* const argv[], ICE_CONFIG_FILE_STRING config, int version)
 {
     return main(argsToStringSeq(argc, argv), config, version);
 }
 #endif
 
-int
-Ice::Application::main(int argc, const char* const argv[], const InitializationData& initializationData, int version)
+int Ice::Application::main(int argc, const char* const argv[], const InitializationData& initializationData,
+                           int version)
 {
     if(argc > 0 && argv[0] && ICE_DYNAMIC_CAST(LoggerI, getProcessLogger()))
     {
-        const bool convert = initializationData.properties ?
-            initializationData.properties->getPropertyAsIntWithDefault("Ice.LogStdErr.Convert", 1) > 0 &&
-            initializationData.properties->getProperty("Ice.StdErr").empty() : true;
+        const bool convert =
+            initializationData.properties ?
+                initializationData.properties->getPropertyAsIntWithDefault("Ice.LogStdErr.Convert", 1) > 0 &&
+                    initializationData.properties->getProperty("Ice.StdErr").empty() :
+                true;
         setProcessLogger(ICE_MAKE_SHARED(LoggerI, argv[0], "", convert));
     }
 
@@ -220,39 +218,33 @@ Ice::Application::main(int argc, const char* const argv[], const InitializationD
     return status;
 }
 
-int
-Ice::Application::main(const StringSeq& args, const InitializationData& initData, int version)
+int Ice::Application::main(const StringSeq& args, const InitializationData& initData, int version)
 {
     ArgVector av(args);
     return main(av.argc, av.argv, initData, version);
 }
 
-int
-Ice::Application::main(const StringSeq& args, ICE_CONFIG_FILE_STRING configFile, int version)
+int Ice::Application::main(const StringSeq& args, ICE_CONFIG_FILE_STRING configFile, int version)
 {
     ArgVector av(args);
     return main(av.argc, av.argv, configFile, version);
 }
 
-void
-Ice::Application::interruptCallback(int)
+void Ice::Application::interruptCallback(int)
 {
 }
 
-const char*
-Ice::Application::appName()
+const char* Ice::Application::appName()
 {
     return _appName.c_str();
 }
 
-CommunicatorPtr
-Ice::Application::communicator()
+CommunicatorPtr Ice::Application::communicator()
 {
     return _communicator;
 }
 
-void
-Ice::Application::destroyOnInterrupt()
+void Ice::Application::destroyOnInterrupt()
 {
     if(_signalPolicy == ICE_ENUM(SignalPolicy, HandleSignals))
     {
@@ -274,8 +266,7 @@ Ice::Application::destroyOnInterrupt()
     }
 }
 
-void
-Ice::Application::shutdownOnInterrupt()
+void Ice::Application::shutdownOnInterrupt()
 {
     if(_signalPolicy == ICE_ENUM(SignalPolicy, HandleSignals))
     {
@@ -297,8 +288,7 @@ Ice::Application::shutdownOnInterrupt()
     }
 }
 
-void
-Ice::Application::ignoreInterrupt()
+void Ice::Application::ignoreInterrupt()
 {
     if(_signalPolicy == ICE_ENUM(SignalPolicy, HandleSignals))
     {
@@ -320,8 +310,7 @@ Ice::Application::ignoreInterrupt()
     }
 }
 
-void
-Ice::Application::callbackOnInterrupt()
+void Ice::Application::callbackOnInterrupt()
 {
     if(_signalPolicy == ICE_ENUM(SignalPolicy, HandleSignals))
     {
@@ -343,8 +332,7 @@ Ice::Application::callbackOnInterrupt()
     }
 }
 
-void
-Ice::Application::holdInterrupt()
+void Ice::Application::holdInterrupt()
 {
     if(_signalPolicy == ICE_ENUM(SignalPolicy, HandleSignals))
     {
@@ -366,8 +354,7 @@ Ice::Application::holdInterrupt()
     }
 }
 
-void
-Ice::Application::releaseInterrupt()
+void Ice::Application::releaseInterrupt()
 {
     if(_signalPolicy == ICE_ENUM(SignalPolicy, HandleSignals))
     {
@@ -397,15 +384,13 @@ Ice::Application::releaseInterrupt()
     }
 }
 
-bool
-Ice::Application::interrupted()
+bool Ice::Application::interrupted()
 {
     Mutex::Lock lock(_mutex);
     return _interrupted;
 }
 
-int
-Ice::Application::doMain(int argc, char* argv[], const InitializationData& initData, int version)
+int Ice::Application::doMain(int argc, char* argv[], const InitializationData& initData, int version)
 {
     int status;
 
@@ -419,11 +404,11 @@ Ice::Application::doMain(int argc, char* argv[], const InitializationData& initD
         //
         if(initData.properties->getProperty("Ice.ProgramName") != "" && ICE_DYNAMIC_CAST(LoggerI, getProcessLogger()))
         {
-            const bool convert =
-                initData.properties->getPropertyAsIntWithDefault("Ice.LogStdErr.Convert", 1) > 0 &&
-                initData.properties->getProperty("Ice.StdErr").empty();
+            const bool convert = initData.properties->getPropertyAsIntWithDefault("Ice.LogStdErr.Convert", 1) > 0 &&
+                                 initData.properties->getProperty("Ice.StdErr").empty();
 
-            setProcessLogger(ICE_MAKE_SHARED(LoggerI, initData.properties->getProperty("Ice.ProgramName"), "", convert));
+            setProcessLogger(
+                ICE_MAKE_SHARED(LoggerI, initData.properties->getProperty("Ice.ProgramName"), "", convert));
         }
 
         _communicator = initialize(argc, argv, initData, version);
@@ -515,8 +500,7 @@ Ice::Application::doMain(int argc, char* argv[], const InitializationData& initD
 // CtrlCHandler callbacks.
 //
 
-void
-Ice::Application::holdInterruptCallback(int signal)
+void Ice::Application::holdInterruptCallback(int signal)
 {
     CtrlCHandlerCallback callback = ICE_NULLPTR;
     {
@@ -543,8 +527,7 @@ Ice::Application::holdInterruptCallback(int signal)
     }
 }
 
-void
-Ice::Application::destroyOnInterruptCallback(int signal)
+void Ice::Application::destroyOnInterruptCallback(int signal)
 {
     {
         Mutex::Lock lock(_mutex);
@@ -576,8 +559,7 @@ Ice::Application::destroyOnInterruptCallback(int signal)
     _condVar.signal();
 }
 
-void
-Ice::Application::shutdownOnInterruptCallback(int signal)
+void Ice::Application::shutdownOnInterruptCallback(int signal)
 {
     {
         Mutex::Lock lock(_mutex);
@@ -608,8 +590,7 @@ Ice::Application::shutdownOnInterruptCallback(int signal)
     _condVar.signal();
 }
 
-void
-Ice::Application::callbackOnInterruptCallback(int signal)
+void Ice::Application::callbackOnInterruptCallback(int signal)
 {
     {
         Mutex::Lock lock(_mutex);

@@ -20,11 +20,11 @@ RemoteCommunicatorI::RemoteCommunicatorI() : _nextPort(1)
 }
 
 #ifdef ICE_CPP11_MAPPING
-shared_ptr<Test::RemoteObjectAdapterPrx>
-RemoteCommunicatorI::createObjectAdapter(string name, string endpts, const Ice::Current& current)
+shared_ptr<Test::RemoteObjectAdapterPrx> RemoteCommunicatorI::createObjectAdapter(string name, string endpts,
+                                                                                  const Ice::Current& current)
 #else
-RemoteObjectAdapterPrx
-RemoteCommunicatorI::createObjectAdapter(const string& name, const string& endpts, const Current& current)
+RemoteObjectAdapterPrx RemoteCommunicatorI::createObjectAdapter(const string& name, const string& endpts,
+                                                                const Current& current)
 #endif
 {
     Ice::CommunicatorPtr com = current.adapter->getCommunicator();
@@ -58,39 +58,32 @@ RemoteCommunicatorI::createObjectAdapter(const string& name, const string& endpt
 }
 
 #ifdef ICE_CPP11_MAPPING
-void
-RemoteCommunicatorI::deactivateObjectAdapter(shared_ptr<RemoteObjectAdapterPrx> adapter, const Current&)
+void RemoteCommunicatorI::deactivateObjectAdapter(shared_ptr<RemoteObjectAdapterPrx> adapter, const Current&)
 #else
-void
-RemoteCommunicatorI::deactivateObjectAdapter(const RemoteObjectAdapterPrx& adapter, const Current&)
+void RemoteCommunicatorI::deactivateObjectAdapter(const RemoteObjectAdapterPrx& adapter, const Current&)
 #endif
 {
     adapter->deactivate(); // Collocated call
 }
 
-void
-RemoteCommunicatorI::shutdown(const Ice::Current& current)
+void RemoteCommunicatorI::shutdown(const Ice::Current& current)
 {
     current.adapter->getCommunicator()->shutdown();
 }
 
 RemoteObjectAdapterI::RemoteObjectAdapterI(const Ice::ObjectAdapterPtr& adapter) :
     _adapter(adapter),
-    _testIntf(ICE_UNCHECKED_CAST(TestIntfPrx,
-                    _adapter->add(ICE_MAKE_SHARED(TestI),
-                                  stringToIdentity("test"))))
+    _testIntf(ICE_UNCHECKED_CAST(TestIntfPrx, _adapter->add(ICE_MAKE_SHARED(TestI), stringToIdentity("test"))))
 {
     _adapter->activate();
 }
 
-TestIntfPrxPtr
-RemoteObjectAdapterI::getTestIntf(const Ice::Current&)
+TestIntfPrxPtr RemoteObjectAdapterI::getTestIntf(const Ice::Current&)
 {
     return _testIntf;
 }
 
-void
-RemoteObjectAdapterI::deactivate(const Ice::Current& current)
+void RemoteObjectAdapterI::deactivate(const Ice::Current& current)
 {
     try
     {
@@ -101,8 +94,7 @@ RemoteObjectAdapterI::deactivate(const Ice::Current& current)
     }
 }
 
-std::string
-TestI::getAdapterName(const Ice::Current& current)
+std::string TestI::getAdapterName(const Ice::Current& current)
 {
     return current.adapter->getName();
 }

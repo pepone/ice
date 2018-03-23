@@ -16,70 +16,56 @@ DEFINE_TEST("client")
 
 namespace
 {
-
-class MyPlugin : public Ice::Plugin
-{
-
-public:
-
-    MyPlugin() :
-         _initialized(false),
-         _destroyed(false)
+    class MyPlugin : public Ice::Plugin
     {
-    }
+    public:
+        MyPlugin() : _initialized(false), _destroyed(false)
+        {
+        }
 
-    bool
-    isInitialized() const
-    {
-        return _initialized;
-    }
+        bool isInitialized() const
+        {
+            return _initialized;
+        }
 
-    bool
-    isDestroyed() const
-    {
-        return _destroyed;
-    }
+        bool isDestroyed() const
+        {
+            return _destroyed;
+        }
 
-    void
-    initialize()
-    {
-        _initialized = true;
-    }
+        void initialize()
+        {
+            _initialized = true;
+        }
 
-    void
-    destroy()
-    {
-        _destroyed = true;
-    }
+        void destroy()
+        {
+            _destroyed = true;
+        }
 
-    ~MyPlugin()
-    {
-        test(!_initialized || _destroyed); // If initialized, we must be destroyed too.
-    }
+        ~MyPlugin()
+        {
+            test(!_initialized || _destroyed); // If initialized, we must be destroyed too.
+        }
 
-private:
+    private:
+        const Ice::CommunicatorPtr _communicator;
+        bool _initialized;
+        bool _destroyed;
+    };
+    ICE_DEFINE_PTR(MyPluginPtr, MyPlugin);
 
-    const Ice::CommunicatorPtr _communicator;
-    bool _initialized;
-    bool _destroyed;
-};
-ICE_DEFINE_PTR(MyPluginPtr, MyPlugin);
-
-}
+} // namespace
 
 extern "C"
 {
-
-Ice::Plugin*
-createMyPlugin(const ::Ice::CommunicatorPtr&, const std::string&, const ::Ice::StringSeq&)
-{
-    return new MyPlugin();
+    Ice::Plugin* createMyPlugin(const ::Ice::CommunicatorPtr&, const std::string&, const ::Ice::StringSeq&)
+    {
+        return new MyPlugin();
+    }
 }
 
-}
-
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
     int status = EXIT_SUCCESS;
     Ice::CommunicatorPtr communicator;
@@ -205,9 +191,9 @@ main(int argc, char* argv[])
     try
     {
         Ice::InitializationData initData = getTestInitData(argc, argv);
-        initData.properties->setProperty("Ice.Plugin.Test",
-            pluginDir + "TestPlugin:createPluginWithArgs 'C:\\Program Files\\' --DatabasePath "
-            "'C:\\Program Files\\Application\\db'" );
+        initData.properties->setProperty(
+            "Ice.Plugin.Test", pluginDir + "TestPlugin:createPluginWithArgs 'C:\\Program Files\\' --DatabasePath "
+                                           "'C:\\Program Files\\Application\\db'");
         communicator = Ice::initialize(argc, argv, initData);
         communicator->destroy();
     }

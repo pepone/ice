@@ -15,7 +15,6 @@
 class MyClassI : public Test::MyClass
 {
 public:
-
     MyClassI();
 
     virtual void callCallback_async(const Test::AMD_MyClass_callCallbackPtr&, const Ice::Current&);
@@ -32,7 +31,8 @@ public:
     virtual int getDatagramCount(const Ice::Current&);
 
     virtual void callDatagramCallback(const Ice::Current&);
-    virtual void getCallbackDatagramCount_async(const Test::AMD_MyClass_getCallbackDatagramCountPtr&, const Ice::Current&);
+    virtual void getCallbackDatagramCount_async(const Test::AMD_MyClass_getCallbackDatagramCountPtr&,
+                                                const Ice::Current&);
 
     virtual int getHeartbeatCount(const Ice::Current&);
     virtual void enableHeartbeats(const Ice::Current&);
@@ -43,7 +43,6 @@ public:
     void incHeartbeatCount(const Ice::ConnectionPtr&);
 
 private:
-
     void checkConnection(const Ice::ConnectionPtr&);
 
     IceUtil::Monitor<IceUtil::Mutex> _monitor;

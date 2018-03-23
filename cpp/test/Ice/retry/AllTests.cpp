@@ -19,9 +19,7 @@ using namespace Test;
 class CallbackBase : public IceUtil::Monitor<IceUtil::Mutex>
 {
 public:
-
-    CallbackBase() :
-        _called(false)
+    CallbackBase() : _called(false)
     {
     }
 
@@ -40,7 +38,6 @@ public:
     }
 
 protected:
-
     void called()
     {
         IceUtil::Monitor<IceUtil::Mutex>::Lock sync(*this);
@@ -50,14 +47,12 @@ protected:
     }
 
 private:
-
     bool _called;
 };
 
 class CallbackSuccess : public IceUtil::Shared, public CallbackBase
 {
 public:
-
     void response()
     {
         called();
@@ -73,7 +68,6 @@ typedef IceUtil::Handle<CallbackSuccess> CallbackSuccessPtr;
 class CallbackFail : public IceUtil::Shared, public CallbackBase
 {
 public:
-
     void response()
     {
         test(false);
@@ -88,8 +82,8 @@ public:
 };
 typedef IceUtil::Handle<CallbackFail> CallbackFailPtr;
 
-RetryPrxPtr
-allTests(const Ice::CommunicatorPtr& communicator, const Ice::CommunicatorPtr& communicator2, const string& ref)
+RetryPrxPtr allTests(const Ice::CommunicatorPtr& communicator, const Ice::CommunicatorPtr& communicator2,
+                     const string& ref)
 {
     cout << "testing stringToProxy... " << flush;
     Ice::ObjectPrxPtr base1 = communicator->stringToProxy(ref);
@@ -151,22 +145,17 @@ allTests(const Ice::CommunicatorPtr& communicator, const Ice::CommunicatorPtr& c
 
     cout << "calling regular AMI operation with first proxy... " << flush;
 #ifdef ICE_CPP11_MAPPING
-    retry1->opAsync(false,
-        [cb1]()
-        {
-            cb1->response();
-        },
-        [cb1](exception_ptr err)
-        {
-            try
-            {
-                rethrow_exception(err);
-            }
-            catch(const Ice::Exception& ex)
-            {
-                cb1->exception(ex);
-            }
-        });
+    retry1->opAsync(false, [cb1]() { cb1->response(); },
+                    [cb1](exception_ptr err) {
+                        try
+                        {
+                            rethrow_exception(err);
+                        }
+                        catch(const Ice::Exception& ex)
+                        {
+                            cb1->exception(ex);
+                        }
+                    });
 #else
     retry1->begin_op(false, newCallback_Retry_op(cb1, &CallbackSuccess::response, &CallbackSuccess::exception));
 #endif
@@ -178,22 +167,17 @@ allTests(const Ice::CommunicatorPtr& communicator, const Ice::CommunicatorPtr& c
 
     cout << "calling AMI operation to kill connection with second proxy... " << flush;
 #ifdef ICE_CPP11_MAPPING
-    retry2->opAsync(true,
-        [cb2]()
-        {
-            cb2->response();
-        },
-        [cb2](exception_ptr err)
-        {
-            try
-            {
-                rethrow_exception(err);
-            }
-            catch(const Ice::Exception& ex)
-            {
-                cb2->exception(ex);
-            }
-        });
+    retry2->opAsync(true, [cb2]() { cb2->response(); },
+                    [cb2](exception_ptr err) {
+                        try
+                        {
+                            rethrow_exception(err);
+                        }
+                        catch(const Ice::Exception& ex)
+                        {
+                            cb2->exception(ex);
+                        }
+                    });
 #else
     retry2->begin_op(true, newCallback_Retry_op(cb2, &CallbackFail::response, &CallbackFail::exception));
 #endif
@@ -205,22 +189,17 @@ allTests(const Ice::CommunicatorPtr& communicator, const Ice::CommunicatorPtr& c
 
     cout << "calling regular AMI operation with first proxy again... " << flush;
 #ifdef ICE_CPP11_MAPPING
-    retry1->opAsync(false,
-        [cb1]()
-        {
-            cb1->response();
-        },
-        [cb1](exception_ptr err)
-        {
-            try
-            {
-                rethrow_exception(err);
-            }
-            catch(const Ice::Exception& ex)
-            {
-                cb1->exception(ex);
-            }
-        });
+    retry1->opAsync(false, [cb1]() { cb1->response(); },
+                    [cb1](exception_ptr err) {
+                        try
+                        {
+                            rethrow_exception(err);
+                        }
+                        catch(const Ice::Exception& ex)
+                        {
+                            cb1->exception(ex);
+                        }
+                    });
 #else
     retry1->begin_op(false, newCallback_Retry_op(cb1, &CallbackSuccess::response, &CallbackSuccess::exception));
 #endif
@@ -311,7 +290,7 @@ allTests(const Ice::CommunicatorPtr& communicator, const Ice::CommunicatorPtr& c
     retry2 = ICE_CHECKED_CAST(RetryPrx, communicator2->stringToProxy(retry1->ice_toString()));
     try
     {
-        retry2->ice_invocationTimeout(500)->opIdempotent(4);  // No more than 2 retries before timeout kicks-in
+        retry2->ice_invocationTimeout(500)->opIdempotent(4); // No more than 2 retries before timeout kicks-in
         test(false);
     }
     catch(const Ice::InvocationTimeoutException&)

@@ -25,107 +25,105 @@ using namespace std;
 using namespace Ice;
 using namespace IceInternal;
 
-IceUtil::Shared* IceInternal::upCast(LocatorManager* p) { return p; }
-IceUtil::Shared* IceInternal::upCast(LocatorInfo* p) { return p; }
-IceUtil::Shared* IceInternal::upCast(LocatorTable* p) { return p; }
+IceUtil::Shared* IceInternal::upCast(LocatorManager* p)
+{
+    return p;
+}
+IceUtil::Shared* IceInternal::upCast(LocatorInfo* p)
+{
+    return p;
+}
+IceUtil::Shared* IceInternal::upCast(LocatorTable* p)
+{
+    return p;
+}
 
 namespace
 {
-
-class ObjectRequest : public LocatorInfo::Request
-{
-public:
-
-    ObjectRequest(const LocatorInfoPtr& locatorInfo, const ReferencePtr& ref) : LocatorInfo::Request(locatorInfo, ref)
+    class ObjectRequest : public LocatorInfo::Request
     {
-        assert(ref->isWellKnown());
-    }
-
-    virtual void send()
-    {
-        try
+    public:
+        ObjectRequest(const LocatorInfoPtr& locatorInfo, const ReferencePtr& ref) :
+            LocatorInfo::Request(locatorInfo, ref)
         {
+            assert(ref->isWellKnown());
+        }
+
+        virtual void send()
+        {
+            try
+            {
 #ifdef ICE_CPP11_MAPPING
-            LocatorInfo::RequestPtr request = this;
-            _locatorInfo->getLocator()->findObjectByIdAsync(
-                _ref->getIdentity(),
-                [request](const ObjectPrxPtr& object)
-                {
-                    request->response(object);
-                },
-                [request](exception_ptr e)
-                {
-                    try
-                    {
-                        rethrow_exception(e);
-                    }
-                    catch(const Exception& ex)
-                    {
-                        request->exception(ex);
-                    }
-                });
+                LocatorInfo::RequestPtr request = this;
+                _locatorInfo->getLocator()->findObjectByIdAsync(
+                    _ref->getIdentity(), [request](const ObjectPrxPtr& object) { request->response(object); },
+                    [request](exception_ptr e) {
+                        try
+                        {
+                            rethrow_exception(e);
+                        }
+                        catch(const Exception& ex)
+                        {
+                            request->exception(ex);
+                        }
+                    });
 #else
-            _locatorInfo->getLocator()->begin_findObjectById(
-                _ref->getIdentity(),
-                newCallback_Locator_findObjectById(static_cast<LocatorInfo::Request*>(this),
-                                                   &LocatorInfo::Request::response,
-                                                   &LocatorInfo::Request::exception));
+                _locatorInfo->getLocator()->begin_findObjectById(
+                    _ref->getIdentity(), newCallback_Locator_findObjectById(static_cast<LocatorInfo::Request*>(this),
+                                                                            &LocatorInfo::Request::response,
+                                                                            &LocatorInfo::Request::exception));
 #endif
+            }
+            catch(const Ice::Exception& ex)
+            {
+                exception(ex);
+            }
         }
-        catch(const Ice::Exception& ex)
+    };
+
+    class AdapterRequest : public LocatorInfo::Request
+    {
+    public:
+        AdapterRequest(const LocatorInfoPtr& locatorInfo, const ReferencePtr& ref) :
+            LocatorInfo::Request(locatorInfo, ref)
         {
-            exception(ex);
+            assert(ref->isIndirect() && !ref->isWellKnown());
         }
-    }
-};
 
-class AdapterRequest : public LocatorInfo::Request
-{
-public:
-
-    AdapterRequest(const LocatorInfoPtr& locatorInfo, const ReferencePtr& ref) : LocatorInfo::Request(locatorInfo, ref)
-    {
-        assert(ref->isIndirect() && !ref->isWellKnown());
-    }
-
-    virtual void send()
-    {
-        try
+        virtual void send()
         {
+            try
+            {
 #ifdef ICE_CPP11_MAPPING
-            LocatorInfo::RequestPtr request = this;
-            _locatorInfo->getLocator()->findAdapterByIdAsync(_ref->getAdapterId(),
-                [request](const shared_ptr<Ice::ObjectPrx>& object)
-                {
-                    request->response(object);
-                },
-                [request](exception_ptr e)
-                {
-                    try
-                    {
-                        rethrow_exception(e);
-                    }
-                    catch(const Exception& ex)
-                    {
-                        request->exception(ex);
-                    }
-                });
+                LocatorInfo::RequestPtr request = this;
+                _locatorInfo->getLocator()->findAdapterByIdAsync(
+                    _ref->getAdapterId(),
+                    [request](const shared_ptr<Ice::ObjectPrx>& object) { request->response(object); },
+                    [request](exception_ptr e) {
+                        try
+                        {
+                            rethrow_exception(e);
+                        }
+                        catch(const Exception& ex)
+                        {
+                            request->exception(ex);
+                        }
+                    });
 #else
-            _locatorInfo->getLocator()->begin_findAdapterById(
-                _ref->getAdapterId(),
-                newCallback_Locator_findAdapterById(static_cast<LocatorInfo::Request*>(this),
-                                                    &LocatorInfo::Request::response,
-                                                    &LocatorInfo::Request::exception));
+                _locatorInfo->getLocator()->begin_findAdapterById(
+                    _ref->getAdapterId(), newCallback_Locator_findAdapterById(static_cast<LocatorInfo::Request*>(this),
+                                                                              &LocatorInfo::Request::response,
+                                                                              &LocatorInfo::Request::exception));
 #endif
+            }
+            catch(const Ice::Exception& ex)
+            {
+                exception(ex);
+            }
         }
-        catch(const Ice::Exception& ex)
-        {
-            exception(ex);
-        }
-    }
-};
+    };
 
-}
+} // namespace
 
 IceInternal::LocatorManager::LocatorManager(const Ice::PropertiesPtr& properties) :
     _background(properties->getPropertyAsInt("Ice.BackgroundLocatorCacheUpdates") > 0),
@@ -133,13 +131,13 @@ IceInternal::LocatorManager::LocatorManager(const Ice::PropertiesPtr& properties
 {
 }
 
-void
-IceInternal::LocatorManager::destroy()
+void IceInternal::LocatorManager::destroy()
 {
     IceUtil::Mutex::Lock sync(*this);
 
 #ifdef ICE_CPP11_MAPPING
-    for_each(_table.begin(), _table.end(), [](pair<shared_ptr<Ice::LocatorPrx>, LocatorInfoPtr> it){ it.second->destroy(); });
+    for_each(_table.begin(), _table.end(),
+             [](pair<shared_ptr<Ice::LocatorPrx>, LocatorInfoPtr> it) { it.second->destroy(); });
 #else
     for_each(_table.begin(), _table.end(), Ice::secondVoidMemFun<const LocatorPrx, LocatorInfo>(&LocatorInfo::destroy));
 #endif
@@ -149,8 +147,7 @@ IceInternal::LocatorManager::destroy()
     _locatorTables.clear();
 }
 
-LocatorInfoPtr
-IceInternal::LocatorManager::get(const LocatorPrxPtr& loc)
+LocatorInfoPtr IceInternal::LocatorManager::get(const LocatorPrxPtr& loc)
 {
     if(!loc)
     {
@@ -191,15 +188,13 @@ IceInternal::LocatorManager::get(const LocatorPrxPtr& loc)
         map<pair<Identity, EncodingVersion>, LocatorTablePtr>::iterator t = _locatorTables.find(locatorKey);
         if(t == _locatorTables.end())
         {
-            t = _locatorTables.insert(_locatorTables.begin(),
-                                      pair<const pair<Identity, EncodingVersion>, LocatorTablePtr>(
-                                          locatorKey, new LocatorTable()));
+            t = _locatorTables.insert(
+                _locatorTables.begin(),
+                pair<const pair<Identity, EncodingVersion>, LocatorTablePtr>(locatorKey, new LocatorTable()));
         }
 
-        _tableHint = _table.insert(_tableHint,
-                                   pair<const LocatorPrxPtr, LocatorInfoPtr>(locator,
-                                                                          new LocatorInfo(locator, t->second,
-                                                                                          _background)));
+        _tableHint = _table.insert(_tableHint, pair<const LocatorPrxPtr, LocatorInfoPtr>(
+                                                   locator, new LocatorInfo(locator, t->second, _background)));
     }
     else
     {
@@ -213,17 +208,15 @@ IceInternal::LocatorTable::LocatorTable()
 {
 }
 
-void
-IceInternal::LocatorTable::clear()
+void IceInternal::LocatorTable::clear()
 {
-     IceUtil::Mutex::Lock sync(*this);
+    IceUtil::Mutex::Lock sync(*this);
 
-     _adapterEndpointsMap.clear();
-     _objectMap.clear();
+    _adapterEndpointsMap.clear();
+    _objectMap.clear();
 }
 
-bool
-IceInternal::LocatorTable::getAdapterEndpoints(const string& adapter, int ttl, vector<EndpointIPtr>& endpoints)
+bool IceInternal::LocatorTable::getAdapterEndpoints(const string& adapter, int ttl, vector<EndpointIPtr>& endpoints)
 {
     if(ttl == 0) // No locator cache.
     {
@@ -232,7 +225,7 @@ IceInternal::LocatorTable::getAdapterEndpoints(const string& adapter, int ttl, v
 
     IceUtil::Mutex::Lock sync(*this);
 
-    map<string, pair<IceUtil::Time, vector<EndpointIPtr> > >::iterator p = _adapterEndpointsMap.find(adapter);
+    map<string, pair<IceUtil::Time, vector<EndpointIPtr>>>::iterator p = _adapterEndpointsMap.find(adapter);
 
     if(p != _adapterEndpointsMap.end())
     {
@@ -242,12 +235,11 @@ IceInternal::LocatorTable::getAdapterEndpoints(const string& adapter, int ttl, v
     return false;
 }
 
-void
-IceInternal::LocatorTable::addAdapterEndpoints(const string& adapter, const vector<EndpointIPtr>& endpoints)
+void IceInternal::LocatorTable::addAdapterEndpoints(const string& adapter, const vector<EndpointIPtr>& endpoints)
 {
     IceUtil::Mutex::Lock sync(*this);
 
-    map<string, pair<IceUtil::Time, vector<EndpointIPtr> > >::iterator p = _adapterEndpointsMap.find(adapter);
+    map<string, pair<IceUtil::Time, vector<EndpointIPtr>>>::iterator p = _adapterEndpointsMap.find(adapter);
 
     if(p != _adapterEndpointsMap.end())
     {
@@ -260,12 +252,11 @@ IceInternal::LocatorTable::addAdapterEndpoints(const string& adapter, const vect
     }
 }
 
-vector<EndpointIPtr>
-IceInternal::LocatorTable::removeAdapterEndpoints(const string& adapter)
+vector<EndpointIPtr> IceInternal::LocatorTable::removeAdapterEndpoints(const string& adapter)
 {
     IceUtil::Mutex::Lock sync(*this);
 
-    map<string, pair<IceUtil::Time, vector<EndpointIPtr> > >::iterator p = _adapterEndpointsMap.find(adapter);
+    map<string, pair<IceUtil::Time, vector<EndpointIPtr>>>::iterator p = _adapterEndpointsMap.find(adapter);
     if(p == _adapterEndpointsMap.end())
     {
         return vector<EndpointIPtr>();
@@ -278,8 +269,7 @@ IceInternal::LocatorTable::removeAdapterEndpoints(const string& adapter)
     return endpoints;
 }
 
-bool
-IceInternal::LocatorTable::getObjectReference(const Identity& id, int ttl, ReferencePtr& ref)
+bool IceInternal::LocatorTable::getObjectReference(const Identity& id, int ttl, ReferencePtr& ref)
 {
     if(ttl == 0) // No locator cache
     {
@@ -288,7 +278,7 @@ IceInternal::LocatorTable::getObjectReference(const Identity& id, int ttl, Refer
 
     IceUtil::Mutex::Lock sync(*this);
 
-    map<Identity, pair<IceUtil::Time, ReferencePtr> >::iterator p = _objectMap.find(id);
+    map<Identity, pair<IceUtil::Time, ReferencePtr>>::iterator p = _objectMap.find(id);
 
     if(p != _objectMap.end())
     {
@@ -298,12 +288,11 @@ IceInternal::LocatorTable::getObjectReference(const Identity& id, int ttl, Refer
     return false;
 }
 
-void
-IceInternal::LocatorTable::addObjectReference(const Identity& id, const ReferencePtr& ref)
+void IceInternal::LocatorTable::addObjectReference(const Identity& id, const ReferencePtr& ref)
 {
     IceUtil::Mutex::Lock sync(*this);
 
-    map<Identity, pair<IceUtil::Time, ReferencePtr> >::iterator p = _objectMap.find(id);
+    map<Identity, pair<IceUtil::Time, ReferencePtr>>::iterator p = _objectMap.find(id);
 
     if(p != _objectMap.end())
     {
@@ -315,12 +304,11 @@ IceInternal::LocatorTable::addObjectReference(const Identity& id, const Referenc
     }
 }
 
-ReferencePtr
-IceInternal::LocatorTable::removeObjectReference(const Identity& id)
+ReferencePtr IceInternal::LocatorTable::removeObjectReference(const Identity& id)
 {
     IceUtil::Mutex::Lock sync(*this);
 
-    map<Identity, pair<IceUtil::Time, ReferencePtr> >::iterator p = _objectMap.find(id);
+    map<Identity, pair<IceUtil::Time, ReferencePtr>>::iterator p = _objectMap.find(id);
     if(p == _objectMap.end())
     {
         return 0;
@@ -331,11 +319,10 @@ IceInternal::LocatorTable::removeObjectReference(const Identity& id)
     return ref;
 }
 
-bool
-IceInternal::LocatorTable::checkTTL(const IceUtil::Time& time, int ttl) const
+bool IceInternal::LocatorTable::checkTTL(const IceUtil::Time& time, int ttl) const
 {
     assert(ttl != 0);
-    if (ttl < 0) // TTL = infinite
+    if(ttl < 0) // TTL = infinite
     {
         return true;
     }
@@ -345,8 +332,8 @@ IceInternal::LocatorTable::checkTTL(const IceUtil::Time& time, int ttl) const
     }
 }
 
-void
-IceInternal::LocatorInfo::RequestCallback::response(const LocatorInfoPtr& locatorInfo, const Ice::ObjectPrxPtr& proxy)
+void IceInternal::LocatorInfo::RequestCallback::response(const LocatorInfoPtr& locatorInfo,
+                                                         const Ice::ObjectPrxPtr& proxy)
 {
     vector<EndpointIPtr> endpoints;
     if(proxy)
@@ -391,8 +378,7 @@ IceInternal::LocatorInfo::RequestCallback::response(const LocatorInfoPtr& locato
     }
 }
 
-void
-IceInternal::LocatorInfo::RequestCallback::exception(const LocatorInfoPtr& locatorInfo, const Ice::Exception& exc)
+void IceInternal::LocatorInfo::RequestCallback::exception(const LocatorInfoPtr& locatorInfo, const Ice::Exception& exc)
 {
     try
     {
@@ -407,18 +393,16 @@ IceInternal::LocatorInfo::RequestCallback::exception(const LocatorInfoPtr& locat
     }
 }
 
-IceInternal::LocatorInfo::RequestCallback::RequestCallback(const ReferencePtr& ref,
-                                                           int ttl,
+IceInternal::LocatorInfo::RequestCallback::RequestCallback(const ReferencePtr& ref, int ttl,
                                                            const GetEndpointsCallbackPtr& cb) :
-    _ref(ref),  _ttl(ttl), _callback(cb)
+    _ref(ref),
+    _ttl(ttl),
+    _callback(cb)
 {
 }
 
-void
-IceInternal::LocatorInfo::Request::addCallback(const ReferencePtr& ref,
-                                               const ReferencePtr& wellKnownRef,
-                                               int ttl,
-                                               const GetEndpointsCallbackPtr& cb)
+void IceInternal::LocatorInfo::Request::addCallback(const ReferencePtr& ref, const ReferencePtr& wellKnownRef, int ttl,
+                                                    const GetEndpointsCallbackPtr& cb)
 {
     RequestCallbackPtr callback = new RequestCallback(ref, ttl, cb);
     {
@@ -452,12 +436,14 @@ IceInternal::LocatorInfo::Request::addCallback(const ReferencePtr& ref,
 }
 
 IceInternal::LocatorInfo::Request::Request(const LocatorInfoPtr& locatorInfo, const ReferencePtr& ref) :
-    _locatorInfo(locatorInfo), _ref(ref), _sent(false), _response(false)
+    _locatorInfo(locatorInfo),
+    _ref(ref),
+    _sent(false),
+    _response(false)
 {
 }
 
-void
-IceInternal::LocatorInfo::Request::response(const Ice::ObjectPrxPtr& proxy)
+void IceInternal::LocatorInfo::Request::response(const Ice::ObjectPrxPtr& proxy)
 {
     {
         IceUtil::Monitor<IceUtil::Mutex>::Lock sync(_monitor);
@@ -472,8 +458,7 @@ IceInternal::LocatorInfo::Request::response(const Ice::ObjectPrxPtr& proxy)
     }
 }
 
-void
-IceInternal::LocatorInfo::Request::exception(const Ice::Exception& ex)
+void IceInternal::LocatorInfo::Request::exception(const Ice::Exception& ex)
 {
     {
         IceUtil::Monitor<IceUtil::Mutex>::Lock sync(_monitor);
@@ -497,8 +482,7 @@ IceInternal::LocatorInfo::LocatorInfo(const LocatorPrxPtr& locator, const Locato
     assert(_table);
 }
 
-void
-IceInternal::LocatorInfo::destroy()
+void IceInternal::LocatorInfo::destroy()
 {
     IceUtil::Mutex::Lock sync(*this);
 
@@ -506,20 +490,17 @@ IceInternal::LocatorInfo::destroy()
     _table->clear();
 }
 
-bool
-IceInternal::LocatorInfo::operator==(const LocatorInfo& rhs) const
+bool IceInternal::LocatorInfo::operator==(const LocatorInfo& rhs) const
 {
     return Ice::targetEqualTo(_locator, rhs._locator);
 }
 
-bool
-IceInternal::LocatorInfo::operator<(const LocatorInfo& rhs) const
+bool IceInternal::LocatorInfo::operator<(const LocatorInfo& rhs) const
 {
     return Ice::targetLess(_locator, rhs._locator);
 }
 
-LocatorRegistryPrxPtr
-IceInternal::LocatorInfo::getLocatorRegistry()
+LocatorRegistryPrxPtr IceInternal::LocatorInfo::getLocatorRegistry()
 {
     {
         IceUtil::Mutex::Lock sync(*this);
@@ -546,16 +527,14 @@ IceInternal::LocatorInfo::getLocatorRegistry()
         // endpoint selection in case the locator returned a proxy
         // with some endpoints which are prefered to be tried first.
         //
-        _locatorRegistry = locatorRegistry->ice_locator(0)->ice_endpointSelection(Ice::ICE_ENUM(EndpointSelectionType, Ordered));
+        _locatorRegistry =
+            locatorRegistry->ice_locator(0)->ice_endpointSelection(Ice::ICE_ENUM(EndpointSelectionType, Ordered));
         return _locatorRegistry;
     }
 }
 
-void
-IceInternal::LocatorInfo::getEndpoints(const ReferencePtr& ref,
-                                       const ReferencePtr& wellKnownRef,
-                                       int ttl,
-                                       const GetEndpointsCallbackPtr& callback)
+void IceInternal::LocatorInfo::getEndpoints(const ReferencePtr& ref, const ReferencePtr& wellKnownRef, int ttl,
+                                            const GetEndpointsCallbackPtr& callback)
 {
     assert(ref->isIndirect());
     vector<EndpointIPtr> endpoints;
@@ -616,8 +595,7 @@ IceInternal::LocatorInfo::getEndpoints(const ReferencePtr& ref,
     }
 }
 
-void
-IceInternal::LocatorInfo::clearCache(const ReferencePtr& ref)
+void IceInternal::LocatorInfo::clearCache(const ReferencePtr& ref)
 {
     assert(ref->isIndirect());
 
@@ -654,8 +632,7 @@ IceInternal::LocatorInfo::clearCache(const ReferencePtr& ref)
     }
 }
 
-void
-IceInternal::LocatorInfo::getEndpointsException(const ReferencePtr& ref, const Ice::Exception& exc)
+void IceInternal::LocatorInfo::getEndpointsException(const ReferencePtr& ref, const Ice::Exception& exc)
 {
     assert(ref->isIndirect());
 
@@ -667,9 +644,9 @@ IceInternal::LocatorInfo::getEndpointsException(const ReferencePtr& ref, const I
     {
         if(ref->getInstance()->traceLevels()->location >= 1)
         {
-            Trace out(ref->getInstance()->initializationData().logger,
-                      ref->getInstance()->traceLevels()->locationCat);
-            out << "adapter not found" << "\n";
+            Trace out(ref->getInstance()->initializationData().logger, ref->getInstance()->traceLevels()->locationCat);
+            out << "adapter not found"
+                << "\n";
             out << "adapter = " << ref->getAdapterId();
         }
 
@@ -679,11 +656,10 @@ IceInternal::LocatorInfo::getEndpointsException(const ReferencePtr& ref, const I
     {
         if(ref->getInstance()->traceLevels()->location >= 1)
         {
-            Trace out(ref->getInstance()->initializationData().logger,
-                      ref->getInstance()->traceLevels()->locationCat);
-            out << "object not found" << "\n";
-            out << "object = " << Ice::identityToString(ref->getIdentity(),
-                                                        ref->getInstance()->toStringMode());
+            Trace out(ref->getInstance()->initializationData().logger, ref->getInstance()->traceLevels()->locationCat);
+            out << "object not found"
+                << "\n";
+            out << "object = " << Ice::identityToString(ref->getIdentity(), ref->getInstance()->toStringMode());
         }
 
         throw NotRegisteredException(__FILE__, __LINE__, "object",
@@ -713,10 +689,8 @@ IceInternal::LocatorInfo::getEndpointsException(const ReferencePtr& ref, const I
     }
 }
 
-void
-IceInternal::LocatorInfo::getEndpointsTrace(const ReferencePtr& ref,
-                                            const vector<EndpointIPtr>& endpoints,
-                                            bool cached)
+void IceInternal::LocatorInfo::getEndpointsTrace(const ReferencePtr& ref, const vector<EndpointIPtr>& endpoints,
+                                                 bool cached)
 {
     if(!endpoints.empty())
     {
@@ -760,8 +734,7 @@ IceInternal::LocatorInfo::getEndpointsTrace(const ReferencePtr& ref,
     }
 }
 
-void
-IceInternal::LocatorInfo::trace(const string& msg, const ReferencePtr& ref, const vector<EndpointIPtr>& endpoints)
+void IceInternal::LocatorInfo::trace(const string& msg, const ReferencePtr& ref, const vector<EndpointIPtr>& endpoints)
 {
     assert(ref->isIndirect());
 
@@ -769,11 +742,11 @@ IceInternal::LocatorInfo::trace(const string& msg, const ReferencePtr& ref, cons
     out << msg << '\n';
     if(!ref->isWellKnown())
     {
-        out << "adapter = "  << ref->getAdapterId() << '\n';
+        out << "adapter = " << ref->getAdapterId() << '\n';
     }
     else
     {
-        out << "well-known proxy = "  << ref->toString() << '\n';
+        out << "well-known proxy = " << ref->toString() << '\n';
     }
 
     const char* sep = endpoints.size() > 1 ? ":" : "";
@@ -783,19 +756,17 @@ IceInternal::LocatorInfo::trace(const string& msg, const ReferencePtr& ref, cons
     out << "endpoints = " << o.str();
 }
 
-void
-IceInternal::LocatorInfo::trace(const string& msg, const ReferencePtr& ref, const ReferencePtr& resolved)
+void IceInternal::LocatorInfo::trace(const string& msg, const ReferencePtr& ref, const ReferencePtr& resolved)
 {
     assert(ref->isWellKnown());
 
     Trace out(ref->getInstance()->initializationData().logger, ref->getInstance()->traceLevels()->locationCat);
     out << msg << '\n';
-    out << "well-known proxy = "  << ref->toString() << '\n';
+    out << "well-known proxy = " << ref->toString() << '\n';
     out << "adapter = " << resolved->getAdapterId();
 }
 
-IceInternal::LocatorInfo::RequestPtr
-IceInternal::LocatorInfo::getAdapterRequest(const ReferencePtr& ref)
+IceInternal::LocatorInfo::RequestPtr IceInternal::LocatorInfo::getAdapterRequest(const ReferencePtr& ref)
 {
     IceUtil::Mutex::Lock sync(*this);
     if(ref->getInstance()->traceLevels()->location >= 1)
@@ -815,8 +786,7 @@ IceInternal::LocatorInfo::getAdapterRequest(const ReferencePtr& ref)
     return request;
 }
 
-IceInternal::LocatorInfo::RequestPtr
-IceInternal::LocatorInfo::getObjectRequest(const ReferencePtr& ref)
+IceInternal::LocatorInfo::RequestPtr IceInternal::LocatorInfo::getObjectRequest(const ReferencePtr& ref)
 {
     IceUtil::Mutex::Lock sync(*this);
     if(ref->getInstance()->traceLevels()->location >= 1)
@@ -835,11 +805,8 @@ IceInternal::LocatorInfo::getObjectRequest(const ReferencePtr& ref)
     return request;
 }
 
-void
-IceInternal::LocatorInfo::finishRequest(const ReferencePtr& ref,
-                                        const vector<ReferencePtr>& wellKnownRefs,
-                                        const Ice::ObjectPrxPtr& proxy,
-                                        bool notRegistered)
+void IceInternal::LocatorInfo::finishRequest(const ReferencePtr& ref, const vector<ReferencePtr>& wellKnownRefs,
+                                             const Ice::ObjectPrxPtr& proxy, bool notRegistered)
 {
     if(!proxy || proxy->_getReference()->isIndirect())
     {

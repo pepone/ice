@@ -21,10 +21,12 @@
 using namespace std;
 using namespace IceSSL;
 
-IceUtil::Shared* IceSSL::upCast(IceSSL::TrustManager* p) { return p; }
+IceUtil::Shared* IceSSL::upCast(IceSSL::TrustManager* p)
+{
+    return p;
+}
 
-TrustManager::TrustManager(const Ice::CommunicatorPtr& communicator) :
-    _communicator(communicator)
+TrustManager::TrustManager(const Ice::CommunicatorPtr& communicator) : _communicator(communicator)
 {
     Ice::PropertiesPtr properties = communicator->getProperties();
     _traceLevel = properties->getPropertyAsInt("IceSSL.Trace.Security");
@@ -56,15 +58,14 @@ TrustManager::TrustManager(const Ice::CommunicatorPtr& communicator) :
     }
     catch(const ParseException& ex)
     {
-        throw Ice::PluginInitializationException(__FILE__, __LINE__, "IceSSL: invalid property " + key  + ":\n" +
-                                                 ex.reason);
+        throw Ice::PluginInitializationException(__FILE__, __LINE__,
+                                                 "IceSSL: invalid property " + key + ":\n" + ex.reason);
     }
 }
 
-bool
-TrustManager::verify(const ConnectionInfoPtr& info, const std::string& desc)
+bool TrustManager::verify(const ConnectionInfoPtr& info, const std::string& desc)
 {
-    list<list<DistinguishedName> > reject, accept;
+    list<list<DistinguishedName>> reject, accept;
 
     if(_rejectAll.size() > 0)
     {
@@ -78,7 +79,7 @@ TrustManager::verify(const ConnectionInfoPtr& info, const std::string& desc)
         }
         if(info->adapterName.size() > 0)
         {
-            map<string, list<DistinguishedName> >::const_iterator p = _rejectServer.find(info->adapterName);
+            map<string, list<DistinguishedName>>::const_iterator p = _rejectServer.find(info->adapterName);
             if(p != _rejectServer.end())
             {
                 reject.push_back(p->second);
@@ -105,7 +106,7 @@ TrustManager::verify(const ConnectionInfoPtr& info, const std::string& desc)
         }
         if(info->adapterName.size() > 0)
         {
-            map<string, list<DistinguishedName> >::const_iterator p = _acceptServer.find(info->adapterName);
+            map<string, list<DistinguishedName>>::const_iterator p = _acceptServer.find(info->adapterName);
             if(p != _acceptServer.end())
             {
                 accept.push_back(p->second);
@@ -139,12 +140,14 @@ TrustManager::verify(const ConnectionInfoPtr& info, const std::string& desc)
             Ice::Trace trace(_communicator->getLogger(), "Security");
             if(info->incoming)
             {
-                trace << "trust manager evaluating client:\n" << "subject = " << string(subject) << '\n'
+                trace << "trust manager evaluating client:\n"
+                      << "subject = " << string(subject) << '\n'
                       << "adapter = " << info->adapterName << '\n';
             }
             else
             {
-                trace << "trust manager evaluating server:\n" << "subject = " << string(subject) << '\n';
+                trace << "trust manager evaluating server:\n"
+                      << "subject = " << string(subject) << '\n';
             }
             trace << desc;
         }
@@ -152,7 +155,7 @@ TrustManager::verify(const ConnectionInfoPtr& info, const std::string& desc)
         //
         // Fail if we match anything in the reject set.
         //
-        for(list<list<DistinguishedName> >::const_iterator p = reject.begin(); p != reject.end(); ++p)
+        for(list<list<DistinguishedName>>::const_iterator p = reject.begin(); p != reject.end(); ++p)
         {
             if(_traceLevel > 1)
             {
@@ -176,7 +179,7 @@ TrustManager::verify(const ConnectionInfoPtr& info, const std::string& desc)
         //
         // Succeed if we match anything in the accept set.
         //
-        for(list<list<DistinguishedName> >::const_iterator p = accept.begin(); p != accept.end(); ++p)
+        for(list<list<DistinguishedName>>::const_iterator p = accept.begin(); p != accept.end(); ++p)
         {
             if(_traceLevel > 1)
             {
@@ -206,8 +209,7 @@ TrustManager::verify(const ConnectionInfoPtr& info, const std::string& desc)
     return false;
 }
 
-bool
-TrustManager::match(const list< DistinguishedName>& matchSet, const DistinguishedName& subject) const
+bool TrustManager::match(const list<DistinguishedName>& matchSet, const DistinguishedName& subject) const
 {
     for(list<DistinguishedName>::const_iterator r = matchSet.begin(); r != matchSet.end(); ++r)
     {
@@ -219,8 +221,7 @@ TrustManager::match(const list< DistinguishedName>& matchSet, const Distinguishe
     return false;
 }
 
-void
-TrustManager::parse(const string& value, list<DistinguishedName>& reject, list<DistinguishedName>& accept) const
+void TrustManager::parse(const string& value, list<DistinguishedName>& reject, list<DistinguishedName>& accept) const
 {
     if(!value.empty())
     {

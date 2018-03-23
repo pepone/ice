@@ -13,26 +13,23 @@
 #include <IceUtil/Config.h>
 
 #ifdef ICE_CPP11_COMPILER
-#   include <unordered_map>
+#    include <unordered_map>
 #else
-#   include <map>
+#    include <map>
 #endif
 
 namespace Test
 {
-
 #ifdef ICE_CPP11_COMPILER
-template<typename K, typename V>
-class CustomMap : public std::unordered_map<K, V>
-{
-};
+    template<typename K, typename V> class CustomMap : public std::unordered_map<K, V>
+    {
+    };
 #else
-template<typename K, typename V>
-class CustomMap : public std::map<K, V>
-{
-};
+    template<typename K, typename V> class CustomMap : public std::map<K, V>
+    {
+    };
 #endif
 
-}
+} // namespace Test
 
 #endif

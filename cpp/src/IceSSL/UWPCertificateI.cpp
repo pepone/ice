@@ -37,68 +37,64 @@ using namespace std;
 
 namespace
 {
-
-class UWPCertificateI : public UWP::Certificate,
-                        public CertificateI
-{
-public:
-
-    UWPCertificateI(Windows::Security::Cryptography::Certificates::Certificate^);
-
-    virtual bool operator==(const IceSSL::Certificate&) const;
-
-    virtual vector<Ice::Byte> getAuthorityKeyIdentifier() const;
-    virtual vector<Ice::Byte> getSubjectKeyIdentifier() const;
-    virtual bool verify(const CertificatePtr&) const;
-    virtual string encode() const;
-
-    virtual chrono::system_clock::time_point getNotAfter() const;
-    virtual chrono::system_clock::time_point getNotBefore() const;
-    virtual string getSerialNumber() const;
-    virtual DistinguishedName getIssuerDN() const;
-    virtual vector<pair<int, string> > getIssuerAlternativeNames() const;
-    virtual DistinguishedName getSubjectDN() const;
-    virtual vector<pair<int, string> > getSubjectAlternativeNames() const;
-    virtual int getVersion() const;
-    virtual Windows::Security::Cryptography::Certificates::Certificate^ getCert() const;
-
-private:
-
-    Windows::Security::Cryptography::Certificates::Certificate^ _cert;
-};
-
-const Ice::Long TICKS_PER_MSECOND = 10000LL;
-const Ice::Long MSECS_TO_EPOCH = 11644473600000LL;
-
-vector<pair<int, string> >
-certificateAltNames(Windows::Security::Cryptography::Certificates::SubjectAlternativeNameInfo^ subAltNames)
-{
-    vector<pair<int, string> > altNames;
-    if(subAltNames)
+    class UWPCertificateI : public UWP::Certificate, public CertificateI
     {
-        for(auto iter = subAltNames->EmailName->First(); iter->HasCurrent; iter->MoveNext())
+    public:
+        UWPCertificateI(Windows::Security::Cryptography::Certificates::Certificate ^);
+
+        virtual bool operator==(const IceSSL::Certificate&) const;
+
+        virtual vector<Ice::Byte> getAuthorityKeyIdentifier() const;
+        virtual vector<Ice::Byte> getSubjectKeyIdentifier() const;
+        virtual bool verify(const CertificatePtr&) const;
+        virtual string encode() const;
+
+        virtual chrono::system_clock::time_point getNotAfter() const;
+        virtual chrono::system_clock::time_point getNotBefore() const;
+        virtual string getSerialNumber() const;
+        virtual DistinguishedName getIssuerDN() const;
+        virtual vector<pair<int, string>> getIssuerAlternativeNames() const;
+        virtual DistinguishedName getSubjectDN() const;
+        virtual vector<pair<int, string>> getSubjectAlternativeNames() const;
+        virtual int getVersion() const;
+        virtual Windows::Security::Cryptography::Certificates::Certificate ^ getCert() const;
+
+    private:
+        Windows::Security::Cryptography::Certificates::Certificate ^ _cert;
+    };
+
+    const Ice::Long TICKS_PER_MSECOND = 10000LL;
+    const Ice::Long MSECS_TO_EPOCH = 11644473600000LL;
+
+    vector<pair<int, string>>
+        certificateAltNames(Windows::Security::Cryptography::Certificates::SubjectAlternativeNameInfo ^ subAltNames)
+    {
+        vector<pair<int, string>> altNames;
+        if(subAltNames)
         {
-            altNames.push_back(make_pair(AltNameEmail, wstringToString(iter->Current->Data())));
+            for(auto iter = subAltNames->EmailName->First(); iter->HasCurrent; iter->MoveNext())
+            {
+                altNames.push_back(make_pair(AltNameEmail, wstringToString(iter->Current->Data())));
+            }
+            for(auto iter = subAltNames->DnsName->First(); iter->HasCurrent; iter->MoveNext())
+            {
+                altNames.push_back(make_pair(AltNameDNS, wstringToString(iter->Current->Data())));
+            }
+            for(auto iter = subAltNames->Url->First(); iter->HasCurrent; iter->MoveNext())
+            {
+                altNames.push_back(make_pair(AltNameURL, wstringToString(iter->Current->Data())));
+            }
+            for(auto iter = subAltNames->IPAddress->First(); iter->HasCurrent; iter->MoveNext())
+            {
+                altNames.push_back(make_pair(AltNAmeIP, wstringToString(iter->Current->Data())));
+            }
         }
-        for(auto iter = subAltNames->DnsName->First(); iter->HasCurrent; iter->MoveNext())
-        {
-            altNames.push_back(make_pair(AltNameDNS, wstringToString(iter->Current->Data())));
-        }
-        for(auto iter = subAltNames->Url->First(); iter->HasCurrent; iter->MoveNext())
-        {
-            altNames.push_back(make_pair(AltNameURL, wstringToString(iter->Current->Data())));
-        }
-        for(auto iter = subAltNames->IPAddress->First(); iter->HasCurrent; iter->MoveNext())
-        {
-            altNames.push_back(make_pair(AltNAmeIP, wstringToString(iter->Current->Data())));
-        }
+        return altNames;
     }
-    return altNames;
-}
 
 } // end anonymous namespace
 
-UWPCertificateI::UWPCertificateI(Windows::Security::Cryptography::Certificates::Certificate^ cert) : _cert(cert)
+UWPCertificateI::UWPCertificateI(Windows::Security::Cryptography::Certificates::Certificate ^ cert) : _cert(cert)
 {
     if(!_cert)
     {
@@ -106,8 +102,7 @@ UWPCertificateI::UWPCertificateI(Windows::Security::Cryptography::Certificates::
     }
 }
 
-bool
-UWPCertificateI::operator==(const IceSSL::Certificate& r) const
+bool UWPCertificateI::operator==(const IceSSL::Certificate& r) const
 {
     const UWPCertificateI* p = dynamic_cast<const UWPCertificateI*>(&r);
     if(!p)
@@ -118,26 +113,22 @@ UWPCertificateI::operator==(const IceSSL::Certificate& r) const
     return CryptographicBuffer::Compare(_cert->GetCertificateBlob(), p->_cert->GetCertificateBlob());
 }
 
-vector<Ice::Byte>
-UWPCertificateI::getAuthorityKeyIdentifier() const
-{
-    throw  FeatureNotSupportedException(__FILE__, __LINE__);
-}
-
-vector<Ice::Byte>
-UWPCertificateI::getSubjectKeyIdentifier() const
+vector<Ice::Byte> UWPCertificateI::getAuthorityKeyIdentifier() const
 {
     throw FeatureNotSupportedException(__FILE__, __LINE__);
 }
 
-bool
-UWPCertificateI::verify(const CertificatePtr&) const
+vector<Ice::Byte> UWPCertificateI::getSubjectKeyIdentifier() const
 {
     throw FeatureNotSupportedException(__FILE__, __LINE__);
 }
 
-string
-UWPCertificateI::encode() const
+bool UWPCertificateI::verify(const CertificatePtr&) const
+{
+    throw FeatureNotSupportedException(__FILE__, __LINE__);
+}
+
+string UWPCertificateI::encode() const
 {
     auto reader = Windows::Storage::Streams::DataReader::FromBuffer(_cert->GetCertificateBlob());
     std::vector<unsigned char> data(reader->UnconsumedBufferLength);
@@ -152,24 +143,21 @@ UWPCertificateI::encode() const
     return os.str();
 }
 
-chrono::system_clock::time_point
-UWPCertificateI::getNotAfter() const
+chrono::system_clock::time_point UWPCertificateI::getNotAfter() const
 {
     // Convert 100ns time from January 1, 1601 to ms from January 1, 1970
     return chrono::system_clock::time_point(
         chrono::milliseconds(_cert->ValidTo.UniversalTime / TICKS_PER_MSECOND - MSECS_TO_EPOCH));
 }
 
-chrono::system_clock::time_point
-UWPCertificateI::getNotBefore() const
+chrono::system_clock::time_point UWPCertificateI::getNotBefore() const
 {
     // Convert 100ns time from January 1, 1601 to ms from January 1, 1970
     return chrono::system_clock::time_point(
         chrono::milliseconds(_cert->ValidFrom.UniversalTime / TICKS_PER_MSECOND - MSECS_TO_EPOCH));
 }
 
-string
-UWPCertificateI::getSerialNumber() const
+string UWPCertificateI::getSerialNumber() const
 {
     ostringstream os;
     os.fill(0);
@@ -181,50 +169,42 @@ UWPCertificateI::getSerialNumber() const
     return IceUtilInternal::toUpper(os.str());
 }
 
-DistinguishedName
-UWPCertificateI::getIssuerDN() const
+DistinguishedName UWPCertificateI::getIssuerDN() const
 {
     return DistinguishedName("CN=" + wstringToString(_cert->Issuer->Data()));
 }
 
-vector<pair<int, string> >
-UWPCertificateI::getIssuerAlternativeNames() const
+vector<pair<int, string>> UWPCertificateI::getIssuerAlternativeNames() const
 {
     throw FeatureNotSupportedException(__FILE__, __LINE__);
 }
 
-DistinguishedName
-UWPCertificateI::getSubjectDN() const
+DistinguishedName UWPCertificateI::getSubjectDN() const
 {
     return DistinguishedName("CN=" + wstringToString(_cert->Subject->Data()));
 }
 
-vector<pair<int, string> >
-UWPCertificateI::getSubjectAlternativeNames() const
+vector<pair<int, string>> UWPCertificateI::getSubjectAlternativeNames() const
 {
     return certificateAltNames(_cert->SubjectAlternativeName);
 }
 
-int
-UWPCertificateI::getVersion() const
+int UWPCertificateI::getVersion() const
 {
     throw FeatureNotSupportedException(__FILE__, __LINE__);
 }
 
-Windows::Security::Cryptography::Certificates::Certificate^
-UWPCertificateI::getCert() const
+Windows::Security::Cryptography::Certificates::Certificate ^ UWPCertificateI::getCert() const
 {
     return _cert;
 }
 
-UWP::CertificatePtr
-UWP::Certificate::create(Windows::Security::Cryptography::Certificates::Certificate^ cert)
+UWP::CertificatePtr UWP::Certificate::create(Windows::Security::Cryptography::Certificates::Certificate ^ cert)
 {
     return ICE_MAKE_SHARED(UWPCertificateI, cert);
 }
 
-UWP::CertificatePtr
-UWP::Certificate::load(const std::string& file)
+UWP::CertificatePtr UWP::Certificate::load(const std::string& file)
 {
     try
     {
@@ -233,7 +213,7 @@ UWP::Certificate::load(const std::string& file)
         auto buffer = create_task(FileIO::ReadTextAsync(file)).get();
         return UWP::Certificate::decode(wstringToString(buffer->Data()));
     }
-    catch(Platform::Exception^ ex)
+    catch(Platform::Exception ^ ex)
     {
         if(HRESULT_CODE(ex->HResult) == ERROR_FILE_NOT_FOUND)
         {
@@ -246,12 +226,11 @@ UWP::Certificate::load(const std::string& file)
     }
 }
 
-UWP::CertificatePtr
-UWP::Certificate::decode(const std::string& encoding)
+UWP::CertificatePtr UWP::Certificate::decode(const std::string& encoding)
 {
     string::size_type size, startpos, endpos = 0;
     startpos = encoding.find("-----BEGIN CERTIFICATE-----", endpos);
-    if (startpos != string::npos)
+    if(startpos != string::npos)
     {
         startpos += sizeof("-----BEGIN CERTIFICATE-----");
         endpos = encoding.find("-----END CERTIFICATE-----", startpos);

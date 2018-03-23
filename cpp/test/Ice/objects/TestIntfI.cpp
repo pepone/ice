@@ -14,8 +14,7 @@
 
 using namespace Test;
 
-BasePtr
-TestIntfI::opDerived(const Ice::Current&)
+BasePtr TestIntfI::opDerived(const Ice::Current&)
 {
     DerivedPtr d = ICE_MAKE_SHARED(Derived);
     d->theS.str = "S.str";
@@ -24,8 +23,7 @@ TestIntfI::opDerived(const Ice::Current&)
     return d;
 }
 
-void
-TestIntfI::throwDerived(const Ice::Current&)
+void TestIntfI::throwDerived(const Ice::Current&)
 {
     DerivedEx ex;
     ex.reason = "reason";

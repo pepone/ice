@@ -9,17 +9,15 @@
 
 #ifndef _WIN32
 
-#include <Ice/SysLoggerI.h>
-#include <Ice/LocalException.h>
-#include <syslog.h>
+#    include <Ice/SysLoggerI.h>
+#    include <Ice/LocalException.h>
+#    include <syslog.h>
 
 using namespace std;
 using namespace Ice;
 using namespace IceInternal;
 
-Ice::SysLoggerI::SysLoggerI(const string& prefix, const string& facilityString) :
-    _facility(0),
-    _prefix(prefix)
+Ice::SysLoggerI::SysLoggerI(const string& prefix, const string& facilityString) : _facility(0), _prefix(prefix)
 {
     if(facilityString == "LOG_KERN")
     {
@@ -61,18 +59,18 @@ Ice::SysLoggerI::SysLoggerI(const string& prefix, const string& facilityString) 
     {
         _facility = LOG_CRON;
     }
-#ifdef LOG_AUTHPRIV
+#    ifdef LOG_AUTHPRIV
     else if(facilityString == "LOG_AUTHPRIV")
     {
         _facility = LOG_AUTHPRIV;
     }
-#endif
-#ifdef LOG_FTP
+#    endif
+#    ifdef LOG_FTP
     else if(facilityString == "LOG_FTP")
     {
         _facility = LOG_FTP;
     }
-#endif
+#    endif
     else if(facilityString == "LOG_LOCAL0")
     {
         _facility = LOG_LOCAL0;
@@ -114,9 +112,7 @@ Ice::SysLoggerI::SysLoggerI(const string& prefix, const string& facilityString) 
     openlog(prefix.c_str(), logopt, _facility);
 }
 
-Ice::SysLoggerI::SysLoggerI(const string& prefix, int facility) :
-    _facility(facility),
-    _prefix(prefix)
+Ice::SysLoggerI::SysLoggerI(const string& prefix, int facility) : _facility(facility), _prefix(prefix)
 {
     int logopt = LOG_PID | LOG_CONS;
     openlog(prefix.c_str(), logopt, facility);
@@ -127,43 +123,37 @@ Ice::SysLoggerI::~SysLoggerI()
     closelog();
 }
 
-void
-Ice::SysLoggerI::print(const string& message)
+void Ice::SysLoggerI::print(const string& message)
 {
     IceUtil::Mutex::Lock sync(*this);
     syslog(LOG_INFO, "%s", message.c_str());
 }
 
-void
-Ice::SysLoggerI::trace(const string& category, const string& message)
+void Ice::SysLoggerI::trace(const string& category, const string& message)
 {
     IceUtil::Mutex::Lock sync(*this);
     string s = category + ": " + message;
     syslog(LOG_INFO, "%s", s.c_str());
 }
 
-void
-Ice::SysLoggerI::warning(const string& message)
+void Ice::SysLoggerI::warning(const string& message)
 {
     IceUtil::Mutex::Lock sync(*this);
     syslog(LOG_WARNING, "%s", message.c_str());
 }
 
-void
-Ice::SysLoggerI::error(const string& message)
+void Ice::SysLoggerI::error(const string& message)
 {
     IceUtil::Mutex::Lock sync(*this);
     syslog(LOG_ERR, "%s", message.c_str());
 }
 
-string
-Ice::SysLoggerI::getPrefix()
+string Ice::SysLoggerI::getPrefix()
 {
     return _prefix;
 }
 
-Ice::LoggerPtr
-Ice::SysLoggerI::cloneWithPrefix(const string& prefix)
+Ice::LoggerPtr Ice::SysLoggerI::cloneWithPrefix(const string& prefix)
 {
     return ICE_MAKE_SHARED(SysLoggerI, prefix, _facility);
 }

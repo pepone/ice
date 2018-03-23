@@ -24,8 +24,14 @@ using namespace Ice;
 using namespace IceInternal;
 
 #ifndef ICE_CPP11_MAPPING
-IceUtil::Shared* IceInternal::upCast(IncomingAsync* p) { return p; }
-IceUtil::Shared* Ice::upCast(AMD_Object_ice_invoke* p) { return p; }
+IceUtil::Shared* IceInternal::upCast(IncomingAsync* p)
+{
+    return p;
+}
+IceUtil::Shared* Ice::upCast(AMD_Object_ice_invoke* p)
+{
+    return p;
+}
 
 Ice::AMDCallback::~AMDCallback()
 {
@@ -40,28 +46,26 @@ Ice::AMD_Object_ice_invoke::~AMD_Object_ice_invoke()
 
 namespace
 {
+    IceUtil::Mutex* globalMutex = 0;
 
-IceUtil::Mutex* globalMutex = 0;
-
-class Init
-{
-public:
-
-    Init()
+    class Init
     {
-        globalMutex = new IceUtil::Mutex;
-    }
+    public:
+        Init()
+        {
+            globalMutex = new IceUtil::Mutex;
+        }
 
-    ~Init()
-    {
-        delete globalMutex;
-        globalMutex = 0;
-    }
-};
+        ~Init()
+        {
+            delete globalMutex;
+            globalMutex = 0;
+        }
+    };
 
-Init init;
+    Init init;
 
-}
+} // namespace
 
 IceInternal::IncomingAsync::IncomingAsync(Incoming& in) :
     IncomingBase(in),
@@ -74,8 +78,7 @@ IceInternal::IncomingAsync::IncomingAsync(Incoming& in) :
 }
 
 #ifdef ICE_CPP11_MAPPING
-shared_ptr<IncomingAsync>
-IceInternal::IncomingAsync::create(Incoming& in)
+shared_ptr<IncomingAsync> IceInternal::IncomingAsync::create(Incoming& in)
 {
     auto async = make_shared<IncomingAsync>(in);
     in.setAsync(async);
@@ -84,8 +87,7 @@ IceInternal::IncomingAsync::create(Incoming& in)
 #endif
 
 #ifndef ICE_CPP11_MAPPING
-void
-IceInternal::IncomingAsync::ice_exception(const ::std::exception& exc)
+void IceInternal::IncomingAsync::ice_exception(const ::std::exception& exc)
 {
     try
     {
@@ -106,8 +108,7 @@ IceInternal::IncomingAsync::ice_exception(const ::std::exception& exc)
     IncomingBase::exception(exc, true); // User thread
 }
 
-void
-IceInternal::IncomingAsync::ice_exception()
+void IceInternal::IncomingAsync::ice_exception()
 {
     try
     {
@@ -130,15 +131,13 @@ IceInternal::IncomingAsync::ice_exception()
 
 #endif
 
-void
-IceInternal::IncomingAsync::kill(Incoming& in)
+void IceInternal::IncomingAsync::kill(Incoming& in)
 {
     checkResponseSent();
     in._observer.adopt(_observer); // Give back the observer to incoming.
 }
 
-void
-IceInternal::IncomingAsync::completed()
+void IceInternal::IncomingAsync::completed()
 {
     for(DispatchInterceptorCallbacks::iterator p = _interceptorCBs.begin(); p != _interceptorCBs.end(); ++p)
     {
@@ -163,8 +162,7 @@ IceInternal::IncomingAsync::completed()
 }
 
 #ifdef ICE_CPP11_MAPPING
-void
-IceInternal::IncomingAsync::completed(exception_ptr ex)
+void IceInternal::IncomingAsync::completed(exception_ptr ex)
 {
     for(DispatchInterceptorCallbacks::iterator p = _interceptorCBs.begin(); p != _interceptorCBs.end(); ++p)
     {
@@ -196,8 +194,7 @@ IceInternal::IncomingAsync::completed(exception_ptr ex)
 }
 #endif
 
-void
-IceInternal::IncomingAsync::checkResponseSent()
+void IceInternal::IncomingAsync::checkResponseSent()
 {
     IceUtil::Mutex::Lock sync(*globalMutex);
     if(_responseSent)
@@ -212,8 +209,7 @@ IceAsync::Ice::AMD_Object_ice_invoke::AMD_Object_ice_invoke(Incoming& in) : Inco
 {
 }
 
-void
-IceAsync::Ice::AMD_Object_ice_invoke::ice_response(bool ok, const vector<Byte>& outEncaps)
+void IceAsync::Ice::AMD_Object_ice_invoke::ice_response(bool ok, const vector<Byte>& outEncaps)
 {
     if(outEncaps.empty())
     {
@@ -226,8 +222,7 @@ IceAsync::Ice::AMD_Object_ice_invoke::ice_response(bool ok, const vector<Byte>& 
     completed();
 }
 
-void
-IceAsync::Ice::AMD_Object_ice_invoke::ice_response(bool ok, const pair<const Byte*, const Byte*>& outEncaps)
+void IceAsync::Ice::AMD_Object_ice_invoke::ice_response(bool ok, const pair<const Byte*, const Byte*>& outEncaps)
 {
     writeParamEncaps(outEncaps.first, static_cast<Int>(outEncaps.second - outEncaps.first), ok);
     completed();

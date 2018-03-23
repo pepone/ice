@@ -16,10 +16,8 @@ using namespace std;
 using namespace Ice;
 using namespace Glacier2;
 
-Glacier2::ClientBlobject::ClientBlobject(const InstancePtr& instance,
-                                         const FilterManagerPtr& filters,
-                                         const Ice::Context& sslContext,
-                                         const RoutingTablePtr& routingTable):
+Glacier2::ClientBlobject::ClientBlobject(const InstancePtr& instance, const FilterManagerPtr& filters,
+                                         const Ice::Context& sslContext, const RoutingTablePtr& routingTable) :
 
     Glacier2::Blobject(instance, 0, sslContext),
     _routingTable(routingTable),
@@ -32,10 +30,9 @@ Glacier2::ClientBlobject::~ClientBlobject()
 {
 }
 
-void
-Glacier2::ClientBlobject::ice_invoke_async(const Ice::AMD_Object_ice_invokePtr& amdCB,
-                                           const std::pair<const Byte*, const Byte*>& inParams,
-                                           const Current& current)
+void Glacier2::ClientBlobject::ice_invoke_async(const Ice::AMD_Object_ice_invokePtr& amdCB,
+                                                const std::pair<const Byte*, const Byte*>& inParams,
+                                                const Current& current)
 {
     bool matched = false;
     bool hasFilters = false;
@@ -53,7 +50,6 @@ Glacier2::ClientBlobject::ice_invoke_async(const Ice::AMD_Object_ice_invokePtr& 
             if(rejectedFilters.size() != 0)
             {
                 rejectedFilters += ", ";
-
             }
             rejectedFilters += "category filter";
         }
@@ -71,7 +67,6 @@ Glacier2::ClientBlobject::ice_invoke_async(const Ice::AMD_Object_ice_invokePtr& 
             if(rejectedFilters.size() != 0)
             {
                 rejectedFilters += ", ";
-
             }
             rejectedFilters += "identity filter";
         }
@@ -103,7 +98,6 @@ Glacier2::ClientBlobject::ice_invoke_async(const Ice::AMD_Object_ice_invokePtr& 
             if(rejectedFilters.size() != 0)
             {
                 rejectedFilters += ", ";
-
             }
             rejectedFilters += "adapter id filter";
         }
@@ -123,20 +117,17 @@ Glacier2::ClientBlobject::ice_invoke_async(const Ice::AMD_Object_ice_invokePtr& 
     invoke(proxy, amdCB, inParams, current);
 }
 
-StringSetPtr
-ClientBlobject::categories()
+StringSetPtr ClientBlobject::categories()
 {
     return _filters->categories();
 }
 
-StringSetPtr
-ClientBlobject::adapterIds()
+StringSetPtr ClientBlobject::adapterIds()
 {
     return _filters->adapterIds();
 }
 
-IdentitySetPtr
-ClientBlobject::identities()
+IdentitySetPtr ClientBlobject::identities()
 {
     return _filters->identities();
 }

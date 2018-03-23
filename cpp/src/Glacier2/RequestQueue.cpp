@@ -32,8 +32,7 @@ Glacier2::Request::Request(const ObjectPrx& proxy, const std::pair<const Byte*, 
     }
 }
 
-void
-Glacier2::Request::addBatchProxy(set<Ice::ObjectPrx>& batchProxies)
+void Glacier2::Request::addBatchProxy(set<Ice::ObjectPrx>& batchProxies)
 {
     set<Ice::ObjectPrx>::const_iterator p = batchProxies.find(_proxy);
     if(p == batchProxies.end())
@@ -46,8 +45,7 @@ Glacier2::Request::addBatchProxy(set<Ice::ObjectPrx>& batchProxies)
     }
 }
 
-Ice::AsyncResultPtr
-Glacier2::Request::invoke(const Callback_Object_ice_invokePtr& cb)
+Ice::AsyncResultPtr Glacier2::Request::invoke(const Callback_Object_ice_invokePtr& cb)
 {
     pair<const Byte*, const Byte*> inPair;
     if(_inParams.size() == 0)
@@ -121,8 +119,7 @@ Glacier2::Request::invoke(const Callback_Object_ice_invokePtr& cb)
     }
 }
 
-bool
-Glacier2::Request::override(const RequestPtr& other) const
+bool Glacier2::Request::override(const RequestPtr& other) const
 {
     //
     // Both override values have to be non-empty.
@@ -155,15 +152,13 @@ Glacier2::Request::override(const RequestPtr& other) const
     return _proxy == other->_proxy;
 }
 
-void
-Glacier2::Request::response(bool ok, const pair<const Ice::Byte*, const Ice::Byte*>& outParams)
+void Glacier2::Request::response(bool ok, const pair<const Ice::Byte*, const Ice::Byte*>& outParams)
 {
     assert(_proxy->ice_isTwoway());
     _amdCB->ice_response(ok, outParams);
 }
 
-void
-Glacier2::Request::exception(const Ice::Exception& ex)
+void Glacier2::Request::exception(const Ice::Exception& ex)
 {
     //
     // Only for twoways, oneway or batch oneway dispatches are finished
@@ -175,36 +170,33 @@ Glacier2::Request::exception(const Ice::Exception& ex)
     }
 }
 
-void
-Glacier2::Request::queued()
+void Glacier2::Request::queued()
 {
     if(!_proxy->ice_isTwoway())
     {
-#if (defined(_MSC_VER) && (_MSC_VER >= 1600))
-        _amdCB->ice_response(true, pair<const Byte*, const Byte*>(static_cast<const Byte*>(nullptr),
-                                                                  static_cast<const Byte*>(nullptr)));
+#if(defined(_MSC_VER) && (_MSC_VER >= 1600))
+        _amdCB->ice_response(
+            true, pair<const Byte*, const Byte*>(static_cast<const Byte*>(nullptr), static_cast<const Byte*>(nullptr)));
 #else
         _amdCB->ice_response(true, pair<const Byte*, const Byte*>(0, 0));
 #endif
     }
 }
 
-Glacier2::RequestQueue::RequestQueue(const RequestQueueThreadPtr& requestQueueThread,
-                                     const InstancePtr& instance,
+Glacier2::RequestQueue::RequestQueue(const RequestQueueThreadPtr& requestQueueThread, const InstancePtr& instance,
                                      const Ice::ConnectionPtr& connection) :
     _requestQueueThread(requestQueueThread),
     _instance(instance),
     _connection(connection),
-    _callback(newCallback_Object_ice_invoke(this, &RequestQueue::response, &RequestQueue::exception,
-                                            &RequestQueue::sent)),
+    _callback(
+        newCallback_Object_ice_invoke(this, &RequestQueue::response, &RequestQueue::exception, &RequestQueue::sent)),
     _flushCallback(newCallback_Connection_flushBatchRequests(this, &RequestQueue::exception, &RequestQueue::sent)),
     _pendingSend(false),
     _destroyed(false)
 {
 }
 
-bool
-Glacier2::RequestQueue::addRequest(const RequestPtr& request)
+bool Glacier2::RequestQueue::addRequest(const RequestPtr& request)
 {
     IceUtil::Mutex::Lock lock(*this);
     if(_destroyed)
@@ -258,8 +250,7 @@ Glacier2::RequestQueue::addRequest(const RequestPtr& request)
     return false;
 }
 
-void
-Glacier2::RequestQueue::flushRequests()
+void Glacier2::RequestQueue::flushRequests()
 {
     IceUtil::Mutex::Lock lock(*this);
     if(_connection)
@@ -303,8 +294,7 @@ Glacier2::RequestQueue::flushRequests()
     }
 }
 
-void
-Glacier2::RequestQueue::destroy()
+void Glacier2::RequestQueue::destroy()
 {
     IceUtil::Mutex::Lock lock(*this);
 
@@ -320,15 +310,13 @@ Glacier2::RequestQueue::destroy()
     }
 }
 
-void
-Glacier2::RequestQueue::updateObserver(const Glacier2::Instrumentation::SessionObserverPtr& observer)
+void Glacier2::RequestQueue::updateObserver(const Glacier2::Instrumentation::SessionObserverPtr& observer)
 {
     IceUtil::Mutex::Lock lock(*this);
     _observer = observer;
 }
 
-void
-Glacier2::RequestQueue::flush()
+void Glacier2::RequestQueue::flush()
 {
     assert(_connection);
     _pendingSend = false;
@@ -374,7 +362,8 @@ Glacier2::RequestQueue::flush()
 
     if(flushBatchRequests)
     {
-        Ice::AsyncResultPtr result = _connection->begin_flushBatchRequests(ICE_SCOPED_ENUM(CompressBatch, BasedOnProxy), _flushCallback);
+        Ice::AsyncResultPtr result =
+            _connection->begin_flushBatchRequests(ICE_SCOPED_ENUM(CompressBatch, BasedOnProxy), _flushCallback);
         if(!result->sentSynchronously() && !result->isCompleted())
         {
             _pendingSend = true;
@@ -383,8 +372,7 @@ Glacier2::RequestQueue::flush()
     }
 }
 
-void
-Glacier2::RequestQueue::destroyInternal()
+void Glacier2::RequestQueue::destroyInternal()
 {
     //
     // Must be called with the mutex locked.
@@ -397,23 +385,21 @@ Glacier2::RequestQueue::destroyInternal()
     const_cast<Ice::Callback_Connection_flushBatchRequestsPtr&>(_flushCallback) = 0;
 }
 
-void
-Glacier2::RequestQueue::response(bool ok, const pair<const Byte*, const Byte*>& outParams, const RequestPtr& request)
+void Glacier2::RequestQueue::response(bool ok, const pair<const Byte*, const Byte*>& outParams,
+                                      const RequestPtr& request)
 {
     assert(request);
     request->response(ok, outParams);
 }
 
-void
-Glacier2::RequestQueue::exception(const Ice::Exception& ex, const RequestPtr& request)
+void Glacier2::RequestQueue::exception(const Ice::Exception& ex, const RequestPtr& request)
 {
     //
     // If the connection has been lost, destroy the session.
     //
     if(_connection)
     {
-        if(dynamic_cast<const Ice::SocketException*>(&ex) ||
-           dynamic_cast<const Ice::TimeoutException*>(&ex) ||
+        if(dynamic_cast<const Ice::SocketException*>(&ex) || dynamic_cast<const Ice::TimeoutException*>(&ex) ||
            dynamic_cast<const Ice::ProtocolException*>(&ex))
         {
             try
@@ -438,8 +424,7 @@ Glacier2::RequestQueue::exception(const Ice::Exception& ex, const RequestPtr& re
     }
 }
 
-void
-Glacier2::RequestQueue::sent(bool sentSynchronously, const RequestPtr& request)
+void Glacier2::RequestQueue::sent(bool sentSynchronously, const RequestPtr& request)
 {
     if(_connection && !sentSynchronously)
     {
@@ -465,8 +450,7 @@ Glacier2::RequestQueueThread::~RequestQueueThread()
     assert(_queues.empty());
 }
 
-void
-Glacier2::RequestQueueThread::destroy()
+void Glacier2::RequestQueueThread::destroy()
 {
     {
         IceUtil::Monitor<IceUtil::Mutex>::Lock lock(*this);
@@ -487,8 +471,7 @@ Glacier2::RequestQueueThread::destroy()
     }
 }
 
-void
-Glacier2::RequestQueueThread::flushRequestQueue(const RequestQueuePtr& queue)
+void Glacier2::RequestQueueThread::flushRequestQueue(const RequestQueuePtr& queue)
 {
     IceUtil::Monitor<IceUtil::Mutex>::Lock lock(*this);
     if(_destroy)
@@ -503,8 +486,7 @@ Glacier2::RequestQueueThread::flushRequestQueue(const RequestQueuePtr& queue)
     _queues.push_back(queue);
 }
 
-void
-Glacier2::RequestQueueThread::run()
+void Glacier2::RequestQueueThread::run()
 {
     while(true)
     {

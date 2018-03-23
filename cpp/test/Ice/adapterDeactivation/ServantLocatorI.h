@@ -15,7 +15,6 @@
 class ServantLocatorI : public Ice::ServantLocator
 {
 public:
-
     ServantLocatorI();
     virtual ~ServantLocatorI();
 
@@ -29,7 +28,6 @@ public:
     virtual void deactivate(const std::string&);
 
 public:
-
     bool _deactivated;
     Ice::ObjectPtr _router;
 };

@@ -37,7 +37,6 @@ class MetricsI : public Test::Metrics
 class ControllerI : public Test::Controller
 {
 public:
-
     ControllerI(const Ice::ObjectAdapterPtr&);
 
     virtual void hold(const Ice::Current&);
@@ -45,7 +44,6 @@ public:
     virtual void resume(const Ice::Current&);
 
 private:
-
     const Ice::ObjectAdapterPtr _adapter;
 };
 

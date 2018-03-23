@@ -16,14 +16,13 @@
 
 namespace IceInternal
 {
+    class DynamicLibrary;
+    ICE_API IceUtil::Shared* upCast(DynamicLibrary*);
+    typedef Handle<DynamicLibrary> DynamicLibraryPtr;
 
-class DynamicLibrary;
-ICE_API IceUtil::Shared* upCast(DynamicLibrary*);
-typedef Handle<DynamicLibrary> DynamicLibraryPtr;
+    class DynamicLibraryList;
+    ICE_API IceUtil::Shared* upCast(DynamicLibraryList*);
+    typedef Handle<DynamicLibraryList> DynamicLibraryListPtr;
 
-class DynamicLibraryList;
-ICE_API IceUtil::Shared* upCast(DynamicLibraryList*);
-typedef Handle<DynamicLibraryList> DynamicLibraryListPtr;
-
-}
+} // namespace IceInternal
 #endif

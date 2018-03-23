@@ -22,7 +22,7 @@
 // Scanners.
 //
 #if defined(_MSC_VER) && (_MSC_VER >= 1600)
-#   include <stdint.h>
+#    include <stdint.h>
 #endif
 
 //
@@ -30,7 +30,7 @@
 // used by lex generated Scanners.
 //
 #if defined(__clang__)
-#   pragma clang diagnostic ignored "-Wdeprecated-register"
+#    pragma clang diagnostic ignored "-Wdeprecated-register"
 #endif
 
 #endif

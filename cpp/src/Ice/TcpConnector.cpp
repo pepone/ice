@@ -21,26 +21,22 @@ using namespace std;
 using namespace Ice;
 using namespace IceInternal;
 
-TransceiverPtr
-IceInternal::TcpConnector::connect()
+TransceiverPtr IceInternal::TcpConnector::connect()
 {
     return new TcpTransceiver(_instance, new StreamSocket(_instance, _proxy, _addr, _sourceAddr));
 }
 
-Short
-IceInternal::TcpConnector::type() const
+Short IceInternal::TcpConnector::type() const
 {
     return _instance->type();
 }
 
-string
-IceInternal::TcpConnector::toString() const
+string IceInternal::TcpConnector::toString() const
 {
     return addrToString(!_proxy ? _addr : _proxy->getAddress());
 }
 
-bool
-IceInternal::TcpConnector::operator==(const Connector& r) const
+bool IceInternal::TcpConnector::operator==(const Connector& r) const
 {
     const TcpConnector* p = dynamic_cast<const TcpConnector*>(&r);
     if(!p)
@@ -71,8 +67,7 @@ IceInternal::TcpConnector::operator==(const Connector& r) const
     return true;
 }
 
-bool
-IceInternal::TcpConnector::operator<(const Connector& r) const
+bool IceInternal::TcpConnector::operator<(const Connector& r) const
 {
     const TcpConnector* p = dynamic_cast<const TcpConnector*>(&r);
     if(!p)
@@ -111,8 +106,8 @@ IceInternal::TcpConnector::operator<(const Connector& r) const
 }
 
 IceInternal::TcpConnector::TcpConnector(const ProtocolInstancePtr& instance, const Address& addr,
-                                        const NetworkProxyPtr& proxy, const Address& sourceAddr,
-                                        Ice::Int timeout, const string& connectionId) :
+                                        const NetworkProxyPtr& proxy, const Address& sourceAddr, Ice::Int timeout,
+                                        const string& connectionId) :
     _instance(instance),
     _addr(addr),
     _proxy(proxy),

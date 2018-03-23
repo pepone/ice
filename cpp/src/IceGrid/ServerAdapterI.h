@@ -15,46 +15,43 @@
 
 namespace IceGrid
 {
+    class NodeI;
+    typedef IceUtil::Handle<NodeI> NodeIPtr;
 
-class NodeI;
-typedef IceUtil::Handle<NodeI> NodeIPtr;
+    class ServerI;
 
-class ServerI;
+    class ServerAdapterI : public Adapter, public IceUtil::Mutex
+    {
+    public:
+        ServerAdapterI(const NodeIPtr&, ServerI*, const std::string&, const AdapterPrx&, const std::string&, bool);
+        virtual ~ServerAdapterI();
 
-class ServerAdapterI : public Adapter, public IceUtil::Mutex
-{
-public:
+        virtual void activate_async(const AMD_Adapter_activatePtr& cb, const Ice::Current&);
+        virtual Ice::ObjectPrx getDirectProxy(const Ice::Current&) const;
+        virtual void setDirectProxy(const ::Ice::ObjectPrx&, const ::Ice::Current&);
+        void destroy();
+        void updateEnabled();
+        void clear();
+        void activationFailed(const std::string&);
+        void activationCompleted();
 
-    ServerAdapterI(const NodeIPtr&, ServerI*, const std::string&, const AdapterPrx&, const std::string&, bool);
-    virtual ~ServerAdapterI();
+        AdapterPrx getProxy() const;
 
-    virtual void activate_async(const AMD_Adapter_activatePtr& cb, const Ice::Current&);
-    virtual Ice::ObjectPrx getDirectProxy(const Ice::Current&) const;
-    virtual void setDirectProxy(const ::Ice::ObjectPrx&, const ::Ice::Current&);
-    void destroy();
-    void updateEnabled();
-    void clear();
-    void activationFailed(const std::string&);
-    void activationCompleted();
+    private:
+        const NodeIPtr _node;
+        const AdapterPrx _this;
+        const std::string _serverId;
+        const std::string _id;
+        const std::string _replicaId;
+        ServerI* _server;
 
-    AdapterPrx getProxy() const;
+        Ice::ObjectPrx _proxy;
+        bool _enabled;
+        std::vector<AMD_Adapter_activatePtr> _activateCB;
+        bool _activateAfterDeactivating;
+    };
+    typedef IceUtil::Handle<ServerAdapterI> ServerAdapterIPtr;
 
-private:
-
-    const NodeIPtr _node;
-    const AdapterPrx _this;
-    const std::string _serverId;
-    const std::string _id;
-    const std::string _replicaId;
-    ServerI* _server;
-
-    Ice::ObjectPrx _proxy;
-    bool _enabled;
-    std::vector<AMD_Adapter_activatePtr> _activateCB;
-    bool _activateAfterDeactivating;
-};
-typedef IceUtil::Handle<ServerAdapterI> ServerAdapterIPtr;
-
-}
+} // namespace IceGrid
 
 #endif

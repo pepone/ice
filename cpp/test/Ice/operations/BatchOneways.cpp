@@ -15,76 +15,69 @@ using namespace std;
 
 namespace
 {
-
-class BatchRequestInterceptorI
+    class BatchRequestInterceptorI
 #ifndef ICE_CPP11_MAPPING
-    : public Ice::BatchRequestInterceptor
+        : public Ice::BatchRequestInterceptor
 #endif
-{
-public:
-
-    BatchRequestInterceptorI() : _enabled(false), _count(0), _size(0), _lastRequestSize(0)
     {
-    }
-
-    virtual void
-    enqueue(const Ice::BatchRequest& request, Ice::Int count, Ice::Int size)
-    {
-        test(request.getOperation() == "opByteSOneway" || request.getOperation() == "ice_ping");
-        test(request.getProxy()->ice_isBatchOneway());
-
-        if(count > 0)
+    public:
+        BatchRequestInterceptorI() : _enabled(false), _count(0), _size(0), _lastRequestSize(0)
         {
-            test(_lastRequestSize + _size == size);
         }
-        _count = count;
-        _size = size;
 
-        if(_size + request.getSize() > 25000)
+        virtual void enqueue(const Ice::BatchRequest& request, Ice::Int count, Ice::Int size)
         {
+            test(request.getOperation() == "opByteSOneway" || request.getOperation() == "ice_ping");
+            test(request.getProxy()->ice_isBatchOneway());
+
+            if(count > 0)
+            {
+                test(_lastRequestSize + _size == size);
+            }
+            _count = count;
+            _size = size;
+
+            if(_size + request.getSize() > 25000)
+            {
 #ifdef ICE_CPP11_MAPPING
-            request.getProxy()->ice_flushBatchRequestsAsync();
+                request.getProxy()->ice_flushBatchRequestsAsync();
 #else
-            request.getProxy()->begin_ice_flushBatchRequests();
+                request.getProxy()->begin_ice_flushBatchRequests();
 #endif
-            _size = 18; // header
+                _size = 18; // header
+            }
+
+            if(_enabled)
+            {
+                _lastRequestSize = request.getSize();
+                ++_count;
+                request.enqueue();
+            }
         }
 
-        if(_enabled)
+        void enqueue(bool enabled)
         {
-            _lastRequestSize = request.getSize();
-            ++_count;
-            request.enqueue();
+            _enabled = enabled;
         }
-    }
 
-    void
-    enqueue(bool enabled)
-    {
-        _enabled = enabled;
-    }
+        int count()
+        {
+            return _count;
+        }
 
-    int
-    count()
-    {
-        return _count;
-    }
+    private:
+        bool _enabled;
+        int _count;
+        int _size;
+        int _lastRequestSize;
+    };
+    ICE_DEFINE_PTR(BatchRequestInterceptorIPtr, BatchRequestInterceptorI);
 
-private:
+} // namespace
 
-    bool _enabled;
-    int _count;
-    int _size;
-    int _lastRequestSize;
-};
-ICE_DEFINE_PTR(BatchRequestInterceptorIPtr, BatchRequestInterceptorI);
-
-}
-
-void
-batchOneways(const Test::MyClassPrxPtr& p)
+void batchOneways(const Test::MyClassPrxPtr& p)
 {
-    const Test::ByteS bs1(10  * 1024);
+    const Test::ByteS bs1(10 * 1024);
 
     Test::MyClassPrxPtr batch = ICE_UNCHECKED_CAST(Test::MyClassPrx, p->ice_batchOneway());
 
@@ -97,7 +90,7 @@ batchOneways(const Test::MyClassPrxPtr& p)
 
     int i;
     p->opByteSOnewayCallCount(); // Reset the call count
-    for(i = 0 ; i < 30 ; ++i)
+    for(i = 0; i < 30; ++i)
     {
         try
         {
@@ -159,8 +152,7 @@ batchOneways(const Test::MyClassPrxPtr& p)
         BatchRequestInterceptorIPtr interceptor = ICE_MAKE_SHARED(BatchRequestInterceptorI);
 
 #if defined(ICE_CPP11_MAPPING)
-        initData.batchRequestInterceptor = [=](const Ice::BatchRequest& request, int count, int size)
-        {
+        initData.batchRequestInterceptor = [=](const Ice::BatchRequest& request, int count, int size) {
             interceptor->enqueue(request, count, size);
         };
 #else

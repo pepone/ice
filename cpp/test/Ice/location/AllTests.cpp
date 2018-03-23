@@ -20,9 +20,7 @@ using namespace Test;
 class HelloI : public virtual Hello
 {
 public:
-
-    virtual void
-    sayHello(const Ice::Current&)
+    virtual void sayHello(const Ice::Current&)
     {
         // Do nothing, this is just a dummy servant.
     }
@@ -35,32 +33,27 @@ public:
     {
     }
 
-    void
-    exception1(const Ice::Exception&)
+    void exception1(const Ice::Exception&)
     {
         test(false);
     }
-    void
-    exception2(const Ice::Exception& ex)
+    void exception2(const Ice::Exception& ex)
     {
         test(dynamic_cast<const Ice::NotRegisteredException*>(&ex));
     }
 
-    void
-    response1()
+    void response1()
     {
     }
 
-    void
-    response2()
+    void response2()
     {
         test(false);
     }
 };
 typedef IceUtil::Handle<AMICallback> AMICallbackPtr;
 
-void
-allTests(const Ice::CommunicatorPtr& communicator, const string& ref)
+void allTests(const Ice::CommunicatorPtr& communicator, const string& ref)
 {
     ServerManagerPrxPtr manager = ICE_CHECKED_CAST(ServerManagerPrx, communicator->stringToProxy(ref));
     TestLocatorPrxPtr locator = ICE_UNCHECKED_CAST(TestLocatorPrx, communicator->getDefaultLocator());
@@ -80,7 +73,8 @@ allTests(const Ice::CommunicatorPtr& communicator, const string& ref)
 
     cout << "testing ice_locator and ice_getLocator... " << flush;
     test(Ice::proxyIdentityEqual(base->ice_getLocator(), communicator->getDefaultLocator()));
-    Ice::LocatorPrxPtr anotherLocator = ICE_UNCHECKED_CAST(Ice::LocatorPrx, communicator->stringToProxy("anotherLocator"));
+    Ice::LocatorPrxPtr anotherLocator =
+        ICE_UNCHECKED_CAST(Ice::LocatorPrx, communicator->stringToProxy("anotherLocator"));
     base = base->ice_locator(anotherLocator);
     test(Ice::proxyIdentityEqual(base->ice_getLocator(), anotherLocator));
     communicator->setDefaultLocator(ICE_NULLPTR);
@@ -252,7 +246,7 @@ allTests(const Ice::CommunicatorPtr& communicator, const string& ref)
         base->ice_ping();
         test(false);
     }
-    catch (const Ice::NotRegisteredException& ex)
+    catch(const Ice::NotRegisteredException& ex)
     {
         test(ex.kindOfObject == "object");
         test(ex.id == "unknown/unknown");
@@ -266,7 +260,7 @@ allTests(const Ice::CommunicatorPtr& communicator, const string& ref)
         base->ice_ping();
         test(false);
     }
-    catch (const Ice::NotRegisteredException& ex)
+    catch(const Ice::NotRegisteredException& ex)
     {
         test(ex.kindOfObject == "object adapter");
         test(ex.id == "TestAdapterUnknown");
@@ -327,19 +321,11 @@ allTests(const Ice::CommunicatorPtr& communicator, const string& ref)
     int i;
 
 #ifdef ICE_CPP11_MAPPING
-    list<future<void>>  results;
+    list<future<void>> results;
     for(i = 0; i < 1000; i++)
     {
         auto result = make_shared<promise<void>>();
-        hello->sayHelloAsync(
-            [result]()
-            {
-                result->set_value();
-            },
-            [result](exception_ptr)
-            {
-                test(false);
-            });
+        hello->sayHelloAsync([result]() { result->set_value(); }, [result](exception_ptr) { test(false); });
         results.push_back(result->get_future());
     }
     for(auto& result : results)
@@ -357,26 +343,21 @@ allTests(const Ice::CommunicatorPtr& communicator, const string& ref)
     for(i = 0; i < 1000; i++)
     {
         auto result = make_shared<promise<void>>();
-        hello->sayHelloAsync(
-            [result]()
-            {
-                test(false);
-            },
-            [result](exception_ptr ex)
-            {
-                try
-                {
-                    rethrow_exception(ex);
-                }
-                catch(const Ice::NotRegisteredException&)
-                {
-                    result->set_value();
-                }
-                catch(...)
-                {
-                    test(false);
-                }
-            });
+        hello->sayHelloAsync([result]() { test(false); },
+                             [result](exception_ptr ex) {
+                                 try
+                                 {
+                                     rethrow_exception(ex);
+                                 }
+                                 catch(const Ice::NotRegisteredException&)
+                                 {
+                                     result->set_value();
+                                 }
+                                 catch(...)
+                                 {
+                                     test(false);
+                                 }
+                             });
         results.push_back(result->get_future());
     }
     for(auto& result : results)
@@ -391,12 +372,12 @@ allTests(const Ice::CommunicatorPtr& communicator, const string& ref)
         cout << "queuing = " << locator->getRequestCount() - count;
     }
 #else
-    list<Ice::AsyncResultPtr>  results;
+    list<Ice::AsyncResultPtr> results;
     AMICallbackPtr cb = new AMICallback;
     for(i = 0; i < 1000; i++)
     {
-        Ice::AsyncResultPtr result = hello->begin_sayHello(
-            newCallback_Hello_sayHello(cb, &AMICallback::response1, &AMICallback::exception1));
+        Ice::AsyncResultPtr result =
+            hello->begin_sayHello(newCallback_Hello_sayHello(cb, &AMICallback::response1, &AMICallback::exception1));
         results.push_back(result);
     }
     while(!results.empty())
@@ -415,8 +396,8 @@ allTests(const Ice::CommunicatorPtr& communicator, const string& ref)
     hello = hello->ice_adapterId("unknown");
     for(i = 0; i < 1000; i++)
     {
-        Ice::AsyncResultPtr result = hello->begin_sayHello(
-            newCallback_Hello_sayHello(cb, &AMICallback::response2, &AMICallback::exception2));
+        Ice::AsyncResultPtr result =
+            hello->begin_sayHello(newCallback_Hello_sayHello(cb, &AMICallback::response2, &AMICallback::exception2));
         results.push_back(result);
     }
     while(!results.empty())
@@ -482,7 +463,7 @@ allTests(const Ice::CommunicatorPtr& communicator, const string& ref)
     {
         test(false);
     }
-    cout << "ok" <<endl;
+    cout << "ok" << endl;
 
     cout << "testing well-known object locator cache... " << flush;
 
@@ -584,20 +565,20 @@ allTests(const Ice::CommunicatorPtr& communicator, const string& ref)
 
         int count = locator->getRequestCount();
         ic->stringToProxy("test@TestAdapter5")->ice_locatorCacheTimeout(0)->ice_ping(); // No locator cache.
-        ic->stringToProxy("test3")->ice_locatorCacheTimeout(0)->ice_ping(); // No locator cache.
+        ic->stringToProxy("test3")->ice_locatorCacheTimeout(0)->ice_ping();             // No locator cache.
         count += 3;
         test(count == locator->getRequestCount());
         registry->setAdapterDirectProxy("TestAdapter5", 0);
         registry->addObject(communicator->stringToProxy("test3:tcp"));
         ic->stringToProxy("test@TestAdapter5")->ice_locatorCacheTimeout(10)->ice_ping(); // 10s timeout.
-        ic->stringToProxy("test3")->ice_locatorCacheTimeout(10)->ice_ping(); // 10s timeout.
+        ic->stringToProxy("test3")->ice_locatorCacheTimeout(10)->ice_ping();             // 10s timeout.
         test(count == locator->getRequestCount());
         IceUtil::ThreadControl::sleep(IceUtil::Time::milliSeconds(1200));
 
         // The following request should trigger the background updates but still use the cached endpoints
         // and therefore succeed.
         ic->stringToProxy("test@TestAdapter5")->ice_locatorCacheTimeout(1)->ice_ping(); // 1s timeout.
-        ic->stringToProxy("test3")->ice_locatorCacheTimeout(1)->ice_ping(); // 1s timeout.
+        ic->stringToProxy("test3")->ice_locatorCacheTimeout(1)->ice_ping();             // 1s timeout.
 
         try
         {
@@ -695,10 +676,11 @@ allTests(const Ice::CommunicatorPtr& communicator, const string& ref)
     bool uwp = false;
 #endif
     string host = communicator->getProperties()->getPropertyAsIntWithDefault("Ice.IPv6", 0) == 0 ?
-            "127.0.0.1" : "\"0:0:0:0:0:0:0:1\"";
+                      "127.0.0.1" :
+                      "\"0:0:0:0:0:0:0:1\"";
 
     if(!uwp || (communicator->getProperties()->getProperty("Ice.Default.Protocol") != "ssl" &&
-                  communicator->getProperties()->getProperty("Ice.Default.Protocol") != "wss"))
+                communicator->getProperties()->getProperty("Ice.Default.Protocol") != "wss"))
     {
         if(communicator->getProperties()->getProperty("Ice.Default.Host") == host)
         {
@@ -716,7 +698,8 @@ allTests(const Ice::CommunicatorPtr& communicator, const string& ref)
             registry->addObject(adapter->add(ICE_MAKE_SHARED(HelloI), id));
             adapter->activate();
 
-            HelloPrxPtr helloPrx = ICE_CHECKED_CAST(HelloPrx, communicator->stringToProxy(communicator->identityToString(id)));
+            HelloPrxPtr helloPrx =
+                ICE_CHECKED_CAST(HelloPrx, communicator->stringToProxy(communicator->identityToString(id)));
             test(!helloPrx->ice_getConnection());
 
             adapter->deactivate();

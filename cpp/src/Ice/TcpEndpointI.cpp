@@ -23,18 +23,19 @@ using namespace Ice;
 using namespace IceInternal;
 
 #ifndef ICE_CPP11_MAPPING
-IceUtil::Shared* IceInternal::upCast(TcpEndpointI* p) { return p; }
+IceUtil::Shared* IceInternal::upCast(TcpEndpointI* p)
+{
+    return p;
+}
 #endif
 
 extern "C"
 {
-
-Plugin*
-createIceTCP(const CommunicatorPtr& c, const string&, const StringSeq&)
-{
-    return new EndpointFactoryPlugin(c, new TcpEndpointFactory(new ProtocolInstance(c, TCPEndpointType, "tcp", false)));
-}
-
+    Plugin* createIceTCP(const CommunicatorPtr& c, const string&, const StringSeq&)
+    {
+        return new EndpointFactoryPlugin(
+            c, new TcpEndpointFactory(new ProtocolInstance(c, TCPEndpointType, "tcp", false)));
+    }
 }
 
 IceInternal::TcpEndpointI::TcpEndpointI(const ProtocolInstancePtr& instance, const string& host, Int port,
@@ -62,30 +63,26 @@ IceInternal::TcpEndpointI::TcpEndpointI(const ProtocolInstancePtr& instance, Inp
     s->read(const_cast<bool&>(_compress));
 }
 
-void
-IceInternal::TcpEndpointI::streamWriteImpl(OutputStream* s) const
+void IceInternal::TcpEndpointI::streamWriteImpl(OutputStream* s) const
 {
     IPEndpointI::streamWriteImpl(s);
     s->write(_timeout);
     s->write(_compress);
 }
 
-EndpointInfoPtr
-IceInternal::TcpEndpointI::getInfo() const ICE_NOEXCEPT
+EndpointInfoPtr IceInternal::TcpEndpointI::getInfo() const ICE_NOEXCEPT
 {
     TCPEndpointInfoPtr info = ICE_MAKE_SHARED(InfoI<Ice::TCPEndpointInfo>, ICE_SHARED_FROM_CONST_THIS(TcpEndpointI));
     fillEndpointInfo(info.get());
     return info;
 }
 
-Int
-IceInternal::TcpEndpointI::timeout() const
+Int IceInternal::TcpEndpointI::timeout() const
 {
     return _timeout;
 }
 
-EndpointIPtr
-IceInternal::TcpEndpointI::timeout(Int timeout) const
+EndpointIPtr IceInternal::TcpEndpointI::timeout(Int timeout) const
 {
     if(timeout == _timeout)
     {
@@ -97,14 +94,12 @@ IceInternal::TcpEndpointI::timeout(Int timeout) const
     }
 }
 
-bool
-IceInternal::TcpEndpointI::compress() const
+bool IceInternal::TcpEndpointI::compress() const
 {
     return _compress;
 }
 
-EndpointIPtr
-IceInternal::TcpEndpointI::compress(bool compress) const
+EndpointIPtr IceInternal::TcpEndpointI::compress(bool compress) const
 {
     if(compress == _compress)
     {
@@ -116,26 +111,23 @@ IceInternal::TcpEndpointI::compress(bool compress) const
     }
 }
 
-bool
-IceInternal::TcpEndpointI::datagram() const
+bool IceInternal::TcpEndpointI::datagram() const
 {
     return false;
 }
 
-TransceiverPtr
-IceInternal::TcpEndpointI::transceiver() const
+TransceiverPtr IceInternal::TcpEndpointI::transceiver() const
 {
     return ICE_NULLPTR;
 }
 
-AcceptorPtr
-IceInternal::TcpEndpointI::acceptor(const string&) const
+AcceptorPtr IceInternal::TcpEndpointI::acceptor(const string&) const
 {
-    return new TcpAcceptor(ICE_DYNAMIC_CAST(TcpEndpointI, ICE_SHARED_FROM_CONST_THIS(TcpEndpointI)), _instance, _host, _port);
+    return new TcpAcceptor(ICE_DYNAMIC_CAST(TcpEndpointI, ICE_SHARED_FROM_CONST_THIS(TcpEndpointI)), _instance, _host,
+                           _port);
 }
 
-TcpEndpointIPtr
-IceInternal::TcpEndpointI::endpoint(const TcpAcceptorPtr& acceptor) const
+TcpEndpointIPtr IceInternal::TcpEndpointI::endpoint(const TcpAcceptorPtr& acceptor) const
 {
     int port = acceptor->effectivePort();
     if(_port == port)
@@ -148,8 +140,7 @@ IceInternal::TcpEndpointI::endpoint(const TcpAcceptorPtr& acceptor) const
     }
 }
 
-string
-IceInternal::TcpEndpointI::options() const
+string IceInternal::TcpEndpointI::options() const
 {
     //
     // WARNING: Certain features, such as proxy validation in Glacier2,
@@ -258,24 +249,21 @@ IceInternal::TcpEndpointI::operator<(const LocalObject& r) const
     return IPEndpointI::operator<(r);
 }
 
-void
-IceInternal::TcpEndpointI::hashInit(Ice::Int& h) const
+void IceInternal::TcpEndpointI::hashInit(Ice::Int& h) const
 {
     IPEndpointI::hashInit(h);
     hashAdd(h, _timeout);
     hashAdd(h, _compress);
 }
 
-void
-IceInternal::TcpEndpointI::fillEndpointInfo(IPEndpointInfo* info) const
+void IceInternal::TcpEndpointI::fillEndpointInfo(IPEndpointInfo* info) const
 {
     IPEndpointI::fillEndpointInfo(info);
     info->timeout = _timeout;
     info->compress = _compress;
 }
 
-bool
-IceInternal::TcpEndpointI::checkOption(const string& option, const string& argument, const string& endpoint)
+bool IceInternal::TcpEndpointI::checkOption(const string& option, const string& argument, const string& endpoint)
 {
     if(IPEndpointI::checkOption(option, argument, endpoint))
     {
@@ -284,56 +272,54 @@ IceInternal::TcpEndpointI::checkOption(const string& option, const string& argum
 
     switch(option[1])
     {
-    case 't':
-    {
-        if(argument.empty())
+        case 't':
         {
-            throw EndpointParseException(__FILE__, __LINE__, "no argument provided for -t option in endpoint " +
-                                         endpoint);
-        }
-
-        if(argument == "infinite")
-        {
-            const_cast<Int&>(_timeout) = -1;
-        }
-        else
-        {
-            istringstream t(argument);
-            if(!(t >> const_cast<Int&>(_timeout)) || !t.eof() || _timeout < 1)
+            if(argument.empty())
             {
-                throw EndpointParseException(__FILE__, __LINE__, "invalid timeout value `" + argument +
-                                             "' in endpoint " + endpoint);
+                throw EndpointParseException(__FILE__, __LINE__,
+                                             "no argument provided for -t option in endpoint " + endpoint);
             }
-        }
-        return true;
-    }
 
-    case 'z':
-    {
-        if(!argument.empty())
+            if(argument == "infinite")
+            {
+                const_cast<Int&>(_timeout) = -1;
+            }
+            else
+            {
+                istringstream t(argument);
+                if(!(t >> const_cast<Int&>(_timeout)) || !t.eof() || _timeout < 1)
+                {
+                    throw EndpointParseException(__FILE__, __LINE__,
+                                                 "invalid timeout value `" + argument + "' in endpoint " + endpoint);
+                }
+            }
+            return true;
+        }
+
+        case 'z':
         {
-            throw EndpointParseException(__FILE__, __LINE__, "unexpected argument `" + argument +
-                                         "' provided for -z option in " + endpoint);
+            if(!argument.empty())
+            {
+                throw EndpointParseException(
+                    __FILE__, __LINE__, "unexpected argument `" + argument + "' provided for -z option in " + endpoint);
+            }
+            const_cast<bool&>(_compress) = true;
+            return true;
         }
-        const_cast<bool&>(_compress) = true;
-        return true;
-    }
 
-    default:
-    {
-        return false;
-    }
+        default:
+        {
+            return false;
+        }
     }
 }
 
-ConnectorPtr
-IceInternal::TcpEndpointI::createConnector(const Address& address, const NetworkProxyPtr& proxy) const
+ConnectorPtr IceInternal::TcpEndpointI::createConnector(const Address& address, const NetworkProxyPtr& proxy) const
 {
     return new TcpConnector(_instance, address, proxy, _sourceAddr, _timeout, _connectionId);
 }
 
-IPEndpointIPtr
-IceInternal::TcpEndpointI::createEndpoint(const string& host, int port, const string& connectionId) const
+IPEndpointIPtr IceInternal::TcpEndpointI::createEndpoint(const string& host, int port, const string& connectionId) const
 {
     return ICE_MAKE_SHARED(TcpEndpointI, _instance, host, port, _sourceAddr, _timeout, connectionId, _compress);
 }
@@ -346,40 +332,34 @@ IceInternal::TcpEndpointFactory::~TcpEndpointFactory()
 {
 }
 
-Short
-IceInternal::TcpEndpointFactory::type() const
+Short IceInternal::TcpEndpointFactory::type() const
 {
     return _instance->type();
 }
 
-string
-IceInternal::TcpEndpointFactory::protocol() const
+string IceInternal::TcpEndpointFactory::protocol() const
 {
     return _instance->protocol();
 }
 
-EndpointIPtr
-IceInternal::TcpEndpointFactory::create(vector<string>& args, bool oaEndpoint) const
+EndpointIPtr IceInternal::TcpEndpointFactory::create(vector<string>& args, bool oaEndpoint) const
 {
     IPEndpointIPtr endpt = ICE_MAKE_SHARED(TcpEndpointI, _instance);
     endpt->initWithOptions(args, oaEndpoint);
     return endpt;
 }
 
-EndpointIPtr
-IceInternal::TcpEndpointFactory::read(InputStream* s) const
+EndpointIPtr IceInternal::TcpEndpointFactory::read(InputStream* s) const
 {
     return ICE_MAKE_SHARED(TcpEndpointI, _instance, s);
 }
 
-void
-IceInternal::TcpEndpointFactory::destroy()
+void IceInternal::TcpEndpointFactory::destroy()
 {
     _instance = 0;
 }
 
-EndpointFactoryPtr
-IceInternal::TcpEndpointFactory::clone(const ProtocolInstancePtr& instance) const
+EndpointFactoryPtr IceInternal::TcpEndpointFactory::clone(const ProtocolInstancePtr& instance) const
 {
     return new TcpEndpointFactory(instance);
 }

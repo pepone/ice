@@ -22,9 +22,7 @@
 class DispatcherCall
 {
 public:
-
-    DispatcherCall(std::function<void()> call) :
-        _call(std::move(call))
+    DispatcherCall(std::function<void()> call) : _call(std::move(call))
     {
     }
 
@@ -34,7 +32,6 @@ public:
     }
 
 private:
-
     std::function<void()> _call;
 };
 #endif
@@ -43,10 +40,10 @@ class Dispatcher :
 #ifndef ICE_CPP11_MAPPING
     public Ice::Dispatcher,
 #endif
-public IceUtil::Thread, public IceUtil::Monitor<IceUtil::Mutex>
+    public IceUtil::Thread,
+    public IceUtil::Monitor<IceUtil::Mutex>
 {
 public:
-
     Dispatcher();
 
 #ifdef ICE_CPP11_MAPPING
@@ -61,7 +58,6 @@ public:
     static bool isDispatcherThread();
 
 private:
-
     static IceUtil::Handle<Dispatcher> _instance;
 #ifdef ICE_CPP11_MAPPING
     std::deque<std::shared_ptr<DispatcherCall>> _calls;

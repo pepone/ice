@@ -14,8 +14,7 @@
 using namespace std;
 using namespace Test;
 
-InitialPrxPtr
-allTests(const Ice::CommunicatorPtr& communicator)
+InitialPrxPtr allTests(const Ice::CommunicatorPtr& communicator)
 {
     cout << "testing stringToProxy... " << flush;
     string ref = "initial:" + getTestEndpoint(communicator, 0);

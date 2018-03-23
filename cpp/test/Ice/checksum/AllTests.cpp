@@ -13,8 +13,7 @@
 
 using namespace std;
 
-Test::ChecksumPrxPtr
-allTests(const Ice::CommunicatorPtr& communicator, bool)
+Test::ChecksumPrxPtr allTests(const Ice::CommunicatorPtr& communicator, bool)
 {
     string ref = "test:" + getTestEndpoint(communicator, 0);
     Ice::ObjectPrxPtr base = communicator->stringToProxy(ref);

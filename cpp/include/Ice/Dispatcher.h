@@ -16,57 +16,54 @@
 // with the C++11 mapping
 //
 
-#include <Ice/Config.h>
-#include <IceUtil/Shared.h>
-#include <IceUtil/Handle.h>
-#include <Ice/ConnectionF.h>
+#    include <Ice/Config.h>
+#    include <IceUtil/Shared.h>
+#    include <IceUtil/Handle.h>
+#    include <Ice/ConnectionF.h>
 
 namespace Ice
 {
+    /**
+     * Encapsulates all the details of a request dispatch or AMI callback.
+     * The application must eventually invoke run to dispatch the call.
+     * \headerfile Ice/Ice.h
+     */
+    class ICE_API DispatcherCall : public virtual IceUtil::Shared
+    {
+    public:
+        virtual ~DispatcherCall();
 
-/**
- * Encapsulates all the details of a request dispatch or AMI callback.
- * The application must eventually invoke run to dispatch the call.
- * \headerfile Ice/Ice.h
- */
-class ICE_API DispatcherCall : public virtual IceUtil::Shared
-{
-public:
+        /**
+         * Dispatches the call.
+         */
+        virtual void run() = 0;
+    };
 
-    virtual ~DispatcherCall();
+    typedef IceUtil::Handle<DispatcherCall> DispatcherCallPtr;
 
     /**
-     * Dispatches the call.
+     * Base class for a dispatcher. A subclass must define the dispatch method.
+     * The dispatcher can be installed via InitializationData.
+     * \headerfile Ice/Ice.h
      */
-    virtual void run() = 0;
-};
+    class ICE_API Dispatcher : public virtual IceUtil::Shared
+    {
+    public:
+        virtual ~Dispatcher();
 
-typedef IceUtil::Handle<DispatcherCall> DispatcherCallPtr;
+        /**
+         * Called by the Ice run time when an incoming request or an AMI callback needs to
+         * be dispatched. The implementation must eventually invoke run on the call object.
+         * @param call An object representing the call that must be dispatched.
+         * @param connection The connection object associated with the call, or nil if no
+         * connection is associated with the call.
+         */
+        virtual void dispatch(const DispatcherCallPtr& call, const ConnectionPtr& connection) = 0;
+    };
 
-/**
- * Base class for a dispatcher. A subclass must define the dispatch method.
- * The dispatcher can be installed via InitializationData.
- * \headerfile Ice/Ice.h
- */
-class ICE_API Dispatcher : public virtual IceUtil::Shared
-{
-public:
+    typedef IceUtil::Handle<Dispatcher> DispatcherPtr;
 
-    virtual ~Dispatcher();
-
-    /**
-     * Called by the Ice run time when an incoming request or an AMI callback needs to
-     * be dispatched. The implementation must eventually invoke run on the call object.
-     * @param call An object representing the call that must be dispatched.
-     * @param connection The connection object associated with the call, or nil if no
-     * connection is associated with the call.
-     */
-    virtual void dispatch(const DispatcherCallPtr& call, const ConnectionPtr& connection) = 0;
-};
-
-typedef IceUtil::Handle<Dispatcher> DispatcherPtr;
-
-}
+} // namespace Ice
 
 #endif
 #endif

@@ -20,10 +20,7 @@ static const string mutexTestName("mutex");
 class MutexTestThread : public Thread
 {
 public:
-
-    MutexTestThread(Mutex& m) :
-        _mutex(m),
-        _tryLock(false)
+    MutexTestThread(Mutex& m) : _mutex(m), _tryLock(false)
     {
     }
 
@@ -41,8 +38,7 @@ public:
         Mutex::Lock lock(_mutex);
     }
 
-    void
-    waitTryLock()
+    void waitTryLock()
     {
         Mutex::Lock lock(_tryLockMutex);
         while(!_tryLock)
@@ -52,7 +48,6 @@ public:
     }
 
 private:
-
     Mutex& _mutex;
     bool _tryLock;
     //
@@ -64,13 +59,11 @@ private:
 
 typedef Handle<MutexTestThread> MutexTestThreadPtr;
 
-MutexTest::MutexTest() :
-    TestBase(mutexTestName)
+MutexTest::MutexTest() : TestBase(mutexTestName)
 {
 }
 
-void
-MutexTest::run()
+void MutexTest::run()
 {
     Mutex mutex;
     MutexTestThreadPtr t;

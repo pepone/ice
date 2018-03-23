@@ -12,8 +12,7 @@
 
 using namespace std;
 
-string
-IceInternal::Base64::encode(const vector<unsigned char>& plainSeq)
+string IceInternal::Base64::encode(const vector<unsigned char>& plainSeq)
 {
     string retval;
 
@@ -45,12 +44,12 @@ IceInternal::Base64::encode(const vector<unsigned char>& plainSeq)
 
         if((i + 1) < plainSeq.size())
         {
-            by2 = plainSeq[i+1];
+            by2 = plainSeq[i + 1];
         }
 
         if((i + 2) < plainSeq.size())
         {
-            by3 = plainSeq[i+2];
+            by3 = plainSeq[i + 2];
         }
 
         by4 = by1 >> 2;
@@ -86,7 +85,7 @@ IceInternal::Base64::encode(const vector<unsigned char>& plainSeq)
 
     while((retval.end() - iter) > 76)
     {
-        copy(iter, iter+76, back_inserter(outString));
+        copy(iter, iter + 76, back_inserter(outString));
         outString += "\r\n";
         iter += 76;
     }
@@ -96,8 +95,7 @@ IceInternal::Base64::encode(const vector<unsigned char>& plainSeq)
     return outString;
 }
 
-vector<unsigned char>
-IceInternal::Base64::decode(const string& str)
+vector<unsigned char> IceInternal::Base64::decode(const string& str)
 {
     string newStr;
 
@@ -180,8 +178,7 @@ IceInternal::Base64::decode(const string& str)
     return retval;
 }
 
-bool
-IceInternal::Base64::isBase64(char c)
+bool IceInternal::Base64::isBase64(char c)
 {
     if(c >= 'A' && c <= 'Z')
     {
@@ -216,8 +213,7 @@ IceInternal::Base64::isBase64(char c)
     return false;
 }
 
-char
-IceInternal::Base64::encode(unsigned char uc)
+char IceInternal::Base64::encode(unsigned char uc)
 {
     if(uc < 26)
     {
@@ -242,8 +238,7 @@ IceInternal::Base64::encode(unsigned char uc)
     return '/';
 }
 
-unsigned char
-IceInternal::Base64::decode(char c)
+unsigned char IceInternal::Base64::decode(char c)
 {
     if(c >= 'A' && c <= 'Z')
     {

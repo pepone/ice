@@ -15,14 +15,12 @@
 
 using namespace std;
 
-void
-TestIntfI::op(const Ice::Current&)
+void TestIntfI::op(const Ice::Current&)
 {
     test(Dispatcher::isDispatcherThread());
 }
 
-void
-TestIntfI::sleep(Ice::Int to, const Ice::Current&)
+void TestIntfI::sleep(Ice::Int to, const Ice::Current&)
 {
     IceUtil::ThreadControl::sleep(IceUtil::Time::milliSeconds(to));
 }
@@ -37,22 +35,19 @@ TestIntfI::opWithPayload(const Ice::ByteSeq&, const Ice::Current&)
     test(Dispatcher::isDispatcherThread());
 }
 
-void
-TestIntfI::shutdown(const Ice::Current& current)
+void TestIntfI::shutdown(const Ice::Current& current)
 {
     test(Dispatcher::isDispatcherThread());
     current.adapter->getCommunicator()->shutdown();
 }
 
-void
-TestIntfControllerI::holdAdapter(const Ice::Current&)
+void TestIntfControllerI::holdAdapter(const Ice::Current&)
 {
     test(Dispatcher::isDispatcherThread());
     _adapter->hold();
 }
 
-void
-TestIntfControllerI::resumeAdapter(const Ice::Current&)
+void TestIntfControllerI::resumeAdapter(const Ice::Current&)
 {
     test(Dispatcher::isDispatcherThread());
     _adapter->activate();

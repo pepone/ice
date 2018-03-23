@@ -15,8 +15,7 @@
 using namespace std;
 using namespace Test;
 
-int
-run(int argc, char* argv[], const Ice::CommunicatorPtr& communicator)
+int run(int argc, char* argv[], const Ice::CommunicatorPtr& communicator)
 {
     bool withDeploy = false;
 
@@ -43,8 +42,7 @@ run(int argc, char* argv[], const Ice::CommunicatorPtr& communicator)
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
 #ifdef ICE_STATIC_LIBS
     Ice::registerIceSSL(false);

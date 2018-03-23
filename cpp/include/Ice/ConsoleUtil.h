@@ -14,15 +14,14 @@
 
 namespace IceInternal
 {
-
-using IceUtilInternal::consoleOut;
-using IceUtilInternal::consoleErr;
+    using IceUtilInternal::consoleErr;
+    using IceUtilInternal::consoleOut;
 
 #if defined(_WIN32) && !defined(ICE_OS_UWP)
-using IceUtilInternal::endl;
-using IceUtilInternal::flush;
+    using IceUtilInternal::endl;
+    using IceUtilInternal::flush;
 #endif
 
-}
+} // namespace IceInternal
 
 #endif

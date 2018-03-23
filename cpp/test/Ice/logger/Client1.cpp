@@ -15,22 +15,19 @@ using namespace std;
 
 namespace
 {
-
-class Client : public Ice::Application
-{
-public:
-    virtual int
-    run(int, char*[])
+    class Client : public Ice::Application
     {
-        communicator()->getLogger()->trace("info", "XXX");
-        return EXIT_SUCCESS;
+    public:
+        virtual int run(int, char* [])
+        {
+            communicator()->getLogger()->trace("info", "XXX");
+            return EXIT_SUCCESS;
+        };
     };
-};
 
-}
+} // namespace
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
 #ifdef ICE_STATIC_LIBS
     Ice::registerIceSSL(false);

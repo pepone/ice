@@ -16,38 +16,33 @@ using namespace Slice;
 
 namespace Slice
 {
+    class ChecksumVisitor : public ParserVisitor
+    {
+    public:
+        ChecksumVisitor(ChecksumMap&);
 
-class ChecksumVisitor : public ParserVisitor
-{
-public:
+        virtual bool visitClassDefStart(const ClassDefPtr&);
+        virtual bool visitExceptionStart(const ExceptionPtr&);
+        virtual bool visitStructStart(const StructPtr&);
+        virtual void visitSequence(const SequencePtr&);
+        virtual void visitDictionary(const DictionaryPtr&);
+        virtual void visitEnum(const EnumPtr&);
+        virtual void visitConst(const ConstPtr&);
 
-    ChecksumVisitor(ChecksumMap&);
+    private:
+        string typeToString(const TypePtr&);
+        void updateMap(const string&, const string&);
 
-    virtual bool visitClassDefStart(const ClassDefPtr&);
-    virtual bool visitExceptionStart(const ExceptionPtr&);
-    virtual bool visitStructStart(const StructPtr&);
-    virtual void visitSequence(const SequencePtr&);
-    virtual void visitDictionary(const DictionaryPtr&);
-    virtual void visitEnum(const EnumPtr&);
-    virtual void visitConst(const ConstPtr&);
+        ChecksumMap& _map;
+    };
 
-private:
+} // namespace Slice
 
-    string typeToString(const TypePtr&);
-    void updateMap(const string&, const string&);
-
-    ChecksumMap& _map;
-};
-
-}
-
-Slice::ChecksumVisitor::ChecksumVisitor(ChecksumMap& m) :
-    _map(m)
+Slice::ChecksumVisitor::ChecksumVisitor(ChecksumMap& m) : _map(m)
 {
 }
 
-bool
-Slice::ChecksumVisitor::visitClassDefStart(const ClassDefPtr& p)
+bool Slice::ChecksumVisitor::visitClassDefStart(const ClassDefPtr& p)
 {
     if(p->isLocal())
     {
@@ -226,8 +221,7 @@ Slice::ChecksumVisitor::visitClassDefStart(const ClassDefPtr& p)
     return false;
 }
 
-bool
-Slice::ChecksumVisitor::visitExceptionStart(const ExceptionPtr& p)
+bool Slice::ChecksumVisitor::visitExceptionStart(const ExceptionPtr& p)
 {
     if(p->isLocal())
     {
@@ -285,8 +279,7 @@ Slice::ChecksumVisitor::visitExceptionStart(const ExceptionPtr& p)
     return false;
 }
 
-bool
-Slice::ChecksumVisitor::visitStructStart(const StructPtr& p)
+bool Slice::ChecksumVisitor::visitStructStart(const StructPtr& p)
 {
     if(p->isLocal())
     {
@@ -308,8 +301,7 @@ Slice::ChecksumVisitor::visitStructStart(const StructPtr& p)
     return false;
 }
 
-void
-Slice::ChecksumVisitor::visitSequence(const SequencePtr& p)
+void Slice::ChecksumVisitor::visitSequence(const SequencePtr& p)
 {
     if(p->isLocal())
     {
@@ -321,8 +313,7 @@ Slice::ChecksumVisitor::visitSequence(const SequencePtr& p)
     updateMap(p->scoped(), ostr.str());
 }
 
-void
-Slice::ChecksumVisitor::visitDictionary(const DictionaryPtr& p)
+void Slice::ChecksumVisitor::visitDictionary(const DictionaryPtr& p)
 {
     if(p->isLocal())
     {
@@ -335,8 +326,7 @@ Slice::ChecksumVisitor::visitDictionary(const DictionaryPtr& p)
     updateMap(p->scoped(), ostr.str());
 }
 
-void
-Slice::ChecksumVisitor::visitEnum(const EnumPtr& p)
+void Slice::ChecksumVisitor::visitEnum(const EnumPtr& p)
 {
     if(p->isLocal())
     {
@@ -382,31 +372,17 @@ Slice::ChecksumVisitor::visitEnum(const EnumPtr& p)
     updateMap(p->scoped(), ostr.str());
 }
 
-void
-Slice::ChecksumVisitor::visitConst(const ConstPtr& p)
+void Slice::ChecksumVisitor::visitConst(const ConstPtr& p)
 {
     ostringstream ostr;
     ostr << "const " << typeToString(p->type()) << ' ' << p->name() << " = " << p->value() << endl;
     updateMap(p->scoped(), ostr.str());
 }
 
-string
-Slice::ChecksumVisitor::typeToString(const TypePtr& type)
+string Slice::ChecksumVisitor::typeToString(const TypePtr& type)
 {
-    static const char* builtinTable[] =
-    {
-        "byte",
-        "boolean",
-        "short",
-        "int",
-        "long",
-        "float",
-        "double",
-        "string",
-        "Object",
-        "Object*",
-        "LocalObject"
-    };
+    static const char* builtinTable[] = {"byte",   "boolean", "short",  "int",     "long",       "float",
+                                         "double", "string",  "Object", "Object*", "LocalObject"};
 
     if(!type)
     {
@@ -430,8 +406,7 @@ Slice::ChecksumVisitor::typeToString(const TypePtr& type)
     return cont->scoped();
 }
 
-void
-Slice::ChecksumVisitor::updateMap(const string& scoped, const string& data)
+void Slice::ChecksumVisitor::updateMap(const string& scoped, const string& data)
 {
     MD5 md5(reinterpret_cast<const unsigned char*>(data.c_str()), static_cast<int>(data.size()));
     vector<unsigned char> bytes;
@@ -440,8 +415,7 @@ Slice::ChecksumVisitor::updateMap(const string& scoped, const string& data)
     _map.insert(ChecksumMap::value_type(scoped, bytes));
 }
 
-Slice::ChecksumMap
-Slice::createChecksums(const UnitPtr& u)
+Slice::ChecksumMap Slice::createChecksums(const UnitPtr& u)
 {
     ChecksumMap result;
 

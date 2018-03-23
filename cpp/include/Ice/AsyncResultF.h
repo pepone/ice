@@ -12,17 +12,16 @@
 
 #ifndef ICE_CPP11_MAPPING
 
-#include <IceUtil/Shared.h>
-#include <Ice/Handle.h>
+#    include <IceUtil/Shared.h>
+#    include <Ice/Handle.h>
 
 namespace Ice
 {
+    class AsyncResult;
+    ICE_API IceUtil::Shared* upCast(::Ice::AsyncResult*);
+    typedef IceInternal::Handle<AsyncResult> AsyncResultPtr;
 
-class AsyncResult;
-ICE_API IceUtil::Shared* upCast(::Ice::AsyncResult*);
-typedef IceInternal::Handle<AsyncResult> AsyncResultPtr;
-
-}
+} // namespace Ice
 
 #endif
 #endif

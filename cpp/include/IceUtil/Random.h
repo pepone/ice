@@ -15,10 +15,9 @@
 
 namespace IceUtilInternal
 {
+    ICE_API void generateRandom(char*, size_t);
+    ICE_API unsigned int random(int = 0);
 
-ICE_API void generateRandom(char*, size_t);
-ICE_API unsigned int random(int = 0);
-
-}
+} // namespace IceUtilInternal
 
 #endif

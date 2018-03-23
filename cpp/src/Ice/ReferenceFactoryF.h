@@ -14,11 +14,10 @@
 
 namespace IceInternal
 {
+    class ReferenceFactory;
+    IceUtil::Shared* upCast(ReferenceFactory*);
+    typedef Handle<ReferenceFactory> ReferenceFactoryPtr;
 
-class ReferenceFactory;
-IceUtil::Shared* upCast(ReferenceFactory*);
-typedef Handle<ReferenceFactory> ReferenceFactoryPtr;
-
-}
+} // namespace IceInternal
 
 #endif

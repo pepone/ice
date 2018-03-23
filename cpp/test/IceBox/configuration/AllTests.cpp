@@ -14,8 +14,7 @@
 using namespace std;
 using namespace Test;
 
-void
-allTests(const Ice::CommunicatorPtr& com)
+void allTests(const Ice::CommunicatorPtr& com)
 {
     TestIntfPrxPtr service1 = ICE_UNCHECKED_CAST(TestIntfPrx, com->stringToProxy("test:" + getTestEndpoint(com, 0)));
     TestIntfPrxPtr service2 = ICE_UNCHECKED_CAST(TestIntfPrx, com->stringToProxy("test:" + getTestEndpoint(com, 1)));

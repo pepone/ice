@@ -17,33 +17,31 @@
 
 namespace IceStorm
 {
+    class TraceLevels : public IceUtil::Shared
+    {
+    public:
+        TraceLevels(const ::std::string name, const Ice::PropertiesPtr&, const Ice::LoggerPtr&);
+        virtual ~TraceLevels();
 
-class TraceLevels : public IceUtil::Shared
-{
-public:
+        const int topicMgr;
+        const char* topicMgrCat;
 
-    TraceLevels(const ::std::string name, const Ice::PropertiesPtr&, const Ice::LoggerPtr&);
-    virtual ~TraceLevels();
+        const int topic;
+        const char* topicCat;
 
-    const int topicMgr;
-    const char* topicMgrCat;
+        const int subscriber;
+        const char* subscriberCat;
 
-    const int topic;
-    const char* topicCat;
+        const int election;
+        const char* electionCat;
 
-    const int subscriber;
-    const char* subscriberCat;
+        const int replication;
+        const char* replicationCat;
 
-    const int election;
-    const char* electionCat;
+        const Ice::LoggerPtr logger;
+    };
 
-    const int replication;
-    const char* replicationCat;
-
-    const Ice::LoggerPtr logger;
-};
-
-typedef IceUtil::Handle<TraceLevels> TraceLevelsPtr;
+    typedef IceUtil::Handle<TraceLevels> TraceLevelsPtr;
 
 } // End namespace IceStorm
 

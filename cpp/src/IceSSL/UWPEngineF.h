@@ -16,16 +16,14 @@
 
 namespace IceSSL
 {
+    namespace UWP
+    {
+        class SSLEngine;
+        ICESSL_API IceUtil::Shared* upCast(SSLEngine*);
+        typedef IceInternal::Handle<SSLEngine> SSLEnginePtr;
 
-namespace UWP
-{
+    } // namespace UWP
 
-class SSLEngine;
-ICESSL_API IceUtil::Shared* upCast(SSLEngine*);
-typedef IceInternal::Handle<SSLEngine> SSLEnginePtr;
-
-}
-
-}
+} // namespace IceSSL
 
 #endif

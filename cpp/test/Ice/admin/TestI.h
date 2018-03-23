@@ -21,7 +21,6 @@ class RemoteCommunicatorI : public virtual Test::RemoteCommunicator,
                             public IceUtil::Monitor<IceUtil::Mutex>
 {
 public:
-
     RemoteCommunicatorI(const Ice::CommunicatorPtr&);
 
     virtual Ice::ObjectPrxPtr getAdmin(const Ice::Current&);
@@ -42,7 +41,6 @@ public:
     virtual void updated(const Ice::PropertyDict&);
 
 private:
-
     Ice::CommunicatorPtr _communicator;
     Ice::PropertyDict _changes;
 
@@ -57,7 +55,6 @@ ICE_DEFINE_PTR(RemoteCommunicatorIPtr, RemoteCommunicatorI);
 class RemoteCommunicatorFactoryI : public Test::RemoteCommunicatorFactory
 {
 public:
-
     virtual Test::RemoteCommunicatorPrxPtr createCommunicator(ICE_IN(Ice::PropertyDict), const Ice::Current&);
     virtual void shutdown(const Ice::Current&);
 };
@@ -65,7 +62,6 @@ public:
 class TestFacetI : public Test::TestFacet
 {
 public:
-
     virtual void op(const Ice::Current&)
     {
     }

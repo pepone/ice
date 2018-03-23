@@ -15,7 +15,6 @@
 class RetryI : public Test::Retry
 {
 public:
-
     RetryI();
 
     virtual void op(bool, const Ice::Current&);
@@ -25,7 +24,6 @@ public:
     virtual void shutdown(const Ice::Current&);
 
 private:
-
     int _counter;
 };
 

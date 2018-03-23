@@ -17,32 +17,29 @@
 
 namespace IceInternal
 {
+    class WSEndpoint;
 
-class WSEndpoint;
+    class WSConnector : public Connector
+    {
+    public:
+        virtual TransceiverPtr connect();
 
-class WSConnector : public Connector
-{
-public:
+        virtual Ice::Short type() const;
+        virtual std::string toString() const;
 
-    virtual TransceiverPtr connect();
+        virtual bool operator==(const Connector&) const;
+        virtual bool operator<(const Connector&) const;
 
-    virtual Ice::Short type() const;
-    virtual std::string toString() const;
+        WSConnector(const ProtocolInstancePtr&, const ConnectorPtr&, const std::string&, const std::string&);
+        virtual ~WSConnector();
 
-    virtual bool operator==(const Connector&) const;
-    virtual bool operator<(const Connector&) const;
+    private:
+        const ProtocolInstancePtr _instance;
+        const ConnectorPtr _delegate;
+        const std::string _host;
+        const std::string _resource;
+    };
 
-    WSConnector(const ProtocolInstancePtr&, const ConnectorPtr&, const std::string&, const std::string&);
-    virtual ~WSConnector();
-
-private:
-
-    const ProtocolInstancePtr _instance;
-    const ConnectorPtr _delegate;
-    const std::string _host;
-    const std::string _resource;
-};
-
-}
+} // namespace IceInternal
 
 #endif

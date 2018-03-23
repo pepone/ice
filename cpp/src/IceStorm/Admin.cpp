@@ -13,9 +13,9 @@
 #include <Ice/SliceChecksums.h>
 #include <IceStorm/Parser.h>
 
-#ifdef  _WIN32
-#   include <fcntl.h>
-#   include <io.h>
+#ifdef _WIN32
+#    include <fcntl.h>
+#    include <io.h>
 #endif
 
 using namespace std;
@@ -26,15 +26,13 @@ using namespace IceStorm;
 class Client : public Ice::Application
 {
 public:
-
     void usage();
-    virtual int run(int, char*[]);
+    virtual int run(int, char* []);
 };
 
 #ifdef _WIN32
 
-int
-wmain(int argc, wchar_t* argv[])
+int wmain(int argc, wchar_t* argv[])
 {
     //
     // Enable binary input mode for stdin to avoid automatic conversions.
@@ -42,8 +40,7 @@ wmain(int argc, wchar_t* argv[])
     _setmode(_fileno(stdin), _O_BINARY);
 #else
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
 #endif
     Client app;
@@ -55,21 +52,17 @@ main(int argc, char* argv[])
     return rc;
 }
 
-void
-Client::usage()
+void Client::usage()
 {
     consoleErr << "Usage: " << appName() << " [options]\n";
-    consoleErr <<
-        "Options:\n"
-        "-h, --help           Show this message.\n"
-        "-v, --version        Display the Ice version.\n"
-        "-e COMMANDS          Execute COMMANDS.\n"
-        "-d, --debug          Print debug messages.\n"
-        ;
+    consoleErr << "Options:\n"
+                  "-h, --help           Show this message.\n"
+                  "-v, --version        Display the Ice version.\n"
+                  "-e COMMANDS          Execute COMMANDS.\n"
+                  "-d, --debug          Print debug messages.\n";
 }
 
-int
-Client::run(int argc, char* argv[])
+int Client::run(int argc, char* argv[])
 {
     string commands;
     bool debug;
@@ -134,10 +127,10 @@ Client::run(int argc, char* argv[])
             {
                 try
                 {
-                    IceStorm::TopicManagerPrx manager = IceStorm::TopicManagerPrx::uncheckedCast(
-                        communicator()->propertyToProxy(p->first));
-                    managers.insert(map<Ice::Identity, IceStorm::TopicManagerPrx>::value_type(
-                                        manager->ice_getIdentity(), manager));
+                    IceStorm::TopicManagerPrx manager =
+                        IceStorm::TopicManagerPrx::uncheckedCast(communicator()->propertyToProxy(p->first));
+                    managers.insert(
+                        map<Ice::Identity, IceStorm::TopicManagerPrx>::value_type(manager->ice_getIdentity(), manager));
                 }
                 catch(const Ice::ProxyParseException&)
                 {
@@ -150,8 +143,7 @@ Client::run(int argc, char* argv[])
         string managerProxy = properties->getProperty("IceStormAdmin.TopicManager.Default");
         if(!managerProxy.empty())
         {
-            defaultManager = IceStorm::TopicManagerPrx::uncheckedCast(
-                communicator()->stringToProxy(managerProxy));
+            defaultManager = IceStorm::TopicManagerPrx::uncheckedCast(communicator()->stringToProxy(managerProxy));
         }
         else if(!managers.empty())
         {

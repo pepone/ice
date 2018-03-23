@@ -15,7 +15,6 @@
 class ServerI : public Test::Server
 {
 public:
-
     ServerI(const Ice::CommunicatorPtr&);
 
     virtual void noCert(const Ice::Current&);
@@ -25,7 +24,6 @@ public:
     void destroy();
 
 private:
-
     Ice::CommunicatorPtr _communicator;
 };
 ICE_DEFINE_PTR(ServerIPtr, ServerI);
@@ -33,7 +31,6 @@ ICE_DEFINE_PTR(ServerIPtr, ServerI);
 class ServerFactoryI : public Test::ServerFactory
 {
 public:
-
     ServerFactoryI(const std::string&);
 
     virtual Test::ServerPrxPtr createServer(ICE_IN(Test::Properties), const Ice::Current&);
@@ -41,7 +38,6 @@ public:
     virtual void shutdown(const Ice::Current&);
 
 private:
-
     std::string _defaultDir;
     std::map<Ice::Identity, ServerIPtr> _servers;
 };

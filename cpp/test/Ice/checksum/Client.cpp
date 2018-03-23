@@ -15,8 +15,7 @@ using namespace std;
 
 DEFINE_TEST("client")
 
-int
-run(int, char**, const Ice::CommunicatorPtr& communicator)
+int run(int, char**, const Ice::CommunicatorPtr& communicator)
 {
     Test::ChecksumPrxPtr allTests(const Ice::CommunicatorPtr&, bool);
     Test::ChecksumPrxPtr checksum = allTests(communicator, false);
@@ -24,8 +23,7 @@ run(int, char**, const Ice::CommunicatorPtr& communicator)
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
 #ifdef ICE_STATIC_LIBS
     Ice::registerIceSSL(false);

@@ -15,11 +15,9 @@
 class SleepTest : public TestBase
 {
 public:
-
     SleepTest();
 
 private:
-
     virtual void run();
 };
 

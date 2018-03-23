@@ -18,27 +18,25 @@ using namespace IceSSL;
 
 namespace
 {
+    //
+    // See RFC 2253 and RFC 1779.
+    //
 
-//
-// See RFC 2253 and RFC 1779.
-//
+    string special = ",=+<>#;";
+    string hexvalid = "0123456789abcdefABCDEF";
 
-string special = ",=+<>#;";
-string hexvalid = "0123456789abcdefABCDEF";
-
-}
+} // namespace
 
 static char unescapeHex(const string&, size_t);
-static pair<string,string> parseNameComponent(const string&, size_t&);
-static pair<string,string> parseAttributeTypeAndValue(const string&, size_t&);
+static pair<string, string> parseNameComponent(const string&, size_t&);
+static pair<string, string> parseAttributeTypeAndValue(const string&, size_t&);
 static string parseAttributeType(const string&, size_t&);
 static string parseAttributeValue(const string&, size_t&);
 static string parsePair(const string&, size_t&);
 static string parseHexPair(const string&, size_t&, bool);
 static void eatWhite(const string&, size_t&);
 
-RFC2253::RDNEntrySeq
-RFC2253::parse(const string& data)
+RFC2253::RDNEntrySeq RFC2253::parse(const string& data)
 {
     RDNEntrySeq results;
     RDNEntry current;
@@ -82,8 +80,7 @@ RFC2253::parse(const string& data)
     return results;
 }
 
-RFC2253::RDNSeq
-RFC2253::parseStrict(const string& data)
+RFC2253::RDNSeq RFC2253::parseStrict(const string& data)
 {
     RDNSeq results;
     size_t pos = 0;
@@ -103,8 +100,7 @@ RFC2253::parseStrict(const string& data)
     return results;
 }
 
-string
-RFC2253::unescape(const string& data)
+string RFC2253::unescape(const string& data)
 {
     if(data.size() == 0)
     {
@@ -171,8 +167,7 @@ RFC2253::unescape(const string& data)
     return result;
 }
 
-static int
-hexToInt(char v)
+static int hexToInt(char v)
 {
     if(v >= '0' && v <= '9')
     {
@@ -190,8 +185,7 @@ hexToInt(char v)
     return 0; // To satisfy the compiler.
 }
 
-static char
-unescapeHex(const string& data, size_t pos)
+static char unescapeHex(const string& data, size_t pos)
 {
     assert(pos < data.size());
     if(pos + 2 >= data.size())
@@ -201,8 +195,7 @@ unescapeHex(const string& data, size_t pos)
     return static_cast<char>(hexToInt(data[pos]) * 16 + hexToInt(data[pos + 1]));
 }
 
-static pair<string,string>
-parseNameComponent(const string& data, size_t& pos)
+static pair<string, string> parseNameComponent(const string& data, size_t& pos)
 {
     pair<string, string> final = parseAttributeTypeAndValue(data, pos);
     while(pos < data.size())
@@ -225,8 +218,7 @@ parseNameComponent(const string& data, size_t& pos)
     return final;
 }
 
-static pair<string,string>
-parseAttributeTypeAndValue(const string& data, size_t& pos)
+static pair<string, string> parseAttributeTypeAndValue(const string& data, size_t& pos)
 {
     pair<string, string> p;
     p.first = parseAttributeType(data, pos);
@@ -245,8 +237,7 @@ parseAttributeTypeAndValue(const string& data, size_t& pos)
     return p;
 }
 
-static string
-parseAttributeType(const string& data, size_t& pos)
+static string parseAttributeType(const string& data, size_t& pos)
 {
     eatWhite(data, pos);
     if(pos >= data.size())
@@ -332,8 +323,7 @@ parseAttributeType(const string& data, size_t& pos)
     return result;
 }
 
-static string
-parseAttributeValue(const string& data, size_t& pos)
+static string parseAttributeValue(const string& data, size_t& pos)
 {
     eatWhite(data, pos);
     string result;
@@ -426,8 +416,7 @@ parseAttributeValue(const string& data, size_t& pos)
 // RFC2253:
 // pair       = "\" ( special | "\" | QUOTATION | hexpair )
 //
-static string
-parsePair(const string& data, size_t& pos)
+static string parsePair(const string& data, size_t& pos)
 {
     string result;
 
@@ -453,8 +442,7 @@ parsePair(const string& data, size_t& pos)
 // RFC 2253
 // hexpair    = hexchar hexchar
 //
-static string
-parseHexPair(const string& data, size_t& pos, bool allowEmpty)
+static string parseHexPair(const string& data, size_t& pos, bool allowEmpty)
 {
     string result;
     if(pos < data.size() && hexvalid.find(data[pos]) != string::npos)
@@ -486,8 +474,7 @@ parseHexPair(const string& data, size_t& pos, bool allowEmpty)
 // and '+', between attributeType and '=', and between '=' and
 // attributeValue.  These space characters are ignored when parsing.
 //
-static void
-eatWhite(const string& data, size_t& pos)
+static void eatWhite(const string& data, size_t& pos)
 {
     while(pos < data.size() && data[pos] == ' ')
     {

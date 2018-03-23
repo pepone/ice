@@ -10,19 +10,17 @@
 #include <Ice/Ice.h>
 #include <TestCommon.h>
 
-ICE_DECLSPEC_IMPORT void
-allTests(const Ice::ObjectAdapterPtr&);
+ICE_DECLSPEC_IMPORT void allTests(const Ice::ObjectAdapterPtr&);
 
 #if defined(_MSC_VER)
-#   pragma comment(lib, ICE_LIBNAME("alltests"))
+#    pragma comment(lib, ICE_LIBNAME("alltests"))
 #endif
 
 DEFINE_TEST("client")
 
 using namespace std;
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
     try
     {

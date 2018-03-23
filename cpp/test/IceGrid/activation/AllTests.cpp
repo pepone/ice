@@ -16,8 +16,7 @@
 using namespace std;
 using namespace Test;
 
-void
-waitForServerState(const IceGrid::AdminPrx& admin, const std::string& server, IceGrid::ServerState state)
+void waitForServerState(const IceGrid::AdminPrx& admin, const std::string& server, IceGrid::ServerState state)
 {
     int nRetry = 0;
     while(admin->getServerState(server) != state && nRetry < 15)
@@ -36,9 +35,10 @@ waitForServerState(const IceGrid::AdminPrx& admin, const std::string& server, Ic
 class PingThread : public IceUtil::Thread, IceUtil::Monitor<IceUtil::Mutex>
 {
 public:
-
     PingThread(const Ice::ObjectPrx& proxy, int nRepetitions) :
-        _proxy(proxy), _finished(false), _nRepetitions(nRepetitions)
+        _proxy(proxy),
+        _finished(false),
+        _nRepetitions(nRepetitions)
     {
     }
 
@@ -65,8 +65,7 @@ public:
         notifyAll();
     }
 
-    Ice::LocalException*
-    waitUntilFinished()
+    Ice::LocalException* waitUntilFinished()
     {
         Lock sync(*this);
         while(!_finished)
@@ -77,7 +76,6 @@ public:
     }
 
 private:
-
     Ice::ObjectPrx _proxy;
     IceInternal::UniquePtr<Ice::LocalException> _exception;
     bool _finished;
@@ -85,8 +83,7 @@ private:
 };
 typedef IceUtil::Handle<PingThread> PingThreadPtr;
 
-void
-allTests(const Ice::CommunicatorPtr& communicator)
+void allTests(const Ice::CommunicatorPtr& communicator)
 {
     IceGrid::RegistryPrx registry = IceGrid::RegistryPrx::checkedCast(
         communicator->stringToProxy(communicator->getDefaultLocator()->ice_getIdentity().category + "/Registry"));
@@ -97,7 +94,8 @@ allTests(const Ice::CommunicatorPtr& communicator)
 
     IceGrid::AdminSessionPrx session = registry->createAdminSession("foo", "bar");
 
-    session->ice_getConnection()->setACM(registry->getACMTimeout(), IceUtil::None, Ice::ICE_ENUM(ACMHeartbeat, HeartbeatAlways));
+    session->ice_getConnection()->setACM(registry->getACMTimeout(), IceUtil::None,
+                                         Ice::ICE_ENUM(ACMHeartbeat, HeartbeatAlways));
 
     IceGrid::AdminPrx admin = session->getAdmin();
     test(admin);
@@ -410,7 +408,7 @@ allTests(const Ice::CommunicatorPtr& communicator)
         try
         {
             admin->startServer("server-always");
-//          test(false);
+            //          test(false);
         }
         catch(const IceGrid::ServerStartException&)
         {
@@ -652,9 +650,9 @@ allTests(const Ice::CommunicatorPtr& communicator)
         waitForServerState(admin, "server2-always", IceGrid::Inactive);
         test(!admin->isServerEnabled("server2-always"));
         nRetry = 0;
-        while((!admin->isServerEnabled("server2-always") ||
-               admin->getServerState("server2-always") != IceGrid::Active) &&
-              nRetry < 15)
+        while(
+            (!admin->isServerEnabled("server2-always") || admin->getServerState("server2-always") != IceGrid::Active) &&
+            nRetry < 15)
         {
             IceUtil::ThreadControl::sleep(IceUtil::Time::milliSeconds(500));
             ++nRetry;

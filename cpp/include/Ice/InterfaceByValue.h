@@ -18,44 +18,42 @@
 
 namespace Ice
 {
-
-/**
- * Represents an instance of a Slice interface that was marshaled by value.
- * \headerfile Ice/Ice.h
- */
-template<typename T>
-class InterfaceByValue : public ValueHelper<InterfaceByValue<T>, Value>
-{
-public:
     /**
-     * Obtains the Slice type ID of this exception.
-     * @return The fully-scoped type ID.
+     * Represents an instance of a Slice interface that was marshaled by value.
+     * \headerfile Ice/Ice.h
      */
-    virtual std::string ice_id() const
+    template<typename T> class InterfaceByValue : public ValueHelper<InterfaceByValue<T>, Value>
     {
-        return T::ice_staticId();
-    }
+    public:
+        /**
+         * Obtains the Slice type ID of this exception.
+         * @return The fully-scoped type ID.
+         */
+        virtual std::string ice_id() const
+        {
+            return T::ice_staticId();
+        }
 
-    /**
-     * Obtains the Slice type ID of this exception.
-     * @return The fully-scoped type ID.
-     */
-    static const std::string& ice_staticId()
-    {
-        return T::ice_staticId();
-    }
+        /**
+         * Obtains the Slice type ID of this exception.
+         * @return The fully-scoped type ID.
+         */
+        static const std::string& ice_staticId()
+        {
+            return T::ice_staticId();
+        }
 
-    /**
-     * Returns an empty tuple.
-     * @return The empty tuple.
-     */
-    std::tuple<> ice_tuple() const
-    {
-        return std::tie();
-    }
-};
+        /**
+         * Returns an empty tuple.
+         * @return The empty tuple.
+         */
+        std::tuple<> ice_tuple() const
+        {
+            return std::tie();
+        }
+    };
 
-}
+} // namespace Ice
 
 #endif
 

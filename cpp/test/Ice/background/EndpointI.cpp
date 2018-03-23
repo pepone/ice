@@ -8,7 +8,7 @@
 // **********************************************************************
 
 #ifndef TEST_API_EXPORTS
-#   define TEST_API_EXPORTS
+#    define TEST_API_EXPORTS
 #endif
 
 #include <EndpointI.h>
@@ -18,11 +18,11 @@
 
 #ifdef _MSC_VER
 // For 'Ice::Object::ice_getHash': was declared deprecated
-#pragma warning( disable : 4996 )
+#    pragma warning(disable : 4996)
 #endif
 
 #if defined(__GNUC__)
-#   pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#    pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
 using namespace std;
@@ -35,39 +35,33 @@ EndpointI::EndpointI(const IceInternal::EndpointIPtr& endpoint) :
 {
 }
 
-void
-EndpointI::streamWriteImpl(Ice::OutputStream* s) const
+void EndpointI::streamWriteImpl(Ice::OutputStream* s) const
 {
     s->write(_endpoint->type());
     _endpoint->streamWrite(s);
 }
 
-Ice::Short
-EndpointI::type() const
+Ice::Short EndpointI::type() const
 {
     return (Ice::Short)(TYPE_BASE + _endpoint->type());
 }
 
-const std::string&
-EndpointI::protocol() const
+const std::string& EndpointI::protocol() const
 {
     return _endpoint->protocol();
 }
 
-int
-EndpointI::timeout() const
+int EndpointI::timeout() const
 {
     return _endpoint->timeout();
 }
 
-const std::string&
-EndpointI::connectionId() const
+const std::string& EndpointI::connectionId() const
 {
     return _endpoint->connectionId();
 }
 
-IceInternal::EndpointIPtr
-EndpointI::timeout(int timeout) const
+IceInternal::EndpointIPtr EndpointI::timeout(int timeout) const
 {
     IceInternal::EndpointIPtr endpoint = _endpoint->timeout(timeout);
     if(endpoint == _endpoint)
@@ -80,8 +74,7 @@ EndpointI::timeout(int timeout) const
     }
 }
 
-IceInternal::EndpointIPtr
-EndpointI::connectionId(const string& connectionId) const
+IceInternal::EndpointIPtr EndpointI::connectionId(const string& connectionId) const
 {
     IceInternal::EndpointIPtr endpoint = _endpoint->connectionId(connectionId);
     if(endpoint == _endpoint)
@@ -94,14 +87,12 @@ EndpointI::connectionId(const string& connectionId) const
     }
 }
 
-bool
-EndpointI::compress() const
+bool EndpointI::compress() const
 {
     return _endpoint->compress();
 }
 
-IceInternal::EndpointIPtr
-EndpointI::compress(bool compress) const
+IceInternal::EndpointIPtr EndpointI::compress(bool compress) const
 {
     IceInternal::EndpointIPtr endpoint = _endpoint->compress(compress);
     if(endpoint == _endpoint)
@@ -114,20 +105,17 @@ EndpointI::compress(bool compress) const
     }
 }
 
-bool
-EndpointI::datagram() const
+bool EndpointI::datagram() const
 {
     return _endpoint->datagram();
 }
 
-bool
-EndpointI::secure() const
+bool EndpointI::secure() const
 {
     return _endpoint->secure();
 }
 
-IceInternal::TransceiverPtr
-EndpointI::transceiver() const
+IceInternal::TransceiverPtr EndpointI::transceiver() const
 {
     IceInternal::TransceiverPtr transceiver = _endpoint->transceiver();
     if(transceiver)
@@ -140,19 +128,17 @@ EndpointI::transceiver() const
     }
 }
 
-void
-EndpointI::connectors_async(Ice::EndpointSelectionType selType, const IceInternal::EndpointI_connectorsPtr& cb) const
+void EndpointI::connectors_async(Ice::EndpointSelectionType selType,
+                                 const IceInternal::EndpointI_connectorsPtr& cb) const
 {
     class Callback : public IceInternal::EndpointI_connectors
     {
     public:
-
         Callback(const IceInternal::EndpointI_connectorsPtr& callback) : _callback(callback)
         {
         }
 
-        void
-        connectors(const vector<IceInternal::ConnectorPtr>& connectors)
+        void connectors(const vector<IceInternal::ConnectorPtr>& connectors)
         {
             vector<IceInternal::ConnectorPtr> c;
             for(vector<IceInternal::ConnectorPtr>::const_iterator p = connectors.begin(); p != connectors.end(); ++p)
@@ -162,14 +148,12 @@ EndpointI::connectors_async(Ice::EndpointSelectionType selType, const IceInterna
             _callback->connectors(c);
         }
 
-        void
-        exception(const Ice::LocalException& ex)
+        void exception(const Ice::LocalException& ex)
         {
             _callback->exception(ex);
         }
 
     private:
-
         IceInternal::EndpointI_connectorsPtr _callback;
     };
 
@@ -184,8 +168,7 @@ EndpointI::connectors_async(Ice::EndpointSelectionType selType, const IceInterna
     }
 }
 
-IceInternal::AcceptorPtr
-EndpointI::acceptor(const string& adapterName) const
+IceInternal::AcceptorPtr EndpointI::acceptor(const string& adapterName) const
 {
     return new Acceptor(ICE_SHARED_FROM_CONST_THIS(EndpointI), _endpoint->acceptor(adapterName));
 }
@@ -205,8 +188,7 @@ EndpointI::endpoint(const IceInternal::TransceiverPtr& transceiver) const
     }
 }*/
 
-EndpointIPtr
-EndpointI::endpoint(const IceInternal::EndpointIPtr& delEndp) const
+EndpointIPtr EndpointI::endpoint(const IceInternal::EndpointIPtr& delEndp) const
 {
     if(delEndp.get() == _endpoint.get())
     {
@@ -218,8 +200,7 @@ EndpointI::endpoint(const IceInternal::EndpointIPtr& delEndp) const
     }
 }
 
-vector<IceInternal::EndpointIPtr>
-EndpointI::expandIfWildcard() const
+vector<IceInternal::EndpointIPtr> EndpointI::expandIfWildcard() const
 {
     vector<IceInternal::EndpointIPtr> e = _endpoint->expandIfWildcard();
     for(vector<IceInternal::EndpointIPtr>::iterator p = e.begin(); p != e.end(); ++p)
@@ -229,8 +210,7 @@ EndpointI::expandIfWildcard() const
     return e;
 }
 
-vector<IceInternal::EndpointIPtr>
-EndpointI::expandHost(IceInternal::EndpointIPtr& publish) const
+vector<IceInternal::EndpointIPtr> EndpointI::expandHost(IceInternal::EndpointIPtr& publish) const
 {
     vector<IceInternal::EndpointIPtr> e = _endpoint->expandHost(publish);
     if(publish)
@@ -244,8 +224,7 @@ EndpointI::expandHost(IceInternal::EndpointIPtr& publish) const
     return e;
 }
 
-bool
-EndpointI::equivalent(const IceInternal::EndpointIPtr& endpoint) const
+bool EndpointI::equivalent(const IceInternal::EndpointIPtr& endpoint) const
 {
     const EndpointI* testEndpointI = dynamic_cast<const EndpointI*>(endpoint.get());
     if(!testEndpointI)
@@ -255,14 +234,12 @@ EndpointI::equivalent(const IceInternal::EndpointIPtr& endpoint) const
     return testEndpointI->_endpoint->equivalent(_endpoint);
 }
 
-string
-EndpointI::toString() const ICE_NOEXCEPT
+string EndpointI::toString() const ICE_NOEXCEPT
 {
     return "test-" + _endpoint->toString();
 }
 
-Ice::EndpointInfoPtr
-EndpointI::getInfo() const ICE_NOEXCEPT
+Ice::EndpointInfoPtr EndpointI::getInfo() const ICE_NOEXCEPT
 {
     return _endpoint->getInfo();
 }
@@ -314,20 +291,17 @@ EndpointI::operator<(const Ice::LocalObject& r) const
     return *p->_endpoint < *_endpoint;
 }
 
-int
-EndpointI::hash() const
+int EndpointI::hash() const
 {
-    return  _endpoint->hash();
+    return _endpoint->hash();
 }
 
-string
-EndpointI::options() const
+string EndpointI::options() const
 {
     return _endpoint->options();
 }
 
-IceInternal::EndpointIPtr
-EndpointI::delegate() const
+IceInternal::EndpointIPtr EndpointI::delegate() const
 {
     return _endpoint;
 }

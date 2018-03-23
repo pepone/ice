@@ -16,11 +16,10 @@
 
 namespace IceInternal
 {
+    class ProtocolPluginFacade;
+    ICE_API IceUtil::Shared* upCast(ProtocolPluginFacade*);
+    typedef Handle<ProtocolPluginFacade> ProtocolPluginFacadePtr;
 
-class ProtocolPluginFacade;
-ICE_API IceUtil::Shared* upCast(ProtocolPluginFacade*);
-typedef Handle<ProtocolPluginFacade> ProtocolPluginFacadePtr;
-
-}
+} // namespace IceInternal
 
 #endif

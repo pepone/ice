@@ -18,4 +18,7 @@ Acceptor::~Acceptor()
     // Out of line to avoid weak vtable
 }
 
-IceUtil::Shared* IceInternal::upCast(Acceptor* p) { return p; }
+IceUtil::Shared* IceInternal::upCast(Acceptor* p)
+{
+    return p;
+}

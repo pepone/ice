@@ -16,14 +16,10 @@
 using namespace std;
 using namespace IceGrid;
 
-SessionServantManager::SessionServantManager(const Ice::ObjectAdapterPtr& adapter,
-                                             const string& instanceName,
-                                             bool checkConnection,
-                                             const string& serverAdminCategory,
-                                             const Ice::ObjectPtr& serverAdminRouter,
-                                             const string& nodeAdminCategory,
-                                             const Ice::ObjectPtr& nodeAdminRouter,
-                                             const string& replicaAdminCategory,
+SessionServantManager::SessionServantManager(const Ice::ObjectAdapterPtr& adapter, const string& instanceName,
+                                             bool checkConnection, const string& serverAdminCategory,
+                                             const Ice::ObjectPtr& serverAdminRouter, const string& nodeAdminCategory,
+                                             const Ice::ObjectPtr& nodeAdminRouter, const string& replicaAdminCategory,
                                              const Ice::ObjectPtr& replicaAdminRouter,
                                              const AdminCallbackRouterPtr& adminCallbackRouter) :
     _adapter(adapter),
@@ -39,8 +35,7 @@ SessionServantManager::SessionServantManager(const Ice::ObjectAdapterPtr& adapte
 {
 }
 
-Ice::ObjectPtr
-SessionServantManager::locate(const Ice::Current& current, Ice::LocalObjectPtr&)
+Ice::ObjectPtr SessionServantManager::locate(const Ice::Current& current, Ice::LocalObjectPtr&)
 {
     Lock sync(*this);
     Ice::ObjectPtr servant;
@@ -73,8 +68,7 @@ SessionServantManager::locate(const Ice::Current& current, Ice::LocalObjectPtr&)
         }
     }
 
-    if(!plainServant && servant && _checkConnection &&
-       _adminConnections.find(current.con) == _adminConnections.end())
+    if(!plainServant && servant && _checkConnection && _adminConnections.find(current.con) == _adminConnections.end())
     {
         servant = 0;
     }
@@ -82,13 +76,11 @@ SessionServantManager::locate(const Ice::Current& current, Ice::LocalObjectPtr&)
     return servant;
 }
 
-void
-SessionServantManager::finished(const Ice::Current&, const Ice::ObjectPtr&, const Ice::LocalObjectPtr&)
+void SessionServantManager::finished(const Ice::Current&, const Ice::ObjectPtr&, const Ice::LocalObjectPtr&)
 {
 }
 
-void
-SessionServantManager::deactivate(const std::string&)
+void SessionServantManager::deactivate(const std::string&)
 {
     Lock sync(*this);
     assert(_servants.empty());
@@ -96,8 +88,8 @@ SessionServantManager::deactivate(const std::string&)
     assert(_adminConnections.empty());
 }
 
-Ice::ObjectPrx
-SessionServantManager::addSession(const Ice::ObjectPtr& session, const Ice::ConnectionPtr& con, const string& category)
+Ice::ObjectPrx SessionServantManager::addSession(const Ice::ObjectPtr& session, const Ice::ConnectionPtr& con,
+                                                 const string& category)
 {
     Lock sync(*this);
     _sessions.insert(make_pair(session, SessionInfo(con, category)));
@@ -118,10 +110,8 @@ SessionServantManager::addSession(const Ice::ObjectPtr& session, const Ice::Conn
     return addImpl(session, session); // Register a servant for the session and return its proxy.
 }
 
-void
-SessionServantManager::setSessionControl(const Ice::ObjectPtr& session,
-                                         const Glacier2::SessionControlPrx& ctl,
-                                         const Ice::IdentitySeq& ids)
+void SessionServantManager::setSessionControl(const Ice::ObjectPtr& session, const Glacier2::SessionControlPrx& ctl,
+                                              const Ice::IdentitySeq& ids)
 {
     Lock sync(*this);
 
@@ -149,8 +139,7 @@ SessionServantManager::setSessionControl(const Ice::ObjectPtr& session,
     }
 }
 
-Glacier2::IdentitySetPrx
-SessionServantManager::getGlacier2IdentitySet(const Ice::ObjectPtr& session)
+Glacier2::IdentitySetPrx SessionServantManager::getGlacier2IdentitySet(const Ice::ObjectPtr& session)
 {
     Lock sync(*this);
     map<Ice::ObjectPtr, SessionInfo>::iterator p = _sessions.find(session);
@@ -168,8 +157,7 @@ SessionServantManager::getGlacier2IdentitySet(const Ice::ObjectPtr& session)
     }
 }
 
-Glacier2::StringSetPrx
-SessionServantManager::getGlacier2AdapterIdSet(const Ice::ObjectPtr& session)
+Glacier2::StringSetPrx SessionServantManager::getGlacier2AdapterIdSet(const Ice::ObjectPtr& session)
 {
     Lock sync(*this);
     map<Ice::ObjectPtr, SessionInfo>::iterator p = _sessions.find(session);
@@ -187,8 +175,7 @@ SessionServantManager::getGlacier2AdapterIdSet(const Ice::ObjectPtr& session)
     }
 }
 
-void
-SessionServantManager::removeSession(const Ice::ObjectPtr& session)
+void SessionServantManager::removeSession(const Ice::ObjectPtr& session)
 {
     Lock sync(*this);
 
@@ -221,15 +208,13 @@ SessionServantManager::removeSession(const Ice::ObjectPtr& session)
     _sessions.erase(p);
 }
 
-Ice::ObjectPrx
-SessionServantManager::add(const Ice::ObjectPtr& servant, const Ice::ObjectPtr& session)
+Ice::ObjectPrx SessionServantManager::add(const Ice::ObjectPtr& servant, const Ice::ObjectPtr& session)
 {
     Lock sync(*this);
     return addImpl(servant, session);
 }
 
-void
-SessionServantManager::remove(const Ice::Identity& id)
+void SessionServantManager::remove(const Ice::Identity& id)
 {
     Lock sync(*this);
     map<Ice::Identity, ServantInfo>::iterator p = _servants.find(id);
@@ -265,8 +250,7 @@ SessionServantManager::remove(const Ice::Identity& id)
     _servants.erase(p);
 }
 
-Ice::ObjectPrx
-SessionServantManager::addImpl(const Ice::ObjectPtr& servant, const Ice::ObjectPtr& session)
+Ice::ObjectPrx SessionServantManager::addImpl(const Ice::ObjectPtr& servant, const Ice::ObjectPtr& session)
 {
     map<Ice::ObjectPtr, SessionInfo>::iterator p = _sessions.find(session);
     assert(p != _sessions.end());

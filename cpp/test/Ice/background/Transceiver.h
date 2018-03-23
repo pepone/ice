@@ -17,7 +17,6 @@
 class Transceiver : public IceInternal::Transceiver
 {
 public:
-
     virtual IceInternal::NativeInfoPtr getNativeInfo();
 
     virtual IceInternal::SocketOperation closing(bool, const Ice::LocalException&);
@@ -38,10 +37,12 @@ public:
     virtual void checkSendSize(const IceInternal::Buffer&);
     virtual void setBufferSize(int rcvSize, int sndSize);
 
-    IceInternal::TransceiverPtr delegate() const { return _transceiver; }
+    IceInternal::TransceiverPtr delegate() const
+    {
+        return _transceiver;
+    }
 
 private:
-
     Transceiver(const IceInternal::TransceiverPtr&);
     friend class Connector;
     friend class Acceptor;

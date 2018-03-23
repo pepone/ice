@@ -18,7 +18,6 @@
 class CallbackReceiverI : public ::Test::CallbackReceiver, public IceUtil::Monitor<IceUtil::Mutex>
 {
 public:
-
     CallbackReceiverI();
 
     virtual void callback(int token, const Ice::Current&);
@@ -31,7 +30,6 @@ public:
     void activate();
 
 private:
-
     void checkForHold();
 
     bool _holding;
@@ -45,14 +43,12 @@ typedef IceUtil::Handle<CallbackReceiverI> CallbackReceiverIPtr;
 class CallbackI : public ::Test::Callback
 {
 public:
-
     CallbackI();
 
     virtual void initiateCallback_async(const ::Test::AMD_Callback_initiateCallbackPtr&,
                                         const ::Test::CallbackReceiverPrx&, int, const Ice::Current&);
     virtual void initiateCallbackWithPayload_async(const ::Test::AMD_Callback_initiateCallbackWithPayloadPtr&,
-                                                   const ::Test::CallbackReceiverPrx&,
-                                                   const ::Ice::Current&);
+                                                   const ::Test::CallbackReceiverPrx&, const ::Ice::Current&);
     virtual void shutdown(const Ice::Current&);
 };
 

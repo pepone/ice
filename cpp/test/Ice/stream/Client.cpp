@@ -25,7 +25,6 @@ class TestObjectWriter : public Ice::Object
 #endif
 {
 public:
-
     TestObjectWriter(const MyClassPtr& p)
     {
         obj = p;
@@ -55,7 +54,6 @@ class TestObjectReader : public Ice::Object
 #endif
 {
 public:
-
     TestObjectReader()
     {
         called = false;
@@ -82,63 +80,67 @@ ICE_DEFINE_PTR(TestObjectReaderPtr, TestObjectReader);
 #ifdef ICE_CPP11_MAPPING
 namespace Ice
 {
-template<class S>
-struct StreamWriter<TestObjectWriter, S>
-{
-    static void write(S* ostr, const TestObjectWriter&) { assert(false); }
-};
-template<class S>
-struct StreamReader<TestObjectWriter, S>
-{
-    static void read(S* istr, TestObjectWriter&) { assert(false); }
-};
-template<class S>
-struct StreamWriter<TestObjectReader, S>
-{
-    static void write(S* ostr, const TestObjectReader&) { assert(false); }
-};
-template<class S>
-struct StreamReader<TestObjectReader, S>
-{
-    static void read(S* istr, TestObjectReader&) { assert(false); }
-};
-}
+    template<class S> struct StreamWriter<TestObjectWriter, S>
+    {
+        static void write(S* ostr, const TestObjectWriter&)
+        {
+            assert(false);
+        }
+    };
+    template<class S> struct StreamReader<TestObjectWriter, S>
+    {
+        static void read(S* istr, TestObjectWriter&)
+        {
+            assert(false);
+        }
+    };
+    template<class S> struct StreamWriter<TestObjectReader, S>
+    {
+        static void write(S* ostr, const TestObjectReader&)
+        {
+            assert(false);
+        }
+    };
+    template<class S> struct StreamReader<TestObjectReader, S>
+    {
+        static void read(S* istr, TestObjectReader&)
+        {
+            assert(false);
+        }
+    };
+} // namespace Ice
 #endif
 
 #ifndef ICE_CPP11_MAPPING
 class TestValueFactory : public Ice::ValueFactory
 {
 public:
-
     virtual Ice::ObjectPtr
-#ifndef NDEBUG
+#    ifndef NDEBUG
     create(const string& type)
-#else
+#    else
     create(const string&)
-#endif
+#    endif
     {
         assert(type == MyClass::ice_staticId());
         return new TestObjectReader;
     }
 
-    virtual void
-    destroy()
+    virtual void destroy()
     {
     }
 };
 #endif
 
 #ifdef ICE_CPP11_MAPPING
-void
-patchObject(void* addr, const Ice::ValuePtr& v)
+void patchObject(void* addr, const Ice::ValuePtr& v)
 {
     Ice::ValuePtr* p = static_cast<Ice::ValuePtr*>(addr);
     assert(p);
     *p = v;
 }
 #else
-void
-patchObject(void* addr, const Ice::ObjectPtr& v)
+void patchObject(void* addr, const Ice::ObjectPtr& v)
 {
     Ice::ObjectPtr* p = static_cast<Ice::ObjectPtr*>(addr);
     assert(p);
@@ -150,7 +152,6 @@ patchObject(void* addr, const Ice::ObjectPtr& v)
 class MyClassFactoryWrapper
 {
 public:
-
     MyClassFactoryWrapper()
     {
         clear();
@@ -177,7 +178,6 @@ public:
 class MyClassFactoryWrapper : public Ice::ValueFactory
 {
 public:
-
     MyClassFactoryWrapper()
     {
         clear();
@@ -203,7 +203,6 @@ public:
     }
 
 private:
-
     Ice::ValueFactoryPtr _factory;
 };
 typedef IceUtil::Handle<MyClassFactoryWrapper> MyClassFactoryWrapperPtr;
@@ -213,22 +212,18 @@ typedef IceUtil::Handle<MyClassFactoryWrapper> MyClassFactoryWrapperPtr;
 class MyInterfaceFactory : public Ice::ValueFactory
 {
 public:
-
-    virtual Ice::ObjectPtr
-    create(const string&)
+    virtual Ice::ObjectPtr create(const string&)
     {
         return new MyInterface;
     }
 
-    virtual void
-    destroy()
+    virtual void destroy()
     {
     }
 };
 #endif
 
-int
-run(int, char**, const Ice::CommunicatorPtr& communicator)
+int run(int, char**, const Ice::CommunicatorPtr& communicator)
 {
 #ifdef ICE_CPP11_MAPPING
     MyClassFactoryWrapper factoryWrapper;
@@ -1310,7 +1305,7 @@ run(int, char**, const Ice::CommunicatorPtr& communicator)
         vector<Ice::Byte> v;
         v.resize(127);
         out.write(v);
-        test(out.pos() == 128); // 127 bytes + leading size (1 byte)
+        test(out.pos() == 128);     // 127 bytes + leading size (1 byte)
         test(out.b.begin() == buf); // Verify the stream hasn't reallocated.
     }
     {
@@ -1322,7 +1317,7 @@ run(int, char**, const Ice::CommunicatorPtr& communicator)
         ::memset(&v[0], 0xFF, v.size());
         out.write(v);
         out.write(Ice::Byte(0xFF)); // This extra byte should make the stream reallocate.
-        test(out.pos() == 129); // 127 bytes + leading size (1 byte) + 1 byte
+        test(out.pos() == 129);     // 127 bytes + leading size (1 byte) + 1 byte
         test(out.b.begin() != buf); // Verify the stream was reallocated.
         out.finished(data);
 
@@ -1337,8 +1332,7 @@ run(int, char**, const Ice::CommunicatorPtr& communicator)
     return 0;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
 #ifdef ICE_STATIC_LIBS
     Ice::registerIceSSL(false);

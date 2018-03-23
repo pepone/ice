@@ -21,46 +21,39 @@ using namespace Ice;
 class ServantLocatorI : public Test::ServantLocatorI
 {
 public:
-
     ServantLocatorI(const string& category) : Test::ServantLocatorI(category)
     {
     }
 
 protected:
-
 #ifdef ICE_CPP11_MAPPING
-    virtual Ice::ObjectPtr
-    newServantAndCookie(shared_ptr<void>& cookie) const
+    virtual Ice::ObjectPtr newServantAndCookie(shared_ptr<void>& cookie) const
     {
         cookie = make_shared<CookieI>();
         return make_shared<TestI>();
     }
 
-    virtual void
-    checkCookie(const shared_ptr<void>& cookie) const
+    virtual void checkCookie(const shared_ptr<void>& cookie) const
     {
         Test::CookiePtr co = static_pointer_cast<Test::Cookie>(cookie);
         test(co);
         test(co->message() == "blahblah");
     }
 #else
-    virtual Ice::ObjectPtr
-    newServantAndCookie(Ice::LocalObjectPtr& cookie) const
+    virtual Ice::ObjectPtr newServantAndCookie(Ice::LocalObjectPtr& cookie) const
     {
         cookie = new CookieI();
         return new TestI();
     }
 
-    virtual void
-    checkCookie(const Ice::LocalObjectPtr& cookie) const
+    virtual void checkCookie(const Ice::LocalObjectPtr& cookie) const
     {
         Test::CookiePtr co = Test::CookiePtr::dynamicCast(cookie);
         test(co);
         test(co->message() == "blahblah");
     }
 #endif
-    virtual void
-    throwTestIntfUserException() const
+    virtual void throwTestIntfUserException() const
     {
         throw Test::TestIntfUserException();
     }
@@ -69,7 +62,6 @@ protected:
 class TestActivationI : public Test::TestActivation
 {
 public:
-
     void activateServantLocator(bool activate, const Ice::Current& current)
     {
         if(activate)
@@ -87,8 +79,7 @@ public:
     }
 };
 
-int
-run(int, char**, const Ice::CommunicatorPtr& communicator)
+int run(int, char**, const Ice::CommunicatorPtr& communicator)
 {
     communicator->getProperties()->setProperty("Ice.Warn.Dispatch", "0");
     communicator->getProperties()->setProperty("TestAdapter.Endpoints", getTestEndpoint(communicator, 0));
@@ -105,8 +96,7 @@ run(int, char**, const Ice::CommunicatorPtr& communicator)
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
 #ifdef ICE_STATIC_LIBS
     Ice::registerIceSSL(false);

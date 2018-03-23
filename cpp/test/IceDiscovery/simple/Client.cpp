@@ -16,8 +16,7 @@ DEFINE_TEST("client")
 using namespace std;
 using namespace Test;
 
-int
-run(int argc, char* argv[], const Ice::CommunicatorPtr& communicator)
+int run(int argc, char* argv[], const Ice::CommunicatorPtr& communicator)
 {
     int num = argc == 2 ? atoi(argv[1]) : 1;
 
@@ -26,8 +25,7 @@ run(int argc, char* argv[], const Ice::CommunicatorPtr& communicator)
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
 #ifdef ICE_STATIC_LIBS
     Ice::registerIceSSL();

@@ -15,7 +15,6 @@
 class SystemFailure : public Ice::SystemException
 {
 public:
-
     SystemFailure(const char* file, int line) : Ice::SystemException(file, line)
     {
     }
@@ -45,7 +44,6 @@ public:
     {
         throw SystemFailure(*this);
     }
-
 };
 
 #endif

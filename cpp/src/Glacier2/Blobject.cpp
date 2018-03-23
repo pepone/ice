@@ -18,38 +18,33 @@ using namespace Glacier2::Instrumentation;
 
 namespace
 {
+    const string serverForwardContext = "Glacier2.Server.ForwardContext";
+    const string clientForwardContext = "Glacier2.Client.ForwardContext";
+    const string serverAlwaysBatch = "Glacier2.Server.AlwaysBatch";
+    const string clientAlwaysBatch = "Glacier2.Client.AlwaysBatch";
+    const string serverTraceRequest = "Glacier2.Server.Trace.Request";
+    const string clientTraceRequest = "Glacier2.Client.Trace.Request";
+    const string serverTraceOverride = "Glacier2.Server.Trace.Override";
+    const string clientTraceOverride = "Glacier2.Client.Trace.Override";
 
-const string serverForwardContext = "Glacier2.Server.ForwardContext";
-const string clientForwardContext = "Glacier2.Client.ForwardContext";
-const string serverAlwaysBatch = "Glacier2.Server.AlwaysBatch";
-const string clientAlwaysBatch = "Glacier2.Client.AlwaysBatch";
-const string serverTraceRequest = "Glacier2.Server.Trace.Request";
-const string clientTraceRequest = "Glacier2.Client.Trace.Request";
-const string serverTraceOverride = "Glacier2.Server.Trace.Override";
-const string clientTraceOverride = "Glacier2.Client.Trace.Override";
-
-}
+} // namespace
 
 Glacier2::Blobject::Blobject(const InstancePtr& instance, const ConnectionPtr& reverseConnection,
                              const Context& context) :
     _instance(instance),
     _reverseConnection(reverseConnection),
-    _forwardContext(_reverseConnection ?
-                    _instance->properties()->getPropertyAsInt(serverForwardContext) > 0 :
-                    _instance->properties()->getPropertyAsInt(clientForwardContext) > 0),
-    _alwaysBatch(_reverseConnection ?
-                 _instance->properties()->getPropertyAsInt(serverAlwaysBatch) > 0 :
-                 _instance->properties()->getPropertyAsInt(clientAlwaysBatch) > 0),
-    _requestTraceLevel(_reverseConnection ?
-                       _instance->properties()->getPropertyAsInt(serverTraceRequest) :
-                       _instance->properties()->getPropertyAsInt(clientTraceRequest)),
-    _overrideTraceLevel(reverseConnection ?
-                        _instance->properties()->getPropertyAsInt(serverTraceOverride) :
-                        _instance->properties()->getPropertyAsInt(clientTraceOverride)),
+    _forwardContext(_reverseConnection ? _instance->properties()->getPropertyAsInt(serverForwardContext) > 0 :
+                                         _instance->properties()->getPropertyAsInt(clientForwardContext) > 0),
+    _alwaysBatch(_reverseConnection ? _instance->properties()->getPropertyAsInt(serverAlwaysBatch) > 0 :
+                                      _instance->properties()->getPropertyAsInt(clientAlwaysBatch) > 0),
+    _requestTraceLevel(_reverseConnection ? _instance->properties()->getPropertyAsInt(serverTraceRequest) :
+                                            _instance->properties()->getPropertyAsInt(clientTraceRequest)),
+    _overrideTraceLevel(reverseConnection ? _instance->properties()->getPropertyAsInt(serverTraceOverride) :
+                                            _instance->properties()->getPropertyAsInt(clientTraceOverride)),
     _context(context)
 {
-    RequestQueueThreadPtr t = _reverseConnection ? _instance->serverRequestQueueThread() :
-                                                   _instance->clientRequestQueueThread();
+    RequestQueueThreadPtr t =
+        _reverseConnection ? _instance->serverRequestQueueThread() : _instance->clientRequestQueueThread();
     if(t)
     {
         const_cast<RequestQueuePtr&>(_requestQueue) = new RequestQueue(t, _instance, _reverseConnection);
@@ -60,8 +55,7 @@ Glacier2::Blobject::~Blobject()
 {
 }
 
-void
-Glacier2::Blobject::destroy()
+void Glacier2::Blobject::destroy()
 {
     if(_requestQueue)
     {
@@ -69,8 +63,7 @@ Glacier2::Blobject::destroy()
     }
 }
 
-void
-Glacier2::Blobject::updateObserver(const Glacier2::Instrumentation::SessionObserverPtr& observer)
+void Glacier2::Blobject::updateObserver(const Glacier2::Instrumentation::SessionObserverPtr& observer)
 {
     if(_requestQueue)
     {
@@ -78,35 +71,31 @@ Glacier2::Blobject::updateObserver(const Glacier2::Instrumentation::SessionObser
     }
 }
 
-void
-Glacier2::Blobject::invokeResponse(bool ok, const pair<const Byte*, const Byte*>& outParams,
-                                   const AMD_Object_ice_invokePtr& amdCB)
+void Glacier2::Blobject::invokeResponse(bool ok, const pair<const Byte*, const Byte*>& outParams,
+                                        const AMD_Object_ice_invokePtr& amdCB)
 {
     amdCB->ice_response(ok, outParams);
 }
 
-void
-Glacier2::Blobject::invokeSent(bool, const AMD_Object_ice_invokePtr& amdCB)
+void Glacier2::Blobject::invokeSent(bool, const AMD_Object_ice_invokePtr& amdCB)
 {
-#if (defined(_MSC_VER) && (_MSC_VER >= 1600))
-    amdCB->ice_response(true, pair<const Byte*, const Byte*>(static_cast<const Byte*>(nullptr),
-                                                             static_cast<const Byte*>(nullptr)));
+#if(defined(_MSC_VER) && (_MSC_VER >= 1600))
+    amdCB->ice_response(
+        true, pair<const Byte*, const Byte*>(static_cast<const Byte*>(nullptr), static_cast<const Byte*>(nullptr)));
 #else
     amdCB->ice_response(true, pair<const Byte*, const Byte*>(0, 0));
 #endif
 }
 
-void
-Glacier2::Blobject::invokeException(const Exception& ex, const AMD_Object_ice_invokePtr& amdCB)
+void Glacier2::Blobject::invokeException(const Exception& ex, const AMD_Object_ice_invokePtr& amdCB)
 {
     //
     // If the connection has been lost, destroy the session.
     //
     if(_reverseConnection)
     {
-        if(dynamic_cast<const SocketException*>(&ex) ||
-            dynamic_cast<const TimeoutException*>(&ex) ||
-            dynamic_cast<const ProtocolException*>(&ex))
+        if(dynamic_cast<const SocketException*>(&ex) || dynamic_cast<const TimeoutException*>(&ex) ||
+           dynamic_cast<const ProtocolException*>(&ex))
         {
             try
             {
@@ -120,9 +109,8 @@ Glacier2::Blobject::invokeException(const Exception& ex, const AMD_Object_ice_in
     amdCB->ice_exception(ex);
 }
 
-void
-Glacier2::Blobject::invoke(ObjectPrx& proxy, const AMD_Object_ice_invokePtr& amdCB,
-                           const std::pair<const Byte*, const Byte*>& inParams, const Current& current)
+void Glacier2::Blobject::invoke(ObjectPrx& proxy, const AMD_Object_ice_invokePtr& amdCB,
+                                const std::pair<const Byte*, const Byte*>& inParams, const Current& current)
 {
     //
     // Set the correct facet on the proxy.
@@ -291,8 +279,8 @@ Glacier2::Blobject::invoke(ObjectPrx& proxy, const AMD_Object_ice_invokePtr& amd
         bool override;
         try
         {
-            override = _requestQueue->addRequest(new Request(proxy, inParams, current, _forwardContext, _context,
-                                                             amdCB));
+            override =
+                _requestQueue->addRequest(new Request(proxy, inParams, current, _forwardContext, _context, amdCB));
         }
         catch(const ObjectNotExistException& ex)
         {

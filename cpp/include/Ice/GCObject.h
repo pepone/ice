@@ -12,69 +12,65 @@
 
 #ifndef ICE_CPP11_MAPPING
 
-#include <Ice/Object.h>
+#    include <Ice/Object.h>
 
-#include <IceUtil/MutexPtrLock.h>
-#include <IceUtil/Mutex.h>
+#    include <IceUtil/MutexPtrLock.h>
+#    include <IceUtil/Mutex.h>
 
 namespace IceInternal
 {
+    class GCObject;
 
-class GCObject;
-
-class GCVisitor
-{
-public:
-
-    virtual ~GCVisitor()
+    class GCVisitor
     {
-    }
+    public:
+        virtual ~GCVisitor()
+        {
+        }
 
-    virtual bool visit(GCObject*) = 0;
-};
+        virtual bool visit(GCObject*) = 0;
+    };
 
-class ICE_API GCObject : public virtual Ice::Object
-{
-public:
-
-    //
-    // Flags constant used for collection of graphs
-    //
-    static const unsigned char Collectable;
-    static const unsigned char CycleMember;
-    static const unsigned char Visiting;
-
-    //
-    // Override IceUtil::Shared methods
-    //
-    virtual void __incRef();
-    virtual void __decRef();
-    virtual int __getRef() const;
-    virtual void __setNoDelete(bool);
-
-    //
-    // Override Object methods
-    //
-    virtual bool _iceGcVisit(GCVisitor&);
-    virtual void ice_collectable(bool);
-
-    //
-    // This method is implemented by Slice classes to visit class
-    // members.
-    //
-    virtual void _iceGcVisitMembers(IceInternal::GCVisitor&) = 0;
-
-    int _iceGetRefUnsafe()
+    class ICE_API GCObject : public virtual Ice::Object
     {
-        return _ref;
-    }
+    public:
+        //
+        // Flags constant used for collection of graphs
+        //
+        static const unsigned char Collectable;
+        static const unsigned char CycleMember;
+        static const unsigned char Visiting;
 
-private:
+        //
+        // Override IceUtil::Shared methods
+        //
+        virtual void __incRef();
+        virtual void __decRef();
+        virtual int __getRef() const;
+        virtual void __setNoDelete(bool);
 
-    bool collect(IceUtilInternal::MutexPtrLock<IceUtil::Mutex>&);
-};
+        //
+        // Override Object methods
+        //
+        virtual bool _iceGcVisit(GCVisitor&);
+        virtual void ice_collectable(bool);
 
-}
+        //
+        // This method is implemented by Slice classes to visit class
+        // members.
+        //
+        virtual void _iceGcVisitMembers(IceInternal::GCVisitor&) = 0;
+
+        int _iceGetRefUnsafe()
+        {
+            return _ref;
+        }
+
+    private:
+        bool collect(IceUtilInternal::MutexPtrLock<IceUtil::Mutex>&);
+    };
+
+} // namespace IceInternal
 
 #endif
 

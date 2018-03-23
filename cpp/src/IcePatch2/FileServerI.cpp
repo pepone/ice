@@ -13,9 +13,9 @@
 #include <IcePatch2/FileServerI.h>
 
 #ifdef _WIN32
-#   include <io.h>
+#    include <io.h>
 #else
-#   include <unistd.h>
+#    include <unistd.h>
 #endif
 
 using namespace std;
@@ -24,24 +24,23 @@ using namespace IcePatch2;
 using namespace IcePatch2Internal;
 
 IcePatch2::FileServerI::FileServerI(const std::string& dataDir, const LargeFileInfoSeq& infoSeq) :
-    _dataDir(dataDir), _tree0(FileTree0())
+    _dataDir(dataDir),
+    _tree0(FileTree0())
 {
     FileTree0& tree0 = const_cast<FileTree0&>(_tree0);
     getFileTree0(infoSeq, tree0);
 }
 
-FileInfoSeq
-IcePatch2::FileServerI::getFileInfoSeq(Int node0, const Current& c) const
+FileInfoSeq IcePatch2::FileServerI::getFileInfoSeq(Int node0, const Current& c) const
 {
-   LargeFileInfoSeq largeFiles = getLargeFileInfoSeq(node0, c);
-   FileInfoSeq files;
-   files.resize(largeFiles.size());
-   transform(largeFiles.begin(), largeFiles.end(), files.begin(), toFileInfo);
-   return files;
+    LargeFileInfoSeq largeFiles = getLargeFileInfoSeq(node0, c);
+    FileInfoSeq files;
+    files.resize(largeFiles.size());
+    transform(largeFiles.begin(), largeFiles.end(), files.begin(), toFileInfo);
+    return files;
 }
 
-LargeFileInfoSeq
-IcePatch2::FileServerI::getLargeFileInfoSeq(Int node0, const Current&) const
+LargeFileInfoSeq IcePatch2::FileServerI::getLargeFileInfoSeq(Int node0, const Current&) const
 {
     if(node0 < 0 || node0 > 255)
     {
@@ -51,8 +50,7 @@ IcePatch2::FileServerI::getLargeFileInfoSeq(Int node0, const Current&) const
     return _tree0.nodes[node0].files;
 }
 
-ByteSeqSeq
-IcePatch2::FileServerI::getChecksumSeq(const Current&) const
+ByteSeqSeq IcePatch2::FileServerI::getChecksumSeq(const Current&) const
 {
     ByteSeqSeq checksums(256);
 
@@ -64,15 +62,13 @@ IcePatch2::FileServerI::getChecksumSeq(const Current&) const
     return checksums;
 }
 
-ByteSeq
-IcePatch2::FileServerI::getChecksum(const Current&) const
+ByteSeq IcePatch2::FileServerI::getChecksum(const Current&) const
 {
     return _tree0.checksum;
 }
 
-void
-IcePatch2::FileServerI::getFileCompressed_async(const AMD_FileServer_getFileCompressedPtr& cb,
-                                                const string& pa, Int pos, Int num, const Current&) const
+void IcePatch2::FileServerI::getFileCompressed_async(const AMD_FileServer_getFileCompressedPtr& cb, const string& pa,
+                                                     Int pos, Int num, const Current&) const
 {
     try
     {
@@ -93,9 +89,8 @@ IcePatch2::FileServerI::getFileCompressed_async(const AMD_FileServer_getFileComp
     }
 }
 
-void
-IcePatch2::FileServerI::getLargeFileCompressed_async(const AMD_FileServer_getLargeFileCompressedPtr& cb,
-                                                     const string& pa, Long pos, Int num, const Current&) const
+void IcePatch2::FileServerI::getLargeFileCompressed_async(const AMD_FileServer_getLargeFileCompressedPtr& cb,
+                                                          const string& pa, Long pos, Int num, const Current&) const
 {
     try
     {
@@ -109,7 +104,6 @@ IcePatch2::FileServerI::getLargeFileCompressed_async(const AMD_FileServer_getLar
         {
             cb->ice_response(make_pair<const Byte*, const Byte*>(&buffer[0], &buffer[0] + buffer.size()));
         }
-
     }
     catch(const std::exception& ex)
     {
@@ -117,9 +111,8 @@ IcePatch2::FileServerI::getLargeFileCompressed_async(const AMD_FileServer_getLar
     }
 }
 
-void
-IcePatch2::FileServerI::getFileCompressedInternal(const std::string& pa, Ice::Long pos, Ice::Int num,
-                                                  vector<Byte>& buffer, bool largeFile) const
+void IcePatch2::FileServerI::getFileCompressedInternal(const std::string& pa, Ice::Long pos, Ice::Int num,
+                                                       vector<Byte>& buffer, bool largeFile) const
 {
     if(IceUtilInternal::isAbsolutePath(pa))
     {
@@ -128,8 +121,7 @@ IcePatch2::FileServerI::getFileCompressedInternal(const std::string& pa, Ice::Lo
 
     string path = simplify(pa);
 
-    if(path == ".." ||
-       path.find("/../") != string::npos ||
+    if(path == ".." || path.find("/../") != string::npos ||
        (path.size() >= 3 && (path.substr(0, 3) == "../" || path.substr(path.size() - 3, 3) == "/..")))
     {
         throw FileAccessException(string("illegal `..' component in path `") + path + "'");
@@ -141,7 +133,7 @@ IcePatch2::FileServerI::getFileCompressedInternal(const std::string& pa, Ice::Lo
     }
 
     string absolutePath = _dataDir + '/' + path + ".bz2";
-    int fd = IceUtilInternal::open(absolutePath, O_RDONLY|O_BINARY);
+    int fd = IceUtilInternal::open(absolutePath, O_RDONLY | O_BINARY);
     if(fd == -1)
     {
         throw FileAccessException(string("cannot open `") + path + "' for reading: " + strerror(errno));
@@ -176,8 +168,8 @@ IcePatch2::FileServerI::getFileCompressedInternal(const std::string& pa, Ice::Lo
         ostringstream posStr;
         posStr << pos;
 
-        throw FileAccessException("cannot seek position " + posStr.str() + " in file `" + path + "': " +
-                                  strerror(errno));
+        throw FileAccessException("cannot seek position " + posStr.str() + " in file `" + path +
+                                  "': " + strerror(errno));
     }
 
     buffer.resize(num);

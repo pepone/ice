@@ -27,257 +27,239 @@ using namespace IceGrid;
 
 namespace
 {
-
-class LogPatcherFeedback : public IcePatch2::PatcherFeedback
-{
-public:
-
-    LogPatcherFeedback(const TraceLevelsPtr& traceLevels, const string& dest) :
-        _traceLevels(traceLevels),
-        _startedPatch(false),
-        _lastProgress(0),
-        _dest(dest)
+    class LogPatcherFeedback : public IcePatch2::PatcherFeedback
     {
-    }
-
-    void
-    setPatchingPath(const string& path)
-    {
-        _path = path;
-        _startedPatch = false;
-        _lastProgress = 0;
-    }
-
-    virtual bool
-    noFileSummary(const string& reason)
-    {
-        if(_traceLevels->patch > 0)
+    public:
+        LogPatcherFeedback(const TraceLevelsPtr& traceLevels, const string& dest) :
+            _traceLevels(traceLevels),
+            _startedPatch(false),
+            _lastProgress(0),
+            _dest(dest)
         {
-            Ice::Trace out(_traceLevels->logger, _traceLevels->patchCat);
-            out << _dest << ": can't load summary file (will perform a thorough patch):\n" << reason;
         }
-        return true;
-    }
 
-    virtual bool
-    checksumStart()
-    {
-        if(_traceLevels->patch > 0)
+        void setPatchingPath(const string& path)
         {
-            Ice::Trace out(_traceLevels->logger, _traceLevels->patchCat);
-            out << _dest << ": started checksum calculation";
+            _path = path;
+            _startedPatch = false;
+            _lastProgress = 0;
         }
-        return true;
-    }
 
-    virtual bool
-    checksumProgress(const string& path)
-    {
-        if(_traceLevels->patch > 2)
+        virtual bool noFileSummary(const string& reason)
         {
-            Ice::Trace out(_traceLevels->logger, _traceLevels->patchCat);
-            out << _dest << ": calculating checksum for " << getBasename(path);
-        }
-        return true;
-    }
-
-    virtual bool
-    checksumEnd()
-    {
-        if(_traceLevels->patch > 0)
-        {
-            Ice::Trace out(_traceLevels->logger, _traceLevels->patchCat);
-            out << _dest << ": finished checksum calculation";
-        }
-        return true;
-    }
-
-    virtual bool
-    fileListStart()
-    {
-        if(_traceLevels->patch > 0)
-        {
-            Ice::Trace out(_traceLevels->logger, _traceLevels->patchCat);
-            out << _dest << ": getting list of file to patch";
-        }
-        return true;
-    }
-
-    virtual bool
-    fileListProgress(Ice::Int /*percent*/)
-    {
-        return true;
-    }
-
-    virtual bool
-    fileListEnd()
-    {
-        if(_traceLevels->patch > 0)
-        {
-            Ice::Trace out(_traceLevels->logger, _traceLevels->patchCat);
-            out << _dest << ": getting list of file to patch completed";
-        }
-        return true;
-    }
-
-    virtual bool
-    patchStart(const string& /*path*/, Ice::Long /*size*/, Ice::Long totalProgress, Ice::Long totalSize)
-    {
-        if(_traceLevels->patch > 1 && totalSize > (1024 * 1024))
-        {
-            int progress = static_cast<int>(static_cast<double>(totalProgress) / totalSize * 100.0);
-            progress /= 5;
-            progress *= 5;
-            if(progress != _lastProgress)
-            {
-                _lastProgress = progress;
-                Ice::Trace out(_traceLevels->logger, _traceLevels->patchCat);
-                out << _dest << ": downloaded " << progress << "% (" << totalProgress << '/' << totalSize << ')';
-                if(!_path.empty())
-                {
-                    out << " of " << _path;
-                }
-            }
-        }
-        else if(_traceLevels->patch > 0)
-        {
-            if(!_startedPatch)
+            if(_traceLevels->patch > 0)
             {
                 Ice::Trace out(_traceLevels->logger, _traceLevels->patchCat);
-                int roundedSize = static_cast<int>(static_cast<double>(totalSize) / 1024);
-                if(roundedSize == 0 && totalSize > 0)
+                out << _dest << ": can't load summary file (will perform a thorough patch):\n" << reason;
+            }
+            return true;
+        }
+
+        virtual bool checksumStart()
+        {
+            if(_traceLevels->patch > 0)
+            {
+                Ice::Trace out(_traceLevels->logger, _traceLevels->patchCat);
+                out << _dest << ": started checksum calculation";
+            }
+            return true;
+        }
+
+        virtual bool checksumProgress(const string& path)
+        {
+            if(_traceLevels->patch > 2)
+            {
+                Ice::Trace out(_traceLevels->logger, _traceLevels->patchCat);
+                out << _dest << ": calculating checksum for " << getBasename(path);
+            }
+            return true;
+        }
+
+        virtual bool checksumEnd()
+        {
+            if(_traceLevels->patch > 0)
+            {
+                Ice::Trace out(_traceLevels->logger, _traceLevels->patchCat);
+                out << _dest << ": finished checksum calculation";
+            }
+            return true;
+        }
+
+        virtual bool fileListStart()
+        {
+            if(_traceLevels->patch > 0)
+            {
+                Ice::Trace out(_traceLevels->logger, _traceLevels->patchCat);
+                out << _dest << ": getting list of file to patch";
+            }
+            return true;
+        }
+
+        virtual bool fileListProgress(Ice::Int /*percent*/)
+        {
+            return true;
+        }
+
+        virtual bool fileListEnd()
+        {
+            if(_traceLevels->patch > 0)
+            {
+                Ice::Trace out(_traceLevels->logger, _traceLevels->patchCat);
+                out << _dest << ": getting list of file to patch completed";
+            }
+            return true;
+        }
+
+        virtual bool patchStart(const string& /*path*/, Ice::Long /*size*/, Ice::Long totalProgress,
+                                Ice::Long totalSize)
+        {
+            if(_traceLevels->patch > 1 && totalSize > (1024 * 1024))
+            {
+                int progress = static_cast<int>(static_cast<double>(totalProgress) / totalSize * 100.0);
+                progress /= 5;
+                progress *= 5;
+                if(progress != _lastProgress)
                 {
-                    roundedSize = 1;
+                    _lastProgress = progress;
+                    Ice::Trace out(_traceLevels->logger, _traceLevels->patchCat);
+                    out << _dest << ": downloaded " << progress << "% (" << totalProgress << '/' << totalSize << ')';
+                    if(!_path.empty())
+                    {
+                        out << " of " << _path;
+                    }
                 }
-                out << _dest << ": downloading " << (_path.empty() ? string("") : (_path + " ")) << roundedSize
-                    << "KB ";
-                _startedPatch = true;
+            }
+            else if(_traceLevels->patch > 0)
+            {
+                if(!_startedPatch)
+                {
+                    Ice::Trace out(_traceLevels->logger, _traceLevels->patchCat);
+                    int roundedSize = static_cast<int>(static_cast<double>(totalSize) / 1024);
+                    if(roundedSize == 0 && totalSize > 0)
+                    {
+                        roundedSize = 1;
+                    }
+                    out << _dest << ": downloading " << (_path.empty() ? string("") : (_path + " ")) << roundedSize
+                        << "KB ";
+                    _startedPatch = true;
+                }
+            }
+
+            return true;
+        }
+
+        virtual bool patchProgress(Ice::Long /*progress*/, Ice::Long /*size*/, Ice::Long /*totalProgress*/,
+                                   Ice::Long /*totalSize*/)
+        {
+            return true;
+        }
+
+        virtual bool patchEnd()
+        {
+            return true;
+        }
+
+        void finishPatch()
+        {
+            if(_traceLevels->patch > 0)
+            {
+                Ice::Trace out(_traceLevels->logger, _traceLevels->patchCat);
+                out << _dest << ": downloading completed";
             }
         }
 
-        return true;
-    }
+    private:
+        const TraceLevelsPtr _traceLevels;
+        bool _startedPatch;
+        int _lastProgress;
+        string _path;
+        string _dest;
+    };
 
-    virtual bool
-    patchProgress(Ice::Long /*progress*/, Ice::Long /*size*/, Ice::Long /*totalProgress*/, Ice::Long /*totalSize*/)
+    class NodeUp : public NodeI::Update
     {
-        return true;
-    }
-
-    virtual bool
-    patchEnd()
-    {
-        return true;
-    }
-
-    void
-    finishPatch()
-    {
-        if(_traceLevels->patch > 0)
+    public:
+        NodeUp(const NodeIPtr& node, const NodeObserverPrx& observer, NodeDynamicInfo info) :
+            NodeI::Update(node, observer),
+            _info(info)
         {
-            Ice::Trace out(_traceLevels->logger, _traceLevels->patchCat);
-            out << _dest << ": downloading completed";
         }
-    }
 
-private:
-
-    const TraceLevelsPtr _traceLevels;
-    bool _startedPatch;
-    int _lastProgress;
-    string _path;
-    string _dest;
-};
-
-class NodeUp : public NodeI::Update
-{
-public:
-
-    NodeUp(const NodeIPtr& node, const NodeObserverPrx& observer, NodeDynamicInfo info) :
-        NodeI::Update(node, observer), _info(info)
-    {
-    }
-
-    virtual bool
-    send()
-    {
-        try
+        virtual bool send()
         {
-            _observer->begin_nodeUp(_info, newCallback(static_cast<NodeI::Update*>(this), &NodeI::Update::completed));
+            try
+            {
+                _observer->begin_nodeUp(_info,
+                                        newCallback(static_cast<NodeI::Update*>(this), &NodeI::Update::completed));
+            }
+            catch(const Ice::LocalException&)
+            {
+                return false;
+            }
+            return true;
         }
-        catch(const Ice::LocalException&)
-        {
-            return false;
-        }
-        return true;
-    }
 
-private:
+    private:
+        NodeDynamicInfo _info;
+    };
 
-    NodeDynamicInfo _info;
-};
-
-class UpdateServer : public NodeI::Update
-{
-public:
-
-    UpdateServer(const NodeIPtr& node, const NodeObserverPrx& observer, ServerDynamicInfo info) :
-        NodeI::Update(node, observer), _info(info)
+    class UpdateServer : public NodeI::Update
     {
-    }
+    public:
+        UpdateServer(const NodeIPtr& node, const NodeObserverPrx& observer, ServerDynamicInfo info) :
+            NodeI::Update(node, observer),
+            _info(info)
+        {
+        }
 
-    virtual bool
-    send()
+        virtual bool send()
+        {
+            try
+            {
+                _observer->begin_updateServer(
+                    _node->getName(Ice::emptyCurrent), _info,
+                    newCallback(static_cast<NodeI::Update*>(this), &NodeI::Update::completed));
+            }
+            catch(const Ice::LocalException&)
+            {
+                return false;
+            }
+            return true;
+        }
+
+    private:
+        ServerDynamicInfo _info;
+    };
+
+    class UpdateAdapter : public NodeI::Update
     {
-        try
+    public:
+        UpdateAdapter(const NodeIPtr& node, const NodeObserverPrx& observer, AdapterDynamicInfo info) :
+            NodeI::Update(node, observer),
+            _info(info)
         {
-            _observer->begin_updateServer(_node->getName(Ice::emptyCurrent),
-                                          _info,
-                                          newCallback(static_cast<NodeI::Update*>(this), &NodeI::Update::completed));
         }
-        catch(const Ice::LocalException&)
+
+        virtual bool send()
         {
-            return false;
+            try
+            {
+                _observer->begin_updateAdapter(
+                    _node->getName(Ice::emptyCurrent), _info,
+                    newCallback(static_cast<NodeI::Update*>(this), &NodeI::Update::completed));
+            }
+            catch(const Ice::LocalException&)
+            {
+                return false;
+            }
+            return true;
         }
-        return true;
-    }
 
-private:
+    private:
+        AdapterDynamicInfo _info;
+    };
 
-    ServerDynamicInfo _info;
-};
-
-class UpdateAdapter : public NodeI::Update
-{
-public:
-
-    UpdateAdapter(const NodeIPtr& node, const NodeObserverPrx& observer, AdapterDynamicInfo info) :
-        NodeI::Update(node, observer), _info(info)
-    {
-    }
-
-    virtual bool
-    send()
-    {
-        try
-        {
-            _observer->begin_updateAdapter(_node->getName(Ice::emptyCurrent),
-                                           _info,
-                                           newCallback(static_cast<NodeI::Update*>(this), &NodeI::Update::completed));
-        }
-        catch(const Ice::LocalException&)
-        {
-            return false;
-        }
-        return true;
-    }
-
-private:
-
-    AdapterDynamicInfo _info;
-};
-
-}
+} // namespace
 
 NodeI::Update::Update(const NodeIPtr& node, const NodeObserverPrx& observer) : _node(node), _observer(observer)
 {
@@ -287,21 +269,14 @@ NodeI::Update::~Update()
 {
 }
 
-void
-NodeI::Update::finished(bool success)
+void NodeI::Update::finished(bool success)
 {
     _node->dequeueUpdate(_observer, this, !success);
 }
 
-NodeI::NodeI(const Ice::ObjectAdapterPtr& adapter,
-             NodeSessionManager& sessions,
-             const ActivatorPtr& activator,
-             const IceUtil::TimerPtr& timer,
-             const TraceLevelsPtr& traceLevels,
-             const NodePrx& proxy,
-             const string& name,
-             const UserAccountMapperPrx& mapper,
-             const string& instanceName) :
+NodeI::NodeI(const Ice::ObjectAdapterPtr& adapter, NodeSessionManager& sessions, const ActivatorPtr& activator,
+             const IceUtil::TimerPtr& timer, const TraceLevelsPtr& traceLevels, const NodePrx& proxy,
+             const string& name, const UserAccountMapperPrx& mapper, const string& instanceName) :
     _communicator(adapter->getCommunicator()),
     _adapter(adapter),
     _sessions(sessions),
@@ -354,8 +329,7 @@ NodeI::NodeI(const Ice::ObjectAdapterPtr& adapter,
     }
 }
 
-void
-NodeI::Update::completed(const Ice::AsyncResultPtr& result)
+void NodeI::Update::completed(const Ice::AsyncResultPtr& result)
 {
     try
     {
@@ -372,114 +346,86 @@ NodeI::~NodeI()
 {
 }
 
-void
-NodeI::loadServer_async(const AMD_Node_loadServerPtr& amdCB,
-                        const InternalServerDescriptorPtr& descriptor,
-                        const string& replicaName,
-                        const Ice::Current& current)
+void NodeI::loadServer_async(const AMD_Node_loadServerPtr& amdCB, const InternalServerDescriptorPtr& descriptor,
+                             const string& replicaName, const Ice::Current& current)
 {
     loadServer(amdCB, descriptor, replicaName, false, current);
 }
 
-void
-NodeI::loadServerWithoutRestart_async(const AMD_Node_loadServerWithoutRestartPtr& amdCB,
-                                      const InternalServerDescriptorPtr& descriptor,
-                                      const string& replicaName,
-                                      const Ice::Current& current)
+void NodeI::loadServerWithoutRestart_async(const AMD_Node_loadServerWithoutRestartPtr& amdCB,
+                                           const InternalServerDescriptorPtr& descriptor, const string& replicaName,
+                                           const Ice::Current& current)
 {
     class LoadServerCB : public AMD_Node_loadServer
     {
     public:
-
         LoadServerCB(const AMD_Node_loadServerWithoutRestartPtr& cb) : _cb(cb)
         {
         }
 
-        virtual void
-        ice_response(const ServerPrx& server, const AdapterPrxDict& adapters, Ice::Int actTimeout, Ice::Int deacTimeout)
+        virtual void ice_response(const ServerPrx& server, const AdapterPrxDict& adapters, Ice::Int actTimeout,
+                                  Ice::Int deacTimeout)
         {
             _cb->ice_response(server, adapters, actTimeout, deacTimeout);
         };
 
-        virtual void
-        ice_exception(const ::std::exception& ex)
+        virtual void ice_exception(const ::std::exception& ex)
         {
             _cb->ice_exception(ex);
         }
 
-        virtual void
-        ice_exception()
+        virtual void ice_exception()
         {
             _cb->ice_exception();
         }
 
     private:
-
         const AMD_Node_loadServerWithoutRestartPtr _cb;
     };
     loadServer(new LoadServerCB(amdCB), descriptor, replicaName, true, current);
 }
 
-void
-NodeI::destroyServer_async(const AMD_Node_destroyServerPtr& amdCB,
-                           const string& serverId,
-                           const string& uuid,
-                           int revision,
-                           const string& replicaName,
-                           const Ice::Current& current)
+void NodeI::destroyServer_async(const AMD_Node_destroyServerPtr& amdCB, const string& serverId, const string& uuid,
+                                int revision, const string& replicaName, const Ice::Current& current)
 {
     destroyServer(amdCB, serverId, uuid, revision, replicaName, false, current);
 }
 
-void
-NodeI::destroyServerWithoutRestart_async(const AMD_Node_destroyServerWithoutRestartPtr& amdCB,
-                                         const string& serverId,
-                                         const string& uuid,
-                                         int revision,
-                                         const string& replicaName,
-                                         const Ice::Current& current)
+void NodeI::destroyServerWithoutRestart_async(const AMD_Node_destroyServerWithoutRestartPtr& amdCB,
+                                              const string& serverId, const string& uuid, int revision,
+                                              const string& replicaName, const Ice::Current& current)
 {
     class DestroyServerCB : public AMD_Node_destroyServer
     {
     public:
-
         DestroyServerCB(const AMD_Node_destroyServerWithoutRestartPtr& cb) : _cb(cb)
         {
         }
 
-        virtual void
-        ice_response()
+        virtual void ice_response()
         {
             _cb->ice_response();
         };
 
-        virtual void
-        ice_exception(const ::std::exception& ex)
+        virtual void ice_exception(const ::std::exception& ex)
         {
             _cb->ice_exception(ex);
         }
 
-        virtual void
-        ice_exception()
+        virtual void ice_exception()
         {
             _cb->ice_exception();
         }
 
     private:
-
         const AMD_Node_destroyServerWithoutRestartPtr _cb;
     };
     destroyServer(new DestroyServerCB(amdCB), serverId, uuid, revision, replicaName, true, current);
 }
 
-void
-NodeI::patch_async(const AMD_Node_patchPtr& amdCB,
-                   const PatcherFeedbackPrx& feedback,
-                   const string& application,
-                   const string& server,
-                   const InternalDistributionDescriptorPtr& appDistrib,
-                   bool shutdown,
-                   const Ice::Current&)
+void NodeI::patch_async(const AMD_Node_patchPtr& amdCB, const PatcherFeedbackPrx& feedback, const string& application,
+                        const string& server, const InternalDistributionDescriptorPtr& appDistrib, bool shutdown,
+                        const Ice::Current&)
 {
     amdCB->ice_response();
 
@@ -669,78 +615,66 @@ NodeI::patch_async(const AMD_Node_patchPtr& amdCB,
     }
 }
 
-void
-NodeI::registerWithReplica(const InternalRegistryPrx& replica, const Ice::Current&)
+void NodeI::registerWithReplica(const InternalRegistryPrx& replica, const Ice::Current&)
 {
     _sessions.create(replica);
 }
 
-void
-NodeI::replicaInit(const InternalRegistryPrxSeq& replicas, const Ice::Current&)
+void NodeI::replicaInit(const InternalRegistryPrxSeq& replicas, const Ice::Current&)
 {
     _sessions.replicaInit(replicas);
 }
 
-void
-NodeI::replicaAdded(const InternalRegistryPrx& replica, const Ice::Current&)
+void NodeI::replicaAdded(const InternalRegistryPrx& replica, const Ice::Current&)
 {
     _sessions.replicaAdded(replica);
 }
 
-void
-NodeI::replicaRemoved(const InternalRegistryPrx& replica, const Ice::Current&)
+void NodeI::replicaRemoved(const InternalRegistryPrx& replica, const Ice::Current&)
 {
     _sessions.replicaRemoved(replica);
 }
 
-std::string
-NodeI::getName(const Ice::Current&) const
+std::string NodeI::getName(const Ice::Current&) const
 {
     return _name;
 }
 
-std::string
-NodeI::getHostname(const Ice::Current&) const
+std::string NodeI::getHostname(const Ice::Current&) const
 {
     return _platform.getHostname();
 }
 
-LoadInfo
-NodeI::getLoad(const Ice::Current&) const
+LoadInfo NodeI::getLoad(const Ice::Current&) const
 {
     return _platform.getLoadInfo();
 }
 
-int
-NodeI::getProcessorSocketCount(const Ice::Current&) const
+int NodeI::getProcessorSocketCount(const Ice::Current&) const
 {
     return _platform.getProcessorSocketCount();
 }
 
-void
-NodeI::shutdown(const Ice::Current&) const
+void NodeI::shutdown(const Ice::Current&) const
 {
     _activator->shutdown();
 }
 
-Ice::Long
-NodeI::getOffsetFromEnd(const string& filename, int count, const Ice::Current&) const
+Ice::Long NodeI::getOffsetFromEnd(const string& filename, int count, const Ice::Current&) const
 {
     return _fileCache->getOffsetFromEnd(getFilePath(filename), count);
 }
 
-bool
-NodeI::read(const string& filename, Ice::Long pos, int size, Ice::Long& newPos, Ice::StringSeq& lines,
-            const Ice::Current&) const
+bool NodeI::read(const string& filename, Ice::Long pos, int size, Ice::Long& newPos, Ice::StringSeq& lines,
+                 const Ice::Current&) const
 {
     return _fileCache->read(getFilePath(filename), pos, size, newPos, lines);
 }
 
-void
-NodeI::shutdown()
+void NodeI::shutdown()
 {
     IceUtil::Mutex::Lock sync(_serversLock);
-    for(map<string, set<ServerIPtr> >::const_iterator p = _serversByApplication.begin();
+    for(map<string, set<ServerIPtr>>::const_iterator p = _serversByApplication.begin();
         p != _serversByApplication.end(); ++p)
     {
         for(set<ServerIPtr>::const_iterator q = p->second.begin(); q != p->second.end(); ++q)
@@ -751,98 +685,82 @@ NodeI::shutdown()
     _serversByApplication.clear();
 }
 
-Ice::CommunicatorPtr
-NodeI::getCommunicator() const
+Ice::CommunicatorPtr NodeI::getCommunicator() const
 {
     return _communicator;
 }
 
-Ice::ObjectAdapterPtr
-NodeI::getAdapter() const
+Ice::ObjectAdapterPtr NodeI::getAdapter() const
 {
     return _adapter;
 }
 
-ActivatorPtr
-NodeI::getActivator() const
+ActivatorPtr NodeI::getActivator() const
 {
     return _activator;
 }
 
-IceUtil::TimerPtr
-NodeI::getTimer() const
+IceUtil::TimerPtr NodeI::getTimer() const
 {
     return _timer;
 }
 
-TraceLevelsPtr
-NodeI::getTraceLevels() const
+TraceLevelsPtr NodeI::getTraceLevels() const
 {
     return _traceLevels;
 }
 
-UserAccountMapperPrx
-NodeI::getUserAccountMapper() const
+UserAccountMapperPrx NodeI::getUserAccountMapper() const
 {
     return _userAccountMapper;
 }
 
-PlatformInfo&
-NodeI::getPlatformInfo() const
+PlatformInfo& NodeI::getPlatformInfo() const
 {
     return _platform;
 }
 
-FileCachePtr
-NodeI::getFileCache() const
+FileCachePtr NodeI::getFileCache() const
 {
     return _fileCache;
 }
 
-NodePrx
-NodeI::getProxy() const
+NodePrx NodeI::getProxy() const
 {
     return _proxy;
 }
 
-const PropertyDescriptorSeq&
-NodeI::getPropertiesOverride() const
+const PropertyDescriptorSeq& NodeI::getPropertiesOverride() const
 {
     return _propertiesOverride;
 }
 
-const string&
-NodeI::getInstanceName() const
+const string& NodeI::getInstanceName() const
 {
     return _instanceName;
 }
 
-string
-NodeI::getOutputDir() const
+string NodeI::getOutputDir() const
 {
     return _outputDir;
 }
 
-bool
-NodeI::getRedirectErrToOut() const
+bool NodeI::getRedirectErrToOut() const
 {
     return _redirectErrToOut;
 }
 
-bool
-NodeI::allowEndpointsOverride() const
+bool NodeI::allowEndpointsOverride() const
 {
     return _allowEndpointsOverride;
 }
 
-NodeSessionPrx
-NodeI::registerWithRegistry(const InternalRegistryPrx& registry)
+NodeSessionPrx NodeI::registerWithRegistry(const InternalRegistryPrx& registry)
 {
     return registry->registerNode(_platform.getInternalNodeInfo(), _proxy, _platform.getLoadInfo());
 }
 
-void
-NodeI::checkConsistency(const NodeSessionPrx& session)
+void NodeI::checkConsistency(const NodeSessionPrx& session)
 {
     //
     // Only do the consistency check on the startup. This ensures that servers can't
@@ -894,8 +812,7 @@ NodeI::checkConsistency(const NodeSessionPrx& session)
     for_each(commands.begin(), commands.end(), IceUtil::voidMemFun(&ServerCommand::execute));
 }
 
-void
-NodeI::addObserver(const NodeSessionPrx& session, const NodeObserverPrx& observer)
+void NodeI::addObserver(const NodeSessionPrx& session, const NodeObserverPrx& observer)
 {
     IceUtil::Mutex::Lock sync(_observerMutex);
     assert(_observers.find(session) == _observers.end());
@@ -905,8 +822,8 @@ NodeI::addObserver(const NodeSessionPrx& session, const NodeObserverPrx& observe
 
     ServerDynamicInfoSeq serverInfos;
     AdapterDynamicInfoSeq adapterInfos;
-    for(map<string, ServerDynamicInfo>::const_iterator p = _serversDynamicInfo.begin();
-        p != _serversDynamicInfo.end(); ++p)
+    for(map<string, ServerDynamicInfo>::const_iterator p = _serversDynamicInfo.begin(); p != _serversDynamicInfo.end();
+        ++p)
     {
         assert(p->second.state != Destroyed && (p->second.state != Inactive || !p->second.enabled));
         serverInfos.push_back(p->second);
@@ -926,15 +843,13 @@ NodeI::addObserver(const NodeSessionPrx& session, const NodeObserverPrx& observe
     queueUpdate(observer, new NodeUp(this, observer, info));
 }
 
-void
-NodeI::removeObserver(const NodeSessionPrx& session)
+void NodeI::removeObserver(const NodeSessionPrx& session)
 {
     IceUtil::Mutex::Lock sync(_observerMutex);
     _observers.erase(session);
 }
 
-void
-NodeI::observerUpdateServer(const ServerDynamicInfo& info)
+void NodeI::observerUpdateServer(const ServerDynamicInfo& info)
 {
     IceUtil::Mutex::Lock sync(_observerMutex);
 
@@ -964,8 +879,7 @@ NodeI::observerUpdateServer(const ServerDynamicInfo& info)
     }
 }
 
-void
-NodeI::observerUpdateAdapter(const AdapterDynamicInfo& info)
+void NodeI::observerUpdateAdapter(const AdapterDynamicInfo& info)
 {
     IceUtil::Mutex::Lock sync(_observerMutex);
 
@@ -995,11 +909,10 @@ NodeI::observerUpdateAdapter(const AdapterDynamicInfo& info)
     }
 }
 
-void
-NodeI::queueUpdate(const NodeObserverPrx& proxy, const UpdatePtr& update)
+void NodeI::queueUpdate(const NodeObserverPrx& proxy, const UpdatePtr& update)
 {
-    //Lock sync(*this); Called within the synchronization
-    map<NodeObserverPrx, deque<UpdatePtr> >::iterator p = _observerUpdates.find(proxy);
+    // Lock sync(*this); Called within the synchronization
+    map<NodeObserverPrx, deque<UpdatePtr>>::iterator p = _observerUpdates.find(proxy);
     if(p == _observerUpdates.end())
     {
         if(update->send())
@@ -1013,11 +926,10 @@ NodeI::queueUpdate(const NodeObserverPrx& proxy, const UpdatePtr& update)
     }
 }
 
-void
-NodeI::dequeueUpdate(const NodeObserverPrx& proxy, const UpdatePtr& update, bool all)
+void NodeI::dequeueUpdate(const NodeObserverPrx& proxy, const UpdatePtr& update, bool all)
 {
     IceUtil::Mutex::Lock sync(_observerMutex);
-    map<NodeObserverPrx, deque<UpdatePtr> >::iterator p = _observerUpdates.find(proxy);
+    map<NodeObserverPrx, deque<UpdatePtr>>::iterator p = _observerUpdates.find(proxy);
     if(p == _observerUpdates.end() || p->second.front().get() != update.get())
     {
         return;
@@ -1036,24 +948,22 @@ NodeI::dequeueUpdate(const NodeObserverPrx& proxy, const UpdatePtr& update, bool
     }
 }
 
-void
-NodeI::addServer(const ServerIPtr& server, const string& application)
+void NodeI::addServer(const ServerIPtr& server, const string& application)
 {
     IceUtil::Mutex::Lock sync(_serversLock);
-    map<string, set<ServerIPtr> >::iterator p = _serversByApplication.find(application);
+    map<string, set<ServerIPtr>>::iterator p = _serversByApplication.find(application);
     if(p == _serversByApplication.end())
     {
-        map<string, set<ServerIPtr> >::value_type v(application, set<ServerIPtr>());
+        map<string, set<ServerIPtr>>::value_type v(application, set<ServerIPtr>());
         p = _serversByApplication.insert(p, v);
     }
     p->second.insert(server);
 }
 
-void
-NodeI::removeServer(const ServerIPtr& server, const std::string& application)
+void NodeI::removeServer(const ServerIPtr& server, const std::string& application)
 {
     IceUtil::Mutex::Lock sync(_serversLock);
-    map<string, set<ServerIPtr> >::iterator p = _serversByApplication.find(application);
+    map<string, set<ServerIPtr>>::iterator p = _serversByApplication.find(application);
     if(p != _serversByApplication.end())
     {
         p->second.erase(server);
@@ -1078,8 +988,7 @@ NodeI::removeServer(const ServerIPtr& server, const std::string& application)
     }
 }
 
-Ice::Identity
-NodeI::createServerIdentity(const string& name) const
+Ice::Identity NodeI::createServerIdentity(const string& name) const
 {
     Ice::Identity id;
     id.category = _instanceName + "-Server";
@@ -1087,14 +996,12 @@ NodeI::createServerIdentity(const string& name) const
     return id;
 }
 
-string
-NodeI::getServerAdminCategory() const
+string NodeI::getServerAdminCategory() const
 {
     return _instanceName + "-NodeServerAdminRouter";
 }
 
-vector<ServerCommandPtr>
-NodeI::checkConsistencyNoSync(const Ice::StringSeq& servers)
+vector<ServerCommandPtr> NodeI::checkConsistencyNoSync(const Ice::StringSeq& servers)
 {
     vector<ServerCommandPtr> commands;
 
@@ -1193,14 +1100,12 @@ NodeI::checkConsistencyNoSync(const Ice::StringSeq& servers)
     return commands;
 }
 
-NodeSessionPrx
-NodeI::getMasterNodeSession() const
+NodeSessionPrx NodeI::getMasterNodeSession() const
 {
     return _sessions.getMasterNodeSession();
 }
 
-bool
-NodeI::canRemoveServerDirectory(const string& name)
+bool NodeI::canRemoveServerDirectory(const string& name)
 {
     //
     // Check if there's files which we didn't create.
@@ -1227,7 +1132,7 @@ NodeI::canRemoveServerDirectory(const string& name)
     }
 
     c = readDirectory(_serversDir + "/" + name + "/config");
-    for(Ice::StringSeq::const_iterator p = c.begin() ; p != c.end(); ++p)
+    for(Ice::StringSeq::const_iterator p = c.begin(); p != c.end(); ++p)
     {
         if(p->find("config") != 0)
         {
@@ -1238,7 +1143,7 @@ NodeI::canRemoveServerDirectory(const string& name)
     if(IceUtilInternal::directoryExists(_serversDir + "/" + name + "/dbs"))
     {
         c = readDirectory(_serversDir + "/" + name + "/dbs");
-        for(Ice::StringSeq::const_iterator p = c.begin() ; p != c.end(); ++p)
+        for(Ice::StringSeq::const_iterator p = c.begin(); p != c.end(); ++p)
         {
             try
             {
@@ -1282,8 +1187,7 @@ NodeI::canRemoveServerDirectory(const string& name)
     return true;
 }
 
-void
-NodeI::patch(const FileServerPrx& icepatch, const string& dest, const vector<string>& directories)
+void NodeI::patch(const FileServerPrx& icepatch, const string& dest, const vector<string>& directories)
 {
     IcePatch2::PatcherFeedbackPtr feedback = new LogPatcherFeedback(_traceLevels, dest);
     IcePatch2Internal::createDirectory(_dataDir + "/" + dest);
@@ -1320,12 +1224,11 @@ NodeI::patch(const FileServerPrx& icepatch, const string& dest, const vector<str
     //
 }
 
-set<ServerIPtr>
-NodeI::getApplicationServers(const string& application) const
+set<ServerIPtr> NodeI::getApplicationServers(const string& application) const
 {
     IceUtil::Mutex::Lock sync(_serversLock);
     set<ServerIPtr> servers;
-    map<string, set<ServerIPtr> >::const_iterator p = _serversByApplication.find(application);
+    map<string, set<ServerIPtr>>::const_iterator p = _serversByApplication.find(application);
     if(p != _serversByApplication.end())
     {
         servers = p->second;
@@ -1333,8 +1236,7 @@ NodeI::getApplicationServers(const string& application) const
     return servers;
 }
 
-string
-NodeI::getFilePath(const string& filename) const
+string NodeI::getFilePath(const string& filename) const
 {
     string file;
     if(filename == "stderr")
@@ -1360,12 +1262,8 @@ NodeI::getFilePath(const string& filename) const
     return file;
 }
 
-void
-NodeI::loadServer(const AMD_Node_loadServerPtr& amdCB,
-                  const InternalServerDescriptorPtr& descriptor,
-                  const string& replicaName,
-                  bool noRestart,
-                  const Ice::Current& current)
+void NodeI::loadServer(const AMD_Node_loadServerPtr& amdCB, const InternalServerDescriptorPtr& descriptor,
+                       const string& replicaName, bool noRestart, const Ice::Current& current)
 {
     ServerCommandPtr command;
     {
@@ -1440,14 +1338,8 @@ NodeI::loadServer(const AMD_Node_loadServerPtr& amdCB,
     }
 }
 
-void
-NodeI::destroyServer(const AMD_Node_destroyServerPtr& amdCB,
-                     const string& serverId,
-                     const string& uuid,
-                     int revision,
-                     const string& replicaName,
-                     bool noRestart,
-                     const Ice::Current& current)
+void NodeI::destroyServer(const AMD_Node_destroyServerPtr& amdCB, const string& serverId, const string& uuid,
+                          int revision, const string& replicaName, bool noRestart, const Ice::Current& current)
 {
     ServerCommandPtr command;
     {

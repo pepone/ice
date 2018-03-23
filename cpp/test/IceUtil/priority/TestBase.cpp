@@ -13,24 +13,20 @@
 
 using namespace std;
 
-TestFailed::TestFailed(const std::string& n) :
-    name(n)
+TestFailed::TestFailed(const std::string& n) : name(n)
 {
 }
 
-TestBase::TestBase(const std::string& n) :
-    _name(n)
+TestBase::TestBase(const std::string& n) : _name(n)
 {
 }
 
-string
-TestBase::name() const
+string TestBase::name() const
 {
     return _name;
 }
 
-void
-TestBase::start()
+void TestBase::start()
 {
     cout << "running " << _name << " test... " << flush;
     try

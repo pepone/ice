@@ -17,39 +17,32 @@
 
 namespace IceStorm
 {
+    //
+    // Forward declarations.
+    //
+    class Instance;
+    typedef IceUtil::Handle<Instance> InstancePtr;
 
-//
-// Forward declarations.
-//
-class Instance;
-typedef IceUtil::Handle<Instance> InstancePtr;
-
-typedef IceDB::Dbi<IceStorm::SubscriberRecordKey, IceStorm::SubscriberRecord, IceDB::IceContext, Ice::OutputStream>
+    typedef IceDB::Dbi<IceStorm::SubscriberRecordKey, IceStorm::SubscriberRecord, IceDB::IceContext, Ice::OutputStream>
         SubscriberMap;
-typedef IceDB::Dbi<std::string, IceStormElection::LogUpdate, IceDB::IceContext, Ice::OutputStream> LLUMap;
+    typedef IceDB::Dbi<std::string, IceStormElection::LogUpdate, IceDB::IceContext, Ice::OutputStream> LLUMap;
 
-const std::string lluDbKey = "_manager";
+    const std::string lluDbKey = "_manager";
 
-}
+} // namespace IceStorm
 
 namespace IceStormInternal
 {
+    std::string identityToTopicName(const Ice::Identity&);
 
-std::string
-identityToTopicName(const Ice::Identity&);
+    Ice::Identity nameToIdentity(const IceStorm::InstancePtr&, const std::string&);
 
-Ice::Identity
-nameToIdentity(const IceStorm::InstancePtr&, const std::string&);
+    std::string describeEndpoints(const Ice::ObjectPrx&);
 
-std::string
-describeEndpoints(const Ice::ObjectPrx&);
+    int compareSubscriberRecordKey(const MDB_val* v1, const MDB_val* v2);
 
-int
-compareSubscriberRecordKey(const MDB_val* v1, const MDB_val* v2);
+    IceStormElection::LogUpdate getIncrementedLLU(const IceDB::ReadWriteTxn&, IceStorm::LLUMap&);
 
-IceStormElection::LogUpdate
-getIncrementedLLU(const IceDB::ReadWriteTxn&, IceStorm::LLUMap&);
-
-}
+} // namespace IceStormInternal
 
 #endif

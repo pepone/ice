@@ -11,9 +11,9 @@
 //
 // Solaris 10 bug: it's supposed to be defined in pthread.h
 //
-#ifndef __EXTENSIONS__
-#define __EXTENSIONS__
-#endif
+#    ifndef __EXTENSIONS__
+#        define __EXTENSIONS__
+#    endif
 #endif
 
 #include <IceUtil/Thread.h>
@@ -24,12 +24,12 @@
 #include <exception>
 
 #ifdef ICE_OS_UWP
-#   include <thread>
+#    include <thread>
 #endif
 
 #ifndef _WIN32
-    #include <sys/time.h>
-    #include <sys/resource.h>
+#    include <sys/time.h>
+#    include <sys/resource.h>
 #endif
 
 using namespace std;
@@ -37,31 +37,25 @@ using namespace IceInternal;
 
 #ifdef ICE_OS_UWP
 
-IceUtil::ThreadControl::ThreadControl() :
-    _id(this_thread::get_id())
+IceUtil::ThreadControl::ThreadControl() : _id(this_thread::get_id())
 {
 }
 
-IceUtil::ThreadControl::ThreadControl(const shared_ptr<thread>& thread) :
-    _thread(thread),
-    _id(_thread->get_id())
+IceUtil::ThreadControl::ThreadControl(const shared_ptr<thread>& thread) : _thread(thread), _id(_thread->get_id())
 {
 }
 
-bool
-IceUtil::ThreadControl::operator==(const ThreadControl& rhs) const
+bool IceUtil::ThreadControl::operator==(const ThreadControl& rhs) const
 {
     return id() == rhs.id();
 }
 
-bool
-IceUtil::ThreadControl::operator!=(const ThreadControl& rhs) const
+bool IceUtil::ThreadControl::operator!=(const ThreadControl& rhs) const
 {
     return id() != rhs.id();
 }
 
-void
-IceUtil::ThreadControl::join()
+void IceUtil::ThreadControl::join()
 {
     if(!_thread)
     {
@@ -78,8 +72,7 @@ IceUtil::ThreadControl::join()
     }
 }
 
-void
-IceUtil::ThreadControl::detach()
+void IceUtil::ThreadControl::detach()
 {
     if(!_thread)
     {
@@ -96,14 +89,12 @@ IceUtil::ThreadControl::detach()
     }
 }
 
-IceUtil::ThreadControl::ID
-IceUtil::ThreadControl::id() const
+IceUtil::ThreadControl::ID IceUtil::ThreadControl::id() const
 {
     return _id;
 }
 
-void
-IceUtil::ThreadControl::sleep(const Time& timeout)
+void IceUtil::ThreadControl::sleep(const Time& timeout)
 {
     IceUtil::Int64 msTimeout = timeout.toMilliSeconds();
     if(msTimeout < 0 || msTimeout > 0x7FFFFFFF)
@@ -113,22 +104,16 @@ IceUtil::ThreadControl::sleep(const Time& timeout)
     this_thread::sleep_for(chrono::microseconds(timeout.toMicroSeconds()));
 }
 
-void
-IceUtil::ThreadControl::yield()
+void IceUtil::ThreadControl::yield()
 {
     this_thread::yield();
 }
 
-IceUtil::Thread::Thread() :
-    _started(false),
-    _running(false)
+IceUtil::Thread::Thread() : _started(false), _running(false)
 {
 }
 
-IceUtil::Thread::Thread(const string& name) :
-    _name(name),
-    _started(false),
-    _running(false)
+IceUtil::Thread::Thread(const string& name) : _name(name), _started(false), _running(false)
 {
 }
 
@@ -136,8 +121,7 @@ IceUtil::Thread::~Thread()
 {
 }
 
-static unsigned int
-WINAPI startHook(void* arg)
+static unsigned int WINAPI startHook(void* arg)
 {
     // Ensure that the thread doesn't go away until run() has
     // completed.
@@ -181,16 +165,14 @@ WINAPI startHook(void* arg)
     return 0;
 }
 
-#include <process.h>
+#    include <process.h>
 
-IceUtil::ThreadControl
-IceUtil::Thread::start(size_t)
+IceUtil::ThreadControl IceUtil::Thread::start(size_t)
 {
     return start(0, 0);
 }
 
-IceUtil::ThreadControl
-IceUtil::Thread::start(size_t, int)
+IceUtil::ThreadControl IceUtil::Thread::start(size_t, int)
 {
     //
     // Keep this alive for the duration of start
@@ -222,8 +204,7 @@ IceUtil::Thread::start(size_t, int)
     return ThreadControl(_thread);
 }
 
-IceUtil::ThreadControl
-IceUtil::Thread::getThreadControl() const
+IceUtil::ThreadControl IceUtil::Thread::getThreadControl() const
 {
     IceUtil::Mutex::Lock lock(_stateMutex);
     if(!_started)
@@ -233,66 +214,54 @@ IceUtil::Thread::getThreadControl() const
     return ThreadControl(_thread);
 }
 
-bool
-IceUtil::Thread::operator==(const Thread& rhs) const
+bool IceUtil::Thread::operator==(const Thread& rhs) const
 {
     return this == &rhs;
 }
 
-bool
-IceUtil::Thread::operator<(const Thread& rhs) const
+bool IceUtil::Thread::operator<(const Thread& rhs) const
 {
     return this < &rhs;
 }
 
-bool
-IceUtil::Thread::isAlive() const
+bool IceUtil::Thread::isAlive() const
 {
     IceUtil::Mutex::Lock lock(_stateMutex);
     return _running;
 }
 
-void
-IceUtil::Thread::_done()
+void IceUtil::Thread::_done()
 {
     IceUtil::Mutex::Lock lock(_stateMutex);
     _running = false;
 }
 
-const string&
-IceUtil::Thread::name() const
+const string& IceUtil::Thread::name() const
 {
     return _name;
 }
 
 #elif defined(_WIN32)
 
-IceUtil::ThreadControl::ThreadControl() :
-    _handle(0),
-    _id(GetCurrentThreadId())
+IceUtil::ThreadControl::ThreadControl() : _handle(0), _id(GetCurrentThreadId())
 {
 }
 
-IceUtil::ThreadControl::ThreadControl(HANDLE handle, IceUtil::ThreadControl::ID id) :
-    _handle(handle),
-    _id(id)
+IceUtil::ThreadControl::ThreadControl(HANDLE handle, IceUtil::ThreadControl::ID id) : _handle(handle), _id(id)
 {
 }
 
-bool
-IceUtil::ThreadControl::operator==(const ThreadControl& rhs) const
+bool IceUtil::ThreadControl::operator==(const ThreadControl& rhs) const
 {
     return _id == rhs._id;
 }
 
-bool
-IceUtil::ThreadControl::operator!=(const ThreadControl& rhs) const
+bool IceUtil::ThreadControl::operator!=(const ThreadControl& rhs) const
 {
     return _id != rhs._id;
 }
 
-void
-IceUtil::ThreadControl::join()
+void IceUtil::ThreadControl::join()
 {
     if(_handle == 0)
     {
@@ -308,8 +277,7 @@ IceUtil::ThreadControl::join()
     detach();
 }
 
-void
-IceUtil::ThreadControl::detach()
+void IceUtil::ThreadControl::detach()
 {
     if(_handle == 0)
     {
@@ -322,14 +290,12 @@ IceUtil::ThreadControl::detach()
     }
 }
 
-IceUtil::ThreadControl::ID
-IceUtil::ThreadControl::id() const
+IceUtil::ThreadControl::ID IceUtil::ThreadControl::id() const
 {
     return _id;
 }
 
-void
-IceUtil::ThreadControl::sleep(const Time& timeout)
+void IceUtil::ThreadControl::sleep(const Time& timeout)
 {
     IceUtil::Int64 msTimeout = timeout.toMilliSeconds();
     if(msTimeout < 0 || msTimeout > 0x7FFFFFFF)
@@ -339,8 +305,7 @@ IceUtil::ThreadControl::sleep(const Time& timeout)
     Sleep(static_cast<long>(timeout.toMilliSeconds()));
 }
 
-void
-IceUtil::ThreadControl::yield()
+void IceUtil::ThreadControl::yield()
 {
     //
     // A value of zero causes the thread to relinquish the remainder
@@ -350,20 +315,11 @@ IceUtil::ThreadControl::yield()
     Sleep(0);
 }
 
-IceUtil::Thread::Thread() :
-    _started(false),
-    _running(false),
-    _handle(0),
-    _id(0)
+IceUtil::Thread::Thread() : _started(false), _running(false), _handle(0), _id(0)
 {
 }
 
-IceUtil::Thread::Thread(const string& name) :
-    _name(name),
-    _started(false),
-    _running(false),
-    _handle(0),
-    _id(0)
+IceUtil::Thread::Thread(const string& name) : _name(name), _started(false), _running(false), _handle(0), _id(0)
 {
 }
 
@@ -371,8 +327,7 @@ IceUtil::Thread::~Thread()
 {
 }
 
-static unsigned int
-WINAPI startHook(void* arg)
+static unsigned int WINAPI startHook(void* arg)
 {
     // Ensure that the thread doesn't go away until run() has
     // completed.
@@ -416,16 +371,14 @@ WINAPI startHook(void* arg)
     return 0;
 }
 
-#include <process.h>
+#    include <process.h>
 
-IceUtil::ThreadControl
-IceUtil::Thread::start(size_t stackSize)
+IceUtil::ThreadControl IceUtil::Thread::start(size_t stackSize)
 {
     return start(stackSize, THREAD_PRIORITY_NORMAL);
 }
 
-IceUtil::ThreadControl
-IceUtil::Thread::start(size_t stackSize, int priority)
+IceUtil::ThreadControl IceUtil::Thread::start(size_t stackSize, int priority)
 {
     //
     // Keep this alive for the duration of start
@@ -451,13 +404,8 @@ IceUtil::Thread::start(size_t stackSize, int priority)
     __incRef();
 
     unsigned int id;
-    _handle =
-        reinterpret_cast<HANDLE>(
-            _beginthreadex(0,
-                            static_cast<unsigned int>(stackSize),
-                            startHook, this,
-                            CREATE_SUSPENDED,
-                            &id));
+    _handle = reinterpret_cast<HANDLE>(
+        _beginthreadex(0, static_cast<unsigned int>(stackSize), startHook, this, CREATE_SUSPENDED, &id));
     _id = id;
     assert(_handle != (HANDLE)-1L);
     if(_handle == 0)
@@ -481,8 +429,7 @@ IceUtil::Thread::start(size_t stackSize, int priority)
     return ThreadControl(_handle, _id);
 }
 
-IceUtil::ThreadControl
-IceUtil::Thread::getThreadControl() const
+IceUtil::ThreadControl IceUtil::Thread::getThreadControl() const
 {
     IceUtil::Mutex::Lock lock(_stateMutex);
     if(!_started)
@@ -492,66 +439,54 @@ IceUtil::Thread::getThreadControl() const
     return ThreadControl(_handle, _id);
 }
 
-bool
-IceUtil::Thread::operator==(const Thread& rhs) const
+bool IceUtil::Thread::operator==(const Thread& rhs) const
 {
     return this == &rhs;
 }
 
-bool
-IceUtil::Thread::operator<(const Thread& rhs) const
+bool IceUtil::Thread::operator<(const Thread& rhs) const
 {
     return this < &rhs;
 }
 
-bool
-IceUtil::Thread::isAlive() const
+bool IceUtil::Thread::isAlive() const
 {
     IceUtil::Mutex::Lock lock(_stateMutex);
     return _running;
 }
 
-void
-IceUtil::Thread::_done()
+void IceUtil::Thread::_done()
 {
     IceUtil::Mutex::Lock lock(_stateMutex);
     _running = false;
 }
 
-const string&
-IceUtil::Thread::name() const
+const string& IceUtil::Thread::name() const
 {
     return _name;
 }
 
 #else
 
-IceUtil::ThreadControl::ThreadControl(pthread_t thread) :
-    _thread(thread),
-    _detachable(true)
+IceUtil::ThreadControl::ThreadControl(pthread_t thread) : _thread(thread), _detachable(true)
 {
 }
 
-IceUtil::ThreadControl::ThreadControl() :
-    _thread(pthread_self()),
-    _detachable(false)
+IceUtil::ThreadControl::ThreadControl() : _thread(pthread_self()), _detachable(false)
 {
 }
 
-bool
-IceUtil::ThreadControl::operator==(const ThreadControl& rhs) const
+bool IceUtil::ThreadControl::operator==(const ThreadControl& rhs) const
 {
     return pthread_equal(_thread, rhs._thread) != 0;
 }
 
-bool
-IceUtil::ThreadControl::operator!=(const ThreadControl& rhs) const
+bool IceUtil::ThreadControl::operator!=(const ThreadControl& rhs) const
 {
     return !operator==(rhs);
 }
 
-void
-IceUtil::ThreadControl::join()
+void IceUtil::ThreadControl::join()
 {
     if(!_detachable)
     {
@@ -566,8 +501,7 @@ IceUtil::ThreadControl::join()
     }
 }
 
-void
-IceUtil::ThreadControl::detach()
+void IceUtil::ThreadControl::detach()
 {
     if(!_detachable)
     {
@@ -581,14 +515,12 @@ IceUtil::ThreadControl::detach()
     }
 }
 
-IceUtil::ThreadControl::ID
-IceUtil::ThreadControl::id() const
+IceUtil::ThreadControl::ID IceUtil::ThreadControl::id() const
 {
     return _thread;
 }
 
-void
-IceUtil::ThreadControl::sleep(const Time& timeout)
+void IceUtil::ThreadControl::sleep(const Time& timeout)
 {
     IceUtil::Int64 msTimeout = timeout.toMilliSeconds();
     if(msTimeout < 0 || msTimeout > 0x7FFFFFFF)
@@ -602,22 +534,16 @@ IceUtil::ThreadControl::sleep(const Time& timeout)
     nanosleep(&ts, 0);
 }
 
-void
-IceUtil::ThreadControl::yield()
+void IceUtil::ThreadControl::yield()
 {
     sched_yield();
 }
 
-IceUtil::Thread::Thread() :
-    _started(false),
-    _running(false)
+IceUtil::Thread::Thread() : _started(false), _running(false)
 {
 }
 
-IceUtil::Thread::Thread(const string& name) :
-    _name(name),
-    _started(false),
-    _running(false)
+IceUtil::Thread::Thread(const string& name) : _name(name), _started(false), _running(false)
 {
 }
 
@@ -627,55 +553,51 @@ IceUtil::Thread::~Thread()
 
 extern "C"
 {
-static void*
-startHook(void* arg)
-{
-    //
-    // Ensure that the thread doesn't go away until run() has
-    // completed.
-    //
-    IceUtil::ThreadPtr thread;
-
-    try
+    static void* startHook(void* arg)
     {
-        IceUtil::Thread* rawThread = static_cast<IceUtil::Thread*>(arg);
-
-        thread = rawThread;
-
         //
-        // See the comment in IceUtil::Thread::start() for details.
+        // Ensure that the thread doesn't go away until run() has
+        // completed.
         //
-        rawThread->__decRef();
-        thread->run();
-    }
-    catch(...)
-    {
-        if(!thread->name().empty())
+        IceUtil::ThreadPtr thread;
+
+        try
         {
-            consoleErr << thread->name() << " terminating" << endl;
+            IceUtil::Thread* rawThread = static_cast<IceUtil::Thread*>(arg);
+
+            thread = rawThread;
+
+            //
+            // See the comment in IceUtil::Thread::start() for details.
+            //
+            rawThread->__decRef();
+            thread->run();
         }
-        std::terminate();
+        catch(...)
+        {
+            if(!thread->name().empty())
+            {
+                consoleErr << thread->name() << " terminating" << endl;
+            }
+            std::terminate();
+        }
+
+        thread->_done();
+
+        return 0;
     }
-
-    thread->_done();
-
-    return 0;
-}
 }
 
-IceUtil::ThreadControl
-IceUtil::Thread::start(size_t stackSize)
+IceUtil::ThreadControl IceUtil::Thread::start(size_t stackSize)
 {
     return start(stackSize, false, 0);
 }
 
-IceUtil::ThreadControl
-IceUtil::Thread::start(size_t stackSize, int priority)
+IceUtil::ThreadControl IceUtil::Thread::start(size_t stackSize, int priority)
 {
     return start(stackSize, true, priority);
 }
-IceUtil::ThreadControl
-IceUtil::Thread::start(size_t stackSize, bool realtimeScheduling, int priority)
+IceUtil::ThreadControl IceUtil::Thread::start(size_t stackSize, bool realtimeScheduling, int priority)
 {
     //
     // Keep this alive for the duration of start
@@ -714,12 +636,12 @@ IceUtil::Thread::start(size_t stackSize, bool realtimeScheduling, int priority)
         {
             stackSize = PTHREAD_STACK_MIN;
         }
-#ifdef __APPLE__
+#    ifdef __APPLE__
         if(stackSize % 4096 > 0)
         {
             stackSize = stackSize / 4096 * 4096 + 4096;
         }
-#endif
+#    endif
         rc = pthread_attr_setstacksize(&attr, stackSize);
         if(rc != 0)
         {
@@ -761,8 +683,7 @@ IceUtil::Thread::start(size_t stackSize, bool realtimeScheduling, int priority)
     return ThreadControl(_thread);
 }
 
-IceUtil::ThreadControl
-IceUtil::Thread::getThreadControl() const
+IceUtil::ThreadControl IceUtil::Thread::getThreadControl() const
 {
     IceUtil::Mutex::Lock lock(_stateMutex);
     if(!_started)
@@ -772,34 +693,29 @@ IceUtil::Thread::getThreadControl() const
     return ThreadControl(_thread);
 }
 
-bool
-IceUtil::Thread::operator==(const Thread& rhs) const
+bool IceUtil::Thread::operator==(const Thread& rhs) const
 {
     return this == &rhs;
 }
 
-bool
-IceUtil::Thread::operator<(const Thread& rhs) const
+bool IceUtil::Thread::operator<(const Thread& rhs) const
 {
     return this < &rhs;
 }
 
-bool
-IceUtil::Thread::isAlive() const
+bool IceUtil::Thread::isAlive() const
 {
     IceUtil::Mutex::Lock lock(_stateMutex);
     return _running;
 }
 
-void
-IceUtil::Thread::_done()
+void IceUtil::Thread::_done()
 {
     IceUtil::Mutex::Lock lock(_stateMutex);
     _running = false;
 }
 
-const string&
-IceUtil::Thread::name() const
+const string& IceUtil::Thread::name() const
 {
     return _name;
 }

@@ -14,8 +14,7 @@
 using namespace Ice;
 using namespace IceInternal;
 
-bool
-Ice::DispatchInterceptor::_iceDispatch(IceInternal::Incoming& in, const Current& /*current*/)
+bool Ice::DispatchInterceptor::_iceDispatch(IceInternal::Incoming& in, const Current& /*current*/)
 {
     try
     {

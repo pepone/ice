@@ -46,7 +46,7 @@ App::App()
 /// search results, and so forth.
 /// </summary>
 /// <param name="pArgs">Details about the launch request and process.</param>
-void App::OnLaunched(Windows::ApplicationModel::Activation::LaunchActivatedEventArgs^ pArgs)
+void App::OnLaunched(Windows::ApplicationModel::Activation::LaunchActivatedEventArgs ^ pArgs)
 {
     // Do not repeat app initialization when already running, just ensure that
     // the window is active
@@ -58,7 +58,7 @@ void App::OnLaunched(Windows::ApplicationModel::Activation::LaunchActivatedEvent
 
     if(pArgs->PreviousExecutionState == ApplicationExecutionState::Terminated)
     {
-        //TODO: Load state from previously suspended application
+        // TODO: Load state from previously suspended application
     }
 
     // Create a Frame to act navigation context and navigate to the first page
@@ -74,24 +74,25 @@ void App::OnLaunched(Windows::ApplicationModel::Activation::LaunchActivatedEvent
 
     if(!_session)
     {
-        ExtendedExecutionForegroundSession^ session = ref new ExtendedExecutionForegroundSession();
+        ExtendedExecutionForegroundSession ^ session = ref new ExtendedExecutionForegroundSession();
         session->Reason = ExtendedExecutionForegroundReason::Unconstrained;
-        session->Revoked += ref new TypedEventHandler<Object^, ExtendedExecutionForegroundRevokedEventArgs^>(this, &App::SessionRevoked);
-        concurrency::create_task(session->RequestExtensionAsync()).then([this, session](ExtendedExecutionForegroundResult result)
-        {
-            switch(result)
-            {
-                case ExtendedExecutionForegroundResult::Allowed:
-                    _session = session;
-                    break;
-                case ExtendedExecutionForegroundResult::Denied:
-                    break;
-            }
-        });
+        session->Revoked += ref new TypedEventHandler<Object ^, ExtendedExecutionForegroundRevokedEventArgs ^>(
+            this, &App::SessionRevoked);
+        concurrency::create_task(session->RequestExtensionAsync())
+            .then([this, session](ExtendedExecutionForegroundResult result) {
+                switch(result)
+                {
+                    case ExtendedExecutionForegroundResult::Allowed:
+                        _session = session;
+                        break;
+                    case ExtendedExecutionForegroundResult::Denied:
+                        break;
+                }
+            });
     }
 }
 
-void App::SessionRevoked(Object^ sender, ExtendedExecutionForegroundRevokedEventArgs^ args)
+void App::SessionRevoked(Object ^ sender, ExtendedExecutionForegroundRevokedEventArgs ^ args)
 {
     if(_session != nullptr)
     {
@@ -106,10 +107,10 @@ void App::SessionRevoked(Object^ sender, ExtendedExecutionForegroundRevokedEvent
 /// </summary>
 /// <param name="sender">The source of the suspend request.</param>
 /// <param name="e">Details about the suspend request.</param>
-void App::OnSuspending(Object^ sender, SuspendingEventArgs^ e)
+void App::OnSuspending(Object ^ sender, SuspendingEventArgs ^ e)
 {
-    (void) sender;  // Unused parameter
-    (void) e;       // Unused parameter
+    (void)sender; // Unused parameter
+    (void)e;      // Unused parameter
 
-    //TODO: Save application state and stop any background activity
+    // TODO: Save application state and stop any background activity
 }

@@ -18,32 +18,27 @@ using namespace IceBox;
 
 namespace IceBox
 {
+    class IceBoxService : public Ice::Service
+    {
+    public:
+        IceBoxService();
 
-class IceBoxService : public Ice::Service
-{
-public:
+    protected:
+        virtual bool start(int, char* [], int&);
+        virtual bool stop();
 
-    IceBoxService();
+    private:
+        void usage(const std::string&);
+        ServiceManagerIPtr _serviceManager;
+    };
 
-protected:
-
-    virtual bool start(int, char*[], int&);
-    virtual bool stop();
-
-private:
-
-    void usage(const std::string&);
-    ServiceManagerIPtr _serviceManager;
-};
-
-}
+} // namespace IceBox
 
 IceBox::IceBoxService::IceBoxService()
 {
 }
 
-bool
-IceBox::IceBoxService::start(int argc, char* argv[], int& status)
+bool IceBox::IceBoxService::start(int argc, char* argv[], int& status)
 {
     // Run through the command line arguments removing all the service
     // properties.
@@ -105,8 +100,7 @@ IceBox::IceBoxService::start(int argc, char* argv[], int& status)
     return _serviceManager->start();
 }
 
-bool
-IceBox::IceBoxService::stop()
+bool IceBox::IceBoxService::stop()
 {
     if(_serviceManager)
     {
@@ -116,35 +110,29 @@ IceBox::IceBoxService::stop()
     return true;
 }
 
-void
-IceBox::IceBoxService::usage(const string& appName)
+void IceBox::IceBoxService::usage(const string& appName)
 {
-    string options =
-        "Options:\n"
-        "-h, --help           Show this message.\n"
-        "-v, --version        Display the Ice version.";
+    string options = "Options:\n"
+                     "-h, --help           Show this message.\n"
+                     "-v, --version        Display the Ice version.";
 #ifndef _WIN32
-    options.append(
-        "\n"
-        "\n"
-        "--daemon             Run as a daemon.\n"
-        "--pidfile FILE       Write process ID into FILE.\n"
-        "--noclose            Do not close open file descriptors.\n"
-        "--nochdir            Do not change the current working directory."
-    );
+    options.append("\n"
+                   "\n"
+                   "--daemon             Run as a daemon.\n"
+                   "--pidfile FILE       Write process ID into FILE.\n"
+                   "--noclose            Do not close open file descriptors.\n"
+                   "--nochdir            Do not change the current working directory.");
 #endif
     print("Usage: " + appName + " [options]\n" + options);
 }
 
 #ifdef _WIN32
 
-int
-wmain(int argc, wchar_t* argv[])
+int wmain(int argc, wchar_t* argv[])
 
 #else
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 
 #endif
 {

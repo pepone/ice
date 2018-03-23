@@ -16,15 +16,14 @@
 
 namespace IceInternal
 {
+    class RouterManager;
+    IceUtil::Shared* upCast(RouterManager*);
+    typedef Handle<RouterManager> RouterManagerPtr;
 
-class RouterManager;
-IceUtil::Shared* upCast(RouterManager*);
-typedef Handle<RouterManager> RouterManagerPtr;
+    class RouterInfo;
+    IceUtil::Shared* upCast(RouterInfo*);
+    typedef Handle<RouterInfo> RouterInfoPtr;
 
-class RouterInfo;
-IceUtil::Shared* upCast(RouterInfo*);
-typedef Handle<RouterInfo> RouterInfoPtr;
-
-}
+} // namespace IceInternal
 
 #endif

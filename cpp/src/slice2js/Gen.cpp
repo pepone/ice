@@ -15,9 +15,9 @@
 #include <limits>
 #include <sys/stat.h>
 #ifndef _WIN32
-#include <unistd.h>
+#    include <unistd.h>
 #else
-#include <direct.h>
+#    include <direct.h>
 #endif
 #include <IceUtil/Iterator.h>
 #include <IceUtil/UUID.h>
@@ -33,61 +33,57 @@ using namespace IceUtilInternal;
 
 namespace
 {
-
-string
-sliceModeToIceMode(Operation::Mode opMode)
-{
-    switch(opMode)
+    string sliceModeToIceMode(Operation::Mode opMode)
     {
-    case Operation::Normal:
-        return "0";
-    case Operation::Nonmutating:
-        return "1";
-    case Operation::Idempotent:
-        return "2";
-    default:
-        assert(false);
-    }
-
-    return "???";
-}
-
-string
-opFormatTypeToString(const OperationPtr& op)
-{
-    switch(op->format())
-    {
-    case DefaultFormat:
-        return "0";
-    case CompactFormat:
-        return "1";
-    case SlicedFormat:
-        return "2";
-    default:
-        assert(false);
-    }
-
-    return "???";
-}
-
-string
-getDeprecateReason(const ContainedPtr& p1, const ContainedPtr& p2, const string& type)
-{
-    string deprecateMetadata, deprecateReason;
-    if(p1->findMetaData("deprecate", deprecateMetadata) ||
-       (p2 != 0 && p2->findMetaData("deprecate", deprecateMetadata)))
-    {
-        deprecateReason = "This " + type + " has been deprecated.";
-        const string prefix = "deprecate:";
-        if(deprecateMetadata.find(prefix) == 0 && deprecateMetadata.size() > prefix.size())
+        switch(opMode)
         {
-            deprecateReason = deprecateMetadata.substr(prefix.size());
+            case Operation::Normal:
+                return "0";
+            case Operation::Nonmutating:
+                return "1";
+            case Operation::Idempotent:
+                return "2";
+            default:
+                assert(false);
         }
-    }
-    return deprecateReason;
-}
 
-}
+        return "???";
+    }
+
+    string opFormatTypeToString(const OperationPtr& op)
+    {
+        switch(op->format())
+        {
+            case DefaultFormat:
+                return "0";
+            case CompactFormat:
+                return "1";
+            case SlicedFormat:
+                return "2";
+            default:
+                assert(false);
+        }
+
+        return "???";
+    }
+
+    string getDeprecateReason(const ContainedPtr& p1, const ContainedPtr& p2, const string& type)
+    {
+        string deprecateMetadata, deprecateReason;
+        if(p1->findMetaData("deprecate", deprecateMetadata) ||
+           (p2 != 0 && p2->findMetaData("deprecate", deprecateMetadata)))
+        {
+            deprecateReason = "This " + type + " has been deprecated.";
+            const string prefix = "deprecate:";
+            if(deprecateMetadata.find(prefix) == 0 && deprecateMetadata.size() > prefix.size())
+            {
+                deprecateReason = deprecateMetadata.substr(prefix.size());
+            }
+        }
+        return deprecateReason;
+    }
+
+} // namespace
 
 Slice::JsVisitor::JsVisitor(Output& out) : _out(out)
 {
@@ -97,8 +93,7 @@ Slice::JsVisitor::~JsVisitor()
 {
 }
 
-void
-Slice::JsVisitor::writeMarshalDataMembers(const DataMemberList& dataMembers, const DataMemberList& optionalMembers)
+void Slice::JsVisitor::writeMarshalDataMembers(const DataMemberList& dataMembers, const DataMemberList& optionalMembers)
 {
     for(DataMemberList::const_iterator q = dataMembers.begin(); q != dataMembers.end(); ++q)
     {
@@ -114,8 +109,8 @@ Slice::JsVisitor::writeMarshalDataMembers(const DataMemberList& dataMembers, con
     }
 }
 
-void
-Slice::JsVisitor::writeUnmarshalDataMembers(const DataMemberList& dataMembers, const DataMemberList& optionalMembers)
+void Slice::JsVisitor::writeUnmarshalDataMembers(const DataMemberList& dataMembers,
+                                                 const DataMemberList& optionalMembers)
 {
     for(DataMemberList::const_iterator q = dataMembers.begin(); q != dataMembers.end(); ++q)
     {
@@ -131,8 +126,7 @@ Slice::JsVisitor::writeUnmarshalDataMembers(const DataMemberList& dataMembers, c
     }
 }
 
-void
-Slice::JsVisitor::writeInitDataMembers(const DataMemberList& dataMembers, const string& scope)
+void Slice::JsVisitor::writeInitDataMembers(const DataMemberList& dataMembers, const string& scope)
 {
     for(DataMemberList::const_iterator q = dataMembers.begin(); q != dataMembers.end(); ++q)
     {
@@ -141,8 +135,7 @@ Slice::JsVisitor::writeInitDataMembers(const DataMemberList& dataMembers, const 
     }
 }
 
-string
-Slice::JsVisitor::getValue(const string& scope, const TypePtr& type)
+string Slice::JsVisitor::getValue(const string& scope, const TypePtr& type)
 {
     assert(type);
 
@@ -201,9 +194,8 @@ Slice::JsVisitor::getValue(const string& scope, const TypePtr& type)
     return "null";
 }
 
-string
-Slice::JsVisitor::writeConstantValue(const string& scope, const TypePtr& type, const SyntaxTreeBasePtr& valueType,
-                                     const string& value)
+string Slice::JsVisitor::writeConstantValue(const string& scope, const TypePtr& type,
+                                            const SyntaxTreeBasePtr& valueType, const string& value)
 {
     ostringstream os;
     ConstPtr constant = ConstPtr::dynamicCast(valueType);
@@ -235,9 +227,9 @@ Slice::JsVisitor::writeConstantValue(const string& scope, const TypePtr& type, c
             // output file.
             //
 #ifdef ICE_BIG_ENDIAN
-            os << "new Ice.Long(" << (l & 0xFFFFFFFF) << ", " << ((l >> 32) & 0xFFFFFFFF)  << ")";
+            os << "new Ice.Long(" << (l & 0xFFFFFFFF) << ", " << ((l >> 32) & 0xFFFFFFFF) << ")";
 #else
-            os << "new Ice.Long(" << ((l >> 32) & 0xFFFFFFFF) << ", " << (l & 0xFFFFFFFF)  << ")";
+            os << "new Ice.Long(" << ((l >> 32) & 0xFFFFFFFF) << ", " << (l & 0xFFFFFFFF) << ")";
 #endif
         }
         else if((ep = EnumPtr::dynamicCast(type)))
@@ -254,8 +246,7 @@ Slice::JsVisitor::writeConstantValue(const string& scope, const TypePtr& type, c
     return os.str();
 }
 
-StringList
-Slice::JsVisitor::splitComment(const ContainedPtr& p)
+StringList Slice::JsVisitor::splitComment(const ContainedPtr& p)
 {
     StringList result;
 
@@ -276,8 +267,7 @@ Slice::JsVisitor::splitComment(const ContainedPtr& p)
     return result;
 }
 
-void
-Slice::JsVisitor::writeDocComment(const ContainedPtr& p, const string& deprecateReason, const string& extraParam)
+void Slice::JsVisitor::writeDocComment(const ContainedPtr& p, const string& deprecateReason, const string& extraParam)
 {
     StringList lines = splitComment(p);
     if(lines.empty())
@@ -387,8 +377,7 @@ Slice::Gen::~Gen()
     }
 }
 
-void
-Slice::Gen::generate(const UnitPtr& p)
+void Slice::Gen::generate(const UnitPtr& p)
 {
     //
     // Check for global "js:ice-build" and "js:es6-module"
@@ -444,11 +433,13 @@ Slice::Gen::generate(const UnitPtr& p)
         }
 
         _out << eb;
-        _out << nl << "(typeof(global) !== \"undefined\" && typeof(global.process) !== \"undefined\" ? module : undefined,"
-             << nl << " typeof(global) !== \"undefined\" && typeof(global.process) !== \"undefined\" ? require :"
-             << nl << " (typeof WorkerGlobalScope !== \"undefined\" && self instanceof WorkerGlobalScope) ? self.Ice._require : window.Ice._require,"
-             << nl << " typeof(global) !== \"undefined\" && typeof(global.process) !== \"undefined\" ? exports :"
-             << nl << " (typeof WorkerGlobalScope !== \"undefined\" && self instanceof WorkerGlobalScope) ? self : window));";
+        _out << nl
+             << "(typeof(global) !== \"undefined\" && typeof(global.process) !== \"undefined\" ? module : undefined,"
+             << nl << " typeof(global) !== \"undefined\" && typeof(global.process) !== \"undefined\" ? require :" << nl
+             << " (typeof WorkerGlobalScope !== \"undefined\" && self instanceof WorkerGlobalScope) ? "
+                "self.Ice._require : window.Ice._require,"
+             << nl << " typeof(global) !== \"undefined\" && typeof(global.process) !== \"undefined\" ? exports :" << nl
+             << " (typeof WorkerGlobalScope !== \"undefined\" && self instanceof WorkerGlobalScope) ? self : window));";
 
         if(icejs)
         {
@@ -459,25 +450,21 @@ Slice::Gen::generate(const UnitPtr& p)
     }
 }
 
-void
-Slice::Gen::closeOutput()
+void Slice::Gen::closeOutput()
 {
     _out.close();
 }
 
-void
-Slice::Gen::printHeader()
+void Slice::Gen::printHeader()
 {
-    static const char* header =
-"// **********************************************************************\n"
-"//\n"
-"// Copyright (c) 2003-2018 ZeroC, Inc. All rights reserved.\n"
-"//\n"
-"// This copy of Ice is licensed to you under the terms described in the\n"
-"// ICE_LICENSE file included in this distribution.\n"
-"//\n"
-"// **********************************************************************\n"
-        ;
+    static const char* header = "// **********************************************************************\n"
+                                "//\n"
+                                "// Copyright (c) 2003-2018 ZeroC, Inc. All rights reserved.\n"
+                                "//\n"
+                                "// This copy of Ice is licensed to you under the terms described in the\n"
+                                "// ICE_LICENSE file included in this distribution.\n"
+                                "//\n"
+                                "// **********************************************************************\n";
 
     _out << header;
     _out << "//\n";
@@ -485,8 +472,8 @@ Slice::Gen::printHeader()
     _out << "//\n";
 }
 
-Slice::Gen::RequireVisitor::RequireVisitor(IceUtilInternal::Output& out, vector<string> includePaths,
-                                           bool icejs, bool es6modules) :
+Slice::Gen::RequireVisitor::RequireVisitor(IceUtilInternal::Output& out, vector<string> includePaths, bool icejs,
+                                           bool es6modules) :
     JsVisitor(out),
     _icejs(icejs),
     _es6modules(es6modules),
@@ -507,8 +494,7 @@ Slice::Gen::RequireVisitor::RequireVisitor(IceUtilInternal::Output& out, vector<
     }
 }
 
-bool
-Slice::Gen::RequireVisitor::visitClassDefStart(const ClassDefPtr& p)
+bool Slice::Gen::RequireVisitor::visitClassDefStart(const ClassDefPtr& p)
 {
     _seenClass = true; // Set regardless of whether p->isLocal()
     if(p->compactId() >= 0)
@@ -518,21 +504,18 @@ Slice::Gen::RequireVisitor::visitClassDefStart(const ClassDefPtr& p)
     return !p->isLocal(); // Look for operations.
 }
 
-bool
-Slice::Gen::RequireVisitor::visitStructStart(const StructPtr& p)
+bool Slice::Gen::RequireVisitor::visitStructStart(const StructPtr& p)
 {
     _seenStruct = true; // Set regardless of whether p->isLocal()
     return false;
 }
 
-void
-Slice::Gen::RequireVisitor::visitOperation(const OperationPtr& p)
+void Slice::Gen::RequireVisitor::visitOperation(const OperationPtr& p)
 {
     _seenOperation = true;
 }
 
-bool
-Slice::Gen::RequireVisitor::visitExceptionStart(const ExceptionPtr& p)
+bool Slice::Gen::RequireVisitor::visitExceptionStart(const ExceptionPtr& p)
 {
     if(p->isLocal())
     {
@@ -546,8 +529,7 @@ Slice::Gen::RequireVisitor::visitExceptionStart(const ExceptionPtr& p)
     return false;
 }
 
-void
-Slice::Gen::RequireVisitor::visitSequence(const SequencePtr& seq)
+void Slice::Gen::RequireVisitor::visitSequence(const SequencePtr& seq)
 {
     BuiltinPtr builtin = BuiltinPtr::dynamicCast(seq->type());
     if(builtin && builtin->kind() == Builtin::KindObject)
@@ -556,8 +538,7 @@ Slice::Gen::RequireVisitor::visitSequence(const SequencePtr& seq)
     }
 }
 
-void
-Slice::Gen::RequireVisitor::visitDictionary(const DictionaryPtr& dict)
+void Slice::Gen::RequireVisitor::visitDictionary(const DictionaryPtr& dict)
 {
     BuiltinPtr builtin = BuiltinPtr::dynamicCast(dict->valueType());
     if(builtin && builtin->kind() == Builtin::KindObject)
@@ -566,81 +547,77 @@ Slice::Gen::RequireVisitor::visitDictionary(const DictionaryPtr& dict)
     }
 }
 
-void
-Slice::Gen::RequireVisitor::visitEnum(const EnumPtr& p)
+void Slice::Gen::RequireVisitor::visitEnum(const EnumPtr& p)
 {
     _seenEnum = true;
 }
 
 namespace
 {
-
-bool iceBuiltinModule(const string& name)
-{
-    return name == "Glacier2" || name == "Ice" || name == "IceGrid" || name == "IceMX" || name == "IceStorm";
-}
-
-string
-relativePath(string p1, string p2)
-{
-    vector<string> tokens1;
-    vector<string> tokens2;
-
-    splitString(p1, "/\\", tokens1);
-    splitString(p2, "/\\", tokens2);
-
-    string f1 = tokens1.back();
-    string f2 = tokens2.back();
-
-    tokens1.pop_back();
-    tokens2.pop_back();
-
-    vector<string>::const_iterator i1 = tokens1.begin();
-    vector<string>::const_iterator i2 = tokens2.begin();
-
-    while(i1 != tokens1.end() && i2 != tokens2.end() && *i1 == *i2)
+    bool iceBuiltinModule(const string& name)
     {
-        i1++;
-        i2++;
+        return name == "Glacier2" || name == "Ice" || name == "IceGrid" || name == "IceMX" || name == "IceStorm";
     }
 
-    //
-    // Different volumes, relative path not possible.
-    //
-    if(i1 == tokens1.begin() && i2 == tokens2.begin())
+    string relativePath(string p1, string p2)
     {
-        return p1;
-    }
+        vector<string> tokens1;
+        vector<string> tokens2;
 
-    string newPath;
-    if(i2 == tokens2.end())
-    {
-        newPath += "./";
-        for(; i1 != tokens1.end(); ++i1)
+        splitString(p1, "/\\", tokens1);
+        splitString(p2, "/\\", tokens2);
+
+        string f1 = tokens1.back();
+        string f2 = tokens2.back();
+
+        tokens1.pop_back();
+        tokens2.pop_back();
+
+        vector<string>::const_iterator i1 = tokens1.begin();
+        vector<string>::const_iterator i2 = tokens2.begin();
+
+        while(i1 != tokens1.end() && i2 != tokens2.end() && *i1 == *i2)
         {
-            newPath += *i1 + "/";
+            i1++;
+            i2++;
         }
-    }
-    else
-    {
-        for(;i2 != tokens2.end();++i2)
+
+        //
+        // Different volumes, relative path not possible.
+        //
+        if(i1 == tokens1.begin() && i2 == tokens2.begin())
         {
-            newPath += "../";
+            return p1;
         }
+
+        string newPath;
+        if(i2 == tokens2.end())
+        {
+            newPath += "./";
+            for(; i1 != tokens1.end(); ++i1)
+            {
+                newPath += *i1 + "/";
+            }
+        }
+        else
+        {
+            for(; i2 != tokens2.end(); ++i2)
+            {
+                newPath += "../";
+            }
+        }
+        newPath += f1;
+
+        return newPath;
     }
-    newPath += f1;
 
-    return newPath;
-}
+} // namespace
 
-}
-
-vector<string>
-Slice::Gen::RequireVisitor::writeRequires(const UnitPtr& p)
+vector<string> Slice::Gen::RequireVisitor::writeRequires(const UnitPtr& p)
 {
     vector<string> seenModules;
 
-    map<string, list<string> > requires;
+    map<string, list<string>> requires;
     if(_icejs)
     {
         requires["Ice"] = list<string>();
@@ -794,7 +771,7 @@ Slice::Gen::RequireVisitor::writeRequires(const UnitPtr& p)
             _out << nl << "const _ModuleRegistry = require(\"../Ice/ModuleRegistry\").Ice._ModuleRegistry;";
         }
 
-        for(map<string, list<string> >::const_iterator i = requires.begin(); i != requires.end(); ++i)
+        for(map<string, list<string>>::const_iterator i = requires.begin(); i != requires.end(); ++i)
         {
             if(!_icejs && i->first == "Ice")
             {
@@ -854,8 +831,7 @@ Slice::Gen::TypesVisitor::TypesVisitor(IceUtilInternal::Output& out, vector<stri
 {
 }
 
-bool
-Slice::Gen::TypesVisitor::visitModuleStart(const ModulePtr& p)
+bool Slice::Gen::TypesVisitor::visitModuleStart(const ModulePtr& p)
 {
     //
     // For a top-level module we write the following:
@@ -897,13 +873,11 @@ Slice::Gen::TypesVisitor::visitModuleStart(const ModulePtr& p)
     return true;
 }
 
-void
-Slice::Gen::TypesVisitor::visitModuleEnd(const ModulePtr& p)
+void Slice::Gen::TypesVisitor::visitModuleEnd(const ModulePtr& p)
 {
 }
 
-bool
-Slice::Gen::TypesVisitor::visitClassDefStart(const ClassDefPtr& p)
+bool Slice::Gen::TypesVisitor::visitClassDefStart(const ClassDefPtr& p)
 {
     //
     // Don't need to generate any code for local interfaces.
@@ -982,7 +956,7 @@ Slice::Gen::TypesVisitor::visitClassDefStart(const ClassDefPtr& p)
             {
                 _out << ',';
             }
-           _out << nl << '"' << *q << '"';
+            _out << nl << '"' << *q << '"';
         }
 
         _out.dec();
@@ -1080,7 +1054,7 @@ Slice::Gen::TypesVisitor::visitClassDefStart(const ClassDefPtr& p)
 
             _out << nl << "Slice.defineValue(" << localScope << "." << name << ", "
                  << "iceC_" << getLocalScope(scoped, "_") << "_ids[" << scopedPos << "], "
-                 << (preserved ? "true" : "false") ;
+                 << (preserved ? "true" : "false");
             if(p->compactId() >= 0)
             {
                 _out << ", " << p->compactId();
@@ -1096,10 +1070,10 @@ Slice::Gen::TypesVisitor::visitClassDefStart(const ClassDefPtr& p)
     {
         _out << sp;
         writeDocComment(p, getDeprecateReason(p, 0, "type"));
-        _out << nl << localScope << "." << (p->isInterface() ? p->name() :  p->name() + "Disp") << " = class extends ";
+        _out << nl << localScope << "." << (p->isInterface() ? p->name() : p->name() + "Disp") << " = class extends ";
         if(hasBaseClass)
         {
-            _out << getLocalScope(base->scope())  << "." << base->name() << "Disp";
+            _out << getLocalScope(base->scope()) << "." << base->name() << "Disp";
         }
         else
         {
@@ -1119,8 +1093,8 @@ Slice::Gen::TypesVisitor::visitClassDefStart(const ClassDefPtr& p)
                 ClassDefPtr base = *q;
                 if(base->isInterface())
                 {
-                    _out << nl << getLocalScope(base->scope()) << "." <<
-                        (base->isInterface() ? base->name() : base->name() + "Disp");
+                    _out << nl << getLocalScope(base->scope()) << "."
+                         << (base->isInterface() ? base->name() : base->name() + "Disp");
                     if(++q != bases.end())
                     {
                         _out << ",";
@@ -1186,11 +1160,9 @@ Slice::Gen::TypesVisitor::visitClassDefStart(const ClassDefPtr& p)
             _out << eb << ";";
         }
 
-        _out << sp << nl << "Slice.defineOperations("
-             << localScope << "." << (p->isInterface() ? p->name() : p->name() + "Disp") << ", "
-             << proxyType << ", "
-             << "iceC_" << getLocalScope(scoped, "_") << "_ids, "
-             << scopedPos;
+        _out << sp << nl << "Slice.defineOperations(" << localScope << "."
+             << (p->isInterface() ? p->name() : p->name() + "Disp") << ", " << proxyType << ", "
+             << "iceC_" << getLocalScope(scoped, "_") << "_ids, " << scopedPos;
 
         const OperationList ops = p->operations();
         if(!ops.empty())
@@ -1405,8 +1377,7 @@ Slice::Gen::TypesVisitor::visitClassDefStart(const ClassDefPtr& p)
     return false;
 }
 
-void
-Slice::Gen::TypesVisitor::visitSequence(const SequencePtr& p)
+void Slice::Gen::TypesVisitor::visitSequence(const SequencePtr& p)
 {
     const TypePtr type = p->type();
 
@@ -1421,16 +1392,16 @@ Slice::Gen::TypesVisitor::visitSequence(const SequencePtr& p)
 
     _out << sp;
     _out << nl << "Slice.defineSequence(" << scope << ", \"" << propertyName << "\", "
-         << "\"" << getHelper(type) << "\"" << ", " << (fixed ? "true" : "false");
+         << "\"" << getHelper(type) << "\""
+         << ", " << (fixed ? "true" : "false");
     if(isClassType(type))
     {
-        _out<< ", \"" << typeToString(type) << "\"";
+        _out << ", \"" << typeToString(type) << "\"";
     }
     _out << ");";
 }
 
-bool
-Slice::Gen::TypesVisitor::visitExceptionStart(const ExceptionPtr& p)
+bool Slice::Gen::TypesVisitor::visitExceptionStart(const ExceptionPtr& p)
 {
     const string scope = p->scope();
     const string localScope = getLocalScope(scope);
@@ -1575,8 +1546,7 @@ Slice::Gen::TypesVisitor::visitExceptionStart(const ExceptionPtr& p)
     return false;
 }
 
-bool
-Slice::Gen::TypesVisitor::visitStructStart(const StructPtr& p)
+bool Slice::Gen::TypesVisitor::visitStructStart(const StructPtr& p)
 {
     const string scope = p->scope();
     const string localScope = getLocalScope(scope);
@@ -1660,14 +1630,12 @@ Slice::Gen::TypesVisitor::visitStructStart(const StructPtr& p)
     bool legalKeyType = Dictionary::legalKeyType(p, containsSequence);
 
     _out << sp;
-    _out << nl << "Slice.defineStruct(" << localScope << '.' << name << ", "
-         << (legalKeyType ? "true" : "false") << ", "
-         << (p->isVariableLength() ? "true" : "false") << ");";
+    _out << nl << "Slice.defineStruct(" << localScope << '.' << name << ", " << (legalKeyType ? "true" : "false")
+         << ", " << (p->isVariableLength() ? "true" : "false") << ");";
     return false;
 }
 
-void
-Slice::Gen::TypesVisitor::visitDictionary(const DictionaryPtr& p)
+void Slice::Gen::TypesVisitor::visitDictionary(const DictionaryPtr& p)
 {
     const TypePtr keyType = p->keyType();
     const TypePtr valueType = p->valueType();
@@ -1695,8 +1663,7 @@ Slice::Gen::TypesVisitor::visitDictionary(const DictionaryPtr& p)
     _out << sp;
     _out << nl << "Slice.defineDictionary(" << scope << ", \"" << name << "\", \"" << propertyName << "\", "
          << "\"" << getHelper(keyType) << "\", "
-         << "\"" << getHelper(valueType) << "\", "
-         << (fixed ? "true" : "false") << ", "
+         << "\"" << getHelper(valueType) << "\", " << (fixed ? "true" : "false") << ", "
          << (keyUseEquals ? "Ice.HashMap.compareEquals" : "undefined");
 
     if(isClassType(valueType))
@@ -1715,8 +1682,7 @@ Slice::Gen::TypesVisitor::visitDictionary(const DictionaryPtr& p)
     _out << ");";
 }
 
-void
-Slice::Gen::TypesVisitor::visitEnum(const EnumPtr& p)
+void Slice::Gen::TypesVisitor::visitEnum(const EnumPtr& p)
 {
     const string scope = p->scope();
     const string localScope = getLocalScope(scope);
@@ -1753,8 +1719,7 @@ Slice::Gen::TypesVisitor::visitEnum(const EnumPtr& p)
     //
 }
 
-void
-Slice::Gen::TypesVisitor::visitConst(const ConstPtr& p)
+void Slice::Gen::TypesVisitor::visitConst(const ConstPtr& p)
 {
     const string scope = p->scope();
     const string localScope = getLocalScope(scope);
@@ -1769,13 +1734,11 @@ Slice::Gen::TypesVisitor::visitConst(const ConstPtr& p)
     _out << nl << "});";
 }
 
-string
-Slice::Gen::TypesVisitor::encodeTypeForOperation(const TypePtr& type)
+string Slice::Gen::TypesVisitor::encodeTypeForOperation(const TypePtr& type)
 {
     assert(type);
 
-    static const char* builtinTable[] =
-    {
+    static const char* builtinTable[] = {
         "0",  // byte
         "1",  // bool
         "2",  // short
@@ -1857,8 +1820,7 @@ Slice::Gen::ExportVisitor::ExportVisitor(IceUtilInternal::Output& out, bool icej
 {
 }
 
-bool
-Slice::Gen::ExportVisitor::visitModuleStart(const ModulePtr& p)
+bool Slice::Gen::ExportVisitor::visitModuleStart(const ModulePtr& p)
 {
     const bool topLevel = UnitPtr::dynamicCast(p->container());
     if(topLevel)

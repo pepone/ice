@@ -12,15 +12,14 @@
 #include <TestCommon.h>
 
 #if defined(ICE_USE_OPENSSL)
-#  include <IceSSL/OpenSSL.h>
+#    include <IceSSL/OpenSSL.h>
 #endif
 
 DEFINE_TEST("server")
 
 using namespace std;
 
-int
-run(int argc, char** argv, const Ice::CommunicatorPtr& communicator)
+int run(int argc, char** argv, const Ice::CommunicatorPtr& communicator)
 {
     string testdir;
 #if !defined(__APPLE__) || TARGET_OS_IPHONE == 0
@@ -44,8 +43,7 @@ run(int argc, char** argv, const Ice::CommunicatorPtr& communicator)
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
 #ifdef ICE_STATIC_LIBS
     Ice::registerIceSSL(false);

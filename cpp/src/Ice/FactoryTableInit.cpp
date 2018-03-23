@@ -14,40 +14,37 @@
 
 namespace IceInternal
 {
+    //
+    // Single global instance of the factory table for non-local
+    // exceptions and non-abstract classes.
+    //
+    ICE_API FactoryTable* factoryTable;
 
-//
-// Single global instance of the factory table for non-local
-// exceptions and non-abstract classes.
-//
-ICE_API FactoryTable* factoryTable;
-
-}
+} // namespace IceInternal
 
 namespace
 {
+    int initCount = 0; // Initialization count
+    IceUtil::Mutex* initCountMutex = 0;
 
-int initCount = 0;   // Initialization count
-IceUtil::Mutex* initCountMutex = 0;
-
-class Init
-{
-public:
-
-    Init()
+    class Init
     {
-        initCountMutex = new IceUtil::Mutex;
-    }
+    public:
+        Init()
+        {
+            initCountMutex = new IceUtil::Mutex;
+        }
 
-    ~Init()
-    {
-        delete initCountMutex;
-        initCountMutex = 0;
-    }
-};
+        ~Init()
+        {
+            delete initCountMutex;
+            initCountMutex = 0;
+        }
+    };
 
-Init init;
+    Init init;
 
-}
+} // namespace
 
 //
 // This constructor initializes the single global
@@ -80,8 +77,7 @@ IceInternal::FactoryTableInit::~FactoryTableInit()
     }
 }
 
-IceInternal::CompactIdInit::CompactIdInit(const char* typeId, int compactId) :
-    _compactId(compactId)
+IceInternal::CompactIdInit::CompactIdInit(const char* typeId, int compactId) : _compactId(compactId)
 {
     assert(_compactId >= 0);
     factoryTable->addTypeId(_compactId, typeId);

@@ -22,10 +22,9 @@ IceGrid::NodeServerAdminRouter::NodeServerAdminRouter(const NodeIPtr& node) :
 {
 }
 
-void
-IceGrid::NodeServerAdminRouter::ice_invoke_async(const AMD_Object_ice_invokePtr& cb,
-                                                 const std::pair<const Ice::Byte*, const Ice::Byte*>& inParams,
-                                                 const Current& current)
+void IceGrid::NodeServerAdminRouter::ice_invoke_async(const AMD_Object_ice_invokePtr& cb,
+                                                      const std::pair<const Ice::Byte*, const Ice::Byte*>& inParams,
+                                                      const Current& current)
 {
     //
     // First, get the ServerI servant

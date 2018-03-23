@@ -15,14 +15,12 @@ using namespace IceInternal;
 
 #if defined(ICE_OS_UWP)
 
-#include <Ice/Properties.h>
+#    include <Ice/Properties.h>
 using namespace Platform;
 using namespace Windows::Foundation;
 #endif
 
-StreamSocket::StreamSocket(const ProtocolInstancePtr& instance,
-                           const NetworkProxyPtr& proxy,
-                           const Address& addr,
+StreamSocket::StreamSocket(const ProtocolInstancePtr& instance, const NetworkProxyPtr& proxy, const Address& addr,
                            const Address& sourceAddr) :
     NativeInfo(createSocket(false, proxy ? proxy->getAddress() : addr)),
     _instance(instance),
@@ -31,7 +29,9 @@ StreamSocket::StreamSocket(const ProtocolInstancePtr& instance,
     _sourceAddr(sourceAddr),
     _state(StateNeedConnect)
 #if defined(ICE_USE_IOCP)
-    , _read(SocketOperationRead), _write(SocketOperationWrite)
+    ,
+    _read(SocketOperationRead),
+    _write(SocketOperationWrite)
 #endif
 {
     init();
@@ -59,7 +59,9 @@ StreamSocket::StreamSocket(const ProtocolInstancePtr& instance, SOCKET fd) :
     _sourceAddr(),
     _state(StateConnected)
 #if defined(ICE_USE_IOCP)
-    , _read(SocketOperationRead), _write(SocketOperationWrite)
+    ,
+    _read(SocketOperationRead),
+    _write(SocketOperationWrite)
 #endif
 {
     init();
@@ -79,8 +81,7 @@ StreamSocket::~StreamSocket()
     assert(_fd == INVALID_SOCKET);
 }
 
-SocketOperation
-StreamSocket::connect(Buffer& readBuffer, Buffer& writeBuffer)
+SocketOperation StreamSocket::connect(Buffer& readBuffer, Buffer& writeBuffer)
 {
     if(_state == StateNeedConnect)
     {
@@ -143,14 +144,12 @@ StreamSocket::connect(Buffer& readBuffer, Buffer& writeBuffer)
     return IceInternal::SocketOperationNone;
 }
 
-bool
-StreamSocket::isConnected()
+bool StreamSocket::isConnected()
 {
     return _state == StateConnected && _fd != INVALID_SOCKET;
 }
 
-size_t
-StreamSocket::getSendPacketSize(size_t length)
+size_t StreamSocket::getSendPacketSize(size_t length)
 {
 #if defined(ICE_USE_IOCP) || defined(ICE_OS_UWP)
     return _maxSendPacketSize > 0 ? std::min(length, _maxSendPacketSize) : length;
@@ -159,8 +158,7 @@ StreamSocket::getSendPacketSize(size_t length)
 #endif
 }
 
-size_t
-StreamSocket::getRecvPacketSize(size_t length)
+size_t StreamSocket::getRecvPacketSize(size_t length)
 {
 #if defined(ICE_USE_IOCP) || defined(ICE_OS_UWP)
     return _maxRecvPacketSize > 0 ? std::min(length, _maxRecvPacketSize) : length;
@@ -169,14 +167,12 @@ StreamSocket::getRecvPacketSize(size_t length)
 #endif
 }
 
-void
-StreamSocket::setBufferSize(int rcvSize, int sndSize)
+void StreamSocket::setBufferSize(int rcvSize, int sndSize)
 {
     setTcpBufSize(_fd, rcvSize, sndSize, _instance);
 }
 
-SocketOperation
-StreamSocket::read(Buffer& buf)
+SocketOperation StreamSocket::read(Buffer& buf)
 {
 #if !defined(ICE_OS_UWP)
     if(_state == StateProxyRead)
@@ -201,8 +197,7 @@ StreamSocket::read(Buffer& buf)
     return buf.i != buf.b.end() ? SocketOperationRead : SocketOperationNone;
 }
 
-SocketOperation
-StreamSocket::write(Buffer& buf)
+SocketOperation StreamSocket::write(Buffer& buf)
 {
 #if !defined(ICE_OS_UWP)
     if(_state == StateProxyWrite)
@@ -228,8 +223,7 @@ StreamSocket::write(Buffer& buf)
 }
 
 #if !defined(ICE_OS_UWP)
-ssize_t
-StreamSocket::read(char* buf, size_t length)
+ssize_t StreamSocket::read(char* buf, size_t length)
 {
     assert(_fd != INVALID_SOCKET);
 
@@ -238,11 +232,11 @@ StreamSocket::read(char* buf, size_t length)
 
     while(length > 0)
     {
-#ifdef _WIN32
+#    ifdef _WIN32
         ssize_t ret = ::recv(_fd, buf, static_cast<int>(packetSize), 0);
-#else
+#    else
         ssize_t ret = ::recv(_fd, buf, packetSize, 0);
-#endif
+#    endif
         if(ret == 0)
         {
             throw Ice::ConnectionLostException(__FILE__, __LINE__, 0);
@@ -287,29 +281,28 @@ StreamSocket::read(char* buf, size_t length)
     return read;
 }
 
-ssize_t
-StreamSocket::write(const char* buf, size_t length)
+ssize_t StreamSocket::write(const char* buf, size_t length)
 {
     assert(_fd != INVALID_SOCKET);
 
-#ifdef ICE_USE_IOCP
+#    ifdef ICE_USE_IOCP
     //
     // On Windows, limiting the buffer size is important to prevent
     // poor throughput performances when sending large amount of
     // data. See Microsoft KB article KB823764.
     //
     size_t packetSize = _maxSendPacketSize > 0 ? std::min(length, _maxSendPacketSize / 2) : length;
-#else
+#    else
     size_t packetSize = length;
-#endif
+#    endif
     ssize_t sent = 0;
     while(length > 0)
     {
-#ifdef _WIN32
+#    ifdef _WIN32
         ssize_t ret = ::send(_fd, buf, static_cast<int>(packetSize), 0);
-#else
+#    else
         ssize_t ret = ::send(_fd, buf, packetSize, 0);
-#endif
+#    endif
         if(ret == 0)
         {
             throw Ice::ConnectionLostException(__FILE__, __LINE__, 0);
@@ -356,26 +349,24 @@ StreamSocket::write(const char* buf, size_t length)
 #endif
 
 #if defined(ICE_USE_IOCP) || defined(ICE_OS_UWP)
-AsyncInfo*
-StreamSocket::getAsyncInfo(SocketOperation op)
+AsyncInfo* StreamSocket::getAsyncInfo(SocketOperation op)
 {
     switch(op)
     {
-    case SocketOperationRead:
-        return &_read;
-    case SocketOperationWrite:
-        return &_write;
-    default:
-        assert(false);
-        return 0;
+        case SocketOperationRead:
+            return &_read;
+        case SocketOperationWrite:
+            return &_write;
+        default:
+            assert(false);
+            return 0;
     }
 }
 #endif
 
 #if defined(ICE_USE_IOCP)
 
-bool
-StreamSocket::startWrite(Buffer& buf)
+bool StreamSocket::startWrite(Buffer& buf)
 {
     if(_state == StateConnectPending)
     {
@@ -407,8 +398,7 @@ StreamSocket::startWrite(Buffer& buf)
     return packetSize == length;
 }
 
-void
-StreamSocket::finishWrite(Buffer& buf)
+void StreamSocket::finishWrite(Buffer& buf)
 {
     if(_fd == INVALID_SOCKET || (_state < StateConnected && _state != StateProxyWrite))
     {
@@ -435,8 +425,7 @@ StreamSocket::finishWrite(Buffer& buf)
     }
 }
 
-void
-StreamSocket::startRead(Buffer& buf)
+void StreamSocket::startRead(Buffer& buf)
 {
     size_t length = buf.b.end() - buf.i;
     assert(length > 0);
@@ -461,8 +450,7 @@ StreamSocket::startRead(Buffer& buf)
     }
 }
 
-void
-StreamSocket::finishRead(Buffer& buf)
+void StreamSocket::finishRead(Buffer& buf)
 {
     if(_fd == INVALID_SOCKET)
     {
@@ -492,13 +480,11 @@ StreamSocket::finishRead(Buffer& buf)
     {
         _state = toState(_proxy->endRead(buf));
     }
-
 }
 
 #elif defined(ICE_OS_UWP)
 
-bool
-StreamSocket::startWrite(Buffer& buf)
+bool StreamSocket::startWrite(Buffer& buf)
 {
     if(_state == StateConnectPending)
     {
@@ -508,11 +494,11 @@ StreamSocket::startWrite(Buffer& buf)
             try
             {
                 queueAction(SocketOperationConnect,
-                            safe_cast<Windows::Networking::Sockets::StreamSocket^>(_fd)->ConnectAsync(
-                                  addr.host, addr.port,
-                                  Windows::Networking::Sockets::SocketProtectionLevel::PlainSocket), true);
+                            safe_cast<Windows::Networking::Sockets::StreamSocket ^>(_fd)->ConnectAsync(
+                                addr.host, addr.port, Windows::Networking::Sockets::SocketProtectionLevel::PlainSocket),
+                            true);
             }
-            catch(Platform::Exception^ ex)
+            catch(Platform::Exception ^ ex)
             {
                 checkConnectErrorCode(__FILE__, __LINE__, ex->HResult);
             }
@@ -538,15 +524,14 @@ StreamSocket::startWrite(Buffer& buf)
     {
         queueOperation(SocketOperationWrite, _writer->StoreAsync());
     }
-    catch(Platform::Exception^ ex)
+    catch(Platform::Exception ^ ex)
     {
         checkErrorCode(__FILE__, __LINE__, ex->HResult);
     }
     return packetSize == static_cast<int>(buf.b.end() - buf.i);
 }
 
-void
-StreamSocket::finishWrite(Buffer& buf)
+void StreamSocket::finishWrite(Buffer& buf)
 {
     _write.operation = nullptr; // Must be cleared with the connection lock held
     if(_fd == INVALID_SOCKET || (_state < StateConnected && _state != StateProxyWrite))
@@ -562,8 +547,7 @@ StreamSocket::finishWrite(Buffer& buf)
     buf.i += _write.count;
 }
 
-void
-StreamSocket::startRead(Buffer& buf)
+void StreamSocket::startRead(Buffer& buf)
 {
     assert(!buf.b.empty() && buf.i != buf.b.end());
     size_t packetSize = getRecvPacketSize(buf.b.end() - buf.i);
@@ -571,14 +555,13 @@ StreamSocket::startRead(Buffer& buf)
     {
         queueOperation(SocketOperationRead, _reader->LoadAsync(static_cast<unsigned int>(packetSize)));
     }
-    catch(Platform::Exception^ ex)
+    catch(Platform::Exception ^ ex)
     {
         checkErrorCode(__FILE__, __LINE__, ex->HResult);
     }
 }
 
-void
-StreamSocket::finishRead(Buffer& buf)
+void StreamSocket::finishRead(Buffer& buf)
 {
     _read.operation = nullptr; // Must be cleared with the connection lock held
     if(_fd == INVALID_SOCKET)
@@ -601,7 +584,7 @@ StreamSocket::finishRead(Buffer& buf)
         _reader->ReadBytes(data);
         memcpy(&*buf.i, data->Data, _read.count);
     }
-    catch(Platform::Exception^ ex)
+    catch(Platform::Exception ^ ex)
     {
         checkErrorCode(__FILE__, __LINE__, ex->HResult);
     }
@@ -611,8 +594,7 @@ StreamSocket::finishRead(Buffer& buf)
 
 #endif
 
-void
-StreamSocket::close()
+void StreamSocket::close()
 {
     assert(_fd != INVALID_SOCKET);
     try
@@ -637,14 +619,12 @@ StreamSocket::close()
     }
 }
 
-const std::string&
-StreamSocket::toString() const
+const std::string& StreamSocket::toString() const
 {
     return _desc;
 }
 
-void
-StreamSocket::init()
+void StreamSocket::init()
 {
     setBlock(_fd, false);
     setTcpBufSize(_fd, _instance);
@@ -660,7 +640,7 @@ StreamSocket::init()
     _maxSendPacketSize = std::max(512, IceInternal::getSendBufferSize(_fd));
     _maxRecvPacketSize = std::max(512, IceInternal::getRecvBufferSize(_fd));
 #elif defined(ICE_OS_UWP)
-    Windows::Networking::Sockets::StreamSocket^ s = safe_cast<Windows::Networking::Sockets::StreamSocket^>(_fd);
+    Windows::Networking::Sockets::StreamSocket ^ s = safe_cast<Windows::Networking::Sockets::StreamSocket ^>(_fd);
     _writer = ref new Windows::Storage::Streams::DataWriter(s->OutputStream);
     _reader = ref new Windows::Storage::Streams::DataReader(s->InputStream);
     _reader->InputStreamOptions = Windows::Storage::Streams::InputStreamOptions::Partial;
@@ -670,16 +650,15 @@ StreamSocket::init()
 #endif
 }
 
-StreamSocket::State
-StreamSocket::toState(SocketOperation operation) const
+StreamSocket::State StreamSocket::toState(SocketOperation operation) const
 {
     switch(operation)
     {
-    case SocketOperationRead:
-        return StateProxyRead;
-    case SocketOperationWrite:
-        return StateProxyWrite;
-    default:
-        return StateProxyConnected;
+        case SocketOperationRead:
+            return StateProxyRead;
+        case SocketOperationWrite:
+            return StateProxyWrite;
+        default:
+            return StateProxyConnected;
     }
 }

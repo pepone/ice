@@ -14,19 +14,13 @@ using namespace std;
 using namespace Ice;
 using namespace IceInternal;
 
-void
-IceInternal::Buffer::swapBuffer(Buffer& other)
+void IceInternal::Buffer::swapBuffer(Buffer& other)
 {
     b.swap(other.b);
     std::swap(i, other.i);
 }
 
-IceInternal::Buffer::Container::Container() :
-    _buf(0),
-    _size(0),
-    _capacity(0),
-    _shrinkCounter(0),
-    _owned(true)
+IceInternal::Buffer::Container::Container() : _buf(0), _size(0), _capacity(0), _shrinkCounter(0), _owned(true)
 {
 }
 
@@ -39,8 +33,7 @@ IceInternal::Buffer::Container::Container(const_iterator beg, const_iterator end
 {
 }
 
-IceInternal::Buffer::Container::Container(const vector<value_type>& v) :
-    _shrinkCounter(0)
+IceInternal::Buffer::Container::Container(const vector<value_type>& v) : _shrinkCounter(0)
 {
     if(v.empty())
     {
@@ -92,8 +85,7 @@ IceInternal::Buffer::Container::~Container()
     }
 }
 
-void
-IceInternal::Buffer::Container::swap(Container& other)
+void IceInternal::Buffer::Container::swap(Container& other)
 {
     std::swap(_buf, other._buf);
     std::swap(_size, other._size);
@@ -102,8 +94,7 @@ IceInternal::Buffer::Container::swap(Container& other)
     std::swap(_owned, other._owned);
 }
 
-void
-IceInternal::Buffer::Container::clear()
+void IceInternal::Buffer::Container::clear()
 {
     if(_buf && _owned)
     {
@@ -117,8 +108,7 @@ IceInternal::Buffer::Container::clear()
     _owned = true;
 }
 
-void
-IceInternal::Buffer::Container::reserve(size_type n)
+void IceInternal::Buffer::Container::reserve(size_type n)
 {
     size_type c = _capacity;
     if(n > _capacity)

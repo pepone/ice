@@ -17,9 +17,7 @@ using namespace Test;
 class CallbackBase : public IceUtil::Monitor<IceUtil::Mutex>
 {
 public:
-
-    CallbackBase() :
-        _called(false)
+    CallbackBase() : _called(false)
     {
     }
 
@@ -38,7 +36,6 @@ public:
     }
 
 protected:
-
     void called()
     {
         IceUtil::Monitor<IceUtil::Mutex>::Lock sync(*this);
@@ -48,14 +45,12 @@ protected:
     }
 
 private:
-
     bool _called;
 };
 
 class Callback : public virtual IceUtil::Shared, public virtual CallbackBase
 {
 public:
-
     void response()
     {
         test(false);
@@ -103,13 +98,11 @@ public:
     }
 
 private:
-
     Ice::Int _pid;
 };
 typedef IceUtil::Handle<Callback> CallbackPtr;
 
-void
-allTests(const Ice::CommunicatorPtr& communicator, const vector<int>& ports)
+void allTests(const Ice::CommunicatorPtr& communicator, const vector<int>& ports)
 {
     cout << "testing stringToProxy... " << flush;
     ostringstream ref;
@@ -282,8 +275,8 @@ allTests(const Ice::CommunicatorPtr& communicator, const vector<int>& ports)
 #else
                 cout << "aborting server #" << i << " and #" << i + 1 << " with idempotent AMI call... " << flush;
                 CallbackPtr cb = new Callback;
-                obj->begin_idempotentAbort(newCallback_TestIntf_idempotentAbort(cb, &Callback::response,
-                                                                                &Callback::exceptAbortI));
+                obj->begin_idempotentAbort(
+                    newCallback_TestIntf_idempotentAbort(cb, &Callback::response, &Callback::exceptAbortI));
                 cb->check();
                 cout << "ok" << endl;
 #endif

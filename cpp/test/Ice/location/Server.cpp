@@ -16,8 +16,7 @@ DEFINE_TEST("server")
 
 using namespace std;
 
-int
-run(int, char**, const Ice::CommunicatorPtr& communicator, const Ice::InitializationData& initData)
+int run(int, char**, const Ice::CommunicatorPtr& communicator, const Ice::InitializationData& initData)
 {
     //
     // Register the server manager. The server manager creates a new
@@ -41,8 +40,7 @@ run(int, char**, const Ice::CommunicatorPtr& communicator, const Ice::Initializa
     adapter->add(object, Ice::stringToIdentity("ServerManager"));
 
     Ice::LocatorRegistryPrxPtr registryPrx =
-        ICE_UNCHECKED_CAST(Ice::LocatorRegistryPrx,
-                           adapter->add(registry, Ice::stringToIdentity("registry")));
+        ICE_UNCHECKED_CAST(Ice::LocatorRegistryPrx, adapter->add(registry, Ice::stringToIdentity("registry")));
 
     Ice::LocatorPtr locator = ICE_MAKE_SHARED(ServerLocator, registry, registryPrx);
     adapter->add(locator, Ice::stringToIdentity("locator"));
@@ -54,8 +52,7 @@ run(int, char**, const Ice::CommunicatorPtr& communicator, const Ice::Initializa
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
 #ifdef ICE_STATIC_LIBS
     Ice::registerIceSSL(false);

@@ -20,109 +20,103 @@
 
 namespace IceBT
 {
-
-class EndpointI : public IceInternal::EndpointI
+    class EndpointI : public IceInternal::EndpointI
 #ifdef ICE_CPP11_MAPPING
-                , public std::enable_shared_from_this<EndpointI>
+        ,
+                      public std::enable_shared_from_this<EndpointI>
 #endif
-{
-public:
+    {
+    public:
+        EndpointI(const InstancePtr&, const std::string&, const std::string&, const std::string&, Ice::Int, Ice::Int,
+                  const std::string&, bool);
+        EndpointI(const InstancePtr&);
+        EndpointI(const InstancePtr&, Ice::InputStream*);
 
-    EndpointI(const InstancePtr&, const std::string&, const std::string&, const std::string&, Ice::Int,
-              Ice::Int, const std::string&, bool);
-    EndpointI(const InstancePtr&);
-    EndpointI(const InstancePtr&, Ice::InputStream*);
-
-    virtual void streamWriteImpl(Ice::OutputStream*) const;
-    virtual Ice::Short type() const;
-    virtual const std::string& protocol() const;
-    virtual Ice::Int timeout() const;
-    virtual IceInternal::EndpointIPtr timeout(Ice::Int) const;
-    virtual const std::string& connectionId() const;
-    virtual IceInternal::EndpointIPtr connectionId(const std::string&) const;
-    virtual bool compress() const;
-    virtual IceInternal::EndpointIPtr compress(bool) const;
-    virtual bool datagram() const;
-    virtual bool secure() const;
-    virtual IceInternal::TransceiverPtr transceiver() const;
-    virtual void connectors_async(Ice::EndpointSelectionType, const IceInternal::EndpointI_connectorsPtr&) const;
-    virtual IceInternal::AcceptorPtr acceptor(const std::string&) const;
-    virtual std::vector<IceInternal::EndpointIPtr> expandIfWildcard() const;
-    virtual std::vector<IceInternal::EndpointIPtr> expandHost(IceInternal::EndpointIPtr&) const;
-    virtual bool equivalent(const IceInternal::EndpointIPtr&) const;
+        virtual void streamWriteImpl(Ice::OutputStream*) const;
+        virtual Ice::Short type() const;
+        virtual const std::string& protocol() const;
+        virtual Ice::Int timeout() const;
+        virtual IceInternal::EndpointIPtr timeout(Ice::Int) const;
+        virtual const std::string& connectionId() const;
+        virtual IceInternal::EndpointIPtr connectionId(const std::string&) const;
+        virtual bool compress() const;
+        virtual IceInternal::EndpointIPtr compress(bool) const;
+        virtual bool datagram() const;
+        virtual bool secure() const;
+        virtual IceInternal::TransceiverPtr transceiver() const;
+        virtual void connectors_async(Ice::EndpointSelectionType, const IceInternal::EndpointI_connectorsPtr&) const;
+        virtual IceInternal::AcceptorPtr acceptor(const std::string&) const;
+        virtual std::vector<IceInternal::EndpointIPtr> expandIfWildcard() const;
+        virtual std::vector<IceInternal::EndpointIPtr> expandHost(IceInternal::EndpointIPtr&) const;
+        virtual bool equivalent(const IceInternal::EndpointIPtr&) const;
 
 #ifdef ICE_CPP11_MAPPING
-    virtual bool operator==(const Ice::Endpoint&) const;
-    virtual bool operator<(const Ice::Endpoint&) const;
+        virtual bool operator==(const Ice::Endpoint&) const;
+        virtual bool operator<(const Ice::Endpoint&) const;
 #else
-    virtual bool operator==(const Ice::LocalObject&) const;
-    virtual bool operator<(const Ice::LocalObject&) const;
+        virtual bool operator==(const Ice::LocalObject&) const;
+        virtual bool operator<(const Ice::LocalObject&) const;
 #endif
 
-    virtual Ice::Int hash() const;
+        virtual Ice::Int hash() const;
 
-    virtual std::string options() const;
+        virtual std::string options() const;
 
-    Ice::EndpointInfoPtr getInfo() const ICE_NOEXCEPT;
+        Ice::EndpointInfoPtr getInfo() const ICE_NOEXCEPT;
 
-    void initWithOptions(std::vector<std::string>&, bool);
+        void initWithOptions(std::vector<std::string>&, bool);
 
-    EndpointIPtr endpoint(const AcceptorIPtr&) const;
+        EndpointIPtr endpoint(const AcceptorIPtr&) const;
 
-private:
+    private:
+        void hashInit();
+        bool checkOption(const std::string&, const std::string&, const std::string&);
 
-    void hashInit();
-    bool checkOption(const std::string&, const std::string&, const std::string&);
+        const InstancePtr _instance;
+        const std::string _addr;
+        const std::string _uuid;
+        const std::string _name;
+        const Ice::Int _channel;
+        const Ice::Int _timeout;
+        const std::string _connectionId;
+        const bool _compress;
+        const Ice::Int _hashValue;
+    };
 
-    const InstancePtr _instance;
-    const std::string _addr;
-    const std::string _uuid;
-    const std::string _name;
-    const Ice::Int _channel;
-    const Ice::Int _timeout;
-    const std::string _connectionId;
-    const bool _compress;
-    const Ice::Int _hashValue;
-};
+    class EndpointInfoI : public EndpointInfo
+    {
+    public:
+        EndpointInfoI(const EndpointIPtr&);
+        virtual ~EndpointInfoI();
 
-class EndpointInfoI : public EndpointInfo
-{
-public:
+        virtual Ice::Short type() const ICE_NOEXCEPT;
+        virtual bool datagram() const ICE_NOEXCEPT;
+        virtual bool secure() const ICE_NOEXCEPT;
 
-    EndpointInfoI(const EndpointIPtr&);
-    virtual ~EndpointInfoI();
+    private:
+        const EndpointIPtr _endpoint;
+    };
 
-    virtual Ice::Short type() const ICE_NOEXCEPT;
-    virtual bool datagram() const ICE_NOEXCEPT;
-    virtual bool secure() const ICE_NOEXCEPT;
+    class EndpointFactoryI : public IceInternal::EndpointFactory
+    {
+    public:
+        virtual ~EndpointFactoryI();
 
-private:
+        virtual Ice::Short type() const;
+        virtual std::string protocol() const;
+        virtual IceInternal::EndpointIPtr create(std::vector<std::string>&, bool) const;
+        virtual IceInternal::EndpointIPtr read(Ice::InputStream*) const;
+        virtual void destroy();
 
-    const EndpointIPtr _endpoint;
-};
+        virtual IceInternal::EndpointFactoryPtr clone(const IceInternal::ProtocolInstancePtr&) const;
 
-class EndpointFactoryI : public IceInternal::EndpointFactory
-{
-public:
+    private:
+        EndpointFactoryI(const InstancePtr&);
+        friend class PluginI;
 
-    virtual ~EndpointFactoryI();
+        InstancePtr _instance;
+    };
 
-    virtual Ice::Short type() const;
-    virtual std::string protocol() const;
-    virtual IceInternal::EndpointIPtr create(std::vector<std::string>&, bool) const;
-    virtual IceInternal::EndpointIPtr read(Ice::InputStream*) const;
-    virtual void destroy();
-
-    virtual IceInternal::EndpointFactoryPtr clone(const IceInternal::ProtocolInstancePtr&) const;
-
-private:
-
-    EndpointFactoryI(const InstancePtr&);
-    friend class PluginI;
-
-    InstancePtr _instance;
-};
-
-}
+} // namespace IceBT
 
 #endif

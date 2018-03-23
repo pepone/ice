@@ -17,54 +17,51 @@
 
 namespace IceGrid
 {
+    class Database;
+    typedef IceUtil::Handle<Database> DatabasePtr;
 
-class Database;
-typedef IceUtil::Handle<Database> DatabasePtr;
+    class RegistryPluginFacadeI : public RegistryPluginFacade, private IceUtil::Mutex
+    {
+    public:
+        RegistryPluginFacadeI();
 
-class RegistryPluginFacadeI : public RegistryPluginFacade, private IceUtil::Mutex
-{
-public:
+        virtual ApplicationInfo getApplicationInfo(const ::std::string&) const;
 
-    RegistryPluginFacadeI();
+        virtual ServerInfo getServerInfo(const std::string&) const;
 
-    virtual ApplicationInfo getApplicationInfo(const ::std::string&) const;
+        virtual std::string getAdapterServer(const std::string&) const;
+        virtual std::string getAdapterApplication(const std::string&) const;
+        virtual std::string getAdapterNode(const std::string&) const;
+        virtual AdapterInfoSeq getAdapterInfo(const ::std::string&) const;
 
-    virtual ServerInfo getServerInfo(const std::string&) const;
+        virtual ObjectInfo getObjectInfo(const Ice::Identity&) const;
 
-    virtual std::string getAdapterServer(const std::string&) const;
-    virtual std::string getAdapterApplication(const std::string&) const;
-    virtual std::string getAdapterNode(const std::string&) const;
-    virtual AdapterInfoSeq getAdapterInfo(const ::std::string&) const;
+        virtual NodeInfo getNodeInfo(const std::string&) const;
+        virtual LoadInfo getNodeLoad(const std::string&) const;
 
-    virtual ObjectInfo getObjectInfo(const Ice::Identity&) const;
+        virtual std::string getPropertyForAdapter(const std::string&, const std::string&) const;
 
-    virtual NodeInfo getNodeInfo(const std::string&) const;
-    virtual LoadInfo getNodeLoad(const std::string&) const;
+        virtual void addReplicaGroupFilter(const std::string&, const ReplicaGroupFilterPtr&) ICE_NOEXCEPT;
+        virtual bool removeReplicaGroupFilter(const std::string&, const ReplicaGroupFilterPtr&) ICE_NOEXCEPT;
 
-    virtual std::string getPropertyForAdapter(const std::string&, const std::string&) const;
+        virtual void addTypeFilter(const std::string&, const TypeFilterPtr&) ICE_NOEXCEPT;
+        virtual bool removeTypeFilter(const std::string&, const TypeFilterPtr&) ICE_NOEXCEPT;
 
-    virtual void addReplicaGroupFilter(const std::string&, const ReplicaGroupFilterPtr&) ICE_NOEXCEPT;
-    virtual bool removeReplicaGroupFilter(const std::string&, const ReplicaGroupFilterPtr&) ICE_NOEXCEPT;
+        std::vector<ReplicaGroupFilterPtr> getReplicaGroupFilters(const std::string&) const;
+        bool hasReplicaGroupFilters() const;
 
-    virtual void addTypeFilter(const std::string&, const TypeFilterPtr&) ICE_NOEXCEPT;
-    virtual bool removeTypeFilter(const std::string&, const TypeFilterPtr&) ICE_NOEXCEPT;
+        std::vector<TypeFilterPtr> getTypeFilters(const std::string&) const;
+        bool hasTypeFilters() const;
 
-    std::vector<ReplicaGroupFilterPtr> getReplicaGroupFilters(const std::string&) const;
-    bool hasReplicaGroupFilters() const;
+        void setDatabase(const DatabasePtr&);
 
-    std::vector<TypeFilterPtr> getTypeFilters(const std::string&) const;
-    bool hasTypeFilters() const;
+    private:
+        DatabasePtr _database;
+        std::map<std::string, std::vector<ReplicaGroupFilterPtr>> _replicaGroupFilters;
+        std::map<std::string, std::vector<TypeFilterPtr>> _typeFilters;
+    };
+    typedef IceUtil::Handle<RegistryPluginFacadeI> RegistryPluginFacadeIPtr;
 
-    void setDatabase(const DatabasePtr&);
-
-private:
-
-    DatabasePtr _database;
-    std::map<std::string, std::vector<ReplicaGroupFilterPtr> > _replicaGroupFilters;
-    std::map<std::string, std::vector<TypeFilterPtr> > _typeFilters;
-};
-typedef IceUtil::Handle<RegistryPluginFacadeI> RegistryPluginFacadeIPtr;
-
-}
+} // namespace IceGrid
 
 #endif

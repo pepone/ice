@@ -16,11 +16,10 @@
 
 namespace IceInternal
 {
+    class EndpointFactoryManager;
+    IceUtil::Shared* upCast(EndpointFactoryManager*);
+    typedef Handle<EndpointFactoryManager> EndpointFactoryManagerPtr;
 
-class EndpointFactoryManager;
-IceUtil::Shared* upCast(EndpointFactoryManager*);
-typedef Handle<EndpointFactoryManager> EndpointFactoryManagerPtr;
-
-}
+} // namespace IceInternal
 
 #endif

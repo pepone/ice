@@ -14,8 +14,7 @@
 using namespace std;
 using namespace Ice;
 
-void
-TestIntfI::ping(ICE_IN(Test::PingReplyPrxPtr) reply, const Current&)
+void TestIntfI::ping(ICE_IN(Test::PingReplyPrxPtr) reply, const Current&)
 {
     try
     {
@@ -27,8 +26,7 @@ TestIntfI::ping(ICE_IN(Test::PingReplyPrxPtr) reply, const Current&)
     }
 }
 
-void
-TestIntfI::sendByteSeq(ICE_IN(Test::ByteSeq), ICE_IN(Test::PingReplyPrxPtr) reply, const Current&)
+void TestIntfI::sendByteSeq(ICE_IN(Test::ByteSeq), ICE_IN(Test::PingReplyPrxPtr) reply, const Current&)
 {
     try
     {
@@ -40,8 +38,7 @@ TestIntfI::sendByteSeq(ICE_IN(Test::ByteSeq), ICE_IN(Test::PingReplyPrxPtr) repl
     }
 }
 
-void
-TestIntfI::pingBiDir(ICE_IN(Ice::Identity) id, const Ice::Current& current)
+void TestIntfI::pingBiDir(ICE_IN(Ice::Identity) id, const Ice::Current& current)
 {
     try
     {
@@ -76,8 +73,7 @@ TestIntfI::pingBiDir(ICE_IN(Ice::Identity) id, const Ice::Current& current)
     }
 }
 
-void
-TestIntfI::shutdown(const Current& current)
+void TestIntfI::shutdown(const Current& current)
 {
     current.adapter->getCommunicator()->shutdown();
 }

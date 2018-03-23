@@ -12,8 +12,7 @@
 
 using namespace std;
 
-void
-MyObjectI::ice_ping(const Ice::Current& current) const
+void MyObjectI::ice_ping(const Ice::Current& current) const
 {
     string name = current.id.name;
 
@@ -27,8 +26,7 @@ MyObjectI::ice_ping(const Ice::Current& current) const
     }
 }
 
-std::string
-MyObjectI::getName(const Ice::Current& current)
+std::string MyObjectI::getName(const Ice::Current& current)
 {
     string name = current.id.name;
 

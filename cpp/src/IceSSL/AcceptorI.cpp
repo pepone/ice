@@ -20,52 +20,47 @@ using namespace std;
 using namespace Ice;
 using namespace IceSSL;
 
-IceUtil::Shared* IceSSL::upCast(AcceptorI* p) { return p; }
+IceUtil::Shared* IceSSL::upCast(AcceptorI* p)
+{
+    return p;
+}
 
-IceInternal::NativeInfoPtr
-IceSSL::AcceptorI::getNativeInfo()
+IceInternal::NativeInfoPtr IceSSL::AcceptorI::getNativeInfo()
 {
     return _delegate->getNativeInfo();
 }
 
 #if defined(ICE_USE_IOCP) || defined(ICE_OS_UWP)
-IceInternal::AsyncInfo*
-IceSSL::AcceptorI::getAsyncInfo(IceInternal::SocketOperation status)
+IceInternal::AsyncInfo* IceSSL::AcceptorI::getAsyncInfo(IceInternal::SocketOperation status)
 {
     return _delegate->getNativeInfo()->getAsyncInfo(status);
 }
 #endif
 
-void
-IceSSL::AcceptorI::close()
+void IceSSL::AcceptorI::close()
 {
     _delegate->close();
 }
 
-IceInternal::EndpointIPtr
-IceSSL::AcceptorI::listen()
+IceInternal::EndpointIPtr IceSSL::AcceptorI::listen()
 {
     _endpoint = _endpoint->endpoint(_delegate->listen());
     return _endpoint;
 }
 
 #if defined(ICE_USE_IOCP) || defined(ICE_OS_UWP)
-void
-IceSSL::AcceptorI::startAccept()
+void IceSSL::AcceptorI::startAccept()
 {
     _delegate->startAccept();
-
 }
 
-void
-IceSSL::AcceptorI::finishAccept()
+void IceSSL::AcceptorI::finishAccept()
 {
     _delegate->finishAccept();
 }
 #endif
 
-IceInternal::TransceiverPtr
-IceSSL::AcceptorI::accept()
+IceInternal::TransceiverPtr IceSSL::AcceptorI::accept()
 {
     //
     // The plug-in may not be initialized.
@@ -78,20 +73,17 @@ IceSSL::AcceptorI::accept()
     return _instance->engine()->createTransceiver(_instance, _delegate->accept(), _adapterName, true);
 }
 
-string
-IceSSL::AcceptorI::protocol() const
+string IceSSL::AcceptorI::protocol() const
 {
     return _delegate->protocol();
 }
 
-string
-IceSSL::AcceptorI::toString() const
+string IceSSL::AcceptorI::toString() const
 {
     return _delegate->toString();
 }
 
-string
-IceSSL::AcceptorI::toDetailedString() const
+string IceSSL::AcceptorI::toDetailedString() const
 {
     return _delegate->toDetailedString();
 }

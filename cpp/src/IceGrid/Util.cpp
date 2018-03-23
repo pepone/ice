@@ -16,8 +16,7 @@ using namespace std;
 using namespace Ice;
 using namespace IceGrid;
 
-string
-IceGrid::toString(const vector<string>& v, const string& sep)
+string IceGrid::toString(const vector<string>& v, const string& sep)
 {
     ostringstream os;
     Ice::StringSeq::const_iterator p = v.begin();
@@ -33,8 +32,7 @@ IceGrid::toString(const vector<string>& v, const string& sep)
     return os.str();
 }
 
-string
-IceGrid::toString(const Ice::Exception& exception)
+string IceGrid::toString(const Ice::Exception& exception)
 {
     std::ostringstream os;
     try
@@ -59,8 +57,7 @@ IceGrid::toString(const Ice::Exception& exception)
     return os.str();
 }
 
-string
-IceGrid::getProperty(const PropertyDescriptorSeq& properties, const string& name, const string& def)
+string IceGrid::getProperty(const PropertyDescriptorSeq& properties, const string& name, const string& def)
 {
     string result;
     for(PropertyDescriptorSeq::const_iterator q = properties.begin(); q != properties.end(); ++q)
@@ -77,8 +74,7 @@ IceGrid::getProperty(const PropertyDescriptorSeq& properties, const string& name
     return result;
 }
 
-int
-IceGrid::getPropertyAsInt(const PropertyDescriptorSeq& properties, const string& name, int def)
+int IceGrid::getPropertyAsInt(const PropertyDescriptorSeq& properties, const string& name, int def)
 {
     string strVal;
     for(PropertyDescriptorSeq::const_iterator q = properties.begin(); q != properties.end(); ++q)
@@ -102,8 +98,7 @@ IceGrid::getPropertyAsInt(const PropertyDescriptorSeq& properties, const string&
     return result;
 }
 
-bool
-IceGrid::hasProperty(const PropertyDescriptorSeq& properties, const string& name)
+bool IceGrid::hasProperty(const PropertyDescriptorSeq& properties, const string& name)
 {
     for(PropertyDescriptorSeq::const_iterator q = properties.begin(); q != properties.end(); ++q)
     {
@@ -115,8 +110,7 @@ IceGrid::hasProperty(const PropertyDescriptorSeq& properties, const string& name
     return false;
 }
 
-PropertyDescriptor
-IceGrid::createProperty(const string& name, const string& value)
+PropertyDescriptor IceGrid::createProperty(const string& name, const string& value)
 {
     PropertyDescriptor prop;
     prop.name = name;
@@ -124,8 +118,7 @@ IceGrid::createProperty(const string& name, const string& value)
     return prop;
 }
 
-string
-IceGrid::escapeProperty(const string& s, bool escapeEqual)
+string IceGrid::escapeProperty(const string& s, bool escapeEqual)
 {
     size_t firstChar = s.find_first_not_of(' ');
     size_t lastChar = s.find_last_not_of(' ');
@@ -137,72 +130,72 @@ IceGrid::escapeProperty(const string& s, bool escapeEqual)
         char c = s[i];
         switch(c)
         {
-          case ' ':
-          {
-              //
-              // We only escape the space character when it's at the beginning
-              // or at the end of the string
-              //
-              if(i < firstChar || i > lastChar)
-              {
-                  if(previousCharIsEscape)
-                  {
-                      result.push_back('\\'); // escape the previous char, by adding another escape.
-                  }
+            case ' ':
+            {
+                //
+                // We only escape the space character when it's at the beginning
+                // or at the end of the string
+                //
+                if(i < firstChar || i > lastChar)
+                {
+                    if(previousCharIsEscape)
+                    {
+                        result.push_back('\\'); // escape the previous char, by adding another escape.
+                    }
 
-                  result.push_back('\\');
-              }
-              result.push_back(c);
-              previousCharIsEscape = false;
-              break;
-          }
+                    result.push_back('\\');
+                }
+                result.push_back(c);
+                previousCharIsEscape = false;
+                break;
+            }
 
-          case '\\':
-          case '#':
-          case '=':
-          {
-              if(c == '=' && !escapeEqual)
-              {
-                  previousCharIsEscape = false;
-              }
-              else
-              {
-                  //
-                  // We only escape the \ character when it is followed by a
-                  // character that we escape, e.g. \# is encoded as \\\#, not \#
-                  // and \\server is encoded as \\\server.
-                  //
-                  if(previousCharIsEscape)
-                  {
-                      result.push_back('\\'); // escape the previous char, by adding another escape.
-                  }
-                  if(c == '\\')
-                  {
-                      previousCharIsEscape = true; // deferring the potential escaping to the next loop
-                  }
-                  else
-                  {
-                      result.push_back('\\');
-                      previousCharIsEscape = false;
-                  }
-              }
-              result.push_back(c);
-              break;
-          }
+            case '\\':
+            case '#':
+            case '=':
+            {
+                if(c == '=' && !escapeEqual)
+                {
+                    previousCharIsEscape = false;
+                }
+                else
+                {
+                    //
+                    // We only escape the \ character when it is followed by a
+                    // character that we escape, e.g. \# is encoded as \\\#, not \#
+                    // and \\server is encoded as \\\server.
+                    //
+                    if(previousCharIsEscape)
+                    {
+                        result.push_back('\\'); // escape the previous char, by adding another escape.
+                    }
+                    if(c == '\\')
+                    {
+                        previousCharIsEscape = true; // deferring the potential escaping to the next loop
+                    }
+                    else
+                    {
+                        result.push_back('\\');
+                        previousCharIsEscape = false;
+                    }
+                }
+                result.push_back(c);
+                break;
+            }
 
-          default:
-          {
-              result.push_back(c);
-              previousCharIsEscape = false;
-              break;
-          }
+            default:
+            {
+                result.push_back(c);
+                previousCharIsEscape = false;
+                break;
+            }
         }
     }
     return result;
 }
 
-ObjectInfo
-IceGrid::toObjectInfo(const Ice::CommunicatorPtr& communicator, const ObjectDescriptor& obj, const string& adapterId)
+ObjectInfo IceGrid::toObjectInfo(const Ice::CommunicatorPtr& communicator, const ObjectDescriptor& obj,
+                                 const string& adapterId)
 {
     ObjectInfo info;
     info.type = obj.type;
@@ -220,14 +213,15 @@ IceGrid::toObjectInfo(const Ice::CommunicatorPtr& communicator, const ObjectDesc
     catch(const Ice::ProxyParseException&)
     {
         ostringstream fallbackProxyStr;
-        fallbackProxyStr << "\"" << communicator->identityToString(obj.id) << "\"" << " @ \"" << adapterId << "\"";
+        fallbackProxyStr << "\"" << communicator->identityToString(obj.id) << "\""
+                         << " @ \"" << adapterId << "\"";
         info.proxy = communicator->stringToProxy(fallbackProxyStr.str());
     }
     return info;
 }
 
-void
-IceGrid::setupThreadPool(const PropertiesPtr& properties, const string& name, int size, int sizeMax, bool serialize)
+void IceGrid::setupThreadPool(const PropertiesPtr& properties, const string& name, int size, int sizeMax,
+                              bool serialize)
 {
     if(properties->getPropertyAsIntWithDefault(name + ".Size", 0) < size)
     {
@@ -258,8 +252,7 @@ IceGrid::setupThreadPool(const PropertiesPtr& properties, const string& name, in
     }
 }
 
-int
-IceGrid::getMMVersion(const string& o)
+int IceGrid::getMMVersion(const string& o)
 {
     //
     // Strip the version

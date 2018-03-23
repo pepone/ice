@@ -17,52 +17,46 @@ using namespace IceGrid;
 
 namespace IceGrid
 {
-
-ICEGRID_API void setRegistryPluginFacade(const RegistryPluginFacadePtr&);
-
+    ICEGRID_API void setRegistryPluginFacade(const RegistryPluginFacadePtr&);
 }
 
 namespace
 {
-
-class Init
-{
-public:
-
-    Init()
+    class Init
     {
-        IceGrid::setRegistryPluginFacade(new RegistryPluginFacadeI);
-    }
-
-    ~Init()
-    {
-        IceGrid::setRegistryPluginFacade(0);
-    }
-};
-
-Init init;
-
-bool
-hasAdapter(const CommunicatorDescriptorPtr& descriptor, const string& adapterId)
-{
-    for(AdapterDescriptorSeq::const_iterator p = descriptor->adapters.begin(); p != descriptor->adapters.end(); ++p)
-    {
-        if(p->id == adapterId)
+    public:
+        Init()
         {
-            return true;
+            IceGrid::setRegistryPluginFacade(new RegistryPluginFacadeI);
         }
-    }
-    return false;
-}
 
-}
+        ~Init()
+        {
+            IceGrid::setRegistryPluginFacade(0);
+        }
+    };
+
+    Init init;
+
+    bool hasAdapter(const CommunicatorDescriptorPtr& descriptor, const string& adapterId)
+    {
+        for(AdapterDescriptorSeq::const_iterator p = descriptor->adapters.begin(); p != descriptor->adapters.end(); ++p)
+        {
+            if(p->id == adapterId)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+} // namespace
 
 RegistryPluginFacadeI::RegistryPluginFacadeI()
 {
 }
 
-ApplicationInfo
-RegistryPluginFacadeI::getApplicationInfo(const string& name) const
+ApplicationInfo RegistryPluginFacadeI::getApplicationInfo(const string& name) const
 {
     Lock sync(*this);
     if(!_database)
@@ -72,8 +66,7 @@ RegistryPluginFacadeI::getApplicationInfo(const string& name) const
     return _database->getApplicationInfo(name);
 }
 
-ServerInfo
-RegistryPluginFacadeI::getServerInfo(const string& serverId) const
+ServerInfo RegistryPluginFacadeI::getServerInfo(const string& serverId) const
 {
     Lock sync(*this);
     if(!_database)
@@ -83,8 +76,7 @@ RegistryPluginFacadeI::getServerInfo(const string& serverId) const
     return _database->getServer(serverId)->getInfo(true);
 }
 
-AdapterInfoSeq
-RegistryPluginFacadeI::getAdapterInfo(const string& adapterId) const
+AdapterInfoSeq RegistryPluginFacadeI::getAdapterInfo(const string& adapterId) const
 {
     Lock sync(*this);
     if(!_database)
@@ -94,8 +86,7 @@ RegistryPluginFacadeI::getAdapterInfo(const string& adapterId) const
     return _database->getAdapterInfo(adapterId);
 }
 
-string
-RegistryPluginFacadeI::getAdapterServer(const string& adapterId) const
+string RegistryPluginFacadeI::getAdapterServer(const string& adapterId) const
 {
     Lock sync(*this);
     if(!_database)
@@ -105,8 +96,7 @@ RegistryPluginFacadeI::getAdapterServer(const string& adapterId) const
     return _database->getAdapterServer(adapterId);
 }
 
-string
-RegistryPluginFacadeI::getAdapterNode(const string& adapterId) const
+string RegistryPluginFacadeI::getAdapterNode(const string& adapterId) const
 {
     Lock sync(*this);
     if(!_database)
@@ -116,8 +106,7 @@ RegistryPluginFacadeI::getAdapterNode(const string& adapterId) const
     return _database->getAdapterNode(adapterId);
 }
 
-string
-RegistryPluginFacadeI::getAdapterApplication(const string& adapterId) const
+string RegistryPluginFacadeI::getAdapterApplication(const string& adapterId) const
 {
     Lock sync(*this);
     if(!_database)
@@ -127,8 +116,7 @@ RegistryPluginFacadeI::getAdapterApplication(const string& adapterId) const
     return _database->getAdapterApplication(adapterId);
 }
 
-ObjectInfo
-RegistryPluginFacadeI::getObjectInfo(const Ice::Identity& id) const
+ObjectInfo RegistryPluginFacadeI::getObjectInfo(const Ice::Identity& id) const
 {
     Lock sync(*this);
     if(!_database)
@@ -138,8 +126,7 @@ RegistryPluginFacadeI::getObjectInfo(const Ice::Identity& id) const
     return _database->getObjectInfo(id);
 }
 
-NodeInfo
-RegistryPluginFacadeI::getNodeInfo(const string& name) const
+NodeInfo RegistryPluginFacadeI::getNodeInfo(const string& name) const
 {
     Lock sync(*this);
     if(!_database)
@@ -149,8 +136,7 @@ RegistryPluginFacadeI::getNodeInfo(const string& name) const
     return toNodeInfo(_database->getNode(name)->getInfo());
 }
 
-LoadInfo
-RegistryPluginFacadeI::getNodeLoad(const string& name) const
+LoadInfo RegistryPluginFacadeI::getNodeLoad(const string& name) const
 {
     Lock sync(*this);
     if(!_database)
@@ -160,8 +146,7 @@ RegistryPluginFacadeI::getNodeLoad(const string& name) const
     return _database->getNode(name)->getSession()->getLoadInfo();
 }
 
-std::string
-RegistryPluginFacadeI::getPropertyForAdapter(const std::string& adapterId, const std::string& name) const
+std::string RegistryPluginFacadeI::getPropertyForAdapter(const std::string& adapterId, const std::string& name) const
 {
     try
     {
@@ -194,11 +179,10 @@ RegistryPluginFacadeI::getPropertyForAdapter(const std::string& adapterId, const
     return "";
 }
 
-void
-RegistryPluginFacadeI::addReplicaGroupFilter(const string& id, const ReplicaGroupFilterPtr& filter) ICE_NOEXCEPT
+void RegistryPluginFacadeI::addReplicaGroupFilter(const string& id, const ReplicaGroupFilterPtr& filter) ICE_NOEXCEPT
 {
     Lock sync(*this);
-    map<string, vector<ReplicaGroupFilterPtr> >::iterator p = _replicaGroupFilters.find(id);
+    map<string, vector<ReplicaGroupFilterPtr>>::iterator p = _replicaGroupFilters.find(id);
     if(p == _replicaGroupFilters.end())
     {
         p = _replicaGroupFilters.insert(make_pair(id, vector<ReplicaGroupFilterPtr>())).first;
@@ -206,12 +190,11 @@ RegistryPluginFacadeI::addReplicaGroupFilter(const string& id, const ReplicaGrou
     p->second.push_back(filter);
 }
 
-bool
-RegistryPluginFacadeI::removeReplicaGroupFilter(const string& id, const ReplicaGroupFilterPtr& filter) ICE_NOEXCEPT
+bool RegistryPluginFacadeI::removeReplicaGroupFilter(const string& id, const ReplicaGroupFilterPtr& filter) ICE_NOEXCEPT
 {
     Lock sync(*this);
 
-    map<string, vector<ReplicaGroupFilterPtr> >::iterator p = _replicaGroupFilters.find(id);
+    map<string, vector<ReplicaGroupFilterPtr>>::iterator p = _replicaGroupFilters.find(id);
     if(p == _replicaGroupFilters.end())
     {
         return false;
@@ -231,11 +214,10 @@ RegistryPluginFacadeI::removeReplicaGroupFilter(const string& id, const ReplicaG
     return true;
 }
 
-void
-RegistryPluginFacadeI::addTypeFilter(const string& id, const TypeFilterPtr& filter) ICE_NOEXCEPT
+void RegistryPluginFacadeI::addTypeFilter(const string& id, const TypeFilterPtr& filter) ICE_NOEXCEPT
 {
     Lock sync(*this);
-    map<string, vector<TypeFilterPtr> >::iterator p = _typeFilters.find(id);
+    map<string, vector<TypeFilterPtr>>::iterator p = _typeFilters.find(id);
     if(p == _typeFilters.end())
     {
         p = _typeFilters.insert(make_pair(id, vector<TypeFilterPtr>())).first;
@@ -243,12 +225,11 @@ RegistryPluginFacadeI::addTypeFilter(const string& id, const TypeFilterPtr& filt
     p->second.push_back(filter);
 }
 
-bool
-RegistryPluginFacadeI::removeTypeFilter(const string& id, const TypeFilterPtr& filter) ICE_NOEXCEPT
+bool RegistryPluginFacadeI::removeTypeFilter(const string& id, const TypeFilterPtr& filter) ICE_NOEXCEPT
 {
     Lock sync(*this);
 
-    map<string, vector<TypeFilterPtr> >::iterator p = _typeFilters.find(id);
+    map<string, vector<TypeFilterPtr>>::iterator p = _typeFilters.find(id);
     if(p == _typeFilters.end())
     {
         return false;
@@ -268,11 +249,10 @@ RegistryPluginFacadeI::removeTypeFilter(const string& id, const TypeFilterPtr& f
     return true;
 }
 
-vector<ReplicaGroupFilterPtr>
-RegistryPluginFacadeI::getReplicaGroupFilters(const string& id) const
+vector<ReplicaGroupFilterPtr> RegistryPluginFacadeI::getReplicaGroupFilters(const string& id) const
 {
     Lock sync(*this);
-    map<string, vector<ReplicaGroupFilterPtr> >::const_iterator p = _replicaGroupFilters.find(id);
+    map<string, vector<ReplicaGroupFilterPtr>>::const_iterator p = _replicaGroupFilters.find(id);
     if(p != _replicaGroupFilters.end())
     {
         return p->second;
@@ -280,17 +260,15 @@ RegistryPluginFacadeI::getReplicaGroupFilters(const string& id) const
     return vector<ReplicaGroupFilterPtr>();
 }
 
-bool
-RegistryPluginFacadeI::hasReplicaGroupFilters() const
+bool RegistryPluginFacadeI::hasReplicaGroupFilters() const
 {
     return !_replicaGroupFilters.empty();
 }
 
-vector<TypeFilterPtr>
-RegistryPluginFacadeI::getTypeFilters(const string& id) const
+vector<TypeFilterPtr> RegistryPluginFacadeI::getTypeFilters(const string& id) const
 {
     Lock sync(*this);
-    map<string, vector<TypeFilterPtr> >::const_iterator p = _typeFilters.find(id);
+    map<string, vector<TypeFilterPtr>>::const_iterator p = _typeFilters.find(id);
     if(p != _typeFilters.end())
     {
         return p->second;
@@ -298,14 +276,12 @@ RegistryPluginFacadeI::getTypeFilters(const string& id) const
     return vector<TypeFilterPtr>();
 }
 
-bool
-RegistryPluginFacadeI::hasTypeFilters() const
+bool RegistryPluginFacadeI::hasTypeFilters() const
 {
     return !_typeFilters.empty();
 }
 
-void
-RegistryPluginFacadeI::setDatabase(const DatabasePtr& database)
+void RegistryPluginFacadeI::setDatabase(const DatabasePtr& database)
 {
     Lock sync(*this);
     _database = database;

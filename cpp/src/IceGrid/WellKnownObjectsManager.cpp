@@ -15,13 +15,11 @@
 using namespace std;
 using namespace IceGrid;
 
-WellKnownObjectsManager::WellKnownObjectsManager(const DatabasePtr& database) :
-    _database(database), _initialized(false)
+WellKnownObjectsManager::WellKnownObjectsManager(const DatabasePtr& database) : _database(database), _initialized(false)
 {
 }
 
-void
-WellKnownObjectsManager::add(const Ice::ObjectPrx& proxy, const string& type)
+void WellKnownObjectsManager::add(const Ice::ObjectPrx& proxy, const string& type)
 {
     assert(!_initialized);
     ObjectInfo info;
@@ -30,21 +28,18 @@ WellKnownObjectsManager::add(const Ice::ObjectPrx& proxy, const string& type)
     _wellKnownObjects.push_back(info);
 }
 
-void
-WellKnownObjectsManager::addEndpoint(const string& name, const Ice::ObjectPrx& proxy)
+void WellKnownObjectsManager::addEndpoint(const string& name, const Ice::ObjectPrx& proxy)
 {
     _endpoints.insert(make_pair(name, proxy));
 }
 
-void
-WellKnownObjectsManager::finish()
+void WellKnownObjectsManager::finish()
 {
     Lock sync(*this);
     _initialized = true;
 }
 
-void
-WellKnownObjectsManager::registerAll(const ReplicaSessionPrx& session)
+void WellKnownObjectsManager::registerAll(const ReplicaSessionPrx& session)
 {
     if(!initialized())
     {
@@ -67,8 +62,7 @@ WellKnownObjectsManager::registerAll(const ReplicaSessionPrx& session)
     }
 }
 
-void
-WellKnownObjectsManager::registerAll()
+void WellKnownObjectsManager::registerAll()
 {
     if(!initialized())
     {
@@ -82,8 +76,7 @@ WellKnownObjectsManager::registerAll()
     _database->addOrUpdateRegistryWellKnownObjects(_wellKnownObjects);
 }
 
-void
-WellKnownObjectsManager::updateReplicatedWellKnownObjects()
+void WellKnownObjectsManager::updateReplicatedWellKnownObjects()
 {
     if(!initialized())
     {
@@ -120,22 +113,19 @@ WellKnownObjectsManager::updateReplicatedWellKnownObjects()
     _database->addOrUpdateRegistryWellKnownObjects(objects);
 }
 
-bool
-WellKnownObjectsManager::initialized() const
+bool WellKnownObjectsManager::initialized() const
 {
     Lock sync(*this);
     return _initialized;
 }
 
-Ice::ObjectPrx
-WellKnownObjectsManager::getEndpoints(const string& name)
+Ice::ObjectPrx WellKnownObjectsManager::getEndpoints(const string& name)
 {
     Lock sync(*this);
     return _endpoints[name];
 }
 
-LocatorPrx
-WellKnownObjectsManager::getLocator()
+LocatorPrx WellKnownObjectsManager::getLocator()
 {
     Ice::Identity id;
     id.name = "Locator";
@@ -143,8 +133,7 @@ WellKnownObjectsManager::getLocator()
     return LocatorPrx::uncheckedCast(getWellKnownObjectReplicatedProxy(id, "Client"));
 }
 
-Ice::LocatorRegistryPrx
-WellKnownObjectsManager::getLocatorRegistry()
+Ice::LocatorRegistryPrx WellKnownObjectsManager::getLocatorRegistry()
 {
     Ice::Identity id;
     id.name = "LocatorRegistry";
@@ -152,8 +141,7 @@ WellKnownObjectsManager::getLocatorRegistry()
     return Ice::LocatorRegistryPrx::uncheckedCast(getWellKnownObjectReplicatedProxy(id, "Server"));
 }
 
-Ice::ObjectPrx
-WellKnownObjectsManager::getWellKnownObjectReplicatedProxy(const Ice::Identity& id, const string& endpt)
+Ice::ObjectPrx WellKnownObjectsManager::getWellKnownObjectReplicatedProxy(const Ice::Identity& id, const string& endpt)
 {
     try
     {

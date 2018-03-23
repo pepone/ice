@@ -14,17 +14,13 @@
 using namespace std;
 using namespace Ice;
 
-string
-TestIntfI::getAdapterId(const Ice::Current& current)
+string TestIntfI::getAdapterId(const Ice::Current& current)
 {
     return current.adapter->getCommunicator()->getProperties()->getProperty(current.adapter->getName() + ".AdapterId");
 }
 
-void
-ControllerI::activateObjectAdapter(ICE_IN(string) name,
-                                   ICE_IN(string) adapterId,
-                                   ICE_IN(string) replicaGroupId,
-                                   const Ice::Current& current)
+void ControllerI::activateObjectAdapter(ICE_IN(string) name, ICE_IN(string) adapterId, ICE_IN(string) replicaGroupId,
+                                        const Ice::Current& current)
 {
     Ice::CommunicatorPtr communicator = current.adapter->getCommunicator();
     Ice::PropertiesPtr properties = communicator->getProperties();
@@ -35,15 +31,13 @@ ControllerI::activateObjectAdapter(ICE_IN(string) name,
     _adapters[name]->activate();
 }
 
-void
-ControllerI::deactivateObjectAdapter(ICE_IN(string) name, const Ice::Current& current)
+void ControllerI::deactivateObjectAdapter(ICE_IN(string) name, const Ice::Current& current)
 {
     _adapters[name]->destroy();
     _adapters.erase(name);
 }
 
-void
-ControllerI::addObject(ICE_IN(string) oaName, ICE_IN(string) id, const Ice::Current&)
+void ControllerI::addObject(ICE_IN(string) oaName, ICE_IN(string) id, const Ice::Current&)
 {
     assert(_adapters[oaName]);
     Ice::Identity identity;
@@ -51,8 +45,7 @@ ControllerI::addObject(ICE_IN(string) oaName, ICE_IN(string) id, const Ice::Curr
     _adapters[oaName]->add(ICE_MAKE_SHARED(TestIntfI), identity);
 }
 
-void
-ControllerI::removeObject(ICE_IN(string) oaName, ICE_IN(string) id, const Ice::Current&)
+void ControllerI::removeObject(ICE_IN(string) oaName, ICE_IN(string) id, const Ice::Current&)
 {
     assert(_adapters[oaName]);
     Ice::Identity identity;
@@ -60,8 +53,7 @@ ControllerI::removeObject(ICE_IN(string) oaName, ICE_IN(string) id, const Ice::C
     _adapters[oaName]->remove(identity);
 }
 
-void
-ControllerI::shutdown(const Ice::Current& current)
+void ControllerI::shutdown(const Ice::Current& current)
 {
     current.adapter->getCommunicator()->shutdown();
 }

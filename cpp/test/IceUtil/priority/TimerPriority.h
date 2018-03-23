@@ -15,11 +15,9 @@
 class TimerPriorityTest : public TestBase
 {
 public:
-
     TimerPriorityTest();
 
 private:
-
     virtual void run();
 };
 

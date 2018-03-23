@@ -16,12 +16,10 @@ using namespace std;
 class Server : public Ice::Application
 {
 public:
-
     virtual int run(int argc, char* argv[]);
 };
 
-int
-Server::run(int, char**)
+int Server::run(int, char**)
 {
     Ice::ObjectAdapterPtr adapter = communicator()->createObjectAdapter("TestAdapter");
     Ice::ObjectPtr object = new TestI();
@@ -39,8 +37,7 @@ Server::run(int, char**)
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
     Server app;
     return app.main(argc, argv);

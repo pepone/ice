@@ -18,16 +18,14 @@ DEFINE_TEST("collocated")
 using namespace std;
 using namespace Test;
 
-void
-setupObjectAdapter(const Ice::CommunicatorPtr& communicator)
+void setupObjectAdapter(const Ice::CommunicatorPtr& communicator)
 {
     Ice::ObjectAdapterPtr adapter = communicator->createObjectAdapter("");
     adapter->add(ICE_MAKE_SHARED(RetryI), Ice::stringToIdentity("retry"));
-    //adapter->activate(); // Don't activate OA to ensure collocation is used.
+    // adapter->activate(); // Don't activate OA to ensure collocation is used.
 }
 
-int
-run(int, char**, const Ice::CommunicatorPtr& communicator, const Ice::CommunicatorPtr& communicator2)
+int run(int, char**, const Ice::CommunicatorPtr& communicator, const Ice::CommunicatorPtr& communicator2)
 {
     setupObjectAdapter(communicator);
     setupObjectAdapter(communicator2);
@@ -38,8 +36,7 @@ run(int, char**, const Ice::CommunicatorPtr& communicator, const Ice::Communicat
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
 #ifdef ICE_STATIC_LIBS
     Ice::registerIceSSL(false);

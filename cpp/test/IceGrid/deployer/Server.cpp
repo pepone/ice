@@ -18,12 +18,10 @@ using namespace std;
 class Server : public Ice::Application
 {
 public:
-
     virtual int run(int argc, char* argv[]);
 };
 
-int
-Server::run(int argc, char* argv[])
+int Server::run(int argc, char* argv[])
 {
     Ice::PropertiesPtr properties = communicator()->getProperties();
 
@@ -56,8 +54,7 @@ Server::run(int argc, char* argv[])
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
     //
     // Test if MY_ENV_VARIABLE is set.
@@ -94,7 +91,7 @@ main(int argc, char* argv[])
 
 #else
     char* value2 = getenv("MY_ENV_UNICODE_VARIABLE");
-    test(value2 !=0 && string(value2) == unicodeVar);
+    test(value2 != 0 && string(value2) == unicodeVar);
 
     char* value3 = getenv(varname1.c_str());
     test(value3 != 0 && string(value3) == "1");

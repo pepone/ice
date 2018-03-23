@@ -22,7 +22,6 @@ using namespace Test;
 class SingleI : public Single, public IceUtil::Monitor<IceUtil::Mutex>
 {
 public:
-
     SingleI(const CommunicatorPtr& communicator, const string& name, int max) :
         _communicator(communicator),
         _name(name),
@@ -32,8 +31,7 @@ public:
     {
     }
 
-    virtual void
-    event(int i, const Current&)
+    virtual void event(int i, const Current&)
     {
         if(_name == "twoway ordered" && i != _last)
         {
@@ -48,8 +46,7 @@ public:
         }
     }
 
-    virtual void
-    waitForEvents()
+    virtual void waitForEvents()
     {
         Lock sync(*this);
         IceUtil::Time timeout = IceUtil::Time::seconds(40);
@@ -63,7 +60,6 @@ public:
     }
 
 private:
-
     CommunicatorPtr _communicator;
     const string _name;
     const int _max;
@@ -72,8 +68,7 @@ private:
 };
 typedef IceUtil::Handle<SingleI> SingleIPtr;
 
-int
-run(int argc, char* argv[], const CommunicatorPtr& communicator)
+int run(int argc, char* argv[], const CommunicatorPtr& communicator)
 {
     IceUtilInternal::Options opts;
     opts.addOpt("", "ordered");
@@ -181,8 +176,7 @@ run(int argc, char* argv[], const CommunicatorPtr& communicator)
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
     int status;
     CommunicatorPtr communicator;

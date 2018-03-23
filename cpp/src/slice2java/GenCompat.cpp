@@ -25,189 +25,179 @@ using namespace IceUtilInternal;
 
 namespace
 {
-
-string
-sliceModeToIceMode(Operation::Mode opMode)
-{
-    string mode;
-    switch(opMode)
+    string sliceModeToIceMode(Operation::Mode opMode)
     {
-        case Operation::Normal:
+        string mode;
+        switch(opMode)
         {
-            mode = "Ice.OperationMode.Normal";
-            break;
-        }
-        case Operation::Nonmutating:
-        {
-            mode = "Ice.OperationMode.Nonmutating";
-            break;
-        }
-        case Operation::Idempotent:
-        {
-            mode = "Ice.OperationMode.Idempotent";
-            break;
-        }
-        default:
-        {
-            assert(false);
-            break;
-        }
-    }
-    return mode;
-}
-
-string
-opFormatTypeToString(const OperationPtr& op)
-{
-    switch(op->format())
-    {
-    case DefaultFormat:
-        return "Ice.FormatType.DefaultFormat";
-    case CompactFormat:
-        return "Ice.FormatType.CompactFormat";
-    case SlicedFormat:
-        return "Ice.FormatType.SlicedFormat";
-    default:
-        assert(false);
-    }
-
-    return "???";
-}
-
-string
-getEscapedParamName(const OperationPtr& p, const string& name)
-{
-    ParamDeclList params = p->parameters();
-
-    for(ParamDeclList::const_iterator i = params.begin(); i != params.end(); ++i)
-    {
-        if((*i)->name() == name)
-        {
-            return name + "_";
-        }
-    }
-    return name;
-}
-
-string
-getEscapedParamName(const DataMemberList& params, const string& name)
-{
-    for(DataMemberList::const_iterator i = params.begin(); i != params.end(); ++i)
-    {
-        if((*i)->name() == name)
-        {
-            return name + "_";
-        }
-    }
-    return name;
-}
-
-string
-getDeprecateReason(const ContainedPtr& p1, const ContainedPtr& p2, const string& type)
-{
-    string deprecateMetadata, deprecateReason;
-    if(p1->findMetaData("deprecate", deprecateMetadata) ||
-       (p2 != 0 && p2->findMetaData("deprecate", deprecateMetadata)))
-    {
-        deprecateReason = "This " + type + " has been deprecated.";
-        if(deprecateMetadata.find("deprecate:") == 0 && deprecateMetadata.size() > 10)
-        {
-            deprecateReason = deprecateMetadata.substr(10);
-        }
-    }
-    return deprecateReason;
-}
-
-bool
-writeSuppressDeprecation(Output& out, const ContainedPtr& p1, const ContainedPtr& p2 = 0)
-{
-    string deprecateMetadata;
-    if(p1->findMetaData("deprecate", deprecateMetadata) ||
-       (p2 != 0 && p2->findMetaData("deprecate", deprecateMetadata)))
-    {
-        out << nl << "@SuppressWarnings(\"deprecation\")";
-        return true;
-    }
-    return false;
-}
-
-string
-initValue(const TypePtr& p)
-{
-    BuiltinPtr builtin = BuiltinPtr::dynamicCast(p);
-    if(builtin)
-    {
-        switch(builtin->kind())
-        {
-        case Builtin::KindBool:
-        {
-            return "false";
-        }
-        case Builtin::KindByte:
-        {
-            return "(byte)0";
-        }
-        case Builtin::KindShort:
-        {
-            return "(short)0";
-        }
-        case Builtin::KindInt:
-        case Builtin::KindLong:
-        {
-            return "0";
-        }
-        case Builtin::KindFloat:
-        {
-            return "(float)0.0";
-        }
-        case Builtin::KindDouble:
-        {
-            return "0.0";
-        }
-        case Builtin::KindString:
-        case Builtin::KindObject:
-        case Builtin::KindObjectProxy:
-        case Builtin::KindLocalObject:
-        case Builtin::KindValue:
-        {
-            return "null";
-        }
-        }
-    }
-    return "null";
-}
-
-void
-writeParamList(Output& out, vector<string> params, bool end = true, bool newLine = true)
-{
-    out << "(";
-    out.useCurrentPosAsIndent();
-    for(vector<string>::const_iterator i = params.begin(); i != params.end();)
-    {
-        out << (*i);
-        if(++i != params.end() || !end)
-        {
-            if(newLine)
+            case Operation::Normal:
             {
-                out << "," << nl;
+                mode = "Ice.OperationMode.Normal";
+                break;
             }
-            else
+            case Operation::Nonmutating:
             {
-                out << ", ";
+                mode = "Ice.OperationMode.Nonmutating";
+                break;
+            }
+            case Operation::Idempotent:
+            {
+                mode = "Ice.OperationMode.Idempotent";
+                break;
+            }
+            default:
+            {
+                assert(false);
+                break;
             }
         }
+        return mode;
     }
-    if(end)
+
+    string opFormatTypeToString(const OperationPtr& op)
     {
-        out << ")";
-        out.restoreIndent();
+        switch(op->format())
+        {
+            case DefaultFormat:
+                return "Ice.FormatType.DefaultFormat";
+            case CompactFormat:
+                return "Ice.FormatType.CompactFormat";
+            case SlicedFormat:
+                return "Ice.FormatType.SlicedFormat";
+            default:
+                assert(false);
+        }
+
+        return "???";
     }
-}
 
-}
+    string getEscapedParamName(const OperationPtr& p, const string& name)
+    {
+        ParamDeclList params = p->parameters();
 
-Slice::JavaCompatVisitor::JavaCompatVisitor(const string& dir) :
-    JavaCompatGenerator(dir)
+        for(ParamDeclList::const_iterator i = params.begin(); i != params.end(); ++i)
+        {
+            if((*i)->name() == name)
+            {
+                return name + "_";
+            }
+        }
+        return name;
+    }
+
+    string getEscapedParamName(const DataMemberList& params, const string& name)
+    {
+        for(DataMemberList::const_iterator i = params.begin(); i != params.end(); ++i)
+        {
+            if((*i)->name() == name)
+            {
+                return name + "_";
+            }
+        }
+        return name;
+    }
+
+    string getDeprecateReason(const ContainedPtr& p1, const ContainedPtr& p2, const string& type)
+    {
+        string deprecateMetadata, deprecateReason;
+        if(p1->findMetaData("deprecate", deprecateMetadata) ||
+           (p2 != 0 && p2->findMetaData("deprecate", deprecateMetadata)))
+        {
+            deprecateReason = "This " + type + " has been deprecated.";
+            if(deprecateMetadata.find("deprecate:") == 0 && deprecateMetadata.size() > 10)
+            {
+                deprecateReason = deprecateMetadata.substr(10);
+            }
+        }
+        return deprecateReason;
+    }
+
+    bool writeSuppressDeprecation(Output& out, const ContainedPtr& p1, const ContainedPtr& p2 = 0)
+    {
+        string deprecateMetadata;
+        if(p1->findMetaData("deprecate", deprecateMetadata) ||
+           (p2 != 0 && p2->findMetaData("deprecate", deprecateMetadata)))
+        {
+            out << nl << "@SuppressWarnings(\"deprecation\")";
+            return true;
+        }
+        return false;
+    }
+
+    string initValue(const TypePtr& p)
+    {
+        BuiltinPtr builtin = BuiltinPtr::dynamicCast(p);
+        if(builtin)
+        {
+            switch(builtin->kind())
+            {
+                case Builtin::KindBool:
+                {
+                    return "false";
+                }
+                case Builtin::KindByte:
+                {
+                    return "(byte)0";
+                }
+                case Builtin::KindShort:
+                {
+                    return "(short)0";
+                }
+                case Builtin::KindInt:
+                case Builtin::KindLong:
+                {
+                    return "0";
+                }
+                case Builtin::KindFloat:
+                {
+                    return "(float)0.0";
+                }
+                case Builtin::KindDouble:
+                {
+                    return "0.0";
+                }
+                case Builtin::KindString:
+                case Builtin::KindObject:
+                case Builtin::KindObjectProxy:
+                case Builtin::KindLocalObject:
+                case Builtin::KindValue:
+                {
+                    return "null";
+                }
+            }
+        }
+        return "null";
+    }
+
+    void writeParamList(Output& out, vector<string> params, bool end = true, bool newLine = true)
+    {
+        out << "(";
+        out.useCurrentPosAsIndent();
+        for(vector<string>::const_iterator i = params.begin(); i != params.end();)
+        {
+            out << (*i);
+            if(++i != params.end() || !end)
+            {
+                if(newLine)
+                {
+                    out << "," << nl;
+                }
+                else
+                {
+                    out << ", ";
+                }
+            }
+        }
+        if(end)
+        {
+            out << ")";
+            out.restoreIndent();
+        }
+    }
+
+} // namespace
+
+Slice::JavaCompatVisitor::JavaCompatVisitor(const string& dir) : JavaCompatGenerator(dir)
 {
 }
 
@@ -215,8 +205,7 @@ Slice::JavaCompatVisitor::~JavaCompatVisitor()
 {
 }
 
-ParamDeclList
-Slice::JavaCompatVisitor::getOutParams(const OperationPtr& op)
+ParamDeclList Slice::JavaCompatVisitor::getOutParams(const OperationPtr& op)
 {
     ParamDeclList outParams;
     ParamDeclList paramList = op->parameters();
@@ -230,8 +219,8 @@ Slice::JavaCompatVisitor::getOutParams(const OperationPtr& op)
     return outParams;
 }
 
-vector<string>
-Slice::JavaCompatVisitor::getParams(const OperationPtr& op, const string& package, bool local, bool optionalMapping)
+vector<string> Slice::JavaCompatVisitor::getParams(const OperationPtr& op, const string& package, bool local,
+                                                   bool optionalMapping)
 {
     vector<string> params;
 
@@ -244,17 +233,16 @@ Slice::JavaCompatVisitor::getParams(const OperationPtr& op, const string& packag
         {
             optional = optionalMapping;
         }
-        string typeString = typeToString((*q)->type(), (*q)->isOutParam() ? TypeModeOut : TypeModeIn, package,
-                                         metaData, true, optional);
+        string typeString = typeToString((*q)->type(), (*q)->isOutParam() ? TypeModeOut : TypeModeIn, package, metaData,
+                                         true, optional);
         params.push_back(typeString + ' ' + fixKwd((*q)->name()));
     }
 
     return params;
 }
 
-vector<string>
-Slice::JavaCompatVisitor::getParamsProxy(const OperationPtr& op, const string& package, bool final, bool optionalMapping,
-                                         bool internal)
+vector<string> Slice::JavaCompatVisitor::getParamsProxy(const OperationPtr& op, const string& package, bool final,
+                                                        bool optionalMapping, bool internal)
 {
     vector<string> params;
 
@@ -272,8 +260,8 @@ Slice::JavaCompatVisitor::getParamsProxy(const OperationPtr& op, const string& p
         }
 
         StringList metaData = (*q)->getMetaData();
-        string typeString = typeToString((*q)->type(), (*q)->isOutParam() ? TypeModeOut : TypeModeIn, package,
-                                         metaData, true, optional);
+        string typeString = typeToString((*q)->type(), (*q)->isOutParam() ? TypeModeOut : TypeModeIn, package, metaData,
+                                         true, optional);
         if(final)
         {
             typeString = "final " + typeString;
@@ -284,9 +272,9 @@ Slice::JavaCompatVisitor::getParamsProxy(const OperationPtr& op, const string& p
     return params;
 }
 
-vector<string>
-Slice::JavaCompatVisitor::getInOutParams(const OperationPtr& op, const string& package, ParamDir paramType, bool /*proxy*/,
-                                         bool optionalMapping, bool internal)
+vector<string> Slice::JavaCompatVisitor::getInOutParams(const OperationPtr& op, const string& package,
+                                                        ParamDir paramType, bool /*proxy*/, bool optionalMapping,
+                                                        bool internal)
 {
     vector<string> params;
 
@@ -305,8 +293,8 @@ Slice::JavaCompatVisitor::getInOutParams(const OperationPtr& op, const string& p
     return params;
 }
 
-vector<string>
-Slice::JavaCompatVisitor::getParamsAsync(const OperationPtr& op, const string& package, bool amd, bool optionalMapping)
+vector<string> Slice::JavaCompatVisitor::getParamsAsync(const OperationPtr& op, const string& package, bool amd,
+                                                        bool optionalMapping)
 {
     vector<string> params = getInOutParams(op, package, InParam, !amd, optionalMapping);
 
@@ -319,16 +307,16 @@ Slice::JavaCompatVisitor::getParamsAsync(const OperationPtr& op, const string& p
     return params;
 }
 
-vector<string>
-Slice::JavaCompatVisitor::getParamsAsyncCB(const OperationPtr& op, const string& package, bool /*amd*/, bool optionalMapping)
+vector<string> Slice::JavaCompatVisitor::getParamsAsyncCB(const OperationPtr& op, const string& package, bool /*amd*/,
+                                                          bool optionalMapping)
 {
     vector<string> params;
 
     TypePtr ret = op->returnType();
     if(ret)
     {
-        string retS = typeToString(ret, TypeModeIn, package, op->getMetaData(), true,
-                                   optionalMapping && op->returnIsOptional());
+        string retS =
+            typeToString(ret, TypeModeIn, package, op->getMetaData(), true, optionalMapping && op->returnIsOptional());
         params.push_back(retS + " ret");
     }
 
@@ -348,22 +336,12 @@ Slice::JavaCompatVisitor::getParamsAsyncCB(const OperationPtr& op, const string&
 
 namespace
 {
-
-const char* builtinAsyncCallbackTable[] =
-{
-    "TwowayCallbackByte",
-    "TwowayCallbackBool",
-    "TwowayCallbackShort",
-    "TwowayCallbackInt",
-    "TwowayCallbackLong",
-    "TwowayCallbackFloat",
-    "TwowayCallbackDouble"
-};
-
+    const char* builtinAsyncCallbackTable[] = {"TwowayCallbackByte",  "TwowayCallbackBool", "TwowayCallbackShort",
+                                               "TwowayCallbackInt",   "TwowayCallbackLong", "TwowayCallbackFloat",
+                                               "TwowayCallbackDouble"};
 }
 
-string
-Slice::JavaCompatVisitor::getAsyncCallbackInterface(const OperationPtr& op, const string& package)
+string Slice::JavaCompatVisitor::getAsyncCallbackInterface(const OperationPtr& op, const string& package)
 {
     TypePtr ret = op->returnType();
     ParamDeclList outParams = getOutParams(op);
@@ -402,7 +380,7 @@ Slice::JavaCompatVisitor::getAsyncCallbackInterface(const OperationPtr& op, cons
         }
 
         return getAbsolute("Ice.TwowayCallbackArg1" + suffix, package) + "<" +
-            typeToString(t, TypeModeIn, package, op->getMetaData(), true, optional) + ">";
+               typeToString(t, TypeModeIn, package, op->getMetaData(), true, optional) + ">";
     }
     else
     {
@@ -411,8 +389,7 @@ Slice::JavaCompatVisitor::getAsyncCallbackInterface(const OperationPtr& op, cons
     }
 }
 
-string
-Slice::JavaCompatVisitor::getAsyncCallbackBaseClass(const OperationPtr& op, bool functional)
+string Slice::JavaCompatVisitor::getAsyncCallbackBaseClass(const OperationPtr& op, bool functional)
 {
     assert(op->returnsData());
     TypePtr ret = op->returnType();
@@ -424,9 +401,8 @@ Slice::JavaCompatVisitor::getAsyncCallbackBaseClass(const OperationPtr& op, bool
     if(!ret && outParams.empty())
     {
         assert(throws);
-        return functional ?
-            "IceInternal.Functional_TwowayCallbackVoidUE" :
-            "IceInternal.TwowayCallback implements " + getAbsolute("Ice.TwowayCallbackVoidUE", package);
+        return functional ? "IceInternal.Functional_TwowayCallbackVoidUE" :
+                            "IceInternal.TwowayCallback implements " + getAbsolute("Ice.TwowayCallbackVoidUE", package);
     }
     else if((ret && outParams.empty()) || (!ret && outParams.size() == 1))
     {
@@ -453,7 +429,8 @@ Slice::JavaCompatVisitor::getAsyncCallbackBaseClass(const OperationPtr& op, bool
                     else
                     {
                         os << "IceInternal.TwowayCallback implements "
-                           << getAbsolute(string("Ice.") + builtinAsyncCallbackTable[builtin->kind()] + suffix, package);
+                           << getAbsolute(string("Ice.") + builtinAsyncCallbackTable[builtin->kind()] + suffix,
+                                          package);
                     }
                     return os.str();
                 }
@@ -492,8 +469,7 @@ Slice::JavaCompatVisitor::getAsyncCallbackBaseClass(const OperationPtr& op, bool
     }
 }
 
-string
-Slice::JavaCompatVisitor::getLambdaResponseCB(const OperationPtr& op, const string& package)
+string Slice::JavaCompatVisitor::getLambdaResponseCB(const OperationPtr& op, const string& package)
 {
     TypePtr ret = op->returnType();
     ParamDeclList outParams = getOutParams(op);
@@ -508,16 +484,11 @@ Slice::JavaCompatVisitor::getLambdaResponseCB(const OperationPtr& op, const stri
         BuiltinPtr builtin = BuiltinPtr::dynamicCast(t);
         if(builtin && !optional)
         {
-            static const char* builtinTable[] =
-            {
-                "IceInternal.Functional_ByteCallback",
-                "IceInternal.Functional_BoolCallback",
-                "IceInternal.Functional_ShortCallback",
-                "IceInternal.Functional_IntCallback",
-                "IceInternal.Functional_LongCallback",
-                "IceInternal.Functional_FloatCallback",
-                "IceInternal.Functional_DoubleCallback"
-            };
+            static const char* builtinTable[] = {
+                "IceInternal.Functional_ByteCallback",  "IceInternal.Functional_BoolCallback",
+                "IceInternal.Functional_ShortCallback", "IceInternal.Functional_IntCallback",
+                "IceInternal.Functional_LongCallback",  "IceInternal.Functional_FloatCallback",
+                "IceInternal.Functional_DoubleCallback"};
             switch(builtin->kind())
             {
                 case Builtin::KindByte:
@@ -538,7 +509,7 @@ Slice::JavaCompatVisitor::getLambdaResponseCB(const OperationPtr& op, const stri
         }
 
         return "IceInternal.Functional_GenericCallback1<" +
-            typeToString(t, TypeModeIn, package, op->getMetaData(), true, optional) + ">";
+               typeToString(t, TypeModeIn, package, op->getMetaData(), true, optional) + ">";
     }
     else
     {
@@ -547,9 +518,9 @@ Slice::JavaCompatVisitor::getLambdaResponseCB(const OperationPtr& op, const stri
     }
 }
 
-vector<string>
-Slice::JavaCompatVisitor::getParamsAsyncLambda(const OperationPtr& op, const string& package, bool context, bool sentCB,
-                                               bool optionalMapping, bool inParams, bool internal)
+vector<string> Slice::JavaCompatVisitor::getParamsAsyncLambda(const OperationPtr& op, const string& package,
+                                                              bool context, bool sentCB, bool optionalMapping,
+                                                              bool inParams, bool internal)
 {
     vector<string> params;
     string contextParamName = "context";
@@ -595,8 +566,8 @@ Slice::JavaCompatVisitor::getParamsAsyncLambda(const OperationPtr& op, const str
     return params;
 }
 
-vector<string>
-Slice::JavaCompatVisitor::getArgsAsyncLambda(const OperationPtr& op, const string& package, bool context, bool sentCB)
+vector<string> Slice::JavaCompatVisitor::getArgsAsyncLambda(const OperationPtr& op, const string& package, bool context,
+                                                            bool sentCB)
 {
     vector<string> args = getInOutArgs(op, InParam);
 
@@ -621,8 +592,7 @@ Slice::JavaCompatVisitor::getArgsAsyncLambda(const OperationPtr& op, const strin
     return args;
 }
 
-vector<string>
-Slice::JavaCompatVisitor::getArgs(const OperationPtr& op)
+vector<string> Slice::JavaCompatVisitor::getArgs(const OperationPtr& op)
 {
     vector<string> args;
 
@@ -635,8 +605,7 @@ Slice::JavaCompatVisitor::getArgs(const OperationPtr& op)
     return args;
 }
 
-vector<string>
-Slice::JavaCompatVisitor::getInOutArgs(const OperationPtr& op, ParamDir paramType, bool internal)
+vector<string> Slice::JavaCompatVisitor::getInOutArgs(const OperationPtr& op, ParamDir paramType, bool internal)
 {
     vector<string> args;
 
@@ -652,16 +621,14 @@ Slice::JavaCompatVisitor::getInOutArgs(const OperationPtr& op, ParamDir paramTyp
     return args;
 }
 
-vector<string>
-Slice::JavaCompatVisitor::getArgsAsync(const OperationPtr& op)
+vector<string> Slice::JavaCompatVisitor::getArgsAsync(const OperationPtr& op)
 {
     vector<string> args = getInOutArgs(op, InParam);
     args.insert(args.begin(), getEscapedParamName(op, "cb"));
     return args;
 }
 
-vector<string>
-Slice::JavaCompatVisitor::getArgsAsyncCB(const OperationPtr& op)
+vector<string> Slice::JavaCompatVisitor::getArgsAsyncCB(const OperationPtr& op)
 {
     vector<string> args;
 
@@ -699,10 +666,10 @@ Slice::JavaCompatVisitor::getArgsAsyncCB(const OperationPtr& op)
     return args;
 }
 
-void
-Slice::JavaCompatVisitor::writeMarshalUnmarshalParams(Output& out, const string& package, const ParamDeclList& params,
-                                                      const OperationPtr& op, int& iter, bool marshal, bool optionalMapping,
-                                                      bool internal, const string& customRetName, bool dispatch)
+void Slice::JavaCompatVisitor::writeMarshalUnmarshalParams(Output& out, const string& package,
+                                                           const ParamDeclList& params, const OperationPtr& op,
+                                                           int& iter, bool marshal, bool optionalMapping, bool internal,
+                                                           const string& customRetName, bool dispatch)
 {
     string stream = "";
     if(!internal)
@@ -726,8 +693,8 @@ Slice::JavaCompatVisitor::writeMarshalUnmarshalParams(Output& out, const string&
             {
                 patchParams = paramName;
             }
-            writeMarshalUnmarshalCode(out, package, (*pli)->type(), OptionalNone, false, 0, paramName, marshal,
-                                      iter, holder, stream, (*pli)->getMetaData(), patchParams);
+            writeMarshalUnmarshalCode(out, package, (*pli)->type(), OptionalNone, false, 0, paramName, marshal, iter,
+                                      holder, stream, (*pli)->getMetaData(), patchParams);
         }
     }
 
@@ -774,8 +741,8 @@ Slice::JavaCompatVisitor::writeMarshalUnmarshalParams(Output& out, const string&
 
         if(!op->returnIsOptional())
         {
-            writeMarshalUnmarshalCode(out, package, ret, OptionalNone, false, 0, retName, marshal, iter, holder,
-                                      stream, op->getMetaData());
+            writeMarshalUnmarshalCode(out, package, ret, OptionalNone, false, 0, retName, marshal, iter, holder, stream,
+                                      op->getMetaData());
         }
     }
 
@@ -801,8 +768,8 @@ Slice::JavaCompatVisitor::writeMarshalUnmarshalParams(Output& out, const string&
     {
         if(checkReturnType && op->returnTag() < (*pli)->tag())
         {
-            writeMarshalUnmarshalCode(out, package, ret, OptionalReturnParam, optionalMapping, op->returnTag(),
-                                      retName, marshal, iter, false, stream, op->getMetaData());
+            writeMarshalUnmarshalCode(out, package, ret, OptionalReturnParam, optionalMapping, op->returnTag(), retName,
+                                      marshal, iter, false, stream, op->getMetaData());
             checkReturnType = false;
         }
 
@@ -810,8 +777,8 @@ Slice::JavaCompatVisitor::writeMarshalUnmarshalParams(Output& out, const string&
 
         writeMarshalUnmarshalCode(out, package, (*pli)->type(),
                                   (*pli)->isOutParam() ? OptionalOutParam : OptionalInParam, optionalMapping,
-                                  (*pli)->tag(), internal ? "iceP_" + (*pli)->name() : fixKwd((*pli)->name()),
-                                  marshal, iter, holder, stream, (*pli)->getMetaData());
+                                  (*pli)->tag(), internal ? "iceP_" + (*pli)->name() : fixKwd((*pli)->name()), marshal,
+                                  iter, holder, stream, (*pli)->getMetaData());
     }
 
     if(checkReturnType)
@@ -821,8 +788,8 @@ Slice::JavaCompatVisitor::writeMarshalUnmarshalParams(Output& out, const string&
     }
 }
 
-void
-Slice::JavaCompatVisitor::writeThrowsClause(const string& package, const ExceptionList& throws, const OperationPtr& op)
+void Slice::JavaCompatVisitor::writeThrowsClause(const string& package, const ExceptionList& throws,
+                                                 const OperationPtr& op)
 {
     Output& out = output();
 
@@ -853,9 +820,8 @@ Slice::JavaCompatVisitor::writeThrowsClause(const string& package, const Excepti
     }
 }
 
-void
-Slice::JavaCompatVisitor::writeMarshalDataMember(Output& out, const string& package, const DataMemberPtr& member,
-                                                 int& iter, bool forStruct)
+void Slice::JavaCompatVisitor::writeMarshalDataMember(Output& out, const string& package, const DataMemberPtr& member,
+                                                      int& iter, bool forStruct)
 {
     if(!member->optional())
     {
@@ -866,8 +832,8 @@ Slice::JavaCompatVisitor::writeMarshalDataMember(Output& out, const string& pack
             memberName = "this." + memberName;
         }
 
-        writeMarshalUnmarshalCode(out, package, member->type(), OptionalNone, false, 0, memberName,
-                                  true, iter, false, stream, member->getMetaData());
+        writeMarshalUnmarshalCode(out, package, member->type(), OptionalNone, false, 0, memberName, true, iter, false,
+                                  stream, member->getMetaData());
     }
     else
     {
@@ -881,9 +847,8 @@ Slice::JavaCompatVisitor::writeMarshalDataMember(Output& out, const string& pack
     }
 }
 
-void
-Slice::JavaCompatVisitor::writeUnmarshalDataMember(Output& out, const string& package, const DataMemberPtr& member,
-                                                   int& iter, bool needPatcher, int& patchIter, bool forStruct)
+void Slice::JavaCompatVisitor::writeUnmarshalDataMember(Output& out, const string& package, const DataMemberPtr& member,
+                                                        int& iter, bool needPatcher, int& patchIter, bool forStruct)
 {
     string patchParams;
     if(needPatcher)
@@ -906,8 +871,8 @@ Slice::JavaCompatVisitor::writeUnmarshalDataMember(Output& out, const string& pa
             memberName = "this." + memberName;
         }
 
-        writeMarshalUnmarshalCode(out, package, member->type(), OptionalNone, false, 0, memberName, false,
-                                  iter, false, stream, member->getMetaData(), patchParams);
+        writeMarshalUnmarshalCode(out, package, member->type(), OptionalNone, false, 0, memberName, false, iter, false,
+                                  stream, member->getMetaData(), patchParams);
     }
     else
     {
@@ -921,9 +886,8 @@ Slice::JavaCompatVisitor::writeUnmarshalDataMember(Output& out, const string& pa
     }
 }
 
-void
-Slice::JavaCompatVisitor::writePatcher(Output& out, const string& package, const DataMemberList& classMembers,
-                                       const DataMemberList& optionalMembers)
+void Slice::JavaCompatVisitor::writePatcher(Output& out, const string& package, const DataMemberList& classMembers,
+                                            const DataMemberList& optionalMembers)
 {
     out << sp << nl << "private class Patcher implements " << getAbsolute("Ice.ReadValueCallback", package);
     out << sb;
@@ -1009,7 +973,6 @@ Slice::JavaCompatVisitor::writePatcher(Output& out, const string& package, const
         BuiltinPtr builtin = BuiltinPtr::dynamicCast(paramType);
         if((builtin && builtin->kind() == Builtin::KindObject) || ClassDeclPtr::dynamicCast(paramType))
         {
-
             if(classMembers.size() > 1)
             {
                 out.dec();
@@ -1081,8 +1044,7 @@ Slice::JavaCompatVisitor::writePatcher(Output& out, const string& package, const
     out << eb;
 }
 
-void
-Slice::JavaCompatVisitor::writeDispatchAndMarshalling(Output& out, const ClassDefPtr& p)
+void Slice::JavaCompatVisitor::writeDispatchAndMarshalling(Output& out, const ClassDefPtr& p)
 {
     string name = fixKwd(p->name());
     string package = getPackage(p);
@@ -1232,14 +1194,14 @@ Slice::JavaCompatVisitor::writeDispatchAndMarshalling(Output& out, const ClassDe
                 }
                 if(!generateOperation && !implementedByBase)
                 {
-                     //
-                     // No base class defines the operation. Check if one of the
-                     // interfaces defines it, in which case this class must provide it.
-                     //
-                     if(bases.front()->isInterface() || bases.size() > 1)
-                     {
-                         generateOperation = true;
-                     }
+                    //
+                    // No base class defines the operation. Check if one of the
+                    // interfaces defines it, in which case this class must provide it.
+                    //
+                    if(bases.front()->isInterface() || bases.size() > 1)
+                    {
+                        generateOperation = true;
+                    }
                 }
             }
         }
@@ -1280,8 +1242,8 @@ Slice::JavaCompatVisitor::writeDispatchAndMarshalling(Output& out, const ClassDe
         string opName = op->name();
         out << sp;
         writeSuppressDeprecation(out, op);
-        out << nl << "public static boolean _iceD_" << opName << '(' << name
-            << " obj, IceInternal.Incoming inS, " << getAbsolute("Ice.Current", package) << " current)";
+        out << nl << "public static boolean _iceD_" << opName << '(' << name << " obj, IceInternal.Incoming inS, "
+            << getAbsolute("Ice.Current", package) << " current)";
         out.inc();
         out << nl << "throws " << getAbsolute("Ice.UserException", package);
         out.dec();
@@ -1324,8 +1286,8 @@ Slice::JavaCompatVisitor::writeDispatchAndMarshalling(Output& out, const ClassDe
                 {
                     TypePtr paramType = (*pli)->type();
                     string paramName = "iceP_" + (*pli)->name();
-                    string typeS = typeToString(paramType, TypeModeIn, package, (*pli)->getMetaData(),
-                                                true, (*pli)->optional());
+                    string typeS =
+                        typeToString(paramType, TypeModeIn, package, (*pli)->getMetaData(), true, (*pli)->optional());
                     if((*pli)->optional())
                     {
                         out << nl << typeS << ' ' << paramName << " = new " << typeS << "();";
@@ -1453,8 +1415,8 @@ Slice::JavaCompatVisitor::writeDispatchAndMarshalling(Output& out, const ClassDe
                 {
                     TypePtr paramType = (*pli)->type();
                     string paramName = "iceP_" + (*pli)->name();
-                    string typeS = typeToString(paramType, TypeModeIn, package, (*pli)->getMetaData(),
-                                                true, (*pli)->optional());
+                    string typeS =
+                        typeToString(paramType, TypeModeIn, package, (*pli)->getMetaData(), true, (*pli)->optional());
                     if((*pli)->optional())
                     {
                         out << nl << typeS << ' ' << paramName << " = new " << typeS << "();";
@@ -1496,8 +1458,7 @@ Slice::JavaCompatVisitor::writeDispatchAndMarshalling(Output& out, const ClassDe
             // Call on the servant.
             //
             string classNameAMD = "AMD_" + p->name();
-            out << nl << classNameAMD << '_' << opName << " cb = new _" << classNameAMD << '_' << opName
-                << "(inS);";
+            out << nl << classNameAMD << '_' << opName << " cb = new _" << classNameAMD << '_' << opName << "(inS);";
             out << nl << "obj." << (amd ? opName + "_async" : fixKwd(opName)) << (amd ? "(cb, " : "(");
             for(ParamDeclList::const_iterator pli = inParams.begin(); pli != inParams.end(); ++pli)
             {
@@ -1670,7 +1631,7 @@ Slice::JavaCompatVisitor::writeDispatchAndMarshalling(Output& out, const ClassDe
                 {
                     out << ',';
                 }
-                out  << " // " << opName;
+                out << " // " << opName;
             }
             out << eb << ';';
 
@@ -1775,9 +1736,8 @@ Slice::JavaCompatVisitor::writeDispatchAndMarshalling(Output& out, const ClassDe
     }
 }
 
-void
-Slice::JavaCompatVisitor::writeConstantValue(Output& out, const TypePtr& type, const SyntaxTreeBasePtr& valueType,
-                                       const string& value, const string& package)
+void Slice::JavaCompatVisitor::writeConstantValue(Output& out, const TypePtr& type, const SyntaxTreeBasePtr& valueType,
+                                                  const string& value, const string& package)
 {
     ConstPtr constant = ConstPtr::dynamicCast(valueType);
     if(constant)
@@ -1829,7 +1789,6 @@ Slice::JavaCompatVisitor::writeConstantValue(Output& out, const TypePtr& type, c
                     break;
                 }
             }
-
         }
         else if(EnumPtr::dynamicCast(type))
         {
@@ -1844,8 +1803,8 @@ Slice::JavaCompatVisitor::writeConstantValue(Output& out, const TypePtr& type, c
     }
 }
 
-void
-Slice::JavaCompatVisitor::writeDataMemberInitializers(Output& out, const DataMemberList& members, const string& package)
+void Slice::JavaCompatVisitor::writeDataMemberInitializers(Output& out, const DataMemberList& members,
+                                                           const string& package)
 {
     for(DataMemberList::const_iterator p = members.begin(); p != members.end(); ++p)
     {
@@ -1893,8 +1852,7 @@ Slice::JavaCompatVisitor::writeDataMemberInitializers(Output& out, const DataMem
     }
 }
 
-StringList
-Slice::JavaCompatVisitor::splitComment(const ContainedPtr& p)
+StringList Slice::JavaCompatVisitor::splitComment(const ContainedPtr& p)
 {
     StringList result;
 
@@ -1915,9 +1873,8 @@ Slice::JavaCompatVisitor::splitComment(const ContainedPtr& p)
     return result;
 }
 
-void
-Slice::JavaCompatVisitor::writeDocComment(Output& out, const ContainedPtr& p, const string& deprecateReason,
-                                    const string& extraParam)
+void Slice::JavaCompatVisitor::writeDocComment(Output& out, const ContainedPtr& p, const string& deprecateReason,
+                                               const string& extraParam)
 {
     StringList lines = splitComment(p);
     if(lines.empty())
@@ -1969,8 +1926,7 @@ Slice::JavaCompatVisitor::writeDocComment(Output& out, const ContainedPtr& p, co
     out << nl << " **/";
 }
 
-void
-Slice::JavaCompatVisitor::writeDocComment(Output& out, const string& deprecateReason, const string& summary)
+void Slice::JavaCompatVisitor::writeDocComment(Output& out, const string& deprecateReason, const string& summary)
 {
     vector<string> lines;
     IceUtilInternal::splitString(summary, "\n", lines);
@@ -1993,8 +1949,7 @@ Slice::JavaCompatVisitor::writeDocComment(Output& out, const string& deprecateRe
     out << nl << " **/";
 }
 
-void
-Slice::JavaCompatVisitor::writeDocCommentOp(Output& out, const OperationPtr& p)
+void Slice::JavaCompatVisitor::writeDocCommentOp(Output& out, const OperationPtr& p)
 {
     ContainerPtr container = p->container();
     ContainedPtr contained = ContainedPtr::dynamicCast(container);
@@ -2037,9 +1992,8 @@ Slice::JavaCompatVisitor::writeDocCommentOp(Output& out, const OperationPtr& p)
     out << nl << " **/";
 }
 
-void
-Slice::JavaCompatVisitor::writeDocCommentAsync(Output& out, const OperationPtr& p, ParamDir paramType,
-                                               const string& extraParam)
+void Slice::JavaCompatVisitor::writeDocCommentAsync(Output& out, const OperationPtr& p, ParamDir paramType,
+                                                    const string& extraParam)
 {
     ContainerPtr container = p->container();
     ClassDefPtr contained = ClassDefPtr::dynamicCast(container);
@@ -2168,10 +2122,10 @@ Slice::JavaCompatVisitor::writeDocCommentAsync(Output& out, const OperationPtr& 
     out << nl << " **/";
 }
 
-void
-Slice::JavaCompatVisitor::writeDocCommentAMI(Output& out, const OperationPtr& p, ParamDir paramType,
-                                       const string& extraParam1, const string& extraParam2, const string& extraParam3,
-                                       const string& extraParam4, const string& extraParam5)
+void Slice::JavaCompatVisitor::writeDocCommentAMI(Output& out, const OperationPtr& p, ParamDir paramType,
+                                                  const string& extraParam1, const string& extraParam2,
+                                                  const string& extraParam3, const string& extraParam4,
+                                                  const string& extraParam5)
 {
     ContainerPtr container = p->container();
     ClassDefPtr contained = ClassDefPtr::dynamicCast(container);
@@ -2286,8 +2240,7 @@ Slice::JavaCompatVisitor::writeDocCommentAMI(Output& out, const OperationPtr& p,
     out << nl << " **/";
 }
 
-void
-Slice::JavaCompatVisitor::writeDocCommentParam(Output& out, const OperationPtr& p, ParamDir paramType, bool cb)
+void Slice::JavaCompatVisitor::writeDocCommentParam(Output& out, const OperationPtr& p, ParamDir paramType, bool cb)
 {
     //
     // Collect the names of the in- or -out parameters to be documented.
@@ -2378,8 +2331,7 @@ Slice::GenCompat::~GenCompat()
 {
 }
 
-void
-Slice::GenCompat::generate(const UnitPtr& p)
+void Slice::GenCompat::generate(const UnitPtr& p)
 {
     JavaGenerator::validateMetaData(p);
 
@@ -2411,22 +2363,19 @@ Slice::GenCompat::generate(const UnitPtr& p)
     p->visit(&asyncVisitor, false);
 }
 
-void
-Slice::GenCompat::generateImpl(const UnitPtr& p)
+void Slice::GenCompat::generateImpl(const UnitPtr& p)
 {
     ImplVisitor implVisitor(_dir);
     p->visit(&implVisitor, false);
 }
 
-void
-Slice::GenCompat::generateImplTie(const UnitPtr& p)
+void Slice::GenCompat::generateImplTie(const UnitPtr& p)
 {
     ImplTieVisitor implTieVisitor(_dir);
     p->visit(&implTieVisitor, false);
 }
 
-void
-Slice::GenCompat::writeChecksumClass(const string& checksumClass, const string& dir, const ChecksumMap& m)
+void Slice::GenCompat::writeChecksumClass(const string& checksumClass, const string& dir, const ChecksumMap& m)
 {
     //
     // Attempt to open the source file for the checksum class.
@@ -2480,13 +2429,11 @@ Slice::GenCompat::writeChecksumClass(const string& checksumClass, const string& 
     out << nl;
 }
 
-Slice::GenCompat::OpsVisitor::OpsVisitor(const string& dir) :
-    JavaCompatVisitor(dir)
+Slice::GenCompat::OpsVisitor::OpsVisitor(const string& dir) : JavaCompatVisitor(dir)
 {
 }
 
-bool
-Slice::GenCompat::OpsVisitor::visitClassDefStart(const ClassDefPtr& p)
+bool Slice::GenCompat::OpsVisitor::visitClassDefStart(const ClassDefPtr& p)
 {
     //
     // Don't generate an Operations interface for non-abstract classes
@@ -2505,8 +2452,7 @@ Slice::GenCompat::OpsVisitor::visitClassDefStart(const ClassDefPtr& p)
     return false;
 }
 
-void
-Slice::GenCompat::OpsVisitor::writeOperations(const ClassDefPtr& p, bool noCurrent)
+void Slice::GenCompat::OpsVisitor::writeOperations(const ClassDefPtr& p, bool noCurrent)
 {
     string name = p->name();
     ClassList bases = p->bases();
@@ -2615,13 +2561,11 @@ Slice::GenCompat::OpsVisitor::writeOperations(const ClassDefPtr& p, bool noCurre
     close();
 }
 
-Slice::GenCompat::PackageVisitor::PackageVisitor(const string& dir) :
-    JavaCompatVisitor(dir)
+Slice::GenCompat::PackageVisitor::PackageVisitor(const string& dir) : JavaCompatVisitor(dir)
 {
 }
 
-bool
-Slice::GenCompat::PackageVisitor::visitModuleStart(const ModulePtr& p)
+bool Slice::GenCompat::PackageVisitor::visitModuleStart(const ModulePtr& p)
 {
     string prefix = getPackagePrefix(p);
     if(!prefix.empty())
@@ -2640,13 +2584,11 @@ Slice::GenCompat::PackageVisitor::visitModuleStart(const ModulePtr& p)
     return false;
 }
 
-Slice::GenCompat::TypesVisitor::TypesVisitor(const string& dir) :
-    JavaCompatVisitor(dir)
+Slice::GenCompat::TypesVisitor::TypesVisitor(const string& dir) : JavaCompatVisitor(dir)
 {
 }
 
-bool
-Slice::GenCompat::TypesVisitor::visitClassDefStart(const ClassDefPtr& p)
+bool Slice::GenCompat::TypesVisitor::visitClassDefStart(const ClassDefPtr& p)
 {
     string name = p->name();
     ClassList bases = p->bases();
@@ -2711,7 +2653,7 @@ Slice::GenCompat::TypesVisitor::visitClassDefStart(const ClassDefPtr& p)
             out << *r++;
         }
 
-        for(;q != bases.end(); ++q)
+        for(; q != bases.end(); ++q)
         {
             out << ',' << nl << getAbsolute(*q, package);
         }
@@ -2831,10 +2773,12 @@ Slice::GenCompat::TypesVisitor::visitClassDefStart(const ClassDefPtr& p)
                 {
                     out << "public abstract ";
                 }
-                out << getAbsolute("Ice.AsyncResult", package) << " begin_" << opname << spar << inParams << epar << ';';
+                out << getAbsolute("Ice.AsyncResult", package) << " begin_" << opname << spar << inParams << epar
+                    << ';';
 
                 out << sp;
-                writeDocCommentAMI(out, op, InParam, "@param " + getEscapedParamName(op, "cb") + " A generic callback.");
+                writeDocCommentAMI(out, op, InParam,
+                                   "@param " + getEscapedParamName(op, "cb") + " A generic callback.");
                 out << nl;
                 if(!p->isInterface())
                 {
@@ -2878,7 +2822,8 @@ Slice::GenCompat::TypesVisitor::visitClassDefStart(const ClassDefPtr& p)
                 }
 
                 out << retS << " end_" << opname << spar << outParams
-                    << (getAbsolute("Ice.AsyncResult", package) + " " + getEscapedParamName(op, "result")) << epar << ';';
+                    << (getAbsolute("Ice.AsyncResult", package) + " " + getEscapedParamName(op, "result")) << epar
+                    << ';';
             }
         }
     }
@@ -2989,8 +2934,8 @@ Slice::GenCompat::TypesVisitor::visitClassDefStart(const ClassDefPtr& p)
             for(DataMemberList::const_iterator d = allDataMembers.begin(); d != allDataMembers.end(); ++d)
             {
                 string memberName = fixKwd((*d)->name());
-                string memberType = typeToString((*d)->type(), TypeModeMember, package, (*d)->getMetaData(), true,
-                                                 false, p->isLocal());
+                string memberType =
+                    typeToString((*d)->type(), TypeModeMember, package, (*d)->getMetaData(), true, false, p->isLocal());
                 paramDecl.push_back(memberType + " " + memberName);
             }
             out << paramDecl << epar;
@@ -3056,8 +3001,7 @@ Slice::GenCompat::TypesVisitor::visitClassDefStart(const ClassDefPtr& p)
     return true;
 }
 
-void
-Slice::GenCompat::TypesVisitor::visitClassDefEnd(const ClassDefPtr& p)
+void Slice::GenCompat::TypesVisitor::visitClassDefEnd(const ClassDefPtr& p)
 {
     Output& out = output();
 
@@ -3087,7 +3031,6 @@ Slice::GenCompat::TypesVisitor::visitClassDefEnd(const ClassDefPtr& p)
             out << nl << "assert false; // impossible";
             out << eb;
             out << nl << "return c;";
-
         }
         else
         {
@@ -3143,8 +3086,7 @@ Slice::GenCompat::TypesVisitor::visitClassDefEnd(const ClassDefPtr& p)
     close();
 }
 
-bool
-Slice::GenCompat::TypesVisitor::visitExceptionStart(const ExceptionPtr& p)
+bool Slice::GenCompat::TypesVisitor::visitExceptionStart(const ExceptionPtr& p)
 {
     string name = fixKwd(p->name());
     string scoped = p->scoped();
@@ -3418,8 +3360,7 @@ Slice::GenCompat::TypesVisitor::visitExceptionStart(const ExceptionPtr& p)
     return true;
 }
 
-void
-Slice::GenCompat::TypesVisitor::visitExceptionEnd(const ExceptionPtr& p)
+void Slice::GenCompat::TypesVisitor::visitExceptionEnd(const ExceptionPtr& p)
 {
     Output& out = output();
 
@@ -3574,8 +3515,7 @@ Slice::GenCompat::TypesVisitor::visitExceptionEnd(const ExceptionPtr& p)
     close();
 }
 
-bool
-Slice::GenCompat::TypesVisitor::visitStructStart(const StructPtr& p)
+bool Slice::GenCompat::TypesVisitor::visitStructStart(const StructPtr& p)
 {
     string name = fixKwd(p->name());
     string absolute = getAbsolute(p);
@@ -3620,8 +3560,7 @@ Slice::GenCompat::TypesVisitor::visitStructStart(const StructPtr& p)
     return true;
 }
 
-void
-Slice::GenCompat::TypesVisitor::visitStructEnd(const StructPtr& p)
+void Slice::GenCompat::TypesVisitor::visitStructEnd(const StructPtr& p)
 {
     string package = getPackage(p);
 
@@ -3894,8 +3833,7 @@ Slice::GenCompat::TypesVisitor::visitStructEnd(const StructPtr& p)
     close();
 }
 
-void
-Slice::GenCompat::TypesVisitor::visitDataMember(const DataMemberPtr& p)
+void Slice::GenCompat::TypesVisitor::visitDataMember(const DataMemberPtr& p)
 {
     string name = fixKwd(p->name());
     const ContainerPtr container = p->container();
@@ -3978,10 +3916,9 @@ Slice::GenCompat::TypesVisitor::visitDataMember(const DataMemberPtr& p)
             {
                 return;
             }
-            if(optional &&
-               (!validateMethod(ops, "has" + capName, 0, file, line) ||
-                !validateMethod(ops, "clear" + capName, 0, file, line) ||
-                !validateMethod(ops, "optional" + capName, 0, file, line)))
+            if(optional && (!validateMethod(ops, "has" + capName, 0, file, line) ||
+                            !validateMethod(ops, "clear" + capName, 0, file, line) ||
+                            !validateMethod(ops, "optional" + capName, 0, file, line)))
             {
                 return;
             }
@@ -3992,8 +3929,7 @@ Slice::GenCompat::TypesVisitor::visitDataMember(const DataMemberPtr& p)
         //
         out << sp;
         writeDocComment(out, p, deprecateReason);
-        out << nl << "public " << s
-            << nl << "get" << capName << "()";
+        out << nl << "public " << s << nl << "get" << capName << "()";
         out << sb;
         if(optional)
         {
@@ -4010,8 +3946,7 @@ Slice::GenCompat::TypesVisitor::visitDataMember(const DataMemberPtr& p)
         //
         out << sp;
         writeDocComment(out, p, deprecateReason);
-        out << nl << "public void"
-            << nl << "set" << capName << '(' << s << " " << name << ')';
+        out << nl << "public void" << nl << "set" << capName << '(' << s << " " << name << ')';
         out << sb;
         if(optional)
         {
@@ -4027,16 +3962,14 @@ Slice::GenCompat::TypesVisitor::visitDataMember(const DataMemberPtr& p)
         {
             out << sp;
             writeDocComment(out, p, deprecateReason);
-            out << nl << "public boolean"
-                << nl << "has" << capName << "()";
+            out << nl << "public boolean" << nl << "has" << capName << "()";
             out << sb;
             out << nl << "return _" << p->name() << ';';
             out << eb;
 
             out << sp;
             writeDocComment(out, p, deprecateReason);
-            out << nl << "public void"
-                << nl << "clear" << capName << "()";
+            out << nl << "public void" << nl << "clear" << capName << "()";
             out << sb;
             out << nl << "_" << p->name() << " = false;";
             out << eb;
@@ -4045,8 +3978,7 @@ Slice::GenCompat::TypesVisitor::visitDataMember(const DataMemberPtr& p)
 
             out << sp;
             writeDocComment(out, p, deprecateReason);
-            out << nl << "public void"
-                << nl << "optional" << capName << '(' << optType << " v)";
+            out << nl << "public void" << nl << "optional" << capName << '(' << optType << " v)";
             out << sb;
             out << nl << "if(v == null || !v.isSet())";
             out << sb;
@@ -4061,8 +3993,7 @@ Slice::GenCompat::TypesVisitor::visitDataMember(const DataMemberPtr& p)
 
             out << sp;
             writeDocComment(out, p, deprecateReason);
-            out << nl << "public " << optType
-                << nl << "optional" << capName << "()";
+            out << nl << "public " << optType << nl << "optional" << capName << "()";
             out << sb;
             out << nl << "if(_" << p->name() << ')';
             out << sb;
@@ -4114,9 +4045,8 @@ Slice::GenCompat::TypesVisitor::visitDataMember(const DataMemberPtr& p)
         {
             if(!hasTypeMetaData(seq, metaData))
             {
-                if(cls &&
-                   (!validateMethod(ops, "get" + capName, 1, file, line) ||
-                    !validateMethod(ops, "set" + capName, 2, file, line)))
+                if(cls && (!validateMethod(ops, "get" + capName, 1, file, line) ||
+                           !validateMethod(ops, "set" + capName, 2, file, line)))
                 {
                     return;
                 }
@@ -4173,8 +4103,7 @@ Slice::GenCompat::TypesVisitor::visitDataMember(const DataMemberPtr& p)
     }
 }
 
-void
-Slice::GenCompat::TypesVisitor::visitEnum(const EnumPtr& p)
+void Slice::GenCompat::TypesVisitor::visitEnum(const EnumPtr& p)
 {
     string name = fixKwd(p->name());
     string absolute = getAbsolute(p);
@@ -4281,8 +4210,7 @@ Slice::GenCompat::TypesVisitor::visitEnum(const EnumPtr& p)
     close();
 }
 
-void
-Slice::GenCompat::TypesVisitor::visitConst(const ConstPtr& p)
+void Slice::GenCompat::TypesVisitor::visitConst(const ConstPtr& p)
 {
     string name = fixKwd(p->name());
     string package = getPackage(p);
@@ -4303,9 +4231,8 @@ Slice::GenCompat::TypesVisitor::visitConst(const ConstPtr& p)
     close();
 }
 
-bool
-Slice::GenCompat::TypesVisitor::validateMethod(const OperationList& ops, const std::string& name, int numArgs,
-                                         const string& file, const string& line)
+bool Slice::GenCompat::TypesVisitor::validateMethod(const OperationList& ops, const std::string& name, int numArgs,
+                                                    const string& file, const string& line)
 {
     for(OperationList::const_iterator i = ops.begin(); i != ops.end(); ++i)
     {
@@ -4325,13 +4252,11 @@ Slice::GenCompat::TypesVisitor::validateMethod(const OperationList& ops, const s
     return true;
 }
 
-Slice::GenCompat::CompactIdVisitor::CompactIdVisitor(const string& dir) :
-    JavaCompatVisitor(dir)
+Slice::GenCompat::CompactIdVisitor::CompactIdVisitor(const string& dir) : JavaCompatVisitor(dir)
 {
 }
 
-bool
-Slice::GenCompat::CompactIdVisitor::visitClassDefStart(const ClassDefPtr& p)
+bool Slice::GenCompat::CompactIdVisitor::visitClassDefStart(const ClassDefPtr& p)
 {
     string prefix = getPackagePrefix(p);
     if(!prefix.empty())
@@ -4355,13 +4280,11 @@ Slice::GenCompat::CompactIdVisitor::visitClassDefStart(const ClassDefPtr& p)
     return false;
 }
 
-Slice::GenCompat::HolderVisitor::HolderVisitor(const string& dir) :
-    JavaCompatVisitor(dir)
+Slice::GenCompat::HolderVisitor::HolderVisitor(const string& dir) : JavaCompatVisitor(dir)
 {
 }
 
-bool
-Slice::GenCompat::HolderVisitor::visitClassDefStart(const ClassDefPtr& p)
+bool Slice::GenCompat::HolderVisitor::visitClassDefStart(const ClassDefPtr& p)
 {
     ClassDeclPtr decl = p->declaration();
     writeHolder(decl);
@@ -4391,15 +4314,13 @@ Slice::GenCompat::HolderVisitor::visitClassDefStart(const ClassDefPtr& p)
     return false;
 }
 
-bool
-Slice::GenCompat::HolderVisitor::visitStructStart(const StructPtr& p)
+bool Slice::GenCompat::HolderVisitor::visitStructStart(const StructPtr& p)
 {
     writeHolder(p);
     return false;
 }
 
-void
-Slice::GenCompat::HolderVisitor::visitSequence(const SequencePtr& p)
+void Slice::GenCompat::HolderVisitor::visitSequence(const SequencePtr& p)
 {
     if(sequenceHasHolder(p))
     {
@@ -4407,20 +4328,17 @@ Slice::GenCompat::HolderVisitor::visitSequence(const SequencePtr& p)
     }
 }
 
-void
-Slice::GenCompat::HolderVisitor::visitDictionary(const DictionaryPtr& p)
+void Slice::GenCompat::HolderVisitor::visitDictionary(const DictionaryPtr& p)
 {
     writeHolder(p);
 }
 
-void
-Slice::GenCompat::HolderVisitor::visitEnum(const EnumPtr& p)
+void Slice::GenCompat::HolderVisitor::visitEnum(const EnumPtr& p)
 {
     writeHolder(p);
 }
 
-void
-Slice::GenCompat::HolderVisitor::writeHolder(const TypePtr& p)
+void Slice::GenCompat::HolderVisitor::writeHolder(const TypePtr& p)
 {
     ContainedPtr contained = ContainedPtr::dynamicCast(p);
     assert(contained);
@@ -4451,7 +4369,8 @@ Slice::GenCompat::HolderVisitor::writeHolder(const TypePtr& p)
     {
         out << " extends " << getAbsolute("Ice.ObjectHolderBase", package) << "<" << typeS << ">";
     }
-    else {
+    else
+    {
         out << " extends " << getAbsolute("Ice.Holder", package) << "<" << typeS << ">";
     }
     out << sb;
@@ -4510,13 +4429,11 @@ Slice::GenCompat::HolderVisitor::writeHolder(const TypePtr& p)
     close();
 }
 
-Slice::GenCompat::HelperVisitor::HelperVisitor(const string& dir) :
-    JavaCompatVisitor(dir)
+Slice::GenCompat::HelperVisitor::HelperVisitor(const string& dir) : JavaCompatVisitor(dir)
 {
 }
 
-bool
-Slice::GenCompat::HelperVisitor::visitClassDefStart(const ClassDefPtr& p)
+bool Slice::GenCompat::HelperVisitor::visitClassDefStart(const ClassDefPtr& p)
 {
     if(p->isLocal())
     {
@@ -4605,8 +4522,8 @@ Slice::GenCompat::HelperVisitor::visitClassDefStart(const ClassDefPtr& p)
         out << sb;
         if(op->returnsData())
         {
-            out << nl << "IceInternal.OutgoingAsync result_ = IceInternal.OutgoingAsync.check("
-                << iresultParamName << ", this, _"  << op->name() << "_name);";
+            out << nl << "IceInternal.OutgoingAsync result_ = IceInternal.OutgoingAsync.check(" << iresultParamName
+                << ", this, _" << op->name() << "_name);";
             out << nl << "try";
             out << sb;
 
@@ -4712,20 +4629,19 @@ Slice::GenCompat::HelperVisitor::visitClassDefStart(const ClassDefPtr& p)
             out << sp << nl << "static public void _iceI_" << op->name() << "_completed("
                 << getAsyncCallbackInterface(op, package) << " cb, Ice.AsyncResult result)";
             out << sb;
-            out << nl << getAbsolute(cl, "", "", "Prx") << " _proxy = ("
-                << getAbsolute(cl, "", "", "Prx") << ")result.getProxy();";
+            out << nl << getAbsolute(cl, "", "", "Prx") << " _proxy = (" << getAbsolute(cl, "", "", "Prx")
+                << ")result.getProxy();";
 
             TypePtr ret = op->returnType();
             if(ret)
             {
-                out << nl << typeToString(ret, TypeModeIn, package, op->getMetaData(), true,
-                                            op->returnIsOptional())
+                out << nl << typeToString(ret, TypeModeIn, package, op->getMetaData(), true, op->returnIsOptional())
                     << " ret = " << (op->returnIsOptional() ? "null" : initValue(ret)) << ';';
             }
             for(ParamDeclList::const_iterator pli = outParams.begin(); pli != outParams.end(); ++pli)
             {
-                string ts = typeToString((*pli)->type(), TypeModeOut, package, (*pli)->getMetaData(), true,
-                                            (*pli)->optional());
+                string ts =
+                    typeToString((*pli)->type(), TypeModeOut, package, (*pli)->getMetaData(), true, (*pli)->optional());
                 out << nl << ts << " iceP_" << (*pli)->name() << " = new " << ts << "();";
             }
             out << nl << "try";
@@ -4735,8 +4651,7 @@ Slice::GenCompat::HelperVisitor::visitClassDefStart(const ClassDefPtr& p)
             {
                 out << "ret = ";
             }
-            out << "_proxy.end_" << op->name() << spar << getInOutArgs(op, OutParam, true) << "result" << epar
-                << ';';
+            out << "_proxy.end_" << op->name() << spar << getInOutArgs(op, OutParam, true) << "result" << epar << ';';
 
             out << eb;
             if(!throws.empty())
@@ -4788,8 +4703,7 @@ Slice::GenCompat::HelperVisitor::visitClassDefStart(const ClassDefPtr& p)
                     "@return A proxy for this type, or null if the object does not support this type.");
     out << nl << "public static " << name << "Prx checkedCast(" << getAbsolute("Ice.ObjectPrx", package) << " obj)";
     out << sb;
-    out << nl << "return checkedCastImpl(obj, ice_staticId(), " << name << "Prx.class, "
-        << name << "PrxHelper.class);";
+    out << nl << "return checkedCastImpl(obj, ice_staticId(), " << name << "Prx.class, " << name << "PrxHelper.class);";
     out << eb;
 
     out << sp;
@@ -4802,8 +4716,8 @@ Slice::GenCompat::HelperVisitor::visitClassDefStart(const ClassDefPtr& p)
     out << nl << "public static " << name << "Prx checkedCast(" << getAbsolute("Ice.ObjectPrx", package) << " obj, "
         << contextParam << ')';
     out << sb;
-    out << nl << "return checkedCastImpl(obj, context, ice_staticId(), " << name
-        << "Prx.class, " << name << "PrxHelper.class);";
+    out << nl << "return checkedCastImpl(obj, context, ice_staticId(), " << name << "Prx.class, " << name
+        << "PrxHelper.class);";
     out << eb;
 
     out << sp;
@@ -4816,8 +4730,8 @@ Slice::GenCompat::HelperVisitor::visitClassDefStart(const ClassDefPtr& p)
     out << nl << "public static " << name << "Prx checkedCast(" << getAbsolute("Ice.ObjectPrx", package)
         << " obj, String facet)";
     out << sb;
-    out << nl << "return checkedCastImpl(obj, facet, ice_staticId(), " << name
-        << "Prx.class, " << name << "PrxHelper.class);";
+    out << nl << "return checkedCastImpl(obj, facet, ice_staticId(), " << name << "Prx.class, " << name
+        << "PrxHelper.class);";
     out << eb;
 
     out << sp;
@@ -4831,8 +4745,8 @@ Slice::GenCompat::HelperVisitor::visitClassDefStart(const ClassDefPtr& p)
     out << nl << "public static " << name << "Prx checkedCast(" << getAbsolute("Ice.ObjectPrx", package)
         << " obj, String facet, " << contextParam << ')';
     out << sb;
-    out << nl << "return checkedCastImpl(obj, facet, context, ice_staticId(), " << name
-        << "Prx.class, " << name << "PrxHelper.class);";
+    out << nl << "return checkedCastImpl(obj, facet, context, ice_staticId(), " << name << "Prx.class, " << name
+        << "PrxHelper.class);";
     out << eb;
 
     out << sp;
@@ -4842,8 +4756,7 @@ Slice::GenCompat::HelperVisitor::visitClassDefStart(const ClassDefPtr& p)
                     "@return A proxy for this type.");
     out << nl << "public static " << name << "Prx uncheckedCast(" << getAbsolute("Ice.ObjectPrx", package) << " obj)";
     out << sb;
-    out << nl << "return uncheckedCastImpl(obj, " << name << "Prx.class, " << name
-        << "PrxHelper.class);";
+    out << nl << "return uncheckedCastImpl(obj, " << name << "Prx.class, " << name << "PrxHelper.class);";
     out << eb;
 
     out << sp;
@@ -4855,8 +4768,7 @@ Slice::GenCompat::HelperVisitor::visitClassDefStart(const ClassDefPtr& p)
     out << nl << "public static " << name << "Prx uncheckedCast(" << getAbsolute("Ice.ObjectPrx", package)
         << " obj, String facet)";
     out << sb;
-    out << nl << "return uncheckedCastImpl(obj, facet, " << name << "Prx.class, " << name
-        << "PrxHelper.class);";
+    out << nl << "return uncheckedCastImpl(obj, facet, " << name << "Prx.class, " << name << "PrxHelper.class);";
     out << eb;
 
     ClassList allBases = p->allBases();
@@ -4925,8 +4837,7 @@ Slice::GenCompat::HelperVisitor::visitClassDefStart(const ClassDefPtr& p)
     return false;
 }
 
-void
-Slice::GenCompat::HelperVisitor::visitSequence(const SequencePtr& p)
+void Slice::GenCompat::HelperVisitor::visitSequence(const SequencePtr& p)
 {
     //
     // Don't generate helper for a sequence of a local type.
@@ -4937,10 +4848,9 @@ Slice::GenCompat::HelperVisitor::visitSequence(const SequencePtr& p)
     }
 
     BuiltinPtr builtin = BuiltinPtr::dynamicCast(p->type());
-    if(builtin &&
-       (builtin->kind() == Builtin::KindByte || builtin->kind() == Builtin::KindShort ||
-        builtin->kind() == Builtin::KindInt || builtin->kind() == Builtin::KindLong ||
-        builtin->kind() == Builtin::KindFloat || builtin->kind() == Builtin::KindDouble))
+    if(builtin && (builtin->kind() == Builtin::KindByte || builtin->kind() == Builtin::KindShort ||
+                   builtin->kind() == Builtin::KindInt || builtin->kind() == Builtin::KindLong ||
+                   builtin->kind() == Builtin::KindFloat || builtin->kind() == Builtin::KindDouble))
     {
         string prefix = "java:buffer";
         string meta;
@@ -5039,8 +4949,7 @@ Slice::GenCompat::HelperVisitor::visitSequence(const SequencePtr& p)
     close();
 }
 
-void
-Slice::GenCompat::HelperVisitor::visitDictionary(const DictionaryPtr& p)
+void Slice::GenCompat::HelperVisitor::visitDictionary(const DictionaryPtr& p)
 {
     //
     // Don't generate helper for a dictionary containing a local type
@@ -5075,8 +4984,8 @@ Slice::GenCompat::HelperVisitor::visitDictionary(const DictionaryPtr& p)
     writeDictionaryMarshalUnmarshalCode(out, package, p, "v", true, iter, false);
     out << eb;
 
-    out << sp << nl << "public static " << formalType
-        << nl << "read(" << getAbsolute("Ice.InputStream", package) << " istr)";
+    out << sp << nl << "public static " << formalType << nl << "read(" << getAbsolute("Ice.InputStream", package)
+        << " istr)";
     out << sb;
     out << nl << formalType << " v;";
     iter = 0;
@@ -5088,9 +4997,8 @@ Slice::GenCompat::HelperVisitor::visitDictionary(const DictionaryPtr& p)
     close();
 }
 
-void
-Slice::GenCompat::HelperVisitor::writeOperation(const ClassDefPtr& p, const string& package, const OperationPtr& op,
-                                                bool optionalMapping)
+void Slice::GenCompat::HelperVisitor::writeOperation(const ClassDefPtr& p, const string& package,
+                                                     const OperationPtr& op, bool optionalMapping)
 {
     const string name = p->name();
     Output& out = output();
@@ -5141,7 +5049,8 @@ Slice::GenCompat::HelperVisitor::writeOperation(const ClassDefPtr& p, const stri
     {
         out << "return ";
     }
-    out << "_iceI_" << op->name() << spar << args << "null" << "false" << epar << ';';
+    out << "_iceI_" << op->name() << spar << args << "null"
+        << "false" << epar << ';';
     out << eb;
 
     out << sp << nl << "public " << retS << ' ' << opName << spar << params << contextParam << epar;
@@ -5178,8 +5087,10 @@ Slice::GenCompat::HelperVisitor::writeOperation(const ClassDefPtr& p, const stri
 
     out << "end_" << op->name() << "(";
     vector<string> inOutArgs = getInOutArgs(op, OutParam, true);
-    if(!inOutArgs.empty()) {
-        for(vector<string>::const_iterator p = inOutArgs.begin(); p != inOutArgs.end(); ++p) {
+    if(!inOutArgs.empty())
+    {
+        for(vector<string>::const_iterator p = inOutArgs.begin(); p != inOutArgs.end(); ++p)
+        {
             out << *p << ", ";
         }
     }
@@ -5187,7 +5098,8 @@ Slice::GenCompat::HelperVisitor::writeOperation(const ClassDefPtr& p, const stri
     out << "_iceI_begin_" << op->name() << "(";
     if(!inArgs.empty())
     {
-        for(vector<string>::const_iterator p = inArgs.begin(); p != inArgs.end(); ++p) {
+        for(vector<string>::const_iterator p = inArgs.begin(); p != inArgs.end(); ++p)
+        {
             out << *p << ", ";
         }
     }
@@ -5211,29 +5123,33 @@ Slice::GenCompat::HelperVisitor::writeOperation(const ClassDefPtr& p, const stri
         out << sp << nl << "public " << getAbsolute("Ice.AsyncResult", package) << " begin_" << op->name() << spar
             << inParams << epar;
         out << sb;
-        out << nl << "return _iceI_begin_" << op->name() << spar << inArgs << "null" << "false" << "false" << "null"
-            << epar << ';';
+        out << nl << "return _iceI_begin_" << op->name() << spar << inArgs << "null"
+            << "false"
+            << "false"
+            << "null" << epar << ';';
         out << eb;
 
         out << sp << nl << "public " << getAbsolute("Ice.AsyncResult", package) << " begin_" << op->name() << spar
             << inParams << contextParam << epar;
         out << sb;
-        out << nl << "return _iceI_begin_" << op->name() << spar << inArgs << contextParamName << "true" << "false"
+        out << nl << "return _iceI_begin_" << op->name() << spar << inArgs << contextParamName << "true"
+            << "false"
             << "null" << epar << ';';
         out << eb;
 
         out << sp << nl << "public " << getAbsolute("Ice.AsyncResult", package) << " begin_" << op->name() << spar
             << inParams << callbackParam << epar;
         out << sb;
-        out << nl << "return _iceI_begin_" << op->name() << spar << inArgs << "null" << "false" << "false"
-            << callbackParamName << epar << ';';
+        out << nl << "return _iceI_begin_" << op->name() << spar << inArgs << "null"
+            << "false"
+            << "false" << callbackParamName << epar << ';';
         out << eb;
 
         out << sp << nl << "public " << getAbsolute("Ice.AsyncResult", package) << " begin_" << op->name() << spar
             << inParams << contextParam << callbackParam << epar;
         out << sb;
-        out << nl << "return _iceI_begin_" << op->name() << spar << inArgs << contextParamName << "true" << "false"
-            << callbackParamName << epar << ';';
+        out << nl << "return _iceI_begin_" << op->name() << spar << inArgs << contextParamName << "true"
+            << "false" << callbackParamName << epar << ';';
         out << eb;
 
         //
@@ -5253,15 +5169,16 @@ Slice::GenCompat::HelperVisitor::writeOperation(const ClassDefPtr& p, const stri
         out << sp << nl << "public " << getAbsolute("Ice.AsyncResult", package) << " begin_" << op->name() << spar
             << inParams << typeSafeCallbackParam << epar;
         out << sb;
-        out << nl << "return _iceI_begin_" << op->name() << spar << inArgs << "null" << "false" << "false"
-            << callbackParamName << epar << ';';
+        out << nl << "return _iceI_begin_" << op->name() << spar << inArgs << "null"
+            << "false"
+            << "false" << callbackParamName << epar << ';';
         out << eb;
 
         out << sp << nl << "public " << getAbsolute("Ice.AsyncResult", package) << " begin_" << op->name() << spar
             << inParams << contextParam << typeSafeCallbackParam << epar;
         out << sb;
-        out << nl << "return _iceI_begin_" << op->name() << spar << inArgs << contextParamName << "true" << "false"
-            << callbackParamName << epar << ';';
+        out << nl << "return _iceI_begin_" << op->name() << spar << inArgs << contextParamName << "true"
+            << "false" << callbackParamName << epar << ';';
         out << eb;
 
         //
@@ -5286,7 +5203,8 @@ Slice::GenCompat::HelperVisitor::writeOperation(const ClassDefPtr& p, const stri
         out << nl << "public " << getAbsolute("Ice.AsyncResult", package) << " begin_" << op->name();
         writeParamList(out, getParamsAsyncLambda(op, package, true, false, optionalMapping));
         out << sb;
-        out << nl << "return _iceI_begin_" << op->name() << spar << getArgsAsyncLambda(op, package, true) << epar << ';';
+        out << nl << "return _iceI_begin_" << op->name() << spar << getArgsAsyncLambda(op, package, true) << epar
+            << ';';
         out << eb;
 
         out << sp;
@@ -5389,7 +5307,7 @@ Slice::GenCompat::HelperVisitor::writeOperation(const ClassDefPtr& p, const stri
             out << nl << "return _iceI_begin_" << op->name();
             writeParamList(out, params, false);
             out << (throws.empty() ? "new " + baseClass + "(responseCb, exceptionCb, sentCb)" :
-                    "new " + baseClass + "(responseCb, userExceptionCb, exceptionCb, sentCb)");
+                                     "new " + baseClass + "(responseCb, userExceptionCb, exceptionCb, sentCb)");
             out.inc();
             out << sb;
             out << nl << "public final void _iceCompleted(" << getAbsolute("Ice.AsyncResult", package) << " result)";
@@ -5420,8 +5338,7 @@ Slice::GenCompat::HelperVisitor::writeOperation(const ClassDefPtr& p, const stri
         {
             out << nl << "_checkAsyncTwowayOnly(_" << op->name() << "_name);";
         }
-        out << nl << "IceInternal.OutgoingAsync result = getOutgoingAsync(_" << op->name()
-            << "_name, cb);";
+        out << nl << "IceInternal.OutgoingAsync result = getOutgoingAsync(_" << op->name() << "_name, cb);";
         out << nl << "try";
         out << sb;
 
@@ -5464,13 +5381,11 @@ Slice::GenCompat::HelperVisitor::writeOperation(const ClassDefPtr& p, const stri
     }
 }
 
-Slice::GenCompat::ProxyVisitor::ProxyVisitor(const string& dir) :
-    JavaCompatVisitor(dir)
+Slice::GenCompat::ProxyVisitor::ProxyVisitor(const string& dir) : JavaCompatVisitor(dir)
 {
 }
 
-bool
-Slice::GenCompat::ProxyVisitor::visitClassDefStart(const ClassDefPtr& p)
+bool Slice::GenCompat::ProxyVisitor::visitClassDefStart(const ClassDefPtr& p)
 {
     if(p->isLocal())
     {
@@ -5515,16 +5430,14 @@ Slice::GenCompat::ProxyVisitor::visitClassDefStart(const ClassDefPtr& p)
     return true;
 }
 
-void
-Slice::GenCompat::ProxyVisitor::visitClassDefEnd(const ClassDefPtr&)
+void Slice::GenCompat::ProxyVisitor::visitClassDefEnd(const ClassDefPtr&)
 {
     Output& out = output();
     out << eb;
     close();
 }
 
-void
-Slice::GenCompat::ProxyVisitor::visitOperation(const OperationPtr& p)
+void Slice::GenCompat::ProxyVisitor::visitOperation(const OperationPtr& p)
 {
     string name = fixKwd(p->name());
     ContainerPtr container = p->container();
@@ -5633,8 +5546,8 @@ Slice::GenCompat::ProxyVisitor::visitOperation(const OperationPtr& p)
 
         out << sp;
         writeDocCommentAMI(out, p, InParam, callbackDoc);
-        out << nl << "public Ice.AsyncResult begin_" << p->name() << spar << inParams << typeSafeCallbackParam
-            << epar << ';';
+        out << nl << "public Ice.AsyncResult begin_" << p->name() << spar << inParams << typeSafeCallbackParam << epar
+            << ';';
 
         out << sp;
         writeDocCommentAMI(out, p, InParam, contextDoc, callbackDoc);
@@ -5696,8 +5609,7 @@ Slice::GenCompat::ProxyVisitor::visitOperation(const OperationPtr& p)
         out << sp;
         writeDocCommentAMI(out, p, OutParam);
         out << nl << "public " << retS << " end_" << p->name() << spar << outParams
-            << "Ice.AsyncResult " + getEscapedParamName(p, "result")
-            << epar;
+            << "Ice.AsyncResult " + getEscapedParamName(p, "result") << epar;
         writeThrowsClause(package, throws);
         out << ';';
     }
@@ -5776,8 +5688,8 @@ Slice::GenCompat::ProxyVisitor::visitOperation(const OperationPtr& p)
 
         out << sp;
         writeDocCommentAMI(out, p, InParam, callbackDoc);
-        out << nl << "public Ice.AsyncResult begin_" << p->name() << spar << inParams << typeSafeCallbackParam
-            << epar << ';';
+        out << nl << "public Ice.AsyncResult begin_" << p->name() << spar << inParams << typeSafeCallbackParam << epar
+            << ';';
 
         out << sp;
         writeDocCommentAMI(out, p, InParam, contextDoc, callbackDoc);
@@ -5786,14 +5698,11 @@ Slice::GenCompat::ProxyVisitor::visitOperation(const OperationPtr& p)
     }
 }
 
-Slice::GenCompat::DispatcherVisitor::DispatcherVisitor(const string& dir, bool tie) :
-    JavaCompatVisitor(dir),
-    _tie(tie)
+Slice::GenCompat::DispatcherVisitor::DispatcherVisitor(const string& dir, bool tie) : JavaCompatVisitor(dir), _tie(tie)
 {
 }
 
-bool
-Slice::GenCompat::DispatcherVisitor::visitClassDefStart(const ClassDefPtr& p)
+bool Slice::GenCompat::DispatcherVisitor::visitClassDefStart(const ClassDefPtr& p)
 {
     string name = p->name();
     ClassList bases = p->bases();
@@ -6025,14 +5934,12 @@ Slice::GenCompat::DispatcherVisitor::visitClassDefStart(const ClassDefPtr& p)
     return false;
 }
 
-Slice::GenCompat::BaseImplVisitor::BaseImplVisitor(const string& dir) :
-    JavaCompatVisitor(dir)
+Slice::GenCompat::BaseImplVisitor::BaseImplVisitor(const string& dir) : JavaCompatVisitor(dir)
 {
 }
 
-void
-Slice::GenCompat::BaseImplVisitor::writeDecl(Output& out, const string& package, const string& name, const TypePtr& type,
-                                       const StringList& metaData, bool optional)
+void Slice::GenCompat::BaseImplVisitor::writeDecl(Output& out, const string& package, const string& name,
+                                                  const TypePtr& type, const StringList& metaData, bool optional)
 {
     string typeS = typeToString(type, TypeModeIn, package, metaData, true, optional);
     out << nl << typeS << ' ' << name;
@@ -6112,8 +6019,7 @@ Slice::GenCompat::BaseImplVisitor::writeDecl(Output& out, const string& package,
     }
 }
 
-void
-Slice::GenCompat::BaseImplVisitor::writeReturn(Output& out, const TypePtr& type, bool optional)
+void Slice::GenCompat::BaseImplVisitor::writeReturn(Output& out, const TypePtr& type, bool optional)
 {
     if(optional)
     {
@@ -6174,16 +6080,16 @@ Slice::GenCompat::BaseImplVisitor::writeReturn(Output& out, const TypePtr& type,
     }
 }
 
-void
-Slice::GenCompat::BaseImplVisitor::writeOperation(Output& out, const string& package, const OperationPtr& op, bool local)
+void Slice::GenCompat::BaseImplVisitor::writeOperation(Output& out, const string& package, const OperationPtr& op,
+                                                       bool local)
 {
     string opName = op->name();
 
     const TypePtr ret = op->returnType();
     const bool optionalMapping = useOptionalMapping(op);
     const StringList opMetaData = op->getMetaData();
-    const string retS = typeToString(ret, TypeModeReturn, package, opMetaData, true,
-                                     optionalMapping && op->returnIsOptional());
+    const string retS =
+        typeToString(ret, TypeModeReturn, package, opMetaData, true, optionalMapping && op->returnIsOptional());
     vector<string> params = getParams(op, package, false, optionalMapping);
 
     ContainerPtr container = op->container();
@@ -6194,8 +6100,7 @@ Slice::GenCompat::BaseImplVisitor::writeOperation(Output& out, const string& pac
         vector<string> paramsAMD = getParamsAsync(op, package, true, true);
 
         out << sp << nl << "public void " << opName << "_async" << spar << paramsAMD
-            << "Ice.Current " + getEscapedParamName(op, "current")
-            << epar;
+            << "Ice.Current " + getEscapedParamName(op, "current") << epar;
 
         ExceptionList throws = op->throws();
         throws.sort();
@@ -6290,13 +6195,11 @@ Slice::GenCompat::BaseImplVisitor::writeOperation(Output& out, const string& pac
     }
 }
 
-Slice::GenCompat::ImplVisitor::ImplVisitor(const string& dir) :
-    BaseImplVisitor(dir)
+Slice::GenCompat::ImplVisitor::ImplVisitor(const string& dir) : BaseImplVisitor(dir)
 {
 }
 
-bool
-Slice::GenCompat::ImplVisitor::visitClassDefStart(const ClassDefPtr& p)
+bool Slice::GenCompat::ImplVisitor::visitClassDefStart(const ClassDefPtr& p)
 {
     if(!p->isAbstract())
     {
@@ -6346,13 +6249,11 @@ Slice::GenCompat::ImplVisitor::visitClassDefStart(const ClassDefPtr& p)
     return false;
 }
 
-Slice::GenCompat::ImplTieVisitor::ImplTieVisitor(const string& dir) :
-    BaseImplVisitor(dir)
+Slice::GenCompat::ImplTieVisitor::ImplTieVisitor(const string& dir) : BaseImplVisitor(dir)
 {
 }
 
-bool
-Slice::GenCompat::ImplTieVisitor::visitClassDefStart(const ClassDefPtr& p)
+bool Slice::GenCompat::ImplTieVisitor::visitClassDefStart(const ClassDefPtr& p)
 {
     if(!p->isAbstract())
     {
@@ -6435,13 +6336,11 @@ Slice::GenCompat::ImplTieVisitor::visitClassDefStart(const ClassDefPtr& p)
     return false;
 }
 
-Slice::GenCompat::AsyncVisitor::AsyncVisitor(const string& dir) :
-    JavaCompatVisitor(dir)
+Slice::GenCompat::AsyncVisitor::AsyncVisitor(const string& dir) : JavaCompatVisitor(dir)
 {
 }
 
-void
-Slice::GenCompat::AsyncVisitor::visitOperation(const OperationPtr& p)
+void Slice::GenCompat::AsyncVisitor::visitOperation(const OperationPtr& p)
 {
     ContainerPtr container = p->container();
     ClassDefPtr cl = ClassDefPtr::dynamicCast(container);
@@ -6485,8 +6384,8 @@ Slice::GenCompat::AsyncVisitor::visitOperation(const OperationPtr& p)
             Output& out = output();
 
             writeDocCommentOp(out, p);
-            out << sp << nl << "public interface " << ("_Callback_" + cl->name()) << '_' << name
-                << " extends " << getAbsolute(throws.empty() ? "Ice.TwowayCallback" : "Ice.TwowayCallbackUE", package);
+            out << sp << nl << "public interface " << ("_Callback_" + cl->name()) << '_' << name << " extends "
+                << getAbsolute(throws.empty() ? "Ice.TwowayCallback" : "Ice.TwowayCallbackUE", package);
             out << sb;
             out << nl << "public void response" << spar << params << epar << ';';
             out << eb;
@@ -6593,7 +6492,8 @@ Slice::GenCompat::AsyncVisitor::visitOperation(const OperationPtr& p)
             if(ret || !outParams.empty())
             {
                 out << nl << getAbsolute("Ice.OutputStream", package) << " ostr_ = this.startWriteParams();";
-                writeMarshalUnmarshalParams(out, classPkg, outParams, p, iter, true, optionalMapping, false, "ret", false);
+                writeMarshalUnmarshalParams(out, classPkg, outParams, p, iter, true, optionalMapping, false, "ret",
+                                            false);
                 if(p->returnsClasses(false))
                 {
                     out << nl << "ostr_.writePendingValues();";

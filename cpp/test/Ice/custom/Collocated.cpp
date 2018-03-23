@@ -17,8 +17,7 @@ using namespace std;
 
 DEFINE_TEST("collocated")
 
-int
-run(int, char**, const Ice::CommunicatorPtr& communicator)
+int run(int, char**, const Ice::CommunicatorPtr& communicator)
 {
     communicator->getProperties()->setProperty("TestAdapter.Endpoints", getTestEndpoint(communicator, 0));
     Ice::ObjectAdapterPtr adapter = communicator->createObjectAdapter("TestAdapter");
@@ -32,8 +31,7 @@ run(int, char**, const Ice::CommunicatorPtr& communicator)
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char** argv)
+int main(int argc, char** argv)
 {
 #ifdef ICE_STATIC_LIBS
     Ice::registerIceSSL(false);

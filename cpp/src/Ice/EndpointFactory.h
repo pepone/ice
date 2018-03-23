@@ -10,113 +10,106 @@
 #ifndef ICE_ENDPOINT_FACTORY_H
 #define ICE_ENDPOINT_FACTORY_H
 
-#include <IceUtil/Shared.h>
-#include <Ice/EndpointIF.h>
-#include <Ice/EndpointFactoryF.h>
-#include <Ice/ProtocolInstanceF.h>
 #include <Ice/CommunicatorF.h>
+#include <Ice/EndpointFactoryF.h>
+#include <Ice/EndpointIF.h>
 #include <Ice/Plugin.h>
+#include <Ice/ProtocolInstanceF.h>
+#include <IceUtil/Shared.h>
 
 namespace Ice
 {
-
-class InputStream;
-
+    class InputStream;
 }
 
 namespace IceInternal
 {
+    class ICE_API EndpointFactory : public ::IceUtil::Shared
+    {
+    public:
+        virtual ~EndpointFactory();
 
-class ICE_API EndpointFactory : public ::IceUtil::Shared
-{
-public:
+        virtual void initialize();
+        virtual Ice::Short type() const = 0;
+        virtual std::string protocol() const = 0;
+        virtual EndpointIPtr create(std::vector<std::string>&, bool) const = 0;
+        virtual EndpointIPtr read(Ice::InputStream*) const = 0;
+        virtual void destroy() = 0;
 
-    virtual ~EndpointFactory();
+        virtual EndpointFactoryPtr clone(const ProtocolInstancePtr&) const = 0;
 
-    virtual void initialize();
-    virtual Ice::Short type() const = 0;
-    virtual std::string protocol() const = 0;
-    virtual EndpointIPtr create(std::vector<std::string>&, bool) const = 0;
-    virtual EndpointIPtr read(Ice::InputStream*) const = 0;
-    virtual void destroy() = 0;
+    protected:
+        EndpointFactory();
+    };
 
-    virtual EndpointFactoryPtr clone(const ProtocolInstancePtr&) const = 0;
+    //
+    // The endpoint factory with underlying create endpoints that delegate to an
+    // underlying
+    // endpoint (e.g.: the SSL/WS endpoints are endpoints with underlying
+    // endpoints).
+    //
+    class ICE_API EndpointFactoryWithUnderlying : public EndpointFactory
+    {
+    public:
+        EndpointFactoryWithUnderlying(const ProtocolInstancePtr&, Ice::Short);
 
-protected:
+        virtual void initialize();
+        virtual Ice::Short type() const;
+        virtual std::string protocol() const;
+        virtual EndpointIPtr create(std::vector<std::string>&, bool) const;
+        virtual EndpointIPtr read(Ice::InputStream*) const;
+        virtual void destroy();
 
-    EndpointFactory();
-};
+        virtual EndpointFactoryPtr clone(const ProtocolInstancePtr&) const;
 
-//
-// The endpoint factory with underlying create endpoints that delegate to an underlying
-// endpoint (e.g.: the SSL/WS endpoints are endpoints with underlying endpoints).
-//
-class ICE_API EndpointFactoryWithUnderlying : public EndpointFactory
-{
-public:
+        virtual EndpointFactoryPtr cloneWithUnderlying(const ProtocolInstancePtr&, Ice::Short) const = 0;
 
-    EndpointFactoryWithUnderlying(const ProtocolInstancePtr&, Ice::Short);
+    protected:
+        virtual EndpointIPtr createWithUnderlying(const EndpointIPtr&, std::vector<std::string>&, bool) const = 0;
+        virtual EndpointIPtr readWithUnderlying(const EndpointIPtr&, Ice::InputStream*) const = 0;
 
-    virtual void initialize();
-    virtual Ice::Short type() const;
-    virtual std::string protocol() const;
-    virtual EndpointIPtr create(std::vector<std::string>&, bool) const;
-    virtual EndpointIPtr read(Ice::InputStream*) const;
-    virtual void destroy();
+        ProtocolInstancePtr _instance;
+        const Ice::Short _type;
+        EndpointFactoryPtr _underlying;
+    };
 
-    virtual EndpointFactoryPtr clone(const ProtocolInstancePtr&) const;
+    //
+    // The underlying endpoint factory creates endpoints with a factory of the given
+    // type. If this factory is of the EndpointFactoryWithUnderlying type, it will
+    // delegate to the given underlying factory (this is used by IceIAP/IceBT
+    // plugins
+    // for the BTS/iAPS endpoint factories).
+    //
+    class ICE_API UnderlyingEndpointFactory : public EndpointFactory
+    {
+    public:
+        UnderlyingEndpointFactory(const ProtocolInstancePtr&, Ice::Short, Ice::Short);
 
-    virtual EndpointFactoryPtr cloneWithUnderlying(const ProtocolInstancePtr&, Ice::Short) const = 0;
+        virtual void initialize();
+        virtual Ice::Short type() const;
+        virtual std::string protocol() const;
+        virtual EndpointIPtr create(std::vector<std::string>&, bool) const;
+        virtual EndpointIPtr read(Ice::InputStream*) const;
+        virtual void destroy();
 
-protected:
+        virtual EndpointFactoryPtr clone(const ProtocolInstancePtr&) const;
 
-    virtual EndpointIPtr createWithUnderlying(const EndpointIPtr&, std::vector<std::string>&, bool) const = 0;
-    virtual EndpointIPtr readWithUnderlying(const EndpointIPtr&, Ice::InputStream*) const = 0;
+    private:
+        ProtocolInstancePtr _instance;
+        const Ice::Short _type;
+        const Ice::Short _underlying;
+        EndpointFactoryPtr _factory;
+    };
 
-    ProtocolInstancePtr _instance;
-    const Ice::Short _type;
-    EndpointFactoryPtr _underlying;
-};
+    class ICE_API EndpointFactoryPlugin : public Ice::Plugin
+    {
+    public:
+        EndpointFactoryPlugin(const Ice::CommunicatorPtr&, const EndpointFactoryPtr&);
 
-//
-// The underlying endpoint factory creates endpoints with a factory of the given
-// type. If this factory is of the EndpointFactoryWithUnderlying type, it will
-// delegate to the given underlying factory (this is used by IceIAP/IceBT plugins
-// for the BTS/iAPS endpoint factories).
-//
-class ICE_API UnderlyingEndpointFactory : public EndpointFactory
-{
-public:
+        virtual void initialize();
+        virtual void destroy();
+    };
 
-    UnderlyingEndpointFactory(const ProtocolInstancePtr&, Ice::Short, Ice::Short);
-
-    virtual void initialize();
-    virtual Ice::Short type() const;
-    virtual std::string protocol() const;
-    virtual EndpointIPtr create(std::vector<std::string>&, bool) const;
-    virtual EndpointIPtr read(Ice::InputStream*) const;
-    virtual void destroy();
-
-    virtual EndpointFactoryPtr clone(const ProtocolInstancePtr&) const;
-
-private:
-
-    ProtocolInstancePtr _instance;
-    const Ice::Short _type;
-    const Ice::Short _underlying;
-    EndpointFactoryPtr _factory;
-};
-
-class ICE_API EndpointFactoryPlugin : public Ice::Plugin
-{
-public:
-
-    EndpointFactoryPlugin(const Ice::CommunicatorPtr&, const EndpointFactoryPtr&);
-
-    virtual void initialize();
-    virtual void destroy();
-};
-
-}
+} // namespace IceInternal
 
 #endif

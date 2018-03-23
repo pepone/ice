@@ -16,9 +16,7 @@ using namespace std;
 class Callback : public IceUtil::Shared
 {
 public:
-
-    Callback(const Ice::AMD_Object_ice_invokePtr& cb, bool twoway) :
-        _cb(cb), _twoway(twoway)
+    Callback(const Ice::AMD_Object_ice_invokePtr& cb, bool twoway) : _cb(cb), _twoway(twoway)
     {
     }
 
@@ -41,35 +39,30 @@ public:
     }
 
 private:
-
     Ice::AMD_Object_ice_invokePtr _cb;
     bool _twoway;
 };
 typedef IceUtil::Handle<Callback> CallbackPtr;
 #endif
 
-BlobjectI::BlobjectI() :
-    _startBatch(false)
+BlobjectI::BlobjectI() : _startBatch(false)
 {
 }
 
-void
-BlobjectI::setConnection(const Ice::ConnectionPtr& connection)
+void BlobjectI::setConnection(const Ice::ConnectionPtr& connection)
 {
     Lock sync(*this);
     _connection = connection;
     notifyAll();
 }
 
-void
-BlobjectI::startBatch()
+void BlobjectI::startBatch()
 {
     assert(!_batchProxy);
     _startBatch = true;
 }
 
-void
-BlobjectI::flushBatch()
+void BlobjectI::flushBatch()
 {
     assert(_batchProxy);
     _batchProxy->ice_flushBatchRequests();
@@ -77,11 +70,9 @@ BlobjectI::flushBatch()
 }
 
 #ifdef ICE_CPP11_MAPPING
-void
-BlobjectI::ice_invokeAsync(std::vector<Ice::Byte> inEncaps,
-                           std::function<void(bool, const std::vector<Ice::Byte>&)> response,
-                           std::function<void(std::exception_ptr)> ex,
-                           const Ice::Current& current)
+void BlobjectI::ice_invokeAsync(std::vector<Ice::Byte> inEncaps,
+                                std::function<void(bool, const std::vector<Ice::Byte>&)> response,
+                                std::function<void(std::exception_ptr)> ex, const Ice::Current& current)
 {
     auto connection = getConnection(current);
     const bool twoway = current.requestId > 0;
@@ -112,10 +103,8 @@ BlobjectI::ice_invokeAsync(std::vector<Ice::Byte> inEncaps,
         else
         {
             obj->ice_oneway()->ice_invokeAsync(current.operation, current.mode, inEncaps,
-                                               [](bool, const std::vector<Ice::Byte>&) { assert(0); },
-                                               ex,
-                                               [&](bool) { response(true, vector<Ice::Byte>()); },
-                                               current.ctx);
+                                               [](bool, const std::vector<Ice::Byte>&) { assert(0); }, ex,
+                                               [&](bool) { response(true, vector<Ice::Byte>()); }, current.ctx);
         }
     }
     else
@@ -129,9 +118,8 @@ BlobjectI::ice_invokeAsync(std::vector<Ice::Byte> inEncaps,
     }
 }
 #else
-void
-BlobjectI::ice_invoke_async(const Ice::AMD_Object_ice_invokePtr& amdCb, const vector<Ice::Byte>& inEncaps,
-                            const Ice::Current& current)
+void BlobjectI::ice_invoke_async(const Ice::AMD_Object_ice_invokePtr& amdCb, const vector<Ice::Byte>& inEncaps,
+                                 const Ice::Current& current)
 {
     Ice::ConnectionPtr connection = getConnection(current);
     const bool twoway = current.requestId > 0;
@@ -182,8 +170,7 @@ BlobjectI::ice_invoke_async(const Ice::AMD_Object_ice_invokePtr& amdCb, const ve
 }
 #endif
 
-Ice::ConnectionPtr
-BlobjectI::getConnection(const Ice::Current& current)
+Ice::ConnectionPtr BlobjectI::getConnection(const Ice::Current& current)
 {
     Lock sync(*this);
     if(!_connection)

@@ -15,28 +15,25 @@
 
 namespace Ice
 {
+    class SysLoggerI : public Logger, public ::IceUtil::Mutex
+    {
+    public:
+        SysLoggerI(const std::string&, const std::string&);
+        SysLoggerI(const std::string&, int);
+        ~SysLoggerI();
 
-class SysLoggerI : public Logger, public ::IceUtil::Mutex
-{
-public:
+        virtual void print(const std::string&);
+        virtual void trace(const std::string&, const std::string&);
+        virtual void warning(const std::string&);
+        virtual void error(const std::string&);
+        virtual std::string getPrefix();
+        virtual LoggerPtr cloneWithPrefix(const std::string&);
 
-    SysLoggerI(const std::string&, const std::string&);
-    SysLoggerI(const std::string&, int);
-    ~SysLoggerI();
+    private:
+        int _facility;
+        const std::string _prefix;
+    };
 
-    virtual void print(const std::string&);
-    virtual void trace(const std::string&, const std::string&);
-    virtual void warning(const std::string&);
-    virtual void error(const std::string&);
-    virtual std::string getPrefix();
-    virtual LoggerPtr cloneWithPrefix(const std::string&);
-
-private:
-
-    int _facility;
-    const std::string _prefix;
-};
-
-}
+} // namespace Ice
 
 #endif

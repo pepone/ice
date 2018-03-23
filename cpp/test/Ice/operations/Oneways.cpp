@@ -13,8 +13,7 @@
 
 using namespace std;
 
-void
-oneways(const Ice::CommunicatorPtr&, const Test::MyClassPrxPtr& proxy)
+void oneways(const Ice::CommunicatorPtr&, const Test::MyClassPrxPtr& proxy)
 {
     Test::MyClassPrxPtr p = ICE_UNCHECKED_CAST(Test::MyClassPrx, proxy->ice_oneway());
 
@@ -79,5 +78,4 @@ oneways(const Ice::CommunicatorPtr&, const Test::MyClassPrxPtr& proxy)
         {
         }
     }
-
 }

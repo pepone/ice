@@ -15,11 +15,9 @@
 class RecMutexTest : public TestBase
 {
 public:
-
     RecMutexTest();
 
 private:
-
     virtual void run();
 };
 

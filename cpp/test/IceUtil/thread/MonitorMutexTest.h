@@ -15,11 +15,9 @@
 class MonitorMutexTest : public TestBase
 {
 public:
-
     MonitorMutexTest();
 
 private:
-
     virtual void run();
 };
 

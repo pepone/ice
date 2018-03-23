@@ -22,16 +22,18 @@ using namespace std;
 using namespace Ice;
 using namespace IceBT;
 
-IceUtil::Shared* IceBT::upCast(TransceiverI* p) { return p; }
+IceUtil::Shared* IceBT::upCast(TransceiverI* p)
+{
+    return p;
+}
 
-IceInternal::NativeInfoPtr
-IceBT::TransceiverI::getNativeInfo()
+IceInternal::NativeInfoPtr IceBT::TransceiverI::getNativeInfo()
 {
     return _stream;
 }
 
-IceInternal::SocketOperation
-IceBT::TransceiverI::initialize(IceInternal::Buffer& readBuffer, IceInternal::Buffer& writeBuffer)
+IceInternal::SocketOperation IceBT::TransceiverI::initialize(IceInternal::Buffer& readBuffer,
+                                                             IceInternal::Buffer& writeBuffer)
 {
     IceUtil::Monitor<IceUtil::Mutex>::Lock lock(_lock);
 
@@ -55,8 +57,7 @@ IceBT::TransceiverI::initialize(IceInternal::Buffer& readBuffer, IceInternal::Bu
     return IceInternal::SocketOperationNone; // Already connected.
 }
 
-IceInternal::SocketOperation
-IceBT::TransceiverI::closing(bool initiator, const Ice::LocalException&)
+IceInternal::SocketOperation IceBT::TransceiverI::closing(bool initiator, const Ice::LocalException&)
 {
     //
     // If we are initiating the connection closure, wait for the peer
@@ -65,8 +66,7 @@ IceBT::TransceiverI::closing(bool initiator, const Ice::LocalException&)
     return initiator ? IceInternal::SocketOperationRead : IceInternal::SocketOperationNone;
 }
 
-void
-IceBT::TransceiverI::close()
+void IceBT::TransceiverI::close()
 {
     if(_connection)
     {
@@ -75,8 +75,7 @@ IceBT::TransceiverI::close()
     _stream->close();
 }
 
-IceInternal::SocketOperation
-IceBT::TransceiverI::write(IceInternal::Buffer& buf)
+IceInternal::SocketOperation IceBT::TransceiverI::write(IceInternal::Buffer& buf)
 {
     if(_stream->fd() == INVALID_SOCKET)
     {
@@ -89,8 +88,7 @@ IceBT::TransceiverI::write(IceInternal::Buffer& buf)
     return _stream->write(buf);
 }
 
-IceInternal::SocketOperation
-IceBT::TransceiverI::read(IceInternal::Buffer& buf)
+IceInternal::SocketOperation IceBT::TransceiverI::read(IceInternal::Buffer& buf)
 {
     if(_stream->fd() == INVALID_SOCKET)
     {
@@ -103,26 +101,22 @@ IceBT::TransceiverI::read(IceInternal::Buffer& buf)
     return _stream->read(buf);
 }
 
-string
-IceBT::TransceiverI::protocol() const
+string IceBT::TransceiverI::protocol() const
 {
     return _instance->protocol();
 }
 
-string
-IceBT::TransceiverI::toString() const
+string IceBT::TransceiverI::toString() const
 {
     return _stream->toString();
 }
 
-string
-IceBT::TransceiverI::toDetailedString() const
+string IceBT::TransceiverI::toDetailedString() const
 {
     return toString();
 }
 
-Ice::ConnectionInfoPtr
-IceBT::TransceiverI::getInfo() const
+Ice::ConnectionInfoPtr IceBT::TransceiverI::getInfo() const
 {
     IceBT::ConnectionInfoPtr info = ICE_MAKE_SHARED(IceBT::ConnectionInfo);
     fdToAddressAndChannel(_stream->fd(), info->localAddress, info->localChannel, info->remoteAddress,
@@ -136,13 +130,11 @@ IceBT::TransceiverI::getInfo() const
     return info;
 }
 
-void
-IceBT::TransceiverI::checkSendSize(const IceInternal::Buffer&)
+void IceBT::TransceiverI::checkSendSize(const IceInternal::Buffer&)
 {
 }
 
-void
-IceBT::TransceiverI::setBufferSize(int rcvSize, int sndSize)
+void IceBT::TransceiverI::setBufferSize(int rcvSize, int sndSize)
 {
     _stream->setBufferSize(_stream->fd(), rcvSize, sndSize);
 }
@@ -170,8 +162,7 @@ IceBT::TransceiverI::~TransceiverI()
 {
 }
 
-void
-IceBT::TransceiverI::connectCompleted(int fd, const ConnectionPtr& conn)
+void IceBT::TransceiverI::connectCompleted(int fd, const ConnectionPtr& conn)
 {
     IceUtil::Monitor<IceUtil::Mutex>::Lock lock(_lock);
     _connection = conn;
@@ -182,8 +173,7 @@ IceBT::TransceiverI::connectCompleted(int fd, const ConnectionPtr& conn)
     _stream->ready(IceInternal::SocketOperationConnect, true);
 }
 
-void
-IceBT::TransceiverI::connectFailed(const Ice::LocalException& ex)
+void IceBT::TransceiverI::connectFailed(const Ice::LocalException& ex)
 {
     IceUtil::Monitor<IceUtil::Mutex>::Lock lock(_lock);
     //

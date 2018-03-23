@@ -16,25 +16,22 @@ using namespace Test;
 
 namespace
 {
-
-Ice::IPConnectionInfoPtr
-getIPConnectionInfo(const Ice::ConnectionInfoPtr& info)
-{
-    for(Ice::ConnectionInfoPtr p = info; p; p = p->underlying)
+    Ice::IPConnectionInfoPtr getIPConnectionInfo(const Ice::ConnectionInfoPtr& info)
     {
-        Ice::IPConnectionInfoPtr ipInfo = ICE_DYNAMIC_CAST(Ice::IPConnectionInfo, p);
-        if(ipInfo)
+        for(Ice::ConnectionInfoPtr p = info; p; p = p->underlying)
         {
-            return ipInfo;
+            Ice::IPConnectionInfoPtr ipInfo = ICE_DYNAMIC_CAST(Ice::IPConnectionInfo, p);
+            if(ipInfo)
+            {
+                return ipInfo;
+            }
         }
+        return ICE_NULLPTR;
     }
-    return ICE_NULLPTR;
-}
 
-}
+} // namespace
 
-void
-allTests(const Ice::CommunicatorPtr& communicator)
+void allTests(const Ice::CommunicatorPtr& communicator)
 {
     string sref = "test:" + getTestEndpoint(communicator, 0);
     Ice::ObjectPrxPtr obj = communicator->stringToProxy(sref);

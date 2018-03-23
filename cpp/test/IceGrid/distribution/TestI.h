@@ -15,14 +15,12 @@
 class TestI : public ::Test::TestIntf
 {
 public:
-
     TestI(const Ice::PropertiesPtr&);
 
     virtual std::string getServerFile(const std::string&, const Ice::Current&);
     virtual std::string getApplicationFile(const std::string&, const Ice::Current&);
 
 private:
-
     Ice::PropertiesPtr _properties;
 };
 

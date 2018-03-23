@@ -36,79 +36,60 @@ using namespace IceStormElection;
 
 namespace
 {
-
-class ServiceI : public IceStormInternal::Service
-{
-public:
-
-    ServiceI();
-    virtual ~ServiceI();
-
-    virtual void start(const string&,
-                       const CommunicatorPtr&,
-                       const StringSeq&);
-
-    virtual void start(const CommunicatorPtr&,
-                       const ObjectAdapterPtr&,
-                       const ObjectAdapterPtr&,
-                       const string&,
-                       const Ice::Identity&,
-                       const string&);
-
-    virtual TopicManagerPrx getTopicManager() const;
-
-    virtual void stop();
-
-private:
-
-    void createDbEnv(const Ice::CommunicatorPtr&);
-    void validateProperties(const string&, const PropertiesPtr&, const LoggerPtr&);
-
-    TopicManagerImplPtr _manager;
-    TransientTopicManagerImplPtr _transientManager;
-    TopicManagerPrx _managerProxy;
-    InstancePtr _instance;
-};
-
-class FinderI : public IceStorm::Finder
-{
-public:
-
-    FinderI(const TopicManagerPrx& topicManager) : _topicManager(topicManager)
+    class ServiceI : public IceStormInternal::Service
     {
-    }
+    public:
+        ServiceI();
+        virtual ~ServiceI();
 
-    virtual TopicManagerPrx
-    getTopicManager(const Ice::Current&)
+        virtual void start(const string&, const CommunicatorPtr&, const StringSeq&);
+
+        virtual void start(const CommunicatorPtr&, const ObjectAdapterPtr&, const ObjectAdapterPtr&, const string&,
+                           const Ice::Identity&, const string&);
+
+        virtual TopicManagerPrx getTopicManager() const;
+
+        virtual void stop();
+
+    private:
+        void createDbEnv(const Ice::CommunicatorPtr&);
+        void validateProperties(const string&, const PropertiesPtr&, const LoggerPtr&);
+
+        TopicManagerImplPtr _manager;
+        TransientTopicManagerImplPtr _transientManager;
+        TopicManagerPrx _managerProxy;
+        InstancePtr _instance;
+    };
+
+    class FinderI : public IceStorm::Finder
     {
-        return _topicManager;
-    }
+    public:
+        FinderI(const TopicManagerPrx& topicManager) : _topicManager(topicManager)
+        {
+        }
 
-private:
+        virtual TopicManagerPrx getTopicManager(const Ice::Current&)
+        {
+            return _topicManager;
+        }
 
-    const TopicManagerPrx _topicManager;
-};
+    private:
+        const TopicManagerPrx _topicManager;
+    };
 
-}
+} // namespace
 
 extern "C"
 {
-
-ICESTORM_SERVICE_API ::IceBox::Service*
-createIceStorm(CommunicatorPtr communicator)
-{
-    return new ServiceI;
+    ICESTORM_SERVICE_API ::IceBox::Service* createIceStorm(CommunicatorPtr communicator)
+    {
+        return new ServiceI;
+    }
 }
 
-}
-
-ServicePtr
-IceStormInternal::Service::create(const CommunicatorPtr& communicator,
-                          const ObjectAdapterPtr& topicAdapter,
-                          const ObjectAdapterPtr& publishAdapter,
-                          const string& name,
-                          const Ice::Identity& id,
-                          const string& dbEnv)
+ServicePtr IceStormInternal::Service::create(const CommunicatorPtr& communicator, const ObjectAdapterPtr& topicAdapter,
+                                             const ObjectAdapterPtr& publishAdapter, const string& name,
+                                             const Ice::Identity& id, const string& dbEnv)
 {
     ServiceI* service = new ServiceI;
     ServicePtr svc = service;
@@ -124,11 +105,7 @@ ServiceI::~ServiceI()
 {
 }
 
-void
-ServiceI::start(
-    const string& name,
-    const CommunicatorPtr& communicator,
-    const StringSeq& /*args*/)
+void ServiceI::start(const string& name, const CommunicatorPtr& communicator, const StringSeq& /*args*/)
 {
     PropertiesPtr properties = communicator->getProperties();
 
@@ -157,7 +134,7 @@ ServiceI::start(
     topicManagerId.category = instanceName;
     topicManagerId.name = "TopicManager";
 
-    if(properties->getPropertyAsIntWithDefault(name+ ".Transient", 0) > 0)
+    if(properties->getPropertyAsIntWithDefault(name + ".Transient", 0) > 0)
     {
         _instance = new Instance(instanceName, name, communicator, publishAdapter, topicAdapter, 0);
         try
@@ -235,12 +212,12 @@ ServiceI::start(
             // is being used.
             const string suffix = ".TopicManager";
             if(topicManagerAdapterId.empty() || nodeAdapterId.empty() ||
-               topicManagerAdapterId.replace(
-                   topicManagerAdapterId.find(suffix), suffix.size(), ".Node") != nodeAdapterId)
+               topicManagerAdapterId.replace(topicManagerAdapterId.find(suffix), suffix.size(), ".Node") !=
+                   nodeAdapterId)
             {
                 Ice::Error error(communicator->getLogger());
-                error << "deployment error: `" << topicManagerAdapterId << "' prefix does not match `"
-                      << nodeAdapterId << "'";
+                error << "deployment error: `" << topicManagerAdapterId << "' prefix does not match `" << nodeAdapterId
+                      << "'";
                 throw IceBox::FailureException(__FILE__, __LINE__, "IceGrid deployment is incorrect");
             }
 
@@ -256,8 +233,8 @@ ServiceI::start(
             IceGrid::LocatorPrx locator = IceGrid::LocatorPrx::checkedCast(communicator->getDefaultLocator());
             assert(locator);
             IceGrid::QueryPrx query = locator->getLocalQuery();
-            Ice::ObjectProxySeq replicas = query->findAllReplicas(
-                communicator->stringToProxy(instanceName + "/TopicManager"));
+            Ice::ObjectProxySeq replicas =
+                query->findAllReplicas(communicator->stringToProxy(instanceName + "/TopicManager"));
 
             for(Ice::ObjectProxySeq::const_iterator p = replicas.begin(); p != replicas.end(); ++p)
             {
@@ -292,12 +269,12 @@ ServiceI::start(
                     // We must have at least one digit, otherwise there is
                     // some sort of deployment error.
                     Ice::Error error(communicator->getLogger());
-                    error << "deployment error: node id does not follow instance name. instance name:"
-                          << instanceName << " adapter id: " << adapterid;
+                    error << "deployment error: node id does not follow instance name. instance name:" << instanceName
+                          << " adapter id: " << adapterid;
                     throw IceBox::FailureException(__FILE__, __LINE__, "IceGrid deployment is incorrect");
                 }
 
-                int nodeid = atoi(adapterid.substr(start, end-start).c_str());
+                int nodeid = atoi(adapterid.substr(start, end - start).c_str());
                 ostringstream os;
                 os << "node" << nodeid;
                 Ice::Identity id;
@@ -334,12 +311,11 @@ ServiceI::start(
 
             Ice::ObjectAdapterPtr nodeAdapter = communicator->createObjectAdapter(name + ".Node");
 
-            PersistentInstancePtr instance =
-                new PersistentInstance(instanceName, name, communicator, publishAdapter, topicAdapter,
-                                       nodeAdapter, nodes[id]);
+            PersistentInstancePtr instance = new PersistentInstance(instanceName, name, communicator, publishAdapter,
+                                                                    topicAdapter, nodeAdapter, nodes[id]);
             _instance = instance;
 
-            _instance->observers()->setMajority(static_cast<unsigned int>(nodes.size())/2);
+            _instance->observers()->setMajority(static_cast<unsigned int>(nodes.size()) / 2);
 
             // Trace replication information.
             TraceLevelsPtr traceLevels = _instance->traceLevels();
@@ -402,19 +378,15 @@ ServiceI::start(
     publishAdapter->activate();
 }
 
-void
-ServiceI::start(const CommunicatorPtr& communicator,
-                const ObjectAdapterPtr& topicAdapter,
-                const ObjectAdapterPtr& publishAdapter,
-                const string& name,
-                const Ice::Identity& id,
-                const string& /*dbEnv*/)
+void ServiceI::start(const CommunicatorPtr& communicator, const ObjectAdapterPtr& topicAdapter,
+                     const ObjectAdapterPtr& publishAdapter, const string& name, const Ice::Identity& id,
+                     const string& /*dbEnv*/)
 {
     //
     // For IceGrid we don't validate the properties as all sorts of
     // non-IceStorm properties are included in the prefix.
     //
-    //validateProperties(name, communicator->getProperties(), communicator->getLogger());
+    // validateProperties(name, communicator->getProperties(), communicator->getLogger());
 
     // This is for IceGrid only and as such we use a transient
     // implementation of IceStorm.
@@ -437,14 +409,12 @@ ServiceI::start(const CommunicatorPtr& communicator,
     }
 }
 
-TopicManagerPrx
-ServiceI::getTopicManager() const
+TopicManagerPrx ServiceI::getTopicManager() const
 {
     return _managerProxy;
 }
 
-void
-ServiceI::stop()
+void ServiceI::stop()
 {
     // Shutdown the instance. This deactivates all OAs.
     _instance->shutdown();
@@ -467,71 +437,67 @@ ServiceI::stop()
     _instance->destroy();
 }
 
-void
-ServiceI::validateProperties(const string& name, const PropertiesPtr& properties, const LoggerPtr& logger)
+void ServiceI::validateProperties(const string& name, const PropertiesPtr& properties, const LoggerPtr& logger)
 {
-    static const string suffixes[] =
-    {
-        "ReplicatedTopicManagerEndpoints",
-        "ReplicatedPublishEndpoints",
-        "Nodes.*",
-        "Transient",
-        "NodeId",
-        "Flush.Timeout",
-        "InstanceName",
-        "Election.MasterTimeout",
-        "Election.ElectionTimeout",
-        "Election.ResponseTimeout",
-        "Publish.AdapterId",
-        "Publish.Endpoints",
-        "Publish.Locator",
-        "Publish.PublishedEndpoints",
-        "Publish.ReplicaGroupId",
-        "Publish.Router",
-        "Publish.ThreadPool.Size",
-        "Publish.ThreadPool.SizeMax",
-        "Publish.ThreadPool.SizeWarn",
-        "Publish.ThreadPool.StackSize",
-        "Node.AdapterId",
-        "Node.Endpoints",
-        "Node.Locator",
-        "Node.PublishedEndpoints",
-        "Node.ReplicaGroupId",
-        "Node.Router",
-        "Node.ThreadPool.Size",
-        "Node.ThreadPool.SizeMax",
-        "Node.ThreadPool.SizeWarn",
-        "Node.ThreadPool.StackSize",
-        "TopicManager.AdapterId",
-        "TopicManager.Endpoints",
-        "TopicManager.Locator",
-        "TopicManager.Proxy",
-        "TopicManager.Proxy.EndpointSelection",
-        "TopicManager.Proxy.ConnectionCached",
-        "TopicManager.Proxy.PreferSecure",
-        "TopicManager.Proxy.LocatorCacheTimeout",
-        "TopicManager.Proxy.Locator",
-        "TopicManager.Proxy.Router",
-        "TopicManager.Proxy.CollocationOptimization",
-        "TopicManager.PublishedEndpoints",
-        "TopicManager.ReplicaGroupId",
-        "TopicManager.Router",
-        "TopicManager.ThreadPool.Size",
-        "TopicManager.ThreadPool.SizeMax",
-        "TopicManager.ThreadPool.SizeWarn",
-        "TopicManager.ThreadPool.StackSize",
-        "Trace.Election",
-        "Trace.Replication",
-        "Trace.Subscriber",
-        "Trace.Topic",
-        "Trace.TopicManager",
-        "Send.Timeout",
-        "Send.QueueSizeMax",
-        "Send.QueueSizeMaxPolicy",
-        "Discard.Interval",
-        "LMDB.Path",
-        "LMDB.MapSize"
-    };
+    static const string suffixes[] = {"ReplicatedTopicManagerEndpoints",
+                                      "ReplicatedPublishEndpoints",
+                                      "Nodes.*",
+                                      "Transient",
+                                      "NodeId",
+                                      "Flush.Timeout",
+                                      "InstanceName",
+                                      "Election.MasterTimeout",
+                                      "Election.ElectionTimeout",
+                                      "Election.ResponseTimeout",
+                                      "Publish.AdapterId",
+                                      "Publish.Endpoints",
+                                      "Publish.Locator",
+                                      "Publish.PublishedEndpoints",
+                                      "Publish.ReplicaGroupId",
+                                      "Publish.Router",
+                                      "Publish.ThreadPool.Size",
+                                      "Publish.ThreadPool.SizeMax",
+                                      "Publish.ThreadPool.SizeWarn",
+                                      "Publish.ThreadPool.StackSize",
+                                      "Node.AdapterId",
+                                      "Node.Endpoints",
+                                      "Node.Locator",
+                                      "Node.PublishedEndpoints",
+                                      "Node.ReplicaGroupId",
+                                      "Node.Router",
+                                      "Node.ThreadPool.Size",
+                                      "Node.ThreadPool.SizeMax",
+                                      "Node.ThreadPool.SizeWarn",
+                                      "Node.ThreadPool.StackSize",
+                                      "TopicManager.AdapterId",
+                                      "TopicManager.Endpoints",
+                                      "TopicManager.Locator",
+                                      "TopicManager.Proxy",
+                                      "TopicManager.Proxy.EndpointSelection",
+                                      "TopicManager.Proxy.ConnectionCached",
+                                      "TopicManager.Proxy.PreferSecure",
+                                      "TopicManager.Proxy.LocatorCacheTimeout",
+                                      "TopicManager.Proxy.Locator",
+                                      "TopicManager.Proxy.Router",
+                                      "TopicManager.Proxy.CollocationOptimization",
+                                      "TopicManager.PublishedEndpoints",
+                                      "TopicManager.ReplicaGroupId",
+                                      "TopicManager.Router",
+                                      "TopicManager.ThreadPool.Size",
+                                      "TopicManager.ThreadPool.SizeMax",
+                                      "TopicManager.ThreadPool.SizeWarn",
+                                      "TopicManager.ThreadPool.StackSize",
+                                      "Trace.Election",
+                                      "Trace.Replication",
+                                      "Trace.Subscriber",
+                                      "Trace.Topic",
+                                      "Trace.TopicManager",
+                                      "Send.Timeout",
+                                      "Send.QueueSizeMax",
+                                      "Send.QueueSizeMaxPolicy",
+                                      "Discard.Interval",
+                                      "LMDB.Path",
+                                      "LMDB.MapSize"};
 
     vector<string> unknownProps;
     string prefix = name + ".";
@@ -539,7 +505,7 @@ ServiceI::validateProperties(const string& name, const PropertiesPtr& properties
     for(PropertyDict::const_iterator p = props.begin(); p != props.end(); ++p)
     {
         bool valid = false;
-        for(unsigned int i = 0; i < sizeof(suffixes)/sizeof(*suffixes); ++i)
+        for(unsigned int i = 0; i < sizeof(suffixes) / sizeof(*suffixes); ++i)
         {
             string prop = prefix + suffixes[i];
             if(IceUtilInternal::match(p->first, prop))

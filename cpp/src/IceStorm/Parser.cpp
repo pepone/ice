@@ -15,8 +15,8 @@
 #include <algorithm>
 
 #ifdef HAVE_READLINE
-#   include <readline/readline.h>
-#   include <readline/history.h>
+#    include <readline/readline.h>
+#    include <readline/history.h>
 #endif
 
 extern FILE* yyin;
@@ -29,88 +29,74 @@ using namespace IceStorm;
 
 namespace IceStorm
 {
-
-Parser* parser;
+    Parser* parser;
 
 #ifdef _WIN32
-Ice::StringConverterPtr windowsConsoleConverter = 0;
+    Ice::StringConverterPtr windowsConsoleConverter = 0;
 #endif
 
-}
+} // namespace IceStorm
 
 namespace
 {
-
-class UnknownManagerException : public Exception
-{
-public:
-
-    UnknownManagerException(const string& name, const char* file, int line) :
-        Exception(file, line),
-        name(name)
+    class UnknownManagerException : public Exception
     {
-    }
+    public:
+        UnknownManagerException(const string& name, const char* file, int line) : Exception(file, line), name(name)
+        {
+        }
 
 #ifndef ICE_CPP11_COMPILER
-    virtual
-    ~UnknownManagerException() throw()
-    {
-    }
+        virtual ~UnknownManagerException() throw()
+        {
+        }
 #endif
 
-    virtual string
-    ice_id() const
-    {
-        return "::UnknownManagerException";
-    }
+        virtual string ice_id() const
+        {
+            return "::UnknownManagerException";
+        }
 
-    virtual Exception*
-    ice_clone() const
-    {
-        return new UnknownManagerException(*this);
-    }
+        virtual Exception* ice_clone() const
+        {
+            return new UnknownManagerException(*this);
+        }
 
-    virtual void
-    ice_throw() const
-    {
-        throw *this;
-    }
+        virtual void ice_throw() const
+        {
+            throw *this;
+        }
 
-    const string name;
-};
+        const string name;
+    };
 
-}
+} // namespace
 
-ParserPtr
-Parser::createParser(const CommunicatorPtr& communicator, const TopicManagerPrx& admin,
-                     const map<Ice::Identity, TopicManagerPrx>& managers)
+ParserPtr Parser::createParser(const CommunicatorPtr& communicator, const TopicManagerPrx& admin,
+                               const map<Ice::Identity, TopicManagerPrx>& managers)
 {
     return new Parser(communicator, admin, managers);
 }
 
-void
-Parser::usage()
+void Parser::usage()
 {
-    consoleOut <<
-        "help                     Print this message.\n"
-        "exit, quit               Exit this program.\n"
-        "create TOPICS            Add TOPICS.\n"
-        "destroy TOPICS           Remove TOPICS.\n"
-        "link FROM TO [COST]      Link FROM to TO with the optional given COST.\n"
-        "unlink FROM TO           Unlink TO from FROM.\n"
-        "links [INSTANCE-NAME]    Display all links for the topics in the current topic\n"
-        "                         manager, or in the given INSTANCE-NAME.\n"
-        "topics [INSTANCE-NAME]   Display the names of all topics in the current topic\n"
-        "                         manager, or in the given INSTANCE-NAME.\n"
-        "current [INSTANCE-NAME]  Display the current topic manager, or change it to\n"
-        "                         INSTANCE-NAME.\n"
-        "replica [INSTANCE-NAME]  Display replication information for the given INSTANCE-NAME.\n"
-        "subscribers TOPICS       List TOPICS subscribers.\n"
-        ;
+    consoleOut << "help                     Print this message.\n"
+                  "exit, quit               Exit this program.\n"
+                  "create TOPICS            Add TOPICS.\n"
+                  "destroy TOPICS           Remove TOPICS.\n"
+                  "link FROM TO [COST]      Link FROM to TO with the optional given COST.\n"
+                  "unlink FROM TO           Unlink TO from FROM.\n"
+                  "links [INSTANCE-NAME]    Display all links for the topics in the current topic\n"
+                  "                         manager, or in the given INSTANCE-NAME.\n"
+                  "topics [INSTANCE-NAME]   Display the names of all topics in the current topic\n"
+                  "                         manager, or in the given INSTANCE-NAME.\n"
+                  "current [INSTANCE-NAME]  Display the current topic manager, or change it to\n"
+                  "                         INSTANCE-NAME.\n"
+                  "replica [INSTANCE-NAME]  Display replication information for the given INSTANCE-NAME.\n"
+                  "subscribers TOPICS       List TOPICS subscribers.\n";
 }
 
-void
-Parser::create(const list<string>& args)
+void Parser::create(const list<string>& args)
 {
     if(args.empty())
     {
@@ -118,7 +104,7 @@ Parser::create(const list<string>& args)
         return;
     }
 
-    for(list<string>::const_iterator i = args.begin(); i != args.end() ; ++i)
+    for(list<string>::const_iterator i = args.begin(); i != args.end(); ++i)
     {
         try
         {
@@ -133,8 +119,7 @@ Parser::create(const list<string>& args)
     }
 }
 
-void
-Parser::destroy(const list<string>& args)
+void Parser::destroy(const list<string>& args)
 {
     if(args.empty())
     {
@@ -142,7 +127,7 @@ Parser::destroy(const list<string>& args)
         return;
     }
 
-    for(list<string>::const_iterator i = args.begin(); i != args.end() ; ++i)
+    for(list<string>::const_iterator i = args.begin(); i != args.end(); ++i)
     {
         try
         {
@@ -155,8 +140,7 @@ Parser::destroy(const list<string>& args)
     }
 }
 
-void
-Parser::link(const list<string>& args)
+void Parser::link(const list<string>& args)
 {
     if(args.size() != 2 && args.size() != 3)
     {
@@ -180,8 +164,7 @@ Parser::link(const list<string>& args)
     }
 }
 
-void
-Parser::unlink(const list<string>& args)
+void Parser::unlink(const list<string>& args)
 {
     if(args.size() != 2)
     {
@@ -204,8 +187,7 @@ Parser::unlink(const list<string>& args)
     }
 }
 
-void
-Parser::links(const list<string>& args)
+void Parser::links(const list<string>& args)
 {
     if(args.size() > 1)
     {
@@ -241,8 +223,7 @@ Parser::links(const list<string>& args)
     }
 }
 
-void
-Parser::topics(const list<string>& args)
+void Parser::topics(const list<string>& args)
 {
     if(args.size() > 1)
     {
@@ -274,8 +255,7 @@ Parser::topics(const list<string>& args)
     }
 }
 
-void
-Parser::replica(const list<string>& args)
+void Parser::replica(const list<string>& args)
 {
     if(args.size() > 1)
     {
@@ -313,20 +293,20 @@ Parser::replica(const list<string>& args)
                 consoleOut << p->id << ": state:      ";
                 switch(info.state)
                 {
-                case IceStormElection::NodeStateInactive:
-                    consoleOut << "inactive";
-                    break;
-                case IceStormElection::NodeStateElection:
-                    consoleOut << "election";
-                    break;
-                case IceStormElection::NodeStateReorganization:
-                    consoleOut << "reorganization";
-                    break;
-                case IceStormElection::NodeStateNormal:
-                    consoleOut << "normal";
-                    break;
-                default:
-                    consoleOut << "unknown";
+                    case IceStormElection::NodeStateInactive:
+                        consoleOut << "inactive";
+                        break;
+                    case IceStormElection::NodeStateElection:
+                        consoleOut << "election";
+                        break;
+                    case IceStormElection::NodeStateReorganization:
+                        consoleOut << "reorganization";
+                        break;
+                    case IceStormElection::NodeStateNormal:
+                        consoleOut << "normal";
+                        break;
+                    default:
+                        consoleOut << "unknown";
                 }
                 consoleOut << endl;
                 consoleOut << p->id << ": group:      ";
@@ -339,8 +319,7 @@ Parser::replica(const list<string>& args)
                     consoleOut << q->id;
                 }
                 consoleOut << endl;
-                consoleOut << p->id << ": max:        " << info.max
-                           << endl;
+                consoleOut << p->id << ": max:        " << info.max << endl;
             }
             catch(const Exception& ex)
             {
@@ -354,8 +333,7 @@ Parser::replica(const list<string>& args)
     }
 }
 
-void
-Parser::subscribers(const list<string>& args)
+void Parser::subscribers(const list<string>& args)
 {
     if(args.empty())
     {
@@ -364,7 +342,7 @@ Parser::subscribers(const list<string>& args)
     }
     try
     {
-        for(list<string>::const_iterator i = args.begin(); i != args.end() ; ++i)
+        for(list<string>::const_iterator i = args.begin(); i != args.end(); ++i)
         {
             TopicPrx topic = _defaultManager->retrieve(*i);
             consoleOut << (*i) << ": subscribers:" << endl;
@@ -381,8 +359,7 @@ Parser::subscribers(const list<string>& args)
     }
 }
 
-void
-Parser::current(const list<string>& args)
+void Parser::current(const list<string>& args)
 {
     if(args.empty())
     {
@@ -407,8 +384,7 @@ Parser::current(const list<string>& args)
     }
 }
 
-void
-Parser::showBanner()
+void Parser::showBanner()
 {
     consoleOut << "Ice " << ICE_STRING_VERSION << "  Copyright (c) 2003-2018 ZeroC, Inc." << endl;
 }
@@ -418,16 +394,14 @@ Parser::showBanner()
 // paramenter is of type int&, in newer versions it
 // changes to size_t&
 //
-void
-Parser::getInput(char* buf, int& result, size_t maxSize)
+void Parser::getInput(char* buf, int& result, size_t maxSize)
 {
     size_t r = static_cast<size_t>(result);
     getInput(buf, r, maxSize);
     result = static_cast<int>(r);
 }
 
-void
-Parser::getInput(char* buf, size_t& result, size_t maxSize)
+void Parser::getInput(char* buf, size_t& result, size_t maxSize)
 {
     if(!_commands.empty())
     {
@@ -501,12 +475,12 @@ Parser::getInput(char* buf, size_t& result, size_t maxSize)
                 break;
             }
         }
-#ifdef _WIN32
+#    ifdef _WIN32
         if(windowsConsoleConverter)
         {
             line = nativeToUTF8(line, windowsConsoleConverter);
         }
-#endif
+#    endif
         result = line.length();
         if(result > maxSize)
         {
@@ -523,14 +497,12 @@ Parser::getInput(char* buf, size_t& result, size_t maxSize)
     }
 }
 
-void
-Parser::continueLine()
+void Parser::continueLine()
 {
     _continue = true;
 }
 
-const char*
-Parser::getPrompt()
+const char* Parser::getPrompt()
 {
     assert(_commands.empty());
 
@@ -545,39 +517,33 @@ Parser::getPrompt()
     }
 }
 
-void
-Parser::error(const char* s)
+void Parser::error(const char* s)
 {
     consoleErr << "error: " << s << endl;
     _errors++;
 }
 
-void
-Parser::error(const string& s)
+void Parser::error(const string& s)
 {
     error(s.c_str());
 }
 
-void
-Parser::warning(const char* s)
+void Parser::warning(const char* s)
 {
     consoleErr << "warning: " << s << endl;
 }
 
-void
-Parser::warning(const string& s)
+void Parser::warning(const string& s)
 {
     warning(s.c_str());
 }
 
-void
-Parser::invalidCommand(const string& s)
+void Parser::invalidCommand(const string& s)
 {
     consoleErr << s << endl;
 }
 
-int
-Parser::parse(FILE* file, bool debug)
+int Parser::parse(FILE* file, bool debug)
 {
     yydebug = debug ? 1 : 0;
 
@@ -601,8 +567,7 @@ Parser::parse(FILE* file, bool debug)
     return status;
 }
 
-int
-Parser::parse(const std::string& commands, bool debug)
+int Parser::parse(const std::string& commands, bool debug)
 {
     yydebug = debug ? 1 : 0;
 
@@ -626,8 +591,7 @@ Parser::parse(const std::string& commands, bool debug)
     return status;
 }
 
-TopicManagerPrx
-Parser::findManagerById(const string& full, string& arg) const
+TopicManagerPrx Parser::findManagerById(const string& full, string& arg) const
 {
     Ice::Identity id = Ice::stringToIdentity(full);
     arg = id.name;
@@ -644,8 +608,7 @@ Parser::findManagerById(const string& full, string& arg) const
     return p->second;
 }
 
-TopicManagerPrx
-Parser::findManagerByCategory(const string& full) const
+TopicManagerPrx Parser::findManagerByCategory(const string& full) const
 {
     Ice::Identity id;
     id.category = full;
@@ -658,8 +621,7 @@ Parser::findManagerByCategory(const string& full) const
     return p->second;
 }
 
-TopicPrx
-Parser::findTopic(const string& full) const
+TopicPrx Parser::findTopic(const string& full) const
 {
     string topicName;
     TopicManagerPrx manager = findManagerById(full, topicName);
@@ -680,8 +642,7 @@ Parser::Parser(const CommunicatorPtr& communicator, const TopicManagerPrx& admin
 #endif
 }
 
-void
-Parser::exception(const Ice::Exception& ex, bool warn)
+void Parser::exception(const Ice::Exception& ex, bool warn)
 {
     ostringstream os;
     try

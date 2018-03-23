@@ -14,37 +14,34 @@
 
 namespace IceUtilInternal
 {
+    //
+    // See java.util.concurrent.CountDownLatch in Java 1.5
+    //
 
-//
-// See java.util.concurrent.CountDownLatch in Java 1.5
-//
+    class ICE_API CountDownLatch
+    {
+    public:
+        CountDownLatch(int);
+        ~CountDownLatch();
 
-class ICE_API CountDownLatch
-{
-public:
+        void await() const;
+        void countDown();
+        int getCount() const;
 
-    CountDownLatch(int);
-    ~CountDownLatch();
-
-    void await() const;
-    void countDown();
-    int getCount() const;
-
-private:
-
+    private:
 #ifdef _WIN32
-    mutable LONG _count;
-    HANDLE _event;
+        mutable LONG _count;
+        HANDLE _event;
 #else
-    int _count;
-    mutable pthread_mutex_t _mutex;
-    mutable pthread_cond_t _cond;
+        int _count;
+        mutable pthread_mutex_t _mutex;
+        mutable pthread_cond_t _cond;
 
-    inline void lock() const;
-    inline void unlock() const;
+        inline void lock() const;
+        inline void unlock() const;
 #endif
-};
+    };
 
-}
+} // namespace IceUtilInternal
 
 #endif

@@ -15,8 +15,7 @@ DEFINE_TEST("server")
 
 using namespace std;
 
-int
-run(int argc, char* argv[], const Ice::CommunicatorPtr& communicator)
+int run(int argc, char* argv[], const Ice::CommunicatorPtr& communicator)
 {
     Ice::PropertiesPtr properties = communicator->getProperties();
 
@@ -47,8 +46,7 @@ run(int argc, char* argv[], const Ice::CommunicatorPtr& communicator)
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
 #ifdef ICE_STATIC_LIBS
     Ice::registerIceSSL();

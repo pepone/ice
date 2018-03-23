@@ -19,8 +19,7 @@ using namespace Ice;
 using namespace IceStorm;
 using namespace Test;
 
-int
-run(int argc, char* argv[], const CommunicatorPtr& communicator)
+int run(int argc, char* argv[], const CommunicatorPtr& communicator)
 {
     IceUtilInternal::Options opts;
     opts.addOpt("", "count", IceUtilInternal::Options::NeedArg);
@@ -61,7 +60,6 @@ run(int argc, char* argv[], const CommunicatorPtr& communicator)
     {
         cerr << argv[0] << ": NoSuchTopic: " << e.name << endl;
         return EXIT_FAILURE;
-
     }
 
     EventPrx eventFed1 = EventPrx::uncheckedCast(fed1->getPublisher()->ice_oneway());
@@ -96,8 +94,7 @@ run(int argc, char* argv[], const CommunicatorPtr& communicator)
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
     int status;
     CommunicatorPtr communicator;

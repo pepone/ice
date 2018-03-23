@@ -16,8 +16,7 @@
 
 std::list<TestBasePtr> allTests;
 
-void
-initializeTestSuite()
+void initializeTestSuite()
 {
     allTests.push_back(new ThreadPriorityTest);
     allTests.push_back(new TimerPriorityTest);

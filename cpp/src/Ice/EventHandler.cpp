@@ -15,7 +15,10 @@ using namespace Ice;
 using namespace IceInternal;
 
 #ifndef ICE_CPP11_MAPPING
-IceUtil::Shared* IceInternal::upCast(EventHandler* p) { return p; }
+IceUtil::Shared* IceInternal::upCast(EventHandler* p)
+{
+    return p;
+}
 #endif
 
 IceInternal::EventHandler::EventHandler() :

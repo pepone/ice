@@ -14,11 +14,10 @@
 
 namespace IceInternal
 {
+    class RetryQueue;
+    IceUtil::Shared* upCast(RetryQueue*);
+    typedef Handle<RetryQueue> RetryQueuePtr;
 
-class RetryQueue;
-IceUtil::Shared* upCast(RetryQueue*);
-typedef Handle<RetryQueue> RetryQueuePtr;
-
-}
+} // namespace IceInternal
 
 #endif

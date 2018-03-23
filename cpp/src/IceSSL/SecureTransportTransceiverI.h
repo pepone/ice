@@ -25,68 +25,64 @@
 
 namespace IceSSL
 {
-
-namespace SecureTransport
-{
-
-class TransceiverI : public IceInternal::Transceiver
-{
-public:
-
-    virtual IceInternal::NativeInfoPtr getNativeInfo();
-
-    virtual IceInternal::SocketOperation initialize(IceInternal::Buffer&, IceInternal::Buffer&);
-    virtual IceInternal::SocketOperation closing(bool, const Ice::LocalException&);
-    virtual void close();
-    virtual IceInternal::SocketOperation write(IceInternal::Buffer&);
-    virtual IceInternal::SocketOperation read(IceInternal::Buffer&);
-
-    virtual std::string protocol() const;
-    virtual std::string toString() const;
-    virtual std::string toDetailedString() const;
-    virtual Ice::ConnectionInfoPtr getInfo() const;
-    virtual void checkSendSize(const IceInternal::Buffer&);
-    virtual void setBufferSize(int rcvSize, int sndSize);
-
-    OSStatus writeRaw(const char*, size_t*) const;
-    OSStatus readRaw(char*, size_t*) const;
-
-private:
-
-    TransceiverI(const InstancePtr&, const IceInternal::TransceiverPtr&, const std::string&, bool);
-    virtual ~TransceiverI();
-
-    friend class IceSSL::SecureTransport::SSLEngine;
-
-    const InstancePtr _instance;
-    const SSLEnginePtr _engine;
-    const std::string _host;
-    const std::string _adapterName;
-    const bool _incoming;
-    const IceInternal::TransceiverPtr _delegate;
-
-    IceInternal::UniqueRef<SSLContextRef> _ssl;
-    IceInternal::UniqueRef<SecTrustRef> _trust;
-    bool _connected;
-
-    enum SSLWantFlags
+    namespace SecureTransport
     {
-        SSLWantRead = 0x1,
-        SSLWantWrite = 0x2
-    };
+        class TransceiverI : public IceInternal::Transceiver
+        {
+        public:
+            virtual IceInternal::NativeInfoPtr getNativeInfo();
 
-    mutable Ice::Byte _flags;
-    size_t _maxSendPacketSize;
-    size_t _maxRecvPacketSize;
-    std::string _cipher;
-    std::vector<CertificatePtr> _certs;
-    bool _verified;
-    size_t _buffered;
-};
-typedef IceUtil::Handle<TransceiverI> TransceiverIPtr;
+            virtual IceInternal::SocketOperation initialize(IceInternal::Buffer&, IceInternal::Buffer&);
+            virtual IceInternal::SocketOperation closing(bool, const Ice::LocalException&);
+            virtual void close();
+            virtual IceInternal::SocketOperation write(IceInternal::Buffer&);
+            virtual IceInternal::SocketOperation read(IceInternal::Buffer&);
 
-} // SecureTransport namespace end
+            virtual std::string protocol() const;
+            virtual std::string toString() const;
+            virtual std::string toDetailedString() const;
+            virtual Ice::ConnectionInfoPtr getInfo() const;
+            virtual void checkSendSize(const IceInternal::Buffer&);
+            virtual void setBufferSize(int rcvSize, int sndSize);
 
-} // IceSSL namespace end
+            OSStatus writeRaw(const char*, size_t*) const;
+            OSStatus readRaw(char*, size_t*) const;
+
+        private:
+            TransceiverI(const InstancePtr&, const IceInternal::TransceiverPtr&, const std::string&, bool);
+            virtual ~TransceiverI();
+
+            friend class IceSSL::SecureTransport::SSLEngine;
+
+            const InstancePtr _instance;
+            const SSLEnginePtr _engine;
+            const std::string _host;
+            const std::string _adapterName;
+            const bool _incoming;
+            const IceInternal::TransceiverPtr _delegate;
+
+            IceInternal::UniqueRef<SSLContextRef> _ssl;
+            IceInternal::UniqueRef<SecTrustRef> _trust;
+            bool _connected;
+
+            enum SSLWantFlags
+            {
+                SSLWantRead = 0x1,
+                SSLWantWrite = 0x2
+            };
+
+            mutable Ice::Byte _flags;
+            size_t _maxSendPacketSize;
+            size_t _maxRecvPacketSize;
+            std::string _cipher;
+            std::vector<CertificatePtr> _certs;
+            bool _verified;
+            size_t _buffered;
+        };
+        typedef IceUtil::Handle<TransceiverI> TransceiverIPtr;
+
+    } // namespace SecureTransport
+
+} // namespace IceSSL
 
 #endif

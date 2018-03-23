@@ -15,11 +15,9 @@
 class MonitorRecMutexTest : public TestBase
 {
 public:
-
     MonitorRecMutexTest();
 
 private:
-
     virtual void run();
 };
 

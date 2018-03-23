@@ -17,73 +17,70 @@
 
 namespace Glacier2
 {
+    class RoutingTable;
+    typedef IceUtil::Handle<RoutingTable> RoutingTablePtr;
 
-class RoutingTable;
-typedef IceUtil::Handle<RoutingTable> RoutingTablePtr;
+    class RouterI;
+    typedef IceUtil::Handle<RouterI> RouterIPtr;
 
-class RouterI;
-typedef IceUtil::Handle<RouterI> RouterIPtr;
+    class FilterManager;
+    typedef IceUtil::Handle<FilterManager> FilterManagerPtr;
 
-class FilterManager;
-typedef IceUtil::Handle<FilterManager> FilterManagerPtr;
+    class RouterI : public Router
+    {
+    public:
+        RouterI(const InstancePtr&, const Ice::ConnectionPtr&, const std::string&, const SessionPrx&,
+                const Ice::Identity&, const FilterManagerPtr&, const Ice::Context&);
 
-class RouterI : public Router
-{
-public:
+        virtual ~RouterI();
 
-    RouterI(const InstancePtr&, const Ice::ConnectionPtr&, const std::string&, const SessionPrx&, const Ice::Identity&,
-            const FilterManagerPtr&, const Ice::Context&);
+        void destroy(const Callback_Session_destroyPtr&);
 
-    virtual ~RouterI();
+        virtual Ice::ObjectPrx getClientProxy(IceUtil::Optional<bool>&, const Ice::Current&) const;
+        virtual Ice::ObjectPrx getServerProxy(const Ice::Current&) const;
+        virtual Ice::ObjectProxySeq addProxies(const Ice::ObjectProxySeq&, const Ice::Current&);
+        virtual std::string getCategoryForClient(const Ice::Current&) const;
+        virtual void createSession_async(const AMD_Router_createSessionPtr&, const std::string&, const std::string&,
+                                         const Ice::Current&);
+        virtual void createSessionFromSecureConnection_async(const AMD_Router_createSessionFromSecureConnectionPtr&,
+                                                             const Ice::Current&);
+        virtual void refreshSession_async(const AMD_Router_refreshSessionPtr&, const ::Ice::Current&);
+        virtual void destroySession(const ::Ice::Current&);
+        virtual Ice::Long getSessionTimeout(const ::Ice::Current&) const;
+        virtual Ice::Int getACMTimeout(const ::Ice::Current&) const;
 
-    void destroy(const Callback_Session_destroyPtr&);
+        ClientBlobjectPtr getClientBlobject() const;
+        ServerBlobjectPtr getServerBlobject() const;
 
-    virtual Ice::ObjectPrx getClientProxy(IceUtil::Optional<bool>&, const Ice::Current&) const;
-    virtual Ice::ObjectPrx getServerProxy(const Ice::Current&) const;
-    virtual Ice::ObjectProxySeq addProxies(const Ice::ObjectProxySeq&, const Ice::Current&);
-    virtual std::string getCategoryForClient(const Ice::Current&) const;
-    virtual void createSession_async(const AMD_Router_createSessionPtr&, const std::string&, const std::string&,
-                                     const Ice::Current&);
-    virtual void createSessionFromSecureConnection_async(const AMD_Router_createSessionFromSecureConnectionPtr&,
-                                                         const Ice::Current&);
-    virtual void refreshSession_async(const AMD_Router_refreshSessionPtr&, const ::Ice::Current&);
-    virtual void destroySession(const ::Ice::Current&);
-    virtual Ice::Long getSessionTimeout(const ::Ice::Current&) const;
-    virtual Ice::Int getACMTimeout(const ::Ice::Current&) const;
+        SessionPrx getSession() const;
 
-    ClientBlobjectPtr getClientBlobject() const;
-    ServerBlobjectPtr getServerBlobject() const;
+        IceUtil::Time getTimestamp() const;
+        void updateTimestamp() const;
 
-    SessionPrx getSession() const;
+        void updateObserver(const Glacier2::Instrumentation::RouterObserverPtr&);
 
-    IceUtil::Time getTimestamp() const;
-    void updateTimestamp() const;
+        std::string toString() const;
 
-    void updateObserver(const Glacier2::Instrumentation::RouterObserverPtr&);
+    private:
+        const InstancePtr _instance;
+        const RoutingTablePtr _routingTable;
+        const Ice::ObjectPrx _clientProxy;
+        const Ice::ObjectPrx _serverProxy;
+        const ClientBlobjectPtr _clientBlobject;
+        const ServerBlobjectPtr _serverBlobject;
+        const bool _clientBlobjectBuffered;
+        const bool _serverBlobjectBuffered;
+        const Ice::ConnectionPtr _connection;
+        const std::string _userId;
+        const SessionPrx _session;
+        const Ice::Identity _controlId;
+        const Ice::Context _context;
+        const IceUtil::Mutex _timestampMutex;
+        mutable IceUtil::Time _timestamp;
 
-    std::string toString() const;
+        Glacier2::Instrumentation::SessionObserverPtr _observer;
+    };
 
-private:
-
-    const InstancePtr _instance;
-    const RoutingTablePtr _routingTable;
-    const Ice::ObjectPrx _clientProxy;
-    const Ice::ObjectPrx _serverProxy;
-    const ClientBlobjectPtr _clientBlobject;
-    const ServerBlobjectPtr _serverBlobject;
-    const bool _clientBlobjectBuffered;
-    const bool _serverBlobjectBuffered;
-    const Ice::ConnectionPtr _connection;
-    const std::string _userId;
-    const SessionPrx _session;
-    const Ice::Identity _controlId;
-    const Ice::Context _context;
-    const IceUtil::Mutex _timestampMutex;
-    mutable IceUtil::Time _timestamp;
-
-    Glacier2::Instrumentation::SessionObserverPtr _observer;
-};
-
-}
+} // namespace Glacier2
 
 #endif

@@ -18,10 +18,7 @@ using namespace IceUtil;
 class MonitorMutexTestThread : public Thread
 {
 public:
-
-    MonitorMutexTestThread(Monitor<Mutex>& m) :
-        _monitor(m),
-        _tryLock(false)
+    MonitorMutexTestThread(Monitor<Mutex>& m) : _monitor(m), _tryLock(false)
     {
     }
 
@@ -39,8 +36,7 @@ public:
         Monitor<Mutex>::Lock lock(_monitor);
     }
 
-    void
-    waitTryLock()
+    void waitTryLock()
     {
         Mutex::Lock lock(_tryLockMutex);
         while(!_tryLock)
@@ -50,7 +46,6 @@ public:
     }
 
 private:
-
     Monitor<Mutex>& _monitor;
     bool _tryLock;
     //
@@ -65,10 +60,7 @@ typedef Handle<MonitorMutexTestThread> MonitorMutexTestThreadPtr;
 class MonitorMutexTestThread2 : public Thread
 {
 public:
-
-    MonitorMutexTestThread2(Monitor<Mutex>& monitor) :
-        finished(false),
-        _monitor(monitor)
+    MonitorMutexTestThread2(Monitor<Mutex>& monitor) : finished(false), _monitor(monitor)
     {
     }
 
@@ -82,7 +74,6 @@ public:
     bool finished;
 
 private:
-
     Monitor<Mutex>& _monitor;
 };
 
@@ -90,13 +81,11 @@ typedef Handle<MonitorMutexTestThread2> MonitorMutexTestThread2Ptr;
 
 static const string monitorMutexTestName("monitor<mutex>");
 
-MonitorMutexTest::MonitorMutexTest() :
-    TestBase(monitorMutexTestName)
+MonitorMutexTest::MonitorMutexTest() : TestBase(monitorMutexTestName)
 {
 }
 
-void
-MonitorMutexTest::run()
+void MonitorMutexTest::run()
 {
     Monitor<Mutex> monitor;
     MonitorMutexTestThreadPtr t;

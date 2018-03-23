@@ -15,7 +15,6 @@
 class TestI : public ::Test::TestIntf
 {
 public:
-
     TestI();
 };
 

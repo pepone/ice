@@ -15,8 +15,7 @@
 using namespace IceUtil;
 using namespace std;
 
-template<typename T>
-struct TargetLess
+template<typename T> struct TargetLess
 {
     bool operator()(const T& lhs, const T& rhs) const
     {
@@ -34,7 +33,6 @@ struct TargetLess
 class TestTask : public IceUtil::TimerTask, IceUtil::Monitor<IceUtil::Mutex>
 {
 public:
-
     TestTask() : _count(0)
     {
     }
@@ -43,51 +41,44 @@ public:
     {
     }
 
-    virtual void
-    runTimerTask()
+    virtual void runTimerTask()
     {
         Lock sync(*this);
         ++_count;
         _run = IceUtil::Time::now(IceUtil::Time::Monotonic);
-        //cerr << "run: " << _scheduledTime.toMilliSeconds() << " " << _run.toMilliSeconds() << endl;
+        // cerr << "run: " << _scheduledTime.toMilliSeconds() << " " << _run.toMilliSeconds() << endl;
         notifyAll();
     }
 
-    virtual bool
-    operator<(const TestTask& r) const
+    virtual bool operator<(const TestTask& r) const
     {
         return _scheduledTime < r._scheduledTime;
     }
 
-    virtual bool
-    hasRun() const
+    virtual bool hasRun() const
     {
         Lock sync(*this);
         return _run != IceUtil::Time();
     }
 
-    int
-    getCount() const
+    int getCount() const
     {
         Lock sync(*this);
         return _count;
     }
 
-    virtual IceUtil::Time
-    getRunTime() const
+    virtual IceUtil::Time getRunTime() const
     {
         Lock sync(*this);
         return _run;
     }
 
-    IceUtil::Time
-    getScheduledTime() const
+    IceUtil::Time getScheduledTime() const
     {
         return _scheduledTime;
     }
 
-    virtual void
-    waitForRun()
+    virtual void waitForRun()
     {
         Lock sync(*this);
         while(_run == IceUtil::Time())
@@ -99,15 +90,13 @@ public:
         }
     }
 
-    void
-    clear()
+    void clear()
     {
         _run = IceUtil::Time();
         _count = 0;
     }
 
 private:
-
     IceUtil::Time _run;
     IceUtil::Time _scheduledTime;
     int _count;
@@ -117,13 +106,11 @@ ICE_DEFINE_PTR(TestTaskPtr, TestTask);
 class DestroyTask : public IceUtil::TimerTask, IceUtil::Monitor<IceUtil::Mutex>
 {
 public:
-
     DestroyTask(const IceUtil::TimerPtr& timer) : _timer(timer), _run(false)
     {
     }
 
-    virtual void
-    runTimerTask()
+    virtual void runTimerTask()
     {
         Lock sync(*this);
         _timer->destroy();
@@ -131,8 +118,7 @@ public:
         notify();
     }
 
-    virtual void
-    waitForRun()
+    virtual void waitForRun()
     {
         Lock sync(*this);
         while(!_run)
@@ -145,7 +131,6 @@ public:
     }
 
 private:
-
     IceUtil::TimerPtr _timer;
     bool _run;
 };

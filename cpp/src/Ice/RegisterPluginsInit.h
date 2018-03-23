@@ -12,14 +12,12 @@
 
 namespace IceInternal
 {
+    class RegisterPluginsInit
+    {
+    public:
+        RegisterPluginsInit();
+    };
 
-class RegisterPluginsInit
-{
-public:
-
-    RegisterPluginsInit();
-};
-
-}
+} // namespace IceInternal
 
 #endif

@@ -17,13 +17,11 @@
 using namespace std;
 using namespace Ice;
 
-ServerI::ServerI(const CommunicatorPtr& communicator) :
-    _communicator(communicator)
+ServerI::ServerI(const CommunicatorPtr& communicator) : _communicator(communicator)
 {
 }
 
-void
-ServerI::noCert(const Ice::Current& c)
+void ServerI::noCert(const Ice::Current& c)
 {
     try
     {
@@ -37,8 +35,7 @@ ServerI::noCert(const Ice::Current& c)
     }
 }
 
-void
-ServerI::checkCert(ICE_IN(string) subjectDN, ICE_IN(string) issuerDN, const Ice::Current& c)
+void ServerI::checkCert(ICE_IN(string) subjectDN, ICE_IN(string) issuerDN, const Ice::Current& c)
 {
     try
     {
@@ -67,8 +64,7 @@ ServerI::checkCert(ICE_IN(string) subjectDN, ICE_IN(string) issuerDN, const Ice:
     }
 }
 
-void
-ServerI::checkCipher(ICE_IN(string) cipher, const Ice::Current& c)
+void ServerI::checkCipher(ICE_IN(string) cipher, const Ice::Current& c)
 {
     try
     {
@@ -81,8 +77,7 @@ ServerI::checkCipher(ICE_IN(string) cipher, const Ice::Current& c)
     }
 }
 
-void
-ServerI::destroy()
+void ServerI::destroy()
 {
     _communicator->destroy();
 }
@@ -91,8 +86,7 @@ ServerFactoryI::ServerFactoryI(const string& defaultDir) : _defaultDir(defaultDi
 {
 }
 
-Test::ServerPrxPtr
-ServerFactoryI::createServer(ICE_IN(Test::Properties) props, const Current&)
+Test::ServerPrxPtr ServerFactoryI::createServer(ICE_IN(Test::Properties) props, const Current&)
 {
     InitializationData initData;
     initData.properties = createProperties();
@@ -112,8 +106,7 @@ ServerFactoryI::createServer(ICE_IN(Test::Properties) props, const Current&)
     return ICE_UNCHECKED_CAST(Test::ServerPrx, obj);
 }
 
-void
-ServerFactoryI::destroyServer(ICE_IN(Test::ServerPrxPtr) srv, const Ice::Current&)
+void ServerFactoryI::destroyServer(ICE_IN(Test::ServerPrxPtr) srv, const Ice::Current&)
 {
     map<Identity, ServerIPtr>::iterator p = _servers.find(srv->ice_getIdentity());
     if(p != _servers.end())
@@ -123,8 +116,7 @@ ServerFactoryI::destroyServer(ICE_IN(Test::ServerPrxPtr) srv, const Ice::Current
     }
 }
 
-void
-ServerFactoryI::shutdown(const Ice::Current& current)
+void ServerFactoryI::shutdown(const Ice::Current& current)
 {
     test(_servers.empty());
     current.adapter->getCommunicator()->shutdown();

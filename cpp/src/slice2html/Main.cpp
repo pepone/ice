@@ -24,71 +24,64 @@ using namespace IceUtilInternal;
 
 namespace
 {
+    IceUtil::Mutex* globalMutex = 0;
+    bool interrupted = false;
 
-IceUtil::Mutex* globalMutex = 0;
-bool interrupted = false;
-
-class Init
-{
-public:
-
-    Init()
+    class Init
     {
-        globalMutex = new IceUtil::Mutex;
-    }
+    public:
+        Init()
+        {
+            globalMutex = new IceUtil::Mutex;
+        }
 
-    ~Init()
-    {
-        delete globalMutex;
-        globalMutex = 0;
-    }
-};
+        ~Init()
+        {
+            delete globalMutex;
+            globalMutex = 0;
+        }
+    };
 
-Init init;
+    Init init;
 
-}
+} // namespace
 
-void
-interruptedCallback(int /*signal*/)
+void interruptedCallback(int /*signal*/)
 {
     IceUtilInternal::MutexPtrLock<IceUtil::Mutex> sync(globalMutex);
 
     interrupted = true;
 }
 
-void
-usage(const string& n)
+void usage(const string& n)
 {
     consoleErr << "Usage: " << n << " [options] slice-files...\n";
-    consoleErr <<
-        "Options:\n"
-        "-h, --help           Show this message.\n"
-        "-v, --version        Display the Ice version.\n"
-        "-DNAME               Define NAME as 1.\n"
-        "-DNAME=DEF           Define NAME as DEF.\n"
-        "-UNAME               Remove any definition for NAME.\n"
-        "-IDIR                Put DIR in the include file search path.\n"
-        "-E                   Print preprocessor output on stdout.\n"
-        "--output-dir DIR     Create files in the directory DIR.\n"
-        "-d, --debug          Print debug messages.\n"
-        "--hdr FILE           Use the contents of FILE as the header.\n"
-        "--ftr FILe           Use the contents of FILE as the footer.\n"
-        "--indexhdr FILE      Use the contents of FILE as the header of the index/toc page (default=--hdr).\n"
-        "--indexftr FILE      Use the contents of FILE as the footer of the index/toc page (default=--ftr).\n"
-        "--image-dir DIR      Directory containing images for style sheets.\n"
-        "--logo-url URL       Link to URL from logo image (requires --image-dir).\n"
-        "--search ACTION      Generate search box with specified ACTION.\n"
-        "--index NUM          Generate subindex if it has at least NUM entries (0 for no index, default=1).\n"
-        "--summary NUM        Print a warning if a summary sentence exceeds NUM characters.\n"
-        "--ice                Allow reserved Ice prefix in Slice identifiers\n"
-        "                     deprecated: use instead [[\"ice-prefix\"]] metadata.\n"
-        "--underscore         Allow underscores in Slice identifiers\n"
-        "                     deprecated: use instead [[\"underscore\"]] metadata.\n"
-        ;
+    consoleErr << "Options:\n"
+                  "-h, --help           Show this message.\n"
+                  "-v, --version        Display the Ice version.\n"
+                  "-DNAME               Define NAME as 1.\n"
+                  "-DNAME=DEF           Define NAME as DEF.\n"
+                  "-UNAME               Remove any definition for NAME.\n"
+                  "-IDIR                Put DIR in the include file search path.\n"
+                  "-E                   Print preprocessor output on stdout.\n"
+                  "--output-dir DIR     Create files in the directory DIR.\n"
+                  "-d, --debug          Print debug messages.\n"
+                  "--hdr FILE           Use the contents of FILE as the header.\n"
+                  "--ftr FILe           Use the contents of FILE as the footer.\n"
+                  "--indexhdr FILE      Use the contents of FILE as the header of the index/toc page (default=--hdr).\n"
+                  "--indexftr FILE      Use the contents of FILE as the footer of the index/toc page (default=--ftr).\n"
+                  "--image-dir DIR      Directory containing images for style sheets.\n"
+                  "--logo-url URL       Link to URL from logo image (requires --image-dir).\n"
+                  "--search ACTION      Generate search box with specified ACTION.\n"
+                  "--index NUM          Generate subindex if it has at least NUM entries (0 for no index, default=1).\n"
+                  "--summary NUM        Print a warning if a summary sentence exceeds NUM characters.\n"
+                  "--ice                Allow reserved Ice prefix in Slice identifiers\n"
+                  "                     deprecated: use instead [[\"ice-prefix\"]] metadata.\n"
+                  "--underscore         Allow underscores in Slice identifiers\n"
+                  "                     deprecated: use instead [[\"underscore\"]] metadata.\n";
 }
 
-int
-compile(const vector<string>& argv)
+int compile(const vector<string>& argv)
 {
     IceUtilInternal::Options opts;
     opts.addOpt("h", "help");
@@ -176,11 +169,10 @@ compile(const vector<string>& argv)
     if(!ind.empty())
     {
         istringstream s(ind);
-        s >>  indexCount;
+        s >> indexCount;
         if(!s)
         {
-            consoleErr << argv[0] << ": error: the --index operation requires a positive integer argument"
-                       << endl;
+            consoleErr << argv[0] << ": error: the --index operation requires a positive integer argument" << endl;
             if(!validate)
             {
                 usage(argv[0]);
@@ -200,11 +192,10 @@ compile(const vector<string>& argv)
     if(!warnSummary.empty())
     {
         istringstream s(warnSummary);
-        s >>  summaryCount;
+        s >> summaryCount;
         if(!s)
         {
-            consoleErr << argv[0] << ": error: the --summary operation requires a positive integer argument"
-                       << endl;
+            consoleErr << argv[0] << ": error: the --summary operation requires a positive integer argument" << endl;
             if(!validate)
             {
                 usage(argv[0]);
@@ -288,8 +279,8 @@ compile(const vector<string>& argv)
     {
         try
         {
-            Slice::generate(p, output, header, footer, indexHeader, indexFooter, imageDir, logoURL,
-                            searchAction, indexCount, summaryCount);
+            Slice::generate(p, output, header, footer, indexHeader, indexFooter, imageDir, logoURL, searchAction,
+                            indexCount, summaryCount);
         }
         catch(const Slice::FileException& ex)
         {
@@ -357,7 +348,8 @@ int main(int argc, char* argv[])
     }
     catch(...)
     {
-        consoleErr << args[0] << ": error:" << "unknown exception" << endl;
+        consoleErr << args[0] << ": error:"
+                   << "unknown exception" << endl;
         return EXIT_FAILURE;
     }
 }

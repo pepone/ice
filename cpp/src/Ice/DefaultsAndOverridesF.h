@@ -16,11 +16,10 @@
 
 namespace IceInternal
 {
+    class DefaultsAndOverrides;
+    IceUtil::Shared* upCast(DefaultsAndOverrides*);
+    typedef Handle<DefaultsAndOverrides> DefaultsAndOverridesPtr;
 
-class DefaultsAndOverrides;
-IceUtil::Shared* upCast(DefaultsAndOverrides*);
-typedef Handle<DefaultsAndOverrides> DefaultsAndOverridesPtr;
-
-}
+} // namespace IceInternal
 
 #endif

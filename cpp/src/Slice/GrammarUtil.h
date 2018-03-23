@@ -14,197 +14,209 @@
 
 namespace Slice
 {
+    class StringTok;
+    class StringListTok;
+    class TypeStringTok;
+    class TypeStringListTok;
+    class BoolTok;
+    class IntegerTok;
+    class FloatingTok;
+    class ExceptionListTok;
+    class ClassListTok;
+    class EnumeratorListTok;
+    class ConstDefTok;
+    class OptionalDefTok;
+    class OptionalTypeDefTok;
+    class ClassIdTok;
 
-class StringTok;
-class StringListTok;
-class TypeStringTok;
-class TypeStringListTok;
-class BoolTok;
-class IntegerTok;
-class FloatingTok;
-class ExceptionListTok;
-class ClassListTok;
-class EnumeratorListTok;
-class ConstDefTok;
-class OptionalDefTok;
-class OptionalTypeDefTok;
-class ClassIdTok;
+    typedef ::IceUtil::Handle<StringTok> StringTokPtr;
+    typedef ::IceUtil::Handle<StringListTok> StringListTokPtr;
+    typedef ::IceUtil::Handle<TypeStringTok> TypeStringTokPtr;
+    typedef ::IceUtil::Handle<TypeStringListTok> TypeStringListTokPtr;
+    typedef ::IceUtil::Handle<BoolTok> BoolTokPtr;
+    typedef ::IceUtil::Handle<IntegerTok> IntegerTokPtr;
+    typedef ::IceUtil::Handle<FloatingTok> FloatingTokPtr;
+    typedef ::IceUtil::Handle<ExceptionListTok> ExceptionListTokPtr;
+    typedef ::IceUtil::Handle<ClassListTok> ClassListTokPtr;
+    typedef ::IceUtil::Handle<EnumeratorListTok> EnumeratorListTokPtr;
+    typedef ::IceUtil::Handle<ConstDefTok> ConstDefTokPtr;
+    typedef ::IceUtil::Handle<OptionalDefTok> OptionalDefTokPtr;
+    typedef ::IceUtil::Handle<ClassIdTok> ClassIdTokPtr;
 
-typedef ::IceUtil::Handle<StringTok> StringTokPtr;
-typedef ::IceUtil::Handle<StringListTok> StringListTokPtr;
-typedef ::IceUtil::Handle<TypeStringTok> TypeStringTokPtr;
-typedef ::IceUtil::Handle<TypeStringListTok> TypeStringListTokPtr;
-typedef ::IceUtil::Handle<BoolTok> BoolTokPtr;
-typedef ::IceUtil::Handle<IntegerTok> IntegerTokPtr;
-typedef ::IceUtil::Handle<FloatingTok> FloatingTokPtr;
-typedef ::IceUtil::Handle<ExceptionListTok> ExceptionListTokPtr;
-typedef ::IceUtil::Handle<ClassListTok> ClassListTokPtr;
-typedef ::IceUtil::Handle<EnumeratorListTok> EnumeratorListTokPtr;
-typedef ::IceUtil::Handle<ConstDefTok> ConstDefTokPtr;
-typedef ::IceUtil::Handle<OptionalDefTok> OptionalDefTokPtr;
-typedef ::IceUtil::Handle<ClassIdTok> ClassIdTokPtr;
+    // ----------------------------------------------------------------------
+    // StringTok
+    // ----------------------------------------------------------------------
 
-// ----------------------------------------------------------------------
-// StringTok
-// ----------------------------------------------------------------------
+    class StringTok : public GrammarBase
+    {
+    public:
+        StringTok()
+        {
+        }
+        std::string v;
+        std::string literal;
+    };
 
-class StringTok : public GrammarBase
-{
-public:
+    // ----------------------------------------------------------------------
+    // StringListTok
+    // ----------------------------------------------------------------------
 
-    StringTok() { }
-    std::string v;
-    std::string literal;
-};
+    class StringListTok : public GrammarBase
+    {
+    public:
+        StringListTok()
+        {
+        }
+        StringList v;
+    };
 
-// ----------------------------------------------------------------------
-// StringListTok
-// ----------------------------------------------------------------------
+    // ----------------------------------------------------------------------
+    // TypeStringTok
+    // ----------------------------------------------------------------------
 
-class StringListTok : public GrammarBase
-{
-public:
+    class TypeStringTok : public GrammarBase
+    {
+    public:
+        TypeStringTok()
+        {
+        }
+        TypeString v;
+    };
 
-    StringListTok() { }
-    StringList v;
-};
+    // ----------------------------------------------------------------------
+    // TypeStringListTok
+    // ----------------------------------------------------------------------
 
-// ----------------------------------------------------------------------
-// TypeStringTok
-// ----------------------------------------------------------------------
+    class TypeStringListTok : public GrammarBase
+    {
+    public:
+        TypeStringListTok()
+        {
+        }
+        TypeStringList v;
+    };
 
-class TypeStringTok : public GrammarBase
-{
-public:
+    // ----------------------------------------------------------------------
+    // IntegerTok
+    // ----------------------------------------------------------------------
 
-    TypeStringTok() { }
-    TypeString v;
-};
+    class IntegerTok : public GrammarBase
+    {
+    public:
+        IntegerTok()
+        {
+        }
+        IceUtil::Int64 v;
+        std::string literal;
+    };
 
-// ----------------------------------------------------------------------
-// TypeStringListTok
-// ----------------------------------------------------------------------
+    // ----------------------------------------------------------------------
+    // FloatingTok
+    // ----------------------------------------------------------------------
 
-class TypeStringListTok : public GrammarBase
-{
-public:
+    class FloatingTok : public GrammarBase
+    {
+    public:
+        FloatingTok()
+        {
+        }
+        double v;
+        std::string literal;
+    };
 
-    TypeStringListTok() { }
-    TypeStringList v;
-};
+    // ----------------------------------------------------------------------
+    // BoolTok
+    // ----------------------------------------------------------------------
 
-// ----------------------------------------------------------------------
-// IntegerTok
-// ----------------------------------------------------------------------
+    class BoolTok : public GrammarBase
+    {
+    public:
+        BoolTok()
+        {
+        }
+        bool v;
+    };
 
-class IntegerTok : public GrammarBase
-{
-public:
+    // ----------------------------------------------------------------------
+    // ExceptionListTok
+    // ----------------------------------------------------------------------
 
-    IntegerTok() { }
-    IceUtil::Int64 v;
-    std::string literal;
-};
+    class ExceptionListTok : public GrammarBase
+    {
+    public:
+        ExceptionListTok()
+        {
+        }
+        ExceptionList v;
+    };
 
-// ----------------------------------------------------------------------
-// FloatingTok
-// ----------------------------------------------------------------------
+    // ----------------------------------------------------------------------
+    // ClassListTok
+    // ----------------------------------------------------------------------
 
-class FloatingTok : public GrammarBase
-{
-public:
+    class ClassListTok : public GrammarBase
+    {
+    public:
+        ClassListTok()
+        {
+        }
+        ClassList v;
+    };
 
-    FloatingTok() { }
-    double v;
-    std::string literal;
-};
+    // ----------------------------------------------------------------------
+    // EnumeratorListTok
+    // ----------------------------------------------------------------------
 
-// ----------------------------------------------------------------------
-// BoolTok
-// ----------------------------------------------------------------------
+    class EnumeratorListTok : public GrammarBase
+    {
+    public:
+        EnumeratorListTok()
+        {
+        }
+        EnumeratorList v;
+    };
 
-class BoolTok : public GrammarBase
-{
-public:
+    // ----------------------------------------------------------------------
+    // ConstDefTok
+    // ----------------------------------------------------------------------
 
-    BoolTok() { }
-    bool v;
-};
+    class ConstDefTok : public GrammarBase
+    {
+    public:
+        ConstDefTok()
+        {
+        }
+        ConstDef v;
+    };
 
-// ----------------------------------------------------------------------
-// ExceptionListTok
-// ----------------------------------------------------------------------
+    // ----------------------------------------------------------------------
+    // OptionalDefTok
+    // ----------------------------------------------------------------------
 
-class ExceptionListTok : public GrammarBase
-{
-public:
+    class OptionalDefTok : public GrammarBase
+    {
+    public:
+        OptionalDefTok()
+        {
+        }
+        OptionalDef v;
+    };
 
-    ExceptionListTok() { }
-    ExceptionList v;
-};
+    // ----------------------------------------------------------------------
+    // ClassIdTok
+    // ----------------------------------------------------------------------
 
-// ----------------------------------------------------------------------
-// ClassListTok
-// ----------------------------------------------------------------------
+    class ClassIdTok : public GrammarBase
+    {
+    public:
+        ClassIdTok()
+        {
+        }
+        std::string v;
+        int t;
+    };
 
-class ClassListTok : public GrammarBase
-{
-public:
-
-    ClassListTok() { }
-    ClassList v;
-};
-
-// ----------------------------------------------------------------------
-// EnumeratorListTok
-// ----------------------------------------------------------------------
-
-class EnumeratorListTok : public GrammarBase
-{
-public:
-
-    EnumeratorListTok() { }
-    EnumeratorList v;
-};
-
-// ----------------------------------------------------------------------
-// ConstDefTok
-// ----------------------------------------------------------------------
-
-class ConstDefTok : public GrammarBase
-{
-public:
-
-    ConstDefTok() { }
-    ConstDef v;
-};
-
-// ----------------------------------------------------------------------
-// OptionalDefTok
-// ----------------------------------------------------------------------
-
-class OptionalDefTok : public GrammarBase
-{
-public:
-
-    OptionalDefTok() { }
-    OptionalDef v;
-};
-
-// ----------------------------------------------------------------------
-// ClassIdTok
-// ----------------------------------------------------------------------
-
-class ClassIdTok : public GrammarBase
-{
-public:
-
-    ClassIdTok() { }
-    std::string v;
-    int t;
-};
-
-}
+} // namespace Slice
 
 //
 // Stuff for flex and bison
@@ -222,7 +234,7 @@ int slice_parse();
 // YYSTYPE, since YYSTYPE is a C++ type, with constructor, destructor,
 // assignment operator, etc.
 //
-#define YYMAXDEPTH  10000
+#define YYMAXDEPTH 10000
 #define YYINITDEPTH YYMAXDEPTH // Initial depth is set to max depth, for the reasons described above.
 
 //

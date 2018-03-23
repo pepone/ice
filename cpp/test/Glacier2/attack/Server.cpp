@@ -18,9 +18,7 @@ using namespace Test;
 class ServantLocatorI : public virtual ServantLocator
 {
 public:
-
-    ServantLocatorI() :
-        _backend(new BackendI)
+    ServantLocatorI() : _backend(new BackendI)
     {
     }
 
@@ -38,27 +36,23 @@ public:
     }
 
 private:
-
     BackendPtr _backend;
 };
 
 class BackendServer : public Application
 {
 public:
-
-    virtual int run(int, char*[]);
+    virtual int run(int, char* []);
 };
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
     BackendServer app;
     Ice::InitializationData initData = getTestInitData(argc, argv);
     return app.main(argc, argv, initData);
 }
 
-int
-BackendServer::run(int, char**)
+int BackendServer::run(int, char**)
 {
     communicator()->getProperties()->setProperty("BackendAdapter.Endpoints", getTestEndpoint(communicator(), 0));
     ObjectAdapterPtr adapter = communicator()->createObjectAdapter("BackendAdapter");

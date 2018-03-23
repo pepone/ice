@@ -17,7 +17,7 @@
 #include <iterator>
 
 #ifdef _WIN32
-#   include <io.h>
+#    include <io.h>
 #endif
 
 using namespace std;
@@ -34,108 +34,107 @@ extern int slice_debug;
 
 namespace
 {
-
-string readWriteAttribute[] = { "read", "write" };
-string txAttribute[] = { "supports", "mandatory", "required", "never" };
-enum { Supports, Mandatory, Required, Never };
-
-DataMemberList
-filterOrderedOptionalDataMembers(const DataMemberList& members)
-{
-    class SortFn
+    string readWriteAttribute[] = {"read", "write"};
+    string txAttribute[] = {"supports", "mandatory", "required", "never"};
+    enum
     {
-    public:
-        static bool compare(const DataMemberPtr& lhs, const DataMemberPtr& rhs)
-        {
-            return lhs->tag() < rhs->tag();
-        }
+        Supports,
+        Mandatory,
+        Required,
+        Never
     };
 
-    DataMemberList result;
-    for(DataMemberList::const_iterator p = members.begin(); p != members.end(); ++p)
+    DataMemberList filterOrderedOptionalDataMembers(const DataMemberList& members)
     {
-        if((*p)->optional())
+        class SortFn
         {
-            result.push_back(*p);
+        public:
+            static bool compare(const DataMemberPtr& lhs, const DataMemberPtr& rhs)
+            {
+                return lhs->tag() < rhs->tag();
+            }
+        };
+
+        DataMemberList result;
+        for(DataMemberList::const_iterator p = members.begin(); p != members.end(); ++p)
+        {
+            if((*p)->optional())
+            {
+                result.push_back(*p);
+            }
+        }
+        result.sort(SortFn::compare);
+        return result;
+    }
+
+    void sortOptionalParameters(ParamDeclList& params)
+    {
+        //
+        // Sort optional parameters by tag.
+        //
+        class SortFn
+        {
+        public:
+            static bool compare(const ParamDeclPtr& lhs, const ParamDeclPtr& rhs)
+            {
+                return lhs->tag() < rhs->tag();
+            }
+        };
+        params.sort(SortFn::compare);
+    }
+
+    bool isMutableAfterReturnType(const TypePtr& type)
+    {
+        //
+        // Returns true if the type contains data types which can be referenced by user code
+        // and mutated after a dispatch returns.
+        //
+
+        if(ClassDeclPtr::dynamicCast(type))
+        {
+            return true;
+        }
+
+        BuiltinPtr builtin = BuiltinPtr::dynamicCast(type);
+        if(builtin && (builtin->kind() == Builtin::KindObject || builtin->kind() == Builtin::KindValue))
+        {
+            return true;
+        }
+
+        if(SequencePtr::dynamicCast(type) || DictionaryPtr::dynamicCast(type))
+        {
+            return true;
+        }
+
+        StructPtr s = StructPtr::dynamicCast(type);
+        if(s)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    void checkDeprecatedType(const UnitPtr& unit, const TypePtr& type)
+    {
+        ClassDeclPtr decl = ClassDeclPtr::dynamicCast(type);
+        if(decl && !decl->isLocal() && decl->isInterface())
+        {
+            unit->warning(Deprecated, "interface by value is deprecated");
+        }
+
+        ProxyPtr proxy = ProxyPtr::dynamicCast(type);
+        if(proxy && !proxy->_class()->isInterface())
+        {
+            unit->warning(Deprecated, "proxy for a class is deprecated");
         }
     }
-    result.sort(SortFn::compare);
-    return result;
-}
 
-void
-sortOptionalParameters(ParamDeclList& params)
-{
-    //
-    // Sort optional parameters by tag.
-    //
-    class SortFn
-    {
-    public:
-        static bool compare(const ParamDeclPtr& lhs, const ParamDeclPtr& rhs)
-        {
-            return lhs->tag() < rhs->tag();
-        }
-    };
-    params.sort(SortFn::compare);
-}
-
-bool
-isMutableAfterReturnType(const TypePtr& type)
-{
-    //
-    // Returns true if the type contains data types which can be referenced by user code
-    // and mutated after a dispatch returns.
-    //
-
-    if(ClassDeclPtr::dynamicCast(type))
-    {
-        return true;
-    }
-
-    BuiltinPtr builtin = BuiltinPtr::dynamicCast(type);
-    if(builtin && (builtin->kind() == Builtin::KindObject || builtin->kind() == Builtin::KindValue))
-    {
-        return true;
-    }
-
-    if(SequencePtr::dynamicCast(type) || DictionaryPtr::dynamicCast(type))
-    {
-        return true;
-    }
-
-    StructPtr s = StructPtr::dynamicCast(type);
-    if(s)
-    {
-        return true;
-    }
-
-    return false;
-}
-
-void
-checkDeprecatedType(const UnitPtr& unit, const TypePtr& type)
-{
-    ClassDeclPtr decl = ClassDeclPtr::dynamicCast(type);
-    if(decl && !decl->isLocal() && decl->isInterface())
-    {
-        unit->warning(Deprecated, "interface by value is deprecated");
-    }
-
-    ProxyPtr proxy = ProxyPtr::dynamicCast(type);
-    if(proxy && !proxy->_class()->isInterface())
-    {
-        unit->warning(Deprecated, "proxy for a class is deprecated");
-    }
-}
-
-}
+} // namespace
 
 namespace Slice
 {
-
-Unit* unit;
-
+    Unit* unit;
 }
 
 // ----------------------------------------------------------------------
@@ -143,56 +142,50 @@ Unit* unit;
 // ----------------------------------------------------------------------
 
 Slice::DefinitionContext::DefinitionContext(int includeLevel, const StringList& metaData) :
-    _includeLevel(includeLevel), _metaData(metaData), _seenDefinition(false)
+    _includeLevel(includeLevel),
+    _metaData(metaData),
+    _seenDefinition(false)
 {
     initSuppressedWarnings();
 }
 
-string
-Slice::DefinitionContext::filename() const
+string Slice::DefinitionContext::filename() const
 {
     return _filename;
 }
 
-int
-Slice::DefinitionContext::includeLevel() const
+int Slice::DefinitionContext::includeLevel() const
 {
     return _includeLevel;
 }
 
-bool
-Slice::DefinitionContext::seenDefinition() const
+bool Slice::DefinitionContext::seenDefinition() const
 {
     return _seenDefinition;
 }
 
-void
-Slice::DefinitionContext::setFilename(const string& filename)
+void Slice::DefinitionContext::setFilename(const string& filename)
 {
     _filename = filename;
 }
 
-void
-Slice::DefinitionContext::setSeenDefinition()
+void Slice::DefinitionContext::setSeenDefinition()
 {
     _seenDefinition = true;
 }
 
-bool
-Slice::DefinitionContext::hasMetaData() const
+bool Slice::DefinitionContext::hasMetaData() const
 {
     return !_metaData.empty();
 }
 
-void
-Slice::DefinitionContext::setMetaData(const StringList& metaData)
+void Slice::DefinitionContext::setMetaData(const StringList& metaData)
 {
     _metaData = metaData;
     initSuppressedWarnings();
 }
 
-string
-Slice::DefinitionContext::findMetaData(const string& prefix) const
+string Slice::DefinitionContext::findMetaData(const string& prefix) const
 {
     for(StringList::const_iterator p = _metaData.begin(); p != _metaData.end(); ++p)
     {
@@ -205,14 +198,12 @@ Slice::DefinitionContext::findMetaData(const string& prefix) const
     return string();
 }
 
-StringList
-Slice::DefinitionContext::getMetaData() const
+StringList Slice::DefinitionContext::getMetaData() const
 {
     return _metaData;
 }
 
-void
-Slice::DefinitionContext::warning(WarningCategory category, const string& file, int line, const string& msg) const
+void Slice::DefinitionContext::warning(WarningCategory category, const string& file, int line, const string& msg) const
 {
     if(!suppressWarning(category))
     {
@@ -220,8 +211,8 @@ Slice::DefinitionContext::warning(WarningCategory category, const string& file, 
     }
 }
 
-void
-Slice::DefinitionContext::warning(WarningCategory category, const string& file, const string& line, const string& msg) const
+void Slice::DefinitionContext::warning(WarningCategory category, const string& file, const string& line,
+                                       const string& msg) const
 {
     if(!suppressWarning(category))
     {
@@ -229,15 +220,13 @@ Slice::DefinitionContext::warning(WarningCategory category, const string& file, 
     }
 }
 
-bool
-Slice::DefinitionContext::suppressWarning(WarningCategory category) const
+bool Slice::DefinitionContext::suppressWarning(WarningCategory category) const
 {
     return _suppressedWarnings.find(category) != _suppressedWarnings.end() ||
-        _suppressedWarnings.find(All) != _suppressedWarnings.end();
+           _suppressedWarnings.find(All) != _suppressedWarnings.end();
 }
 
-void
-Slice::DefinitionContext::initSuppressedWarnings()
+void Slice::DefinitionContext::initSuppressedWarnings()
 {
     _suppressedWarnings.clear();
     const string prefix = "suppress-warning";
@@ -271,8 +260,8 @@ Slice::DefinitionContext::initSuppressedWarnings()
                 }
                 else
                 {
-                    warning(InvalidMetaData, "", "", string("invalid category `") + s +
-                            "' in global metadata suppress-warning");
+                    warning(InvalidMetaData, "", "",
+                            string("invalid category `") + s + "' in global metadata suppress-warning");
                 }
             }
         }
@@ -283,50 +272,42 @@ Slice::DefinitionContext::initSuppressedWarnings()
 // Comment
 // ----------------------------------------------------------------------
 
-bool
-Slice::Comment::isDeprecated() const
+bool Slice::Comment::isDeprecated() const
 {
     return _isDeprecated;
 }
 
-StringList
-Slice::Comment::deprecated() const
+StringList Slice::Comment::deprecated() const
 {
     return _deprecated;
 }
 
-StringList
-Slice::Comment::overview() const
+StringList Slice::Comment::overview() const
 {
     return _overview;
 }
 
-StringList
-Slice::Comment::misc() const
+StringList Slice::Comment::misc() const
 {
     return _misc;
 }
 
-StringList
-Slice::Comment::seeAlso() const
+StringList Slice::Comment::seeAlso() const
 {
     return _seeAlso;
 }
 
-StringList
-Slice::Comment::returns() const
+StringList Slice::Comment::returns() const
 {
     return _returns;
 }
 
-map<string, StringList>
-Slice::Comment::parameters() const
+map<string, StringList> Slice::Comment::parameters() const
 {
     return _parameters;
 }
 
-map<string, StringList>
-Slice::Comment::exceptions() const
+map<string, StringList> Slice::Comment::exceptions() const
 {
     return _exceptions;
 }
@@ -339,31 +320,26 @@ Slice::Comment::Comment()
 // SyntaxTreeBase
 // ----------------------------------------------------------------------
 
-void
-Slice::SyntaxTreeBase::destroy()
+void Slice::SyntaxTreeBase::destroy()
 {
     _unit = 0;
 }
 
-UnitPtr
-Slice::SyntaxTreeBase::unit() const
+UnitPtr Slice::SyntaxTreeBase::unit() const
 {
     return _unit;
 }
 
-DefinitionContextPtr
-Slice::SyntaxTreeBase::definitionContext() const
+DefinitionContextPtr Slice::SyntaxTreeBase::definitionContext() const
 {
     return _definitionContext;
 }
 
-void
-Slice::SyntaxTreeBase::visit(ParserVisitor*, bool)
+void Slice::SyntaxTreeBase::visit(ParserVisitor*, bool)
 {
 }
 
-Slice::SyntaxTreeBase::SyntaxTreeBase(const UnitPtr& unit) :
-    _unit(unit)
+Slice::SyntaxTreeBase::SyntaxTreeBase(const UnitPtr& unit) : _unit(unit)
 {
     if(_unit)
     {
@@ -375,8 +351,7 @@ Slice::SyntaxTreeBase::SyntaxTreeBase(const UnitPtr& unit) :
 // Type
 // ----------------------------------------------------------------------
 
-Slice::Type::Type(const UnitPtr& unit) :
-    SyntaxTreeBase(unit)
+Slice::Type::Type(const UnitPtr& unit) : SyntaxTreeBase(unit)
 {
 }
 
@@ -384,14 +359,12 @@ Slice::Type::Type(const UnitPtr& unit) :
 // Builtin
 // ----------------------------------------------------------------------
 
-bool
-Slice::Builtin::isLocal() const
+bool Slice::Builtin::isLocal() const
 {
     return _kind == KindLocalObject;
 }
 
-string
-Slice::Builtin::typeId() const
+string Slice::Builtin::typeId() const
 {
     switch(_kind)
     {
@@ -460,17 +433,14 @@ Slice::Builtin::typeId() const
     return ""; // Keep the compiler happy.
 }
 
-bool
-Slice::Builtin::usesClasses() const
+bool Slice::Builtin::usesClasses() const
 {
     return _kind == KindObject || _kind == KindValue;
 }
 
-size_t
-Slice::Builtin::minWireSize() const
+size_t Slice::Builtin::minWireSize() const
 {
-    static size_t minWireSizeTable[] =
-    {
+    static size_t minWireSizeTable[] = {
         1, // KindByte
         1, // KindBool
         2, // KindShort
@@ -488,44 +458,25 @@ Slice::Builtin::minWireSize() const
     return minWireSizeTable[_kind];
 }
 
-bool
-Slice::Builtin::isVariableLength() const
+bool Slice::Builtin::isVariableLength() const
 {
     return _kind == KindString || _kind == KindObject || _kind == KindObjectProxy || _kind == KindValue;
 }
 
-Builtin::Kind
-Slice::Builtin::kind() const
+Builtin::Kind Slice::Builtin::kind() const
 {
     return _kind;
 }
 
-string
-Builtin::kindAsString() const
+string Builtin::kindAsString() const
 {
     return builtinTable[_kind];
 }
 
-const char* Slice::Builtin::builtinTable[] =
-    {
-        "byte",
-        "bool",
-        "short",
-        "int",
-        "long",
-        "float",
-        "double",
-        "string",
-        "Object",
-        "Object*",
-        "LocalObject",
-        "Value"
-    };
+const char* Slice::Builtin::builtinTable[] = {"byte",   "bool",   "short",  "int",     "long",        "float",
+                                              "double", "string", "Object", "Object*", "LocalObject", "Value"};
 
-Slice::Builtin::Builtin(const UnitPtr& unit, Kind kind) :
-    SyntaxTreeBase(unit),
-    Type(unit),
-    _kind(kind)
+Slice::Builtin::Builtin(const UnitPtr& unit, Kind kind) : SyntaxTreeBase(unit), Type(unit), _kind(kind)
 {
     //
     // Builtin types do not have a definition context.
@@ -537,217 +488,201 @@ Slice::Builtin::Builtin(const UnitPtr& unit, Kind kind) :
 // Contained
 // ----------------------------------------------------------------------
 
-ContainerPtr
-Slice::Contained::container() const
+ContainerPtr Slice::Contained::container() const
 {
     return _container;
 }
 
-string
-Slice::Contained::name() const
+string Slice::Contained::name() const
 {
     return _name;
 }
 
-string
-Slice::Contained::scoped() const
+string Slice::Contained::scoped() const
 {
     return _scoped;
 }
 
-string
-Slice::Contained::scope() const
+string Slice::Contained::scope() const
 {
     string::size_type idx = _scoped.rfind("::");
     assert(idx != string::npos);
     return string(_scoped, 0, idx + 2);
 }
 
-string
-Slice::Contained::flattenedScope() const
+string Slice::Contained::flattenedScope() const
 {
     string s = scope();
     string::size_type pos = 0;
     while((pos = s.find("::", pos)) != string::npos)
     {
         s.replace(pos, 2, "_");
-
     }
     return s;
 }
 
-string
-Slice::Contained::file() const
+string Slice::Contained::file() const
 {
     return _file;
 }
 
-string
-Slice::Contained::line() const
+string Slice::Contained::line() const
 {
     return _line;
 }
 
-string
-Slice::Contained::comment() const
+string Slice::Contained::comment() const
 {
     return _comment;
 }
 
 namespace
 {
-
-void
-trimLines(StringList& l)
-{
-    //
-    // Remove empty trailing lines.
-    //
-    while(!l.empty() && l.back().empty())
-    {
-        l.pop_back();
-    }
-}
-
-StringList
-splitComment(const string& c, bool stripMarkup)
-{
-    string comment = c;
-
-    if(stripMarkup)
+    void trimLines(StringList& l)
     {
         //
-        // Strip HTML markup and javadoc links.
+        // Remove empty trailing lines.
         //
-        string::size_type pos = 0;
-        do
+        while(!l.empty() && l.back().empty())
         {
-            pos = comment.find('<', pos);
-            if(pos != string::npos)
-            {
-                string::size_type endpos = comment.find('>', pos);
-                if(endpos == string::npos)
-                {
-                    break;
-                }
-                comment.erase(pos, endpos - pos + 1);
-            }
+            l.pop_back();
         }
-        while(pos != string::npos);
+    }
 
-        const string link = "{@link";
-        pos = 0;
-        do
+    StringList splitComment(const string& c, bool stripMarkup)
+    {
+        string comment = c;
+
+        if(stripMarkup)
         {
-            pos = comment.find(link, pos);
-            if(pos != string::npos)
+            //
+            // Strip HTML markup and javadoc links.
+            //
+            string::size_type pos = 0;
+            do
             {
-                comment.erase(pos, link.size() + 1); // Erase trailing white space too.
-                string::size_type endpos = comment.find('}', pos);
-                if(endpos != string::npos)
+                pos = comment.find('<', pos);
+                if(pos != string::npos)
                 {
-                    string ident = comment.substr(pos, endpos - pos);
-                    comment.erase(pos, endpos - pos + 1);
-
-                    //
-                    // Replace links of the form {@link Type#member} with "Type.member".
-                    //
-                    string::size_type hash = ident.find('#');
-                    string rest;
-                    if(hash != string::npos)
+                    string::size_type endpos = comment.find('>', pos);
+                    if(endpos == string::npos)
                     {
-                        rest = ident.substr(hash + 1);
-                        ident = ident.substr(0, hash);
-                        if(!ident.empty())
+                        break;
+                    }
+                    comment.erase(pos, endpos - pos + 1);
+                }
+            } while(pos != string::npos);
+
+            const string link = "{@link";
+            pos = 0;
+            do
+            {
+                pos = comment.find(link, pos);
+                if(pos != string::npos)
+                {
+                    comment.erase(pos, link.size() + 1); // Erase trailing white space too.
+                    string::size_type endpos = comment.find('}', pos);
+                    if(endpos != string::npos)
+                    {
+                        string ident = comment.substr(pos, endpos - pos);
+                        comment.erase(pos, endpos - pos + 1);
+
+                        //
+                        // Replace links of the form {@link Type#member} with "Type.member".
+                        //
+                        string::size_type hash = ident.find('#');
+                        string rest;
+                        if(hash != string::npos)
                         {
-                            if(!rest.empty())
+                            rest = ident.substr(hash + 1);
+                            ident = ident.substr(0, hash);
+                            if(!ident.empty())
                             {
-                                ident += "." + rest;
+                                if(!rest.empty())
+                                {
+                                    ident += "." + rest;
+                                }
+                            }
+                            else if(!rest.empty())
+                            {
+                                ident = rest;
                             }
                         }
-                        else if(!rest.empty())
-                        {
-                            ident = rest;
-                        }
-                    }
 
-                    comment.insert(pos, ident);
+                        comment.insert(pos, ident);
+                    }
+                }
+            } while(pos != string::npos);
+        }
+
+        StringList result;
+
+        string::size_type pos = 0;
+        string::size_type nextPos;
+        while((nextPos = comment.find_first_of('\n', pos)) != string::npos)
+        {
+            result.push_back(IceUtilInternal::trim(string(comment, pos, nextPos - pos)));
+            pos = nextPos + 1;
+        }
+        string lastLine = IceUtilInternal::trim(string(comment, pos));
+        if(!lastLine.empty())
+        {
+            result.push_back(lastLine);
+        }
+
+        trimLines(result);
+
+        return result;
+    }
+
+    bool parseCommentLine(const string& l, const string& tag, bool namedTag, string& name, string& doc)
+    {
+        doc.clear();
+
+        if(l.find(tag) == 0)
+        {
+            const string ws = " \t";
+
+            if(namedTag)
+            {
+                string::size_type n = l.find_first_not_of(ws, tag.size());
+                if(n == string::npos)
+                {
+                    return false; // Malformed line, ignore it.
+                }
+                string::size_type end = l.find_first_of(ws, n);
+                if(end == string::npos)
+                {
+                    return false; // Malformed line, ignore it.
+                }
+                name = l.substr(n, end - n);
+                n = l.find_first_not_of(ws, end);
+                if(n != string::npos)
+                {
+                    doc = l.substr(n);
                 }
             }
-        }
-        while(pos != string::npos);
-    }
-
-    StringList result;
-
-    string::size_type pos = 0;
-    string::size_type nextPos;
-    while((nextPos = comment.find_first_of('\n', pos)) != string::npos)
-    {
-        result.push_back(IceUtilInternal::trim(string(comment, pos, nextPos - pos)));
-        pos = nextPos + 1;
-    }
-    string lastLine = IceUtilInternal::trim(string(comment, pos));
-    if(!lastLine.empty())
-    {
-        result.push_back(lastLine);
-    }
-
-    trimLines(result);
-
-    return result;
-}
-
-bool
-parseCommentLine(const string& l, const string& tag, bool namedTag, string& name, string& doc)
-{
-    doc.clear();
-
-    if(l.find(tag) == 0)
-    {
-        const string ws = " \t";
-
-        if(namedTag)
-        {
-            string::size_type n = l.find_first_not_of(ws, tag.size());
-            if(n == string::npos)
+            else
             {
-                return false; // Malformed line, ignore it.
-            }
-            string::size_type end = l.find_first_of(ws, n);
-            if(end == string::npos)
-            {
-                return false; // Malformed line, ignore it.
-            }
-            name = l.substr(n, end - n);
-            n = l.find_first_not_of(ws, end);
-            if(n != string::npos)
-            {
+                name.clear();
+
+                string::size_type n = l.find_first_not_of(ws, tag.size());
+                if(n == string::npos)
+                {
+                    return false; // Malformed line, ignore it.
+                }
                 doc = l.substr(n);
             }
-        }
-        else
-        {
-            name.clear();
 
-            string::size_type n = l.find_first_not_of(ws, tag.size());
-            if(n == string::npos)
-            {
-                return false; // Malformed line, ignore it.
-            }
-            doc = l.substr(n);
+            return true;
         }
 
-        return true;
+        return false;
     }
 
-    return false;
-}
+} // namespace
 
-}
-
-CommentPtr
-Slice::Contained::parseComment(bool stripMarkup) const
+CommentPtr Slice::Contained::parseComment(bool stripMarkup) const
 {
     CommentPtr comment = new Comment;
 
@@ -787,7 +722,14 @@ Slice::Contained::parseComment(bool stripMarkup) const
         comment->_overview.push_back(l);
     }
 
-    enum State { StateMisc, StateParam, StateThrows, StateReturn, StateDeprecated };
+    enum State
+    {
+        StateMisc,
+        StateParam,
+        StateThrows,
+        StateReturn,
+        StateDeprecated
+    };
     State state = StateMisc;
     string name;
     const string ws = " \t";
@@ -918,26 +860,22 @@ Slice::Contained::parseComment(bool stripMarkup) const
     return comment;
 }
 
-int
-Slice::Contained::includeLevel() const
+int Slice::Contained::includeLevel() const
 {
     return _includeLevel;
 }
 
-void
-Slice::Contained::updateIncludeLevel()
+void Slice::Contained::updateIncludeLevel()
 {
     _includeLevel = min(_includeLevel, _unit->currentIncludeLevel());
 }
 
-bool
-Slice::Contained::hasMetaData(const string& meta) const
+bool Slice::Contained::hasMetaData(const string& meta) const
 {
     return find(_metaData.begin(), _metaData.end(), meta) != _metaData.end();
 }
 
-bool
-Slice::Contained::findMetaData(const string& prefix, string& meta) const
+bool Slice::Contained::findMetaData(const string& prefix, string& meta) const
 {
     for(list<string>::const_iterator p = _metaData.begin(); p != _metaData.end(); ++p)
     {
@@ -951,14 +889,12 @@ Slice::Contained::findMetaData(const string& prefix, string& meta) const
     return false;
 }
 
-list<string>
-Slice::Contained::getMetaData() const
+list<string> Slice::Contained::getMetaData() const
 {
     return _metaData;
 }
 
-void
-Slice::Contained::setMetaData(const list<string>& metaData)
+void Slice::Contained::setMetaData(const list<string>& metaData)
 {
     _metaData = metaData;
 }
@@ -966,14 +902,12 @@ Slice::Contained::setMetaData(const list<string>& metaData)
 //
 // TODO: remove this method once "cs:" and "vb:" prefix are hard errors.
 //
-void
-Slice::Contained::addMetaData(const string& s)
+void Slice::Contained::addMetaData(const string& s)
 {
     _metaData.push_back(s);
 }
 
-FormatType
-Slice::Contained::parseFormatMetaData(const list<string>& metaData)
+FormatType Slice::Contained::parseFormatMetaData(const list<string>& metaData)
 {
     FormatType result = DefaultFormat;
 
@@ -1008,14 +942,12 @@ Slice::Contained::parseFormatMetaData(const list<string>& metaData)
     return result;
 }
 
-bool
-Slice::Contained::operator<(const Contained& rhs) const
+bool Slice::Contained::operator<(const Contained& rhs) const
 {
     return _scoped < rhs._scoped;
 }
 
-bool
-Slice::Contained::operator==(const Contained& rhs) const
+bool Slice::Contained::operator==(const Contained& rhs) const
 {
     return _scoped == rhs._scoped;
 }
@@ -1045,8 +977,7 @@ Slice::Contained::Contained(const ContainerPtr& container, const string& name) :
 // Container
 // ----------------------------------------------------------------------
 
-void
-Slice::Container::destroy()
+void Slice::Container::destroy()
 {
     for_each(_contents.begin(), _contents.end(), ::IceUtil::voidMemFun(&SyntaxTreeBase::destroy));
     _contents.clear();
@@ -1054,11 +985,10 @@ Slice::Container::destroy()
     SyntaxTreeBase::destroy();
 }
 
-ModulePtr
-Slice::Container::createModule(const string& name)
+ModulePtr Slice::Container::createModule(const string& name)
 {
     ContainedList matches = _unit->findContents(thisScope() + name);
-    matches.sort(); // Modules can occur many times...
+    matches.sort();   // Modules can occur many times...
     matches.unique(); // ... but we only want one instance of each.
 
     if(thisScope() == "::")
@@ -1106,8 +1036,7 @@ Slice::Container::createModule(const string& name)
     return q;
 }
 
-ClassDefPtr
-Slice::Container::createClassDef(const string& name, int id, bool intf, const ClassList& bases, bool local)
+ClassDefPtr Slice::Container::createClassDef(const string& name, int id, bool intf, const ClassList& bases, bool local)
 {
     ContainedList matches = _unit->findContents(thisScope() + name);
     for(ContainedList::const_iterator p = matches.begin(); p != matches.end(); ++p)
@@ -1195,8 +1124,7 @@ Slice::Container::createClassDef(const string& name, int id, bool intf, const Cl
     return def;
 }
 
-ClassDeclPtr
-Slice::Container::createClassDecl(const string& name, bool intf, bool local)
+ClassDeclPtr Slice::Container::createClassDecl(const string& name, bool intf, bool local)
 {
     ClassDefPtr def;
 
@@ -1284,8 +1212,7 @@ Slice::Container::createClassDecl(const string& name, bool intf, bool local)
     return decl;
 }
 
-ExceptionPtr
-Slice::Container::createException(const string& name, const ExceptionPtr& base, bool local, NodeType nt)
+ExceptionPtr Slice::Container::createException(const string& name, const ExceptionPtr& base, bool local, NodeType nt)
 {
     ContainedList matches = _unit->findContents(thisScope() + name);
     if(!matches.empty())
@@ -1334,8 +1261,7 @@ Slice::Container::createException(const string& name, const ExceptionPtr& base, 
     return p;
 }
 
-StructPtr
-Slice::Container::createStruct(const string& name, bool local, NodeType nt)
+StructPtr Slice::Container::createStruct(const string& name, bool local, NodeType nt)
 {
     ContainedList matches = _unit->findContents(thisScope() + name);
     if(!matches.empty())
@@ -1376,9 +1302,8 @@ Slice::Container::createStruct(const string& name, bool local, NodeType nt)
     return p;
 }
 
-SequencePtr
-Slice::Container::createSequence(const string& name, const TypePtr& type, const StringList& metaData, bool local,
-                                 NodeType nt)
+SequencePtr Slice::Container::createSequence(const string& name, const TypePtr& type, const StringList& metaData,
+                                             bool local, NodeType nt)
 {
     ContainedList matches = _unit->findContents(thisScope() + name);
     if(!matches.empty())
@@ -1430,10 +1355,9 @@ Slice::Container::createSequence(const string& name, const TypePtr& type, const 
     return p;
 }
 
-DictionaryPtr
-Slice::Container::createDictionary(const string& name, const TypePtr& keyType, const StringList& keyMetaData,
-                                   const TypePtr& valueType, const StringList& valueMetaData, bool local,
-                                   NodeType nt)
+DictionaryPtr Slice::Container::createDictionary(const string& name, const TypePtr& keyType,
+                                                 const StringList& keyMetaData, const TypePtr& valueType,
+                                                 const StringList& valueMetaData, bool local, NodeType nt)
 {
     ContainedList matches = _unit->findContents(thisScope() + name);
     if(!matches.empty())
@@ -1504,8 +1428,7 @@ Slice::Container::createDictionary(const string& name, const TypePtr& keyType, c
     return p;
 }
 
-EnumPtr
-Slice::Container::createEnum(const string& name, bool local, NodeType nt)
+EnumPtr Slice::Container::createEnum(const string& name, bool local, NodeType nt)
 {
     ContainedList matches = _unit->findContents(thisScope() + name);
     if(!matches.empty())
@@ -1546,8 +1469,7 @@ Slice::Container::createEnum(const string& name, bool local, NodeType nt)
     return p;
 }
 
-EnumeratorPtr
-Slice::Container::createEnumerator(const string& name)
+EnumeratorPtr Slice::Container::createEnumerator(const string& name)
 {
     EnumeratorPtr p = validateEnumerator(name);
     if(!p)
@@ -1558,8 +1480,7 @@ Slice::Container::createEnumerator(const string& name)
     return p;
 }
 
-EnumeratorPtr
-Slice::Container::createEnumerator(const string& name, int value)
+EnumeratorPtr Slice::Container::createEnumerator(const string& name, int value)
 {
     EnumeratorPtr p = validateEnumerator(name);
     if(!p)
@@ -1570,10 +1491,9 @@ Slice::Container::createEnumerator(const string& name, int value)
     return p;
 }
 
-ConstPtr
-Slice::Container::createConst(const string name, const TypePtr& constType, const StringList& metaData,
-                              const SyntaxTreeBasePtr& valueType, const string& value, const string& literal,
-                              NodeType nt)
+ConstPtr Slice::Container::createConst(const string name, const TypePtr& constType, const StringList& metaData,
+                                       const SyntaxTreeBasePtr& valueType, const string& value, const string& literal,
+                                       NodeType nt)
 {
     ContainedList matches = _unit->findContents(thisScope() + name);
     if(!matches.empty())
@@ -1624,8 +1544,7 @@ Slice::Container::createConst(const string name, const TypePtr& constType, const
     return p;
 }
 
-TypeList
-Slice::Container::lookupType(const string& scoped, bool printError)
+TypeList Slice::Container::lookupType(const string& scoped, bool printError)
 {
     //
     // Remove whitespace.
@@ -1656,8 +1575,7 @@ Slice::Container::lookupType(const string& scoped, bool printError)
     return lookupTypeNoBuiltin(scoped, printError);
 }
 
-TypeList
-Slice::Container::lookupTypeNoBuiltin(const string& scoped, bool printError, bool ignoreUndefined)
+TypeList Slice::Container::lookupTypeNoBuiltin(const string& scoped, bool printError, bool ignoreUndefined)
 {
     //
     // Remove whitespace.
@@ -1802,8 +1720,7 @@ Slice::Container::lookupTypeNoBuiltin(const string& scoped, bool printError, boo
     return results;
 }
 
-ContainedList
-Slice::Container::lookupContained(const string& scoped, bool printError)
+ContainedList Slice::Container::lookupContained(const string& scoped, bool printError)
 {
     //
     // Remove whitespace.
@@ -1862,8 +1779,7 @@ Slice::Container::lookupContained(const string& scoped, bool printError)
     }
 }
 
-ExceptionPtr
-Slice::Container::lookupException(const string& scoped, bool printError)
+ExceptionPtr Slice::Container::lookupException(const string& scoped, bool printError)
 {
     ContainedList contained = lookupContained(scoped, printError);
     if(contained.empty())
@@ -1892,14 +1808,12 @@ Slice::Container::lookupException(const string& scoped, bool printError)
     return exceptions.front();
 }
 
-UnitPtr
-Slice::Container::unit() const
+UnitPtr Slice::Container::unit() const
 {
     return SyntaxTreeBase::unit();
 }
 
-ModuleList
-Slice::Container::modules() const
+ModuleList Slice::Container::modules() const
 {
     ModuleList result;
     for(ContainedList::const_iterator p = _contents.begin(); p != _contents.end(); ++p)
@@ -1913,8 +1827,7 @@ Slice::Container::modules() const
     return result;
 }
 
-ClassList
-Slice::Container::classes() const
+ClassList Slice::Container::classes() const
 {
     ClassList result;
     for(ContainedList::const_iterator p = _contents.begin(); p != _contents.end(); ++p)
@@ -1928,8 +1841,7 @@ Slice::Container::classes() const
     return result;
 }
 
-ExceptionList
-Slice::Container::exceptions() const
+ExceptionList Slice::Container::exceptions() const
 {
     ExceptionList result;
     for(ContainedList::const_iterator p = _contents.begin(); p != _contents.end(); ++p)
@@ -1943,8 +1855,7 @@ Slice::Container::exceptions() const
     return result;
 }
 
-StructList
-Slice::Container::structs() const
+StructList Slice::Container::structs() const
 {
     StructList result;
     for(ContainedList::const_iterator p = _contents.begin(); p != _contents.end(); ++p)
@@ -1958,8 +1869,7 @@ Slice::Container::structs() const
     return result;
 }
 
-SequenceList
-Slice::Container::sequences() const
+SequenceList Slice::Container::sequences() const
 {
     SequenceList result;
     for(ContainedList::const_iterator p = _contents.begin(); p != _contents.end(); ++p)
@@ -1973,8 +1883,7 @@ Slice::Container::sequences() const
     return result;
 }
 
-DictionaryList
-Slice::Container::dictionaries() const
+DictionaryList Slice::Container::dictionaries() const
 {
     DictionaryList result;
     for(ContainedList::const_iterator p = _contents.begin(); p != _contents.end(); ++p)
@@ -1988,8 +1897,7 @@ Slice::Container::dictionaries() const
     return result;
 }
 
-EnumList
-Slice::Container::enums() const
+EnumList Slice::Container::enums() const
 {
     EnumList result;
     for(ContainedList::const_iterator p = _contents.begin(); p != _contents.end(); ++p)
@@ -2003,8 +1911,7 @@ Slice::Container::enums() const
     return result;
 }
 
-EnumeratorList
-Slice::Container::enumerators() const
+EnumeratorList Slice::Container::enumerators() const
 {
     EnumeratorList result;
     for(ContainedList::const_iterator p = _contents.begin(); p != _contents.end(); ++p)
@@ -2021,8 +1928,7 @@ Slice::Container::enumerators() const
 //
 // Find enumerators using the old unscoped enumerators lookup
 //
-EnumeratorList
-Slice::Container::enumerators(const string& scoped) const
+EnumeratorList Slice::Container::enumerators(const string& scoped) const
 {
     EnumeratorList result;
     string::size_type lastColon = scoped.rfind(':');
@@ -2052,8 +1958,7 @@ Slice::Container::enumerators(const string& scoped) const
             {
                 container = 0;
             }
-        }
-        while(result.empty() && container);
+        } while(result.empty() && container);
     }
     else
     {
@@ -2083,8 +1988,7 @@ Slice::Container::enumerators(const string& scoped) const
     return result;
 }
 
-ConstList
-Slice::Container::consts() const
+ConstList Slice::Container::consts() const
 {
     ConstList result;
     for(ContainedList::const_iterator p = _contents.begin(); p != _contents.end(); ++p)
@@ -2098,14 +2002,12 @@ Slice::Container::consts() const
     return result;
 }
 
-ContainedList
-Slice::Container::contents() const
+ContainedList Slice::Container::contents() const
 {
     return _contents;
 }
 
-bool
-Slice::Container::hasNonLocalClassDecls() const
+bool Slice::Container::hasNonLocalClassDecls() const
 {
     for(ContainedList::const_iterator p = _contents.begin(); p != _contents.end(); ++p)
     {
@@ -2125,8 +2027,7 @@ Slice::Container::hasNonLocalClassDecls() const
     return false;
 }
 
-bool
-Slice::Container::hasNonLocalClassDefs() const
+bool Slice::Container::hasNonLocalClassDefs() const
 {
     for(ContainedList::const_iterator p = _contents.begin(); p != _contents.end(); ++p)
     {
@@ -2146,8 +2047,7 @@ Slice::Container::hasNonLocalClassDefs() const
     return false;
 }
 
-bool
-Slice::Container::hasLocalClassDefsWithAsync() const
+bool Slice::Container::hasLocalClassDefsWithAsync() const
 {
     for(ContainedList::const_iterator p = _contents.begin(); p != _contents.end(); ++p)
     {
@@ -2179,8 +2079,7 @@ Slice::Container::hasLocalClassDefsWithAsync() const
     return false;
 }
 
-bool
-Slice::Container::hasNonLocalSequences() const
+bool Slice::Container::hasNonLocalSequences() const
 {
     for(ContainedList::const_iterator p = _contents.begin(); p != _contents.end(); ++p)
     {
@@ -2200,8 +2099,7 @@ Slice::Container::hasNonLocalSequences() const
     return false;
 }
 
-bool
-Slice::Container::hasNonLocalExceptions() const
+bool Slice::Container::hasNonLocalExceptions() const
 {
     for(ContainedList::const_iterator p = _contents.begin(); p != _contents.end(); ++p)
     {
@@ -2221,8 +2119,7 @@ Slice::Container::hasNonLocalExceptions() const
     return false;
 }
 
-bool
-Slice::Container::hasStructs() const
+bool Slice::Container::hasStructs() const
 {
     for(ContainedList::const_iterator p = _contents.begin(); p != _contents.end(); ++p)
     {
@@ -2242,8 +2139,7 @@ Slice::Container::hasStructs() const
     return false;
 }
 
-bool
-Slice::Container::hasExceptions() const
+bool Slice::Container::hasExceptions() const
 {
     for(ContainedList::const_iterator p = _contents.begin(); p != _contents.end(); ++p)
     {
@@ -2263,8 +2159,7 @@ Slice::Container::hasExceptions() const
     return false;
 }
 
-bool
-Slice::Container::hasClassDecls() const
+bool Slice::Container::hasClassDecls() const
 {
     for(ContainedList::const_iterator p = _contents.begin(); p != _contents.end(); ++p)
     {
@@ -2283,8 +2178,7 @@ Slice::Container::hasClassDecls() const
     return false;
 }
 
-bool
-Slice::Container::hasDictionaries() const
+bool Slice::Container::hasDictionaries() const
 {
     for(ContainedList::const_iterator p = _contents.begin(); p != _contents.end(); ++p)
     {
@@ -2304,8 +2198,7 @@ Slice::Container::hasDictionaries() const
     return false;
 }
 
-bool
-Slice::Container::hasOnlyDictionaries(DictionaryList& dicts) const
+bool Slice::Container::hasOnlyDictionaries(DictionaryList& dicts) const
 {
     bool ret = true;
     for(ContainedList::const_iterator p = _contents.begin(); p != _contents.end(); ++p)
@@ -2338,8 +2231,7 @@ Slice::Container::hasOnlyDictionaries(DictionaryList& dicts) const
     return ret;
 }
 
-bool
-Slice::Container::hasClassDefs() const
+bool Slice::Container::hasClassDefs() const
 {
     for(ContainedList::const_iterator p = _contents.begin(); p != _contents.end(); ++p)
     {
@@ -2358,8 +2250,7 @@ Slice::Container::hasClassDefs() const
     return false;
 }
 
-bool
-Slice::Container::hasLocalClassDefs() const
+bool Slice::Container::hasLocalClassDefs() const
 {
     for(ContainedList::const_iterator p = _contents.begin(); p != _contents.end(); ++p)
     {
@@ -2378,8 +2269,7 @@ Slice::Container::hasLocalClassDefs() const
     return false;
 }
 
-bool
-Slice::Container::hasNonLocalInterfaceDefs() const
+bool Slice::Container::hasNonLocalInterfaceDefs() const
 {
     for(ContainedList::const_iterator p = _contents.begin(); p != _contents.end(); ++p)
     {
@@ -2398,8 +2288,7 @@ Slice::Container::hasNonLocalInterfaceDefs() const
     return false;
 }
 
-bool
-Slice::Container::hasValueDefs() const
+bool Slice::Container::hasValueDefs() const
 {
     for(ContainedList::const_iterator p = _contents.begin(); p != _contents.end(); ++p)
     {
@@ -2418,8 +2307,7 @@ Slice::Container::hasValueDefs() const
     return false;
 }
 
-bool
-Slice::Container::hasOnlyClassDecls() const
+bool Slice::Container::hasOnlyClassDecls() const
 {
     for(ContainedList::const_iterator p = _contents.begin(); p != _contents.end(); ++p)
     {
@@ -2440,8 +2328,7 @@ Slice::Container::hasOnlyClassDecls() const
     return true;
 }
 
-bool
-Slice::Container::hasAbstractClassDefs() const
+bool Slice::Container::hasAbstractClassDefs() const
 {
     for(ContainedList::const_iterator p = _contents.begin(); p != _contents.end(); ++p)
     {
@@ -2461,8 +2348,7 @@ Slice::Container::hasAbstractClassDefs() const
     return false;
 }
 
-bool
-Slice::Container::hasNonLocalDataOnlyClasses() const
+bool Slice::Container::hasNonLocalDataOnlyClasses() const
 {
     for(ContainedList::const_iterator p = _contents.begin(); p != _contents.end(); ++p)
     {
@@ -2485,8 +2371,7 @@ Slice::Container::hasNonLocalDataOnlyClasses() const
     return false;
 }
 
-bool
-Slice::Container::hasOtherConstructedOrExceptions() const
+bool Slice::Container::hasOtherConstructedOrExceptions() const
 {
     for(ContainedList::const_iterator p = _contents.begin(); p != _contents.end(); ++p)
     {
@@ -2515,8 +2400,7 @@ Slice::Container::hasOtherConstructedOrExceptions() const
     return false;
 }
 
-bool
-Slice::Container::hasContentsWithMetaData(const string& meta) const
+bool Slice::Container::hasContentsWithMetaData(const string& meta) const
 {
     for(ContainedList::const_iterator p = _contents.begin(); p != _contents.end(); ++p)
     {
@@ -2535,8 +2419,7 @@ Slice::Container::hasContentsWithMetaData(const string& meta) const
     return false;
 }
 
-bool
-Slice::Container::hasAsyncOps() const
+bool Slice::Container::hasAsyncOps() const
 {
     for(ContainedList::const_iterator p = _contents.begin(); p != _contents.end(); ++p)
     {
@@ -2568,8 +2451,7 @@ Slice::Container::hasAsyncOps() const
     return false;
 }
 
-bool
-Slice::Container::hasNonLocalContained(Contained::ContainedType type) const
+bool Slice::Container::hasNonLocalContained(Contained::ContainedType type) const
 {
     for(ContainedList::const_iterator p = _contents.begin(); p != _contents.end(); ++p)
     {
@@ -2588,8 +2470,7 @@ Slice::Container::hasNonLocalContained(Contained::ContainedType type) const
     return false;
 }
 
-string
-Slice::Container::thisScope() const
+string Slice::Container::thisScope() const
 {
     string s;
     ContainedPtr contained = ContainedPtr::dynamicCast(const_cast<Container*>(this));
@@ -2601,8 +2482,7 @@ Slice::Container::thisScope() const
     return s;
 }
 
-void
-Slice::Container::mergeModules()
+void Slice::Container::mergeModules()
 {
     for(ContainedList::iterator p = _contents.begin(); p != _contents.end(); ++p)
     {
@@ -2646,7 +2526,7 @@ Slice::Container::mergeModules()
             if(!checkGlobalMetaData(metaData1, metaData2))
             {
                 unit()->warning(All, "global metadata mismatch for module `" + mod1->name() + "' in files " +
-                                dc1->filename() + " and " + dc2->filename());
+                                         dc1->filename() + " and " + dc2->filename());
             }
 
             mod1->_contents.splice(mod1->_contents.end(), mod2->_contents);
@@ -2666,14 +2546,12 @@ Slice::Container::mergeModules()
     }
 }
 
-void
-Slice::Container::sort()
+void Slice::Container::sort()
 {
     _contents.sort();
 }
 
-void
-Slice::Container::sortContents(bool sortFields)
+void Slice::Container::sortContents(bool sortFields)
 {
     for(ContainedList::const_iterator p = _contents.begin(); p != _contents.end(); ++p)
     {
@@ -2682,8 +2560,7 @@ Slice::Container::sortContents(bool sortFields)
         {
             if(!sortFields)
             {
-                if(StructPtr::dynamicCast(container) ||
-                   ClassDefPtr::dynamicCast(container) ||
+                if(StructPtr::dynamicCast(container) || ClassDefPtr::dynamicCast(container) ||
                    ExceptionPtr::dynamicCast(container))
                 {
                     continue;
@@ -2702,8 +2579,7 @@ Slice::Container::sortContents(bool sortFields)
     }
 }
 
-void
-Slice::Container::visit(ParserVisitor* visitor, bool all)
+void Slice::Container::visit(ParserVisitor* visitor, bool all)
 {
     for(ContainedList::const_iterator p = _contents.begin(); p != _contents.end(); ++p)
     {
@@ -2714,8 +2590,7 @@ Slice::Container::visit(ParserVisitor* visitor, bool all)
     }
 }
 
-void
-Slice::Container::containerRecDependencies(set<ConstructedPtr>& dependencies)
+void Slice::Container::containerRecDependencies(set<ConstructedPtr>& dependencies)
 {
     for(ContainedList::iterator p = _contents.begin(); p != _contents.end(); ++p)
     {
@@ -2728,8 +2603,7 @@ Slice::Container::containerRecDependencies(set<ConstructedPtr>& dependencies)
     }
 }
 
-bool
-Slice::Container::checkIntroduced(const string& scoped, ContainedPtr namedThing)
+bool Slice::Container::checkIntroduced(const string& scoped, ContainedPtr namedThing)
 {
     if(scoped[0] == ':') // Only unscoped names introduce anything.
     {
@@ -2798,7 +2672,7 @@ Slice::Container::checkIntroduced(const string& scoped, ContainedPtr namedThing)
         //
         // We've just introduced the first component to the current scope.
         //
-        _introducedMap[firstComponent] = namedThing;    // No, insert it
+        _introducedMap[firstComponent] = namedThing; // No, insert it
     }
     else
     {
@@ -2833,8 +2707,7 @@ Slice::Container::checkIntroduced(const string& scoped, ContainedPtr namedThing)
     return true;
 }
 
-bool
-Slice::Container::nameIsLegal(const string& newName, const char* newConstruct)
+bool Slice::Container::nameIsLegal(const string& newName, const char* newConstruct)
 {
     ModulePtr module = ModulePtr::dynamicCast(this);
 
@@ -2856,8 +2729,10 @@ Slice::Container::nameIsLegal(const string& newName, const char* newConstruct)
         if(name == thisName)
         {
             string msg = newConstruct;
-            msg += " name `" + name + "' cannot differ only in capitalization from its immediately enclosing "
-                   "module name `" + module->name() + "'";
+            msg += " name `" + name +
+                   "' cannot differ only in capitalization from its immediately enclosing "
+                   "module name `" +
+                   module->name() + "'";
             _unit->error(msg);
             return false;
         }
@@ -2873,8 +2748,8 @@ Slice::Container::nameIsLegal(const string& newName, const char* newConstruct)
         if(newName == module->name())
         {
             string msg = newConstruct;
-            msg += " name `" + newName + "' must differ from the name of enclosing module `" + module->name()
-                   + "' (first defined at " + module->file() + ":" + module->line() + ")";
+            msg += " name `" + newName + "' must differ from the name of enclosing module `" + module->name() +
+                   "' (first defined at " + module->file() + ":" + module->line() + ")";
             _unit->error(msg);
             return false;
         }
@@ -2884,8 +2759,8 @@ Slice::Container::nameIsLegal(const string& newName, const char* newConstruct)
         if(name == thisName)
         {
             string msg = newConstruct;
-            msg += " name `" + name + "' cannot differ only in capitalization from enclosing module `"
-                   + module->name() + "' (first defined at " + module->file() + ":" + module->line() + ")";
+            msg += " name `" + name + "' cannot differ only in capitalization from enclosing module `" +
+                   module->name() + "' (first defined at " + module->file() + ":" + module->line() + ")";
             _unit->error(msg);
             return false;
         }
@@ -2896,8 +2771,7 @@ Slice::Container::nameIsLegal(const string& newName, const char* newConstruct)
     return true;
 }
 
-bool
-Slice::Container::checkForGlobalDef(const string& name, const char* newConstruct)
+bool Slice::Container::checkForGlobalDef(const string& name, const char* newConstruct)
 {
     if(dynamic_cast<Unit*>(this) && strcmp(newConstruct, "module"))
     {
@@ -2907,22 +2781,18 @@ Slice::Container::checkForGlobalDef(const string& name, const char* newConstruct
         {
             glottalStop = "n";
         }
-        _unit->error("`" + name + "': a" + glottalStop + " " + newConstruct +
-                     " can be defined only at module scope");
+        _unit->error("`" + name + "': a" + glottalStop + " " + newConstruct + " can be defined only at module scope");
         return false;
     }
     return true;
 }
 
-Slice::Container::Container(const UnitPtr& unit) :
-    SyntaxTreeBase(unit)
+Slice::Container::Container(const UnitPtr& unit) : SyntaxTreeBase(unit)
 {
 }
 
-bool
-Slice::Container::checkInterfaceAndLocal(const string& name, bool defined,
-                                         bool intf, bool intfOther,
-                                         bool local, bool localOther)
+bool Slice::Container::checkInterfaceAndLocal(const string& name, bool defined, bool intf, bool intfOther, bool local,
+                                              bool localOther)
 {
     string definedOrDeclared;
     if(defined)
@@ -2981,19 +2851,13 @@ Slice::Container::checkInterfaceAndLocal(const string& name, bool defined,
     return true;
 }
 
-bool
-Slice::Container::checkGlobalMetaData(const StringList& m1, const StringList& m2)
+bool Slice::Container::checkGlobalMetaData(const StringList& m1, const StringList& m2)
 {
     //
     // Not all global metadata mismatches represent actual problems. We are only concerned about
     // the prefixes listed below (also see bug 2766).
     //
-    static const char* prefixes[] =
-    {
-        "java:package",
-        "python:package",
-        0
-    };
+    static const char* prefixes[] = {"java:package", "python:package", 0};
 
     //
     // Collect the metadata that is unique to each list.
@@ -3015,9 +2879,8 @@ Slice::Container::checkGlobalMetaData(const StringList& m1, const StringList& m2
     return true;
 }
 
-bool
-Slice::Container::validateConstant(const string& name, const TypePtr& type, SyntaxTreeBasePtr& valueType,
-                                   const string& value, bool isConstant)
+bool Slice::Container::validateConstant(const string& name, const TypePtr& type, SyntaxTreeBasePtr& valueType,
+                                        const string& value, bool isConstant)
 {
     //
     // isConstant indicates whether a constant or a data member (with a default value) is
@@ -3122,14 +2985,14 @@ Slice::Container::validateConstant(const string& name, const TypePtr& type, Synt
                 {
                     switch(lt->kind())
                     {
-                    case Builtin::KindByte:
-                    case Builtin::KindShort:
-                    case Builtin::KindInt:
-                    case Builtin::KindLong:
-                        break;
-                    default:
-                        ok = false;
-                        break;
+                        case Builtin::KindByte:
+                        case Builtin::KindShort:
+                        case Builtin::KindInt:
+                        case Builtin::KindLong:
+                            break;
+                        default:
+                            ok = false;
+                            break;
                     }
                     break;
                 }
@@ -3138,16 +3001,16 @@ Slice::Container::validateConstant(const string& name, const TypePtr& type, Synt
                 {
                     switch(lt->kind())
                     {
-                    case Builtin::KindByte:
-                    case Builtin::KindShort:
-                    case Builtin::KindInt:
-                    case Builtin::KindLong:
-                    case Builtin::KindFloat:
-                    case Builtin::KindDouble:
-                        break;
-                    default:
-                        ok = false;
-                        break;
+                        case Builtin::KindByte:
+                        case Builtin::KindShort:
+                        case Builtin::KindInt:
+                        case Builtin::KindLong:
+                        case Builtin::KindFloat:
+                        case Builtin::KindDouble:
+                            break;
+                        default:
+                            ok = false;
+                            break;
                     }
                     break;
                 }
@@ -3172,7 +3035,7 @@ Slice::Container::validateConstant(const string& name, const TypePtr& type, Synt
             if(!ok)
             {
                 string msg = "initializer of type `" + lt->kindAsString() + "' is incompatible with the type `" +
-                    b->kindAsString() + "' of " + desc + " `" + name + "'";
+                             b->kindAsString() + "' of " + desc + " `" + name + "'";
                 _unit->error(msg);
                 return false;
             }
@@ -3180,7 +3043,7 @@ Slice::Container::validateConstant(const string& name, const TypePtr& type, Synt
         else
         {
             string msg = "type of initializer is incompatible with the type `" + b->kindAsString() + "' of " + desc +
-                " `" + name + "'";
+                         " `" + name + "'";
             _unit->error(msg);
             return false;
         }
@@ -3192,8 +3055,8 @@ Slice::Container::validateConstant(const string& name, const TypePtr& type, Synt
                 IceUtil::Int64 l = IceUtilInternal::strToInt64(value.c_str(), 0, 0);
                 if(l < ByteMin || l > ByteMax)
                 {
-                    string msg = "initializer `" + value + "' for " + desc + " `" + name +
-                        "' out of range for type byte";
+                    string msg =
+                        "initializer `" + value + "' for " + desc + " `" + name + "' out of range for type byte";
                     _unit->error(msg);
                     return false;
                 }
@@ -3204,8 +3067,8 @@ Slice::Container::validateConstant(const string& name, const TypePtr& type, Synt
                 IceUtil::Int64 l = IceUtilInternal::strToInt64(value.c_str(), 0, 0);
                 if(l < Int16Min || l > Int16Max)
                 {
-                    string msg = "initializer `" + value + "' for " + desc + " `" + name +
-                        "' out of range for type short";
+                    string msg =
+                        "initializer `" + value + "' for " + desc + " `" + name + "' out of range for type short";
                     _unit->error(msg);
                     return false;
                 }
@@ -3216,8 +3079,8 @@ Slice::Container::validateConstant(const string& name, const TypePtr& type, Synt
                 IceUtil::Int64 l = IceUtilInternal::strToInt64(value.c_str(), 0, 0);
                 if(l < Int32Min || l > Int32Max)
                 {
-                    string msg = "initializer `" + value + "' for " + desc + " `" + name +
-                        "' out of range for type int";
+                    string msg =
+                        "initializer `" + value + "' for " + desc + " `" + name + "' out of range for type int";
                     _unit->error(msg);
                     return false;
                 }
@@ -3287,7 +3150,7 @@ Slice::Container::validateConstant(const string& name, const TypePtr& type, Synt
                     if(lastColon != string::npos)
                     {
                         _unit->warning(Deprecated, string("referencing enumerator `") + lte->name() +
-                                       "' in its enumeration's enclosing scope is deprecated");
+                                                       "' in its enumeration's enclosing scope is deprecated");
                     }
                 }
                 else
@@ -3303,8 +3166,7 @@ Slice::Container::validateConstant(const string& name, const TypePtr& type, Synt
     return true;
 }
 
-EnumeratorPtr
-Slice::Container::validateEnumerator(const string& name)
+EnumeratorPtr Slice::Container::validateEnumerator(const string& name)
 {
     ContainedList matches = _unit->findContents(thisScope() + name);
     if(!matches.empty())
@@ -3338,26 +3200,22 @@ Slice::Container::validateEnumerator(const string& name)
 // Module
 // ----------------------------------------------------------------------
 
-Contained::ContainedType
-Slice::Module::containedType() const
+Contained::ContainedType Slice::Module::containedType() const
 {
     return ContainedTypeModule;
 }
 
-bool
-Slice::Module::uses(const ContainedPtr&) const
+bool Slice::Module::uses(const ContainedPtr&) const
 {
     return false;
 }
 
-string
-Slice::Module::kindOf() const
+string Slice::Module::kindOf() const
 {
     return "module";
 }
 
-void
-Slice::Module::visit(ParserVisitor* visitor, bool all)
+void Slice::Module::visit(ParserVisitor* visitor, bool all)
 {
     if(visitor->visitModuleStart(this))
     {
@@ -3377,20 +3235,17 @@ Slice::Module::Module(const ContainerPtr& container, const string& name) :
 // Constructed
 // ----------------------------------------------------------------------
 
-bool
-Slice::Constructed::isLocal() const
+bool Slice::Constructed::isLocal() const
 {
     return _local;
 }
 
-string
-Slice::Constructed::typeId() const
+string Slice::Constructed::typeId() const
 {
     return scoped();
 }
 
-ConstructedList
-Slice::Constructed::dependencies()
+ConstructedList Slice::Constructed::dependencies()
 {
     set<ConstructedPtr> resultSet;
     recDependencies(resultSet);
@@ -3421,57 +3276,48 @@ Slice::Constructed::Constructed(const ContainerPtr& container, const string& nam
 // ClassDecl
 // ----------------------------------------------------------------------
 
-void
-Slice::ClassDecl::destroy()
+void Slice::ClassDecl::destroy()
 {
     _definition = 0;
     SyntaxTreeBase::destroy();
 }
 
-ClassDefPtr
-Slice::ClassDecl::definition() const
+ClassDefPtr Slice::ClassDecl::definition() const
 {
     return _definition;
 }
 
-bool
-Slice::ClassDecl::isInterface() const
+bool Slice::ClassDecl::isInterface() const
 {
     return _interface;
 }
 
-Contained::ContainedType
-Slice::ClassDecl::containedType() const
+Contained::ContainedType Slice::ClassDecl::containedType() const
 {
     return ContainedTypeClass;
 }
 
-bool
-Slice::ClassDecl::uses(const ContainedPtr&) const
+bool Slice::ClassDecl::uses(const ContainedPtr&) const
 {
     return false;
 }
 
-bool
-Slice::ClassDecl::usesClasses() const
+bool Slice::ClassDecl::usesClasses() const
 {
     return true;
 }
 
-size_t
-Slice::ClassDecl::minWireSize() const
+size_t Slice::ClassDecl::minWireSize() const
 {
     return 1; // At least four bytes for an instance, if the instance is marshaled as an index.
 }
 
-bool
-Slice::ClassDecl::isVariableLength() const
+bool Slice::ClassDecl::isVariableLength() const
 {
     return true;
 }
 
-string
-Slice::ClassDecl::kindOf() const
+string Slice::ClassDecl::kindOf() const
 {
     string s;
     if(isLocal())
@@ -3482,14 +3328,12 @@ Slice::ClassDecl::kindOf() const
     return s;
 }
 
-void
-Slice::ClassDecl::visit(ParserVisitor* visitor, bool)
+void Slice::ClassDecl::visit(ParserVisitor* visitor, bool)
 {
     visitor->visitClassDecl(this);
 }
 
-void
-Slice::ClassDecl::recDependencies(set<ConstructedPtr>& dependencies)
+void Slice::ClassDecl::recDependencies(set<ConstructedPtr>& dependencies)
 {
     if(_definition)
     {
@@ -3502,9 +3346,8 @@ Slice::ClassDecl::recDependencies(set<ConstructedPtr>& dependencies)
     }
 }
 
-void
-Slice::ClassDecl::checkBasesAreLegal(const string& name, bool intf, bool local, const ClassList& bases,
-                                     const UnitPtr& unit)
+void Slice::ClassDecl::checkBasesAreLegal(const string& name, bool intf, bool local, const ClassList& bases,
+                                          const UnitPtr& unit)
 {
     //
     // Local definitions cannot have non-local bases, and vice versa.
@@ -3514,8 +3357,8 @@ Slice::ClassDecl::checkBasesAreLegal(const string& name, bool intf, bool local, 
         if(local != (*p)->isLocal())
         {
             ostringstream msg;
-            msg << (local ? "local" : "non-local") << " " << (intf ? "interface" : "class") << " `"
-                << name << "' cannot have " << ((*p)->isLocal() ? "local" : "non-local") << " base "
+            msg << (local ? "local" : "non-local") << " " << (intf ? "interface" : "class") << " `" << name
+                << "' cannot have " << ((*p)->isLocal() ? "local" : "non-local") << " base "
                 << ((*p)->isInterface() ? "interface" : "class") << " `" << (*p)->name() << "'";
             unit->error(msg.str());
         }
@@ -3571,8 +3414,7 @@ Slice::ClassDecl::ClassDecl(const ContainerPtr& container, const string& name, b
 //
 // Return true if the class definition cdp is on one of the class lists in gpl, false otherwise.
 //
-bool
-Slice::ClassDecl::isInList(const GraphPartitionList& gpl, const ClassDefPtr cdp)
+bool Slice::ClassDecl::isInList(const GraphPartitionList& gpl, const ClassDefPtr cdp)
 {
     for(GraphPartitionList::const_iterator i = gpl.begin(); i != gpl.end(); ++i)
     {
@@ -3584,10 +3426,8 @@ Slice::ClassDecl::isInList(const GraphPartitionList& gpl, const ClassDefPtr cdp)
     return false;
 }
 
-void
-Slice::ClassDecl::addPartition(GraphPartitionList& gpl,
-                               GraphPartitionList::reverse_iterator tail,
-                               const ClassDefPtr base)
+void Slice::ClassDecl::addPartition(GraphPartitionList& gpl, GraphPartitionList::reverse_iterator tail,
+                                    const ClassDefPtr base)
 {
     //
     // If this base is on one of the partition lists already, do nothing.
@@ -3631,8 +3471,7 @@ Slice::ClassDecl::addPartition(GraphPartitionList& gpl,
 // list of lists, with each member list containing the operation
 // names defined by the interfaces in each partition.
 //
-Slice::ClassDecl::StringPartitionList
-Slice::ClassDecl::toStringPartitionList(const GraphPartitionList& gpl)
+Slice::ClassDecl::StringPartitionList Slice::ClassDecl::toStringPartitionList(const GraphPartitionList& gpl)
 {
     StringPartitionList spl;
     for(GraphPartitionList::const_iterator i = gpl.begin(); i != gpl.end(); ++i)
@@ -3655,8 +3494,7 @@ Slice::ClassDecl::toStringPartitionList(const GraphPartitionList& gpl)
 // For all (unique) pairs of string lists, check whether an identifier in one list occurs
 // in the other and, if so, complain.
 //
-void
-Slice::ClassDecl::checkPairIntersections(const StringPartitionList& l, const string& name, const UnitPtr& unit)
+void Slice::ClassDecl::checkPairIntersections(const StringPartitionList& l, const string& name, const UnitPtr& unit)
 {
     set<string> reported;
     for(StringPartitionList::const_iterator i = l.begin(); i != l.end(); ++i)
@@ -3676,8 +3514,8 @@ Slice::ClassDecl::checkPairIntersections(const StringPartitionList& l, const str
                         unit->error(msg);
                         reported.insert(*s1);
                     }
-                    else if(!CICompare()(*s1, *s2) && !CICompare()(*s2, *s1) &&
-                            reported.find(*s1) == reported.end() && reported.find(*s2) == reported.end())
+                    else if(!CICompare()(*s1, *s2) && !CICompare()(*s2, *s1) && reported.find(*s1) == reported.end() &&
+                            reported.find(*s2) == reported.end())
                     {
                         string msg = "ambiguous multiple inheritance: `" + name;
                         msg += "' inherits operations `" + *s1 + "' and `" + *s2;
@@ -3696,20 +3534,15 @@ Slice::ClassDecl::checkPairIntersections(const StringPartitionList& l, const str
 // ClassDef
 // ----------------------------------------------------------------------
 
-void
-Slice::ClassDef::destroy()
+void Slice::ClassDef::destroy()
 {
     _declaration = 0;
     _bases.empty();
     Container::destroy();
 }
 
-OperationPtr
-Slice::ClassDef::createOperation(const string& name,
-                                 const TypePtr& returnType,
-                                 bool optional,
-                                 int tag,
-                                 Operation::Mode mode)
+OperationPtr Slice::ClassDef::createOperation(const string& name, const TypePtr& returnType, bool optional, int tag,
+                                              Operation::Mode mode)
 {
     ContainedList matches = _unit->findContents(thisScope() + name);
     if(!matches.empty())
@@ -3816,10 +3649,9 @@ Slice::ClassDef::createOperation(const string& name,
     return op;
 }
 
-DataMemberPtr
-Slice::ClassDef::createDataMember(const string& name, const TypePtr& type, bool optional, int tag,
-                                  const SyntaxTreeBasePtr& defaultValueType, const string& defaultValue,
-                                  const string& defaultLiteral)
+DataMemberPtr Slice::ClassDef::createDataMember(const string& name, const TypePtr& type, bool optional, int tag,
+                                                const SyntaxTreeBasePtr& defaultValueType, const string& defaultValue,
+                                                const string& defaultLiteral)
 {
     assert(!isInterface());
     ContainedList matches = _unit->findContents(thisScope() + name);
@@ -3944,20 +3776,17 @@ Slice::ClassDef::createDataMember(const string& name, const TypePtr& type, bool 
     return member;
 }
 
-ClassDeclPtr
-Slice::ClassDef::declaration() const
+ClassDeclPtr Slice::ClassDef::declaration() const
 {
     return _declaration;
 }
 
-ClassList
-Slice::ClassDef::bases() const
+ClassList Slice::ClassDef::bases() const
 {
     return _bases;
 }
 
-ClassList
-Slice::ClassDef::allBases() const
+ClassList Slice::ClassDef::allBases() const
 {
     ClassList result = _bases;
     result.sort();
@@ -3971,8 +3800,7 @@ Slice::ClassDef::allBases() const
     return result;
 }
 
-OperationList
-Slice::ClassDef::operations() const
+OperationList Slice::ClassDef::operations() const
 {
     OperationList result;
     for(ContainedList::const_iterator p = _contents.begin(); p != _contents.end(); ++p)
@@ -3986,8 +3814,7 @@ Slice::ClassDef::operations() const
     return result;
 }
 
-OperationList
-Slice::ClassDef::allOperations() const
+OperationList Slice::ClassDef::allOperations() const
 {
     OperationList result = operations();
     result.sort();
@@ -4001,8 +3828,7 @@ Slice::ClassDef::allOperations() const
     return result;
 }
 
-DataMemberList
-Slice::ClassDef::dataMembers() const
+DataMemberList Slice::ClassDef::dataMembers() const
 {
     DataMemberList result;
     for(ContainedList::const_iterator p = _contents.begin(); p != _contents.end(); ++p)
@@ -4016,8 +3842,7 @@ Slice::ClassDef::dataMembers() const
     return result;
 }
 
-DataMemberList
-Slice::ClassDef::orderedOptionalDataMembers() const
+DataMemberList Slice::ClassDef::orderedOptionalDataMembers() const
 {
     return filterOrderedOptionalDataMembers(dataMembers());
 }
@@ -4025,8 +3850,7 @@ Slice::ClassDef::orderedOptionalDataMembers() const
 //
 // Return the data members of this class and its parent classes, in base-to-derived order.
 //
-DataMemberList
-Slice::ClassDef::allDataMembers() const
+DataMemberList Slice::ClassDef::allDataMembers() const
 {
     DataMemberList result;
 
@@ -4048,8 +3872,7 @@ Slice::ClassDef::allDataMembers() const
     return result;
 }
 
-DataMemberList
-Slice::ClassDef::classDataMembers() const
+DataMemberList Slice::ClassDef::classDataMembers() const
 {
     DataMemberList result;
     for(ContainedList::const_iterator p = _contents.begin(); p != _contents.end(); ++p)
@@ -4059,8 +3882,7 @@ Slice::ClassDef::classDataMembers() const
         {
             BuiltinPtr builtin = BuiltinPtr::dynamicCast(q->type());
             if((builtin && builtin->kind() == Builtin::KindObject) ||
-               (builtin && builtin->kind() == Builtin::KindValue) ||
-               ClassDeclPtr::dynamicCast(q->type()))
+               (builtin && builtin->kind() == Builtin::KindValue) || ClassDeclPtr::dynamicCast(q->type()))
             {
                 result.push_back(q);
             }
@@ -4072,8 +3894,7 @@ Slice::ClassDef::classDataMembers() const
 //
 // Return the class data members of this class and its parent classes, in base-to-derived order.
 //
-DataMemberList
-Slice::ClassDef::allClassDataMembers() const
+DataMemberList Slice::ClassDef::allClassDataMembers() const
 {
     DataMemberList result;
 
@@ -4095,8 +3916,7 @@ Slice::ClassDef::allClassDataMembers() const
     return result;
 }
 
-bool
-Slice::ClassDef::canBeCyclic() const
+bool Slice::ClassDef::canBeCyclic() const
 {
     if(!_bases.empty() && !_bases.front()->isInterface() && _bases.front()->canBeCyclic())
     {
@@ -4113,8 +3933,7 @@ Slice::ClassDef::canBeCyclic() const
     return false;
 }
 
-bool
-Slice::ClassDef::isAbstract() const
+bool Slice::ClassDef::isAbstract() const
 {
     if(isInterface() || _bases.size() > 1) // Is this an interface, or does it derive from interfaces?
     {
@@ -4137,14 +3956,12 @@ Slice::ClassDef::isAbstract() const
     return false;
 }
 
-bool
-Slice::ClassDef::isInterface() const
+bool Slice::ClassDef::isInterface() const
 {
     return _interface;
 }
 
-bool
-Slice::ClassDef::isA(const string& id) const
+bool Slice::ClassDef::isA(const string& id) const
 {
     if(id == _scoped)
     {
@@ -4160,26 +3977,22 @@ Slice::ClassDef::isA(const string& id) const
     return false;
 }
 
-bool
-Slice::ClassDef::isLocal() const
+bool Slice::ClassDef::isLocal() const
 {
     return _local;
 }
 
-bool
-Slice::ClassDef::hasDataMembers() const
+bool Slice::ClassDef::hasDataMembers() const
 {
     return _hasDataMembers;
 }
 
-bool
-Slice::ClassDef::hasOperations() const
+bool Slice::ClassDef::hasOperations() const
 {
     return _hasOperations;
 }
 
-bool
-Slice::ClassDef::hasDefaultValues() const
+bool Slice::ClassDef::hasDefaultValues() const
 {
     DataMemberList dml = dataMembers();
     for(DataMemberList::const_iterator i = dml.begin(); i != dml.end(); ++i)
@@ -4193,8 +4006,7 @@ Slice::ClassDef::hasDefaultValues() const
     return false;
 }
 
-bool
-Slice::ClassDef::inheritsMetaData(const string& meta) const
+bool Slice::ClassDef::inheritsMetaData(const string& meta) const
 {
     for(ClassList::const_iterator p = _bases.begin(); p != _bases.end(); ++p)
     {
@@ -4207,8 +4019,7 @@ Slice::ClassDef::inheritsMetaData(const string& meta) const
     return false;
 }
 
-bool
-Slice::ClassDef::hasBaseDataMembers() const
+bool Slice::ClassDef::hasBaseDataMembers() const
 {
     if(!_bases.empty() && !_bases.front()->isInterface())
     {
@@ -4218,22 +4029,19 @@ Slice::ClassDef::hasBaseDataMembers() const
     return false;
 }
 
-Contained::ContainedType
-Slice::ClassDef::containedType() const
+Contained::ContainedType Slice::ClassDef::containedType() const
 {
     return ContainedTypeClass;
 }
 
-bool
-Slice::ClassDef::uses(const ContainedPtr&) const
+bool Slice::ClassDef::uses(const ContainedPtr&) const
 {
     // No uses() implementation here. DataMember and Operation have
     // their own uses().
     return false;
 }
 
-string
-Slice::ClassDef::kindOf() const
+string Slice::ClassDef::kindOf() const
 {
     string s;
     if(isLocal())
@@ -4244,8 +4052,7 @@ Slice::ClassDef::kindOf() const
     return s;
 }
 
-void
-Slice::ClassDef::visit(ParserVisitor* visitor, bool all)
+void Slice::ClassDef::visit(ParserVisitor* visitor, bool all)
 {
     if(visitor->visitClassDefStart(this))
     {
@@ -4254,14 +4061,12 @@ Slice::ClassDef::visit(ParserVisitor* visitor, bool all)
     }
 }
 
-int
-Slice::ClassDef::compactId() const
+int Slice::ClassDef::compactId() const
 {
     return _compactId;
 }
 
-bool
-Slice::ClassDef::isDelegate() const
+bool Slice::ClassDef::isDelegate() const
 {
     return isLocal() && isInterface() && hasMetaData("delegate") && allOperations().size() == 1;
 }
@@ -4309,46 +4114,37 @@ Slice::ClassDef::ClassDef(const ContainerPtr& container, const string& name, int
 // Proxy
 // ----------------------------------------------------------------------
 
-bool
-Slice::Proxy::isLocal() const
+bool Slice::Proxy::isLocal() const
 {
     return _classDecl->isLocal();
 }
 
-string
-Slice::Proxy::typeId() const
+string Slice::Proxy::typeId() const
 {
     return _classDecl->scoped();
 }
 
-bool
-Slice::Proxy::usesClasses() const
+bool Slice::Proxy::usesClasses() const
 {
     return false;
 }
 
-size_t
-Slice::Proxy::minWireSize() const
+size_t Slice::Proxy::minWireSize() const
 {
     return 2; // At least two bytes for a nil proxy (empty name and empty category strings).
 }
 
-bool
-Slice::Proxy::isVariableLength() const
+bool Slice::Proxy::isVariableLength() const
 {
     return true;
 }
 
-ClassDeclPtr
-Slice::Proxy::_class() const
+ClassDeclPtr Slice::Proxy::_class() const
 {
     return _classDecl;
 }
 
-Slice::Proxy::Proxy(const ClassDeclPtr& cl) :
-     SyntaxTreeBase(cl->unit()),
-     Type(cl->unit()),
-    _classDecl(cl)
+Slice::Proxy::Proxy(const ClassDeclPtr& cl) : SyntaxTreeBase(cl->unit()), Type(cl->unit()), _classDecl(cl)
 {
 }
 
@@ -4356,17 +4152,15 @@ Slice::Proxy::Proxy(const ClassDeclPtr& cl) :
 // Exception
 // ----------------------------------------------------------------------
 
-void
-Slice::Exception::destroy()
+void Slice::Exception::destroy()
 {
     _base = 0;
     Container::destroy();
 }
 
-DataMemberPtr
-Slice::Exception::createDataMember(const string& name, const TypePtr& type, bool optional, int tag,
-                                   const SyntaxTreeBasePtr& defaultValueType, const string& defaultValue,
-                                   const string& defaultLiteral)
+DataMemberPtr Slice::Exception::createDataMember(const string& name, const TypePtr& type, bool optional, int tag,
+                                                 const SyntaxTreeBasePtr& defaultValueType, const string& defaultValue,
+                                                 const string& defaultLiteral)
 {
     ContainedList matches = _unit->findContents(thisScope() + name);
     if(!matches.empty())
@@ -4477,8 +4271,7 @@ Slice::Exception::createDataMember(const string& name, const TypePtr& type, bool
     return p;
 }
 
-DataMemberList
-Slice::Exception::dataMembers() const
+DataMemberList Slice::Exception::dataMembers() const
 {
     DataMemberList result;
     for(ContainedList::const_iterator p = _contents.begin(); p != _contents.end(); ++p)
@@ -4492,8 +4285,7 @@ Slice::Exception::dataMembers() const
     return result;
 }
 
-DataMemberList
-Slice::Exception::orderedOptionalDataMembers() const
+DataMemberList Slice::Exception::orderedOptionalDataMembers() const
 {
     return filterOrderedOptionalDataMembers(dataMembers());
 }
@@ -4501,8 +4293,7 @@ Slice::Exception::orderedOptionalDataMembers() const
 //
 // Return the data members of this exception and its parent exceptions, in base-to-derived order.
 //
-DataMemberList
-Slice::Exception::allDataMembers() const
+DataMemberList Slice::Exception::allDataMembers() const
 {
     DataMemberList result;
 
@@ -4524,8 +4315,7 @@ Slice::Exception::allDataMembers() const
     return result;
 }
 
-DataMemberList
-Slice::Exception::classDataMembers() const
+DataMemberList Slice::Exception::classDataMembers() const
 {
     DataMemberList result;
     for(ContainedList::const_iterator p = _contents.begin(); p != _contents.end(); ++p)
@@ -4535,8 +4325,7 @@ Slice::Exception::classDataMembers() const
         {
             BuiltinPtr builtin = BuiltinPtr::dynamicCast(q->type());
             if((builtin && builtin->kind() == Builtin::KindObject) ||
-               (builtin && builtin->kind() == Builtin::KindValue) ||
-               ClassDeclPtr::dynamicCast(q->type()))
+               (builtin && builtin->kind() == Builtin::KindValue) || ClassDeclPtr::dynamicCast(q->type()))
             {
                 result.push_back(q);
             }
@@ -4548,8 +4337,7 @@ Slice::Exception::classDataMembers() const
 //
 // Return the class data members of this exception and its parent exceptions, in base-to-derived order.
 //
-DataMemberList
-Slice::Exception::allClassDataMembers() const
+DataMemberList Slice::Exception::allClassDataMembers() const
 {
     DataMemberList result;
 
@@ -4571,14 +4359,12 @@ Slice::Exception::allClassDataMembers() const
     return result;
 }
 
-ExceptionPtr
-Slice::Exception::base() const
+ExceptionPtr Slice::Exception::base() const
 {
     return _base;
 }
 
-ExceptionList
-Slice::Exception::allBases() const
+ExceptionList Slice::Exception::allBases() const
 {
     ExceptionList result;
     if(_base)
@@ -4589,8 +4375,7 @@ Slice::Exception::allBases() const
     return result;
 }
 
-bool
-Slice::Exception::isBaseOf(const ExceptionPtr& other) const
+bool Slice::Exception::isBaseOf(const ExceptionPtr& other) const
 {
     if(this->scoped() == other->scoped())
     {
@@ -4607,27 +4392,23 @@ Slice::Exception::isBaseOf(const ExceptionPtr& other) const
     return false;
 }
 
-bool
-Slice::Exception::isLocal() const
+bool Slice::Exception::isLocal() const
 {
     return _local;
 }
 
-Contained::ContainedType
-Slice::Exception::containedType() const
+Contained::ContainedType Slice::Exception::containedType() const
 {
     return ContainedTypeException;
 }
 
-bool
-Slice::Exception::uses(const ContainedPtr&) const
+bool Slice::Exception::uses(const ContainedPtr&) const
 {
     // No uses() implementation here. DataMember has its own uses().
     return false;
 }
 
-bool
-Slice::Exception::usesClasses(bool includeOptional) const
+bool Slice::Exception::usesClasses(bool includeOptional) const
 {
     DataMemberList dml = dataMembers();
     for(DataMemberList::const_iterator i = dml.begin(); i != dml.end(); ++i)
@@ -4644,8 +4425,7 @@ Slice::Exception::usesClasses(bool includeOptional) const
     return false;
 }
 
-bool
-Slice::Exception::hasDefaultValues() const
+bool Slice::Exception::hasDefaultValues() const
 {
     DataMemberList dml = dataMembers();
     for(DataMemberList::const_iterator i = dml.begin(); i != dml.end(); ++i)
@@ -4659,8 +4439,7 @@ Slice::Exception::hasDefaultValues() const
     return false;
 }
 
-bool
-Slice::Exception::inheritsMetaData(const string& meta) const
+bool Slice::Exception::inheritsMetaData(const string& meta) const
 {
     if(_base && (_base->hasMetaData(meta) || _base->inheritsMetaData(meta)))
     {
@@ -4670,20 +4449,17 @@ Slice::Exception::inheritsMetaData(const string& meta) const
     return false;
 }
 
-bool
-Slice::Exception::hasBaseDataMembers() const
+bool Slice::Exception::hasBaseDataMembers() const
 {
     return _base && !_base->allDataMembers().empty();
 }
 
-string
-Slice::Exception::kindOf() const
+string Slice::Exception::kindOf() const
 {
     return "exception";
 }
 
-void
-Slice::Exception::visit(ParserVisitor* visitor, bool all)
+void Slice::Exception::visit(ParserVisitor* visitor, bool all)
 {
     if(visitor->visitExceptionStart(this))
     {
@@ -4705,10 +4481,9 @@ Slice::Exception::Exception(const ContainerPtr& container, const string& name, c
 // Struct
 // ----------------------------------------------------------------------
 
-DataMemberPtr
-Slice::Struct::createDataMember(const string& name, const TypePtr& type, bool optional, int tag,
-                                const SyntaxTreeBasePtr& defaultValueType, const string& defaultValue,
-                                const string& defaultLiteral)
+DataMemberPtr Slice::Struct::createDataMember(const string& name, const TypePtr& type, bool optional, int tag,
+                                              const SyntaxTreeBasePtr& defaultValueType, const string& defaultValue,
+                                              const string& defaultLiteral)
 {
     ContainedList matches = _unit->findContents(thisScope() + name);
     if(!matches.empty())
@@ -4801,8 +4576,7 @@ Slice::Struct::createDataMember(const string& name, const TypePtr& type, bool op
     return p;
 }
 
-DataMemberList
-Slice::Struct::dataMembers() const
+DataMemberList Slice::Struct::dataMembers() const
 {
     DataMemberList result;
     for(ContainedList::const_iterator p = _contents.begin(); p != _contents.end(); ++p)
@@ -4816,8 +4590,7 @@ Slice::Struct::dataMembers() const
     return result;
 }
 
-DataMemberList
-Slice::Struct::classDataMembers() const
+DataMemberList Slice::Struct::classDataMembers() const
 {
     DataMemberList result;
     for(ContainedList::const_iterator p = _contents.begin(); p != _contents.end(); ++p)
@@ -4827,8 +4600,7 @@ Slice::Struct::classDataMembers() const
         {
             BuiltinPtr builtin = BuiltinPtr::dynamicCast(q->type());
             if((builtin && builtin->kind() == Builtin::KindObject) ||
-               (builtin && builtin->kind() == Builtin::KindValue) ||
-               ClassDeclPtr::dynamicCast(q->type()))
+               (builtin && builtin->kind() == Builtin::KindValue) || ClassDeclPtr::dynamicCast(q->type()))
             {
                 result.push_back(q);
             }
@@ -4837,20 +4609,17 @@ Slice::Struct::classDataMembers() const
     return result;
 }
 
-Contained::ContainedType
-Slice::Struct::containedType() const
+Contained::ContainedType Slice::Struct::containedType() const
 {
     return ContainedTypeStruct;
 }
 
-bool
-Slice::Struct::uses(const ContainedPtr&) const
+bool Slice::Struct::uses(const ContainedPtr&) const
 {
     return false;
 }
 
-bool
-Slice::Struct::usesClasses() const
+bool Slice::Struct::usesClasses() const
 {
     for(ContainedList::const_iterator p = _contents.begin(); p != _contents.end(); ++p)
     {
@@ -4867,8 +4636,7 @@ Slice::Struct::usesClasses() const
     return false;
 }
 
-size_t
-Slice::Struct::minWireSize() const
+size_t Slice::Struct::minWireSize() const
 {
     //
     // At least the sum of the minimum member sizes.
@@ -4882,8 +4650,7 @@ Slice::Struct::minWireSize() const
     return sz;
 }
 
-bool
-Slice::Struct::isVariableLength() const
+bool Slice::Struct::isVariableLength() const
 {
     DataMemberList dml = dataMembers();
     for(DataMemberList::const_iterator i = dml.begin(); i != dml.end(); ++i)
@@ -4896,8 +4663,7 @@ Slice::Struct::isVariableLength() const
     return false;
 }
 
-bool
-Slice::Struct::hasDefaultValues() const
+bool Slice::Struct::hasDefaultValues() const
 {
     DataMemberList dml = dataMembers();
     for(DataMemberList::const_iterator i = dml.begin(); i != dml.end(); ++i)
@@ -4910,14 +4676,12 @@ Slice::Struct::hasDefaultValues() const
     return false;
 }
 
-string
-Slice::Struct::kindOf() const
+string Slice::Struct::kindOf() const
 {
     return "struct";
 }
 
-void
-Slice::Struct::visit(ParserVisitor* visitor, bool all)
+void Slice::Struct::visit(ParserVisitor* visitor, bool all)
 {
     if(visitor->visitStructStart(this))
     {
@@ -4926,8 +4690,7 @@ Slice::Struct::visit(ParserVisitor* visitor, bool all)
     }
 }
 
-void
-Slice::Struct::recDependencies(set<ConstructedPtr>& dependencies)
+void Slice::Struct::recDependencies(set<ConstructedPtr>& dependencies)
 {
     containerRecDependencies(dependencies);
 }
@@ -4945,26 +4708,22 @@ Slice::Struct::Struct(const ContainerPtr& container, const string& name, bool lo
 // Sequence
 // ----------------------------------------------------------------------
 
-TypePtr
-Slice::Sequence::type() const
+TypePtr Slice::Sequence::type() const
 {
     return _type;
 }
 
-StringList
-Slice::Sequence::typeMetaData() const
+StringList Slice::Sequence::typeMetaData() const
 {
     return _typeMetaData;
 }
 
-Contained::ContainedType
-Slice::Sequence::containedType() const
+Contained::ContainedType Slice::Sequence::containedType() const
 {
     return ContainedTypeSequence;
 }
 
-bool
-Slice::Sequence::uses(const ContainedPtr& contained) const
+bool Slice::Sequence::uses(const ContainedPtr& contained) const
 {
     ContainedPtr contained2 = ContainedPtr::dynamicCast(_type);
     if(contained2 && contained2 == contained)
@@ -4975,38 +4734,32 @@ Slice::Sequence::uses(const ContainedPtr& contained) const
     return false;
 }
 
-bool
-Slice::Sequence::usesClasses() const
+bool Slice::Sequence::usesClasses() const
 {
     return _type->usesClasses();
 }
 
-size_t
-Slice::Sequence::minWireSize() const
+size_t Slice::Sequence::minWireSize() const
 {
     return 1; // An empty sequence.
 }
 
-bool
-Slice::Sequence::isVariableLength() const
+bool Slice::Sequence::isVariableLength() const
 {
     return true;
 }
 
-string
-Slice::Sequence::kindOf() const
+string Slice::Sequence::kindOf() const
 {
     return "sequence";
 }
 
-void
-Slice::Sequence::visit(ParserVisitor* visitor, bool)
+void Slice::Sequence::visit(ParserVisitor* visitor, bool)
 {
     visitor->visitSequence(this);
 }
 
-void
-Slice::Sequence::recDependencies(set<ConstructedPtr>& dependencies)
+void Slice::Sequence::recDependencies(set<ConstructedPtr>& dependencies)
 {
     ConstructedPtr constructed = ConstructedPtr::dynamicCast(_type);
     if(constructed && dependencies.find(constructed) != dependencies.end())
@@ -5031,38 +4784,32 @@ Slice::Sequence::Sequence(const ContainerPtr& container, const string& name, con
 // Dictionary
 // ----------------------------------------------------------------------
 
-TypePtr
-Slice::Dictionary::keyType() const
+TypePtr Slice::Dictionary::keyType() const
 {
     return _keyType;
 }
 
-TypePtr
-Slice::Dictionary::valueType() const
+TypePtr Slice::Dictionary::valueType() const
 {
     return _valueType;
 }
 
-StringList
-Slice::Dictionary::keyMetaData() const
+StringList Slice::Dictionary::keyMetaData() const
 {
     return _keyMetaData;
 }
 
-StringList
-Slice::Dictionary::valueMetaData() const
+StringList Slice::Dictionary::valueMetaData() const
 {
     return _valueMetaData;
 }
 
-Contained::ContainedType
-Slice::Dictionary::containedType() const
+Contained::ContainedType Slice::Dictionary::containedType() const
 {
     return ContainedTypeDictionary;
 }
 
-bool
-Slice::Dictionary::uses(const ContainedPtr& contained) const
+bool Slice::Dictionary::uses(const ContainedPtr& contained) const
 {
     {
         ContainedPtr contained2 = ContainedPtr::dynamicCast(_keyType);
@@ -5083,38 +4830,32 @@ Slice::Dictionary::uses(const ContainedPtr& contained) const
     return false;
 }
 
-bool
-Slice::Dictionary::usesClasses() const
+bool Slice::Dictionary::usesClasses() const
 {
     return _valueType->usesClasses();
 }
 
-size_t
-Slice::Dictionary::minWireSize() const
+size_t Slice::Dictionary::minWireSize() const
 {
     return 1; // An empty dictionary.
 }
 
-bool
-Slice::Dictionary::isVariableLength() const
+bool Slice::Dictionary::isVariableLength() const
 {
     return true;
 }
 
-string
-Slice::Dictionary::kindOf() const
+string Slice::Dictionary::kindOf() const
 {
     return "dictionary";
 }
 
-void
-Slice::Dictionary::visit(ParserVisitor* visitor, bool)
+void Slice::Dictionary::visit(ParserVisitor* visitor, bool)
 {
     visitor->visitDictionary(this);
 }
 
-void
-Slice::Dictionary::recDependencies(set<ConstructedPtr>& dependencies)
+void Slice::Dictionary::recDependencies(set<ConstructedPtr>& dependencies)
 {
     {
         ConstructedPtr constructed = ConstructedPtr::dynamicCast(_keyType);
@@ -5143,8 +4884,7 @@ Slice::Dictionary::recDependencies(set<ConstructedPtr>& dependencies)
 // Note: Allowing sequences in dictionary keys has been deprecated as
 //       of Ice 3.3.0.
 //
-bool
-Slice::Dictionary::legalKeyType(const TypePtr& type, bool& containsSequence)
+bool Slice::Dictionary::legalKeyType(const TypePtr& type, bool& containsSequence)
 {
     BuiltinPtr bp = BuiltinPtr::dynamicCast(type);
     if(bp)
@@ -5209,8 +4949,8 @@ Slice::Dictionary::legalKeyType(const TypePtr& type, bool& containsSequence)
 }
 
 Slice::Dictionary::Dictionary(const ContainerPtr& container, const string& name, const TypePtr& keyType,
-                              const StringList& keyMetaData, const TypePtr& valueType,
-                              const StringList& valueMetaData, bool local) :
+                              const StringList& keyMetaData, const TypePtr& valueType, const StringList& valueMetaData,
+                              bool local) :
     SyntaxTreeBase(container->unit()),
     Type(container->unit()),
     Contained(container, name),
@@ -5226,74 +4966,62 @@ Slice::Dictionary::Dictionary(const ContainerPtr& container, const string& name,
 // Enum
 // ----------------------------------------------------------------------
 
-void
-Slice::Enum::destroy()
+void Slice::Enum::destroy()
 {
     SyntaxTreeBase::destroy();
 }
 
-bool
-Slice::Enum::explicitValue() const
+bool Slice::Enum::explicitValue() const
 {
     return _explicitValue;
 }
 
-int
-Slice::Enum::minValue() const
+int Slice::Enum::minValue() const
 {
     return static_cast<int>(_minValue);
 }
 
-int
-Slice::Enum::maxValue() const
+int Slice::Enum::maxValue() const
 {
     return static_cast<int>(_maxValue);
 }
 
-Contained::ContainedType
-Slice::Enum::containedType() const
+Contained::ContainedType Slice::Enum::containedType() const
 {
     return ContainedTypeEnum;
 }
 
-bool
-Slice::Enum::uses(const ContainedPtr&) const
+bool Slice::Enum::uses(const ContainedPtr&) const
 {
     return false;
 }
 
-bool
-Slice::Enum::usesClasses() const
+bool Slice::Enum::usesClasses() const
 {
     return false;
 }
 
-size_t
-Slice::Enum::minWireSize() const
+size_t Slice::Enum::minWireSize() const
 {
     return 1;
 }
 
-bool
-Slice::Enum::isVariableLength() const
+bool Slice::Enum::isVariableLength() const
 {
     return true;
 }
 
-string
-Slice::Enum::kindOf() const
+string Slice::Enum::kindOf() const
 {
     return "enumeration";
 }
 
-void
-Slice::Enum::visit(ParserVisitor* visitor, bool)
+void Slice::Enum::visit(ParserVisitor* visitor, bool)
 {
     visitor->visitEnum(this);
 }
 
-void
-Slice::Enum::recDependencies(set<ConstructedPtr>&)
+void Slice::Enum::recDependencies(set<ConstructedPtr>&)
 {
     // An Enum does not have any dependencies.
 }
@@ -5311,8 +5039,7 @@ Slice::Enum::Enum(const ContainerPtr& container, const string& name, bool local)
 {
 }
 
-int
-Slice::Enum::newEnumerator(const EnumeratorPtr& p)
+int Slice::Enum::newEnumerator(const EnumeratorPtr& p)
 {
     if(p->explicitValue())
     {
@@ -5362,8 +5089,8 @@ Slice::Enum::newEnumerator(const EnumeratorPtr& p)
             EnumeratorPtr& r = *q;
             if(r != p && r->value() == _lastValue)
             {
-                _unit->error(string("enumerator `") + p->name() + "' has the same value as enumerator `" +
-                             r->name() + "'");
+                _unit->error(string("enumerator `") + p->name() + "' has the same value as enumerator `" + r->name() +
+                             "'");
             }
         }
     }
@@ -5375,38 +5102,32 @@ Slice::Enum::newEnumerator(const EnumeratorPtr& p)
 // Enumerator
 // ----------------------------------------------------------------------
 
-EnumPtr
-Slice::Enumerator::type() const
+EnumPtr Slice::Enumerator::type() const
 {
     return EnumPtr::dynamicCast(container());
 }
 
-Contained::ContainedType
-Slice::Enumerator::containedType() const
+Contained::ContainedType Slice::Enumerator::containedType() const
 {
     return ContainedTypeEnumerator;
 }
 
-bool
-Slice::Enumerator::uses(const ContainedPtr&) const
+bool Slice::Enumerator::uses(const ContainedPtr&) const
 {
     return false;
 }
 
-string
-Slice::Enumerator::kindOf() const
+string Slice::Enumerator::kindOf() const
 {
     return "enumerator";
 }
 
-bool
-Slice::Enumerator::explicitValue() const
+bool Slice::Enumerator::explicitValue() const
 {
     return _explicitValue;
 }
 
-int
-Slice::Enumerator::value() const
+int Slice::Enumerator::value() const
 {
     return _value;
 }
@@ -5433,57 +5154,48 @@ Slice::Enumerator::Enumerator(const ContainerPtr& container, const string& name,
 // Const
 // ----------------------------------------------------------------------
 
-TypePtr
-Slice::Const::type() const
+TypePtr Slice::Const::type() const
 {
     return _type;
 }
 
-StringList
-Slice::Const::typeMetaData() const
+StringList Slice::Const::typeMetaData() const
 {
     return _typeMetaData;
 }
 
-SyntaxTreeBasePtr
-Slice::Const::valueType() const
+SyntaxTreeBasePtr Slice::Const::valueType() const
 {
     return _valueType;
 }
 
-string
-Slice::Const::value() const
+string Slice::Const::value() const
 {
     return _value;
 }
 
-string
-Slice::Const::literal() const
+string Slice::Const::literal() const
 {
     return _literal;
 }
 
-Contained::ContainedType
-Slice::Const::containedType() const
+Contained::ContainedType Slice::Const::containedType() const
 {
     return ContainedTypeConstant;
 }
 
-bool
-Slice::Const::uses(const ContainedPtr& contained) const
+bool Slice::Const::uses(const ContainedPtr& contained) const
 {
     ContainedPtr contained2 = ContainedPtr::dynamicCast(_type);
     return (contained2 && contained2 == contained);
 }
 
-string
-Slice::Const::kindOf() const
+string Slice::Const::kindOf() const
 {
     return "constant";
 }
 
-void
-Slice::Const::visit(ParserVisitor* visitor, bool)
+void Slice::Const::visit(ParserVisitor* visitor, bool)
 {
     visitor->visitConst(this);
 }
@@ -5503,39 +5215,33 @@ Slice::Const::Const(const ContainerPtr& container, const string& name, const Typ
     {
         cerr << "const " << name << " created with null valueType" << endl;
     }
-
 }
 
 // ----------------------------------------------------------------------
 // Operation
 // ----------------------------------------------------------------------
 
-TypePtr
-Slice::Operation::returnType() const
+TypePtr Slice::Operation::returnType() const
 {
     return _returnType;
 }
 
-bool
-Slice::Operation::returnIsOptional() const
+bool Slice::Operation::returnIsOptional() const
 {
     return _returnIsOptional;
 }
 
-int
-Slice::Operation::returnTag() const
+int Slice::Operation::returnTag() const
 {
     return _returnTag;
 }
 
-Operation::Mode
-Slice::Operation::mode() const
+Operation::Mode Slice::Operation::mode() const
 {
     return _mode;
 }
 
-Operation::Mode
-Slice::Operation::sendMode() const
+Operation::Mode Slice::Operation::sendMode() const
 {
     if(_mode == Operation::Idempotent && hasMetaData("nonmutating"))
     {
@@ -5547,8 +5253,7 @@ Slice::Operation::sendMode() const
     }
 }
 
-bool
-Slice::Operation::hasMarshaledResult() const
+bool Slice::Operation::hasMarshaledResult() const
 {
     ClassDefPtr cl = ClassDefPtr::dynamicCast(container());
     assert(cl);
@@ -5570,8 +5275,8 @@ Slice::Operation::hasMarshaledResult() const
     return false;
 }
 
-ParamDeclPtr
-Slice::Operation::createParamDecl(const string& name, const TypePtr& type, bool isOutParam, bool optional, int tag)
+ParamDeclPtr Slice::Operation::createParamDecl(const string& name, const TypePtr& type, bool isOutParam, bool optional,
+                                               int tag)
 {
     ContainedList matches = _unit->findContents(thisScope() + name);
     if(!matches.empty())
@@ -5661,8 +5366,7 @@ Slice::Operation::createParamDecl(const string& name, const TypePtr& type, bool 
     return p;
 }
 
-ParamDeclList
-Slice::Operation::parameters() const
+ParamDeclList Slice::Operation::parameters() const
 {
     ParamDeclList result;
     for(ContainedList::const_iterator p = _contents.begin(); p != _contents.end(); ++p)
@@ -5676,8 +5380,7 @@ Slice::Operation::parameters() const
     return result;
 }
 
-ParamDeclList
-Slice::Operation::inParameters() const
+ParamDeclList Slice::Operation::inParameters() const
 {
     ParamDeclList result;
     for(ContainedList::const_iterator p = _contents.begin(); p != _contents.end(); ++p)
@@ -5691,8 +5394,7 @@ Slice::Operation::inParameters() const
     return result;
 }
 
-void
-Slice::Operation::inParameters(ParamDeclList& required, ParamDeclList& optional) const
+void Slice::Operation::inParameters(ParamDeclList& required, ParamDeclList& optional) const
 {
     const ParamDeclList params = inParameters();
     for(ParamDeclList::const_iterator pli = params.begin(); pli != params.end(); ++pli)
@@ -5710,8 +5412,7 @@ Slice::Operation::inParameters(ParamDeclList& required, ParamDeclList& optional)
     sortOptionalParameters(optional);
 }
 
-ParamDeclList
-Slice::Operation::outParameters() const
+ParamDeclList Slice::Operation::outParameters() const
 {
     ParamDeclList result;
     for(ContainedList::const_iterator p = _contents.begin(); p != _contents.end(); ++p)
@@ -5725,8 +5426,7 @@ Slice::Operation::outParameters() const
     return result;
 }
 
-void
-Slice::Operation::outParameters(ParamDeclList& required, ParamDeclList& optional) const
+void Slice::Operation::outParameters(ParamDeclList& required, ParamDeclList& optional) const
 {
     const ParamDeclList params = outParameters();
     for(ParamDeclList::const_iterator pli = params.begin(); pli != params.end(); ++pli)
@@ -5744,14 +5444,12 @@ Slice::Operation::outParameters(ParamDeclList& required, ParamDeclList& optional
     sortOptionalParameters(optional);
 }
 
-ExceptionList
-Slice::Operation::throws() const
+ExceptionList Slice::Operation::throws() const
 {
     return _throws;
 }
 
-void
-Slice::Operation::setExceptionList(const ExceptionList& el)
+void Slice::Operation::setExceptionList(const ExceptionList& el)
 {
     _throws = el;
 
@@ -5769,8 +5467,7 @@ Slice::Operation::setExceptionList(const ExceptionList& el)
         ExceptionList tmp = el;
         tmp.sort();
         ExceptionList duplicates;
-        set_difference(tmp.begin(), tmp.end(),
-                       uniqueExceptions.begin(), uniqueExceptions.end(),
+        set_difference(tmp.begin(), tmp.end(), uniqueExceptions.begin(), uniqueExceptions.end(),
                        back_inserter(duplicates));
         string msg = "operation `" + name() + "' has a throws clause with ";
         if(duplicates.size() == 1)
@@ -5810,14 +5507,12 @@ Slice::Operation::setExceptionList(const ExceptionList& el)
     }
 }
 
-Contained::ContainedType
-Slice::Operation::containedType() const
+Contained::ContainedType Slice::Operation::containedType() const
 {
     return ContainedTypeOperation;
 }
 
-bool
-Slice::Operation::uses(const ContainedPtr& contained) const
+bool Slice::Operation::uses(const ContainedPtr& contained) const
 {
     {
         ContainedPtr contained2 = ContainedPtr::dynamicCast(_returnType);
@@ -5839,8 +5534,7 @@ Slice::Operation::uses(const ContainedPtr& contained) const
     return false;
 }
 
-bool
-Slice::Operation::sendsClasses(bool includeOptional) const
+bool Slice::Operation::sendsClasses(bool includeOptional) const
 {
     ParamDeclList pdl = parameters();
     for(ParamDeclList::const_iterator i = pdl.begin(); i != pdl.end(); ++i)
@@ -5853,8 +5547,7 @@ Slice::Operation::sendsClasses(bool includeOptional) const
     return false;
 }
 
-bool
-Slice::Operation::returnsClasses(bool includeOptional) const
+bool Slice::Operation::returnsClasses(bool includeOptional) const
 {
     TypePtr t = returnType();
     if(t && t->usesClasses() && (includeOptional || !_returnIsOptional))
@@ -5872,8 +5565,7 @@ Slice::Operation::returnsClasses(bool includeOptional) const
     return false;
 }
 
-bool
-Slice::Operation::returnsData() const
+bool Slice::Operation::returnsData() const
 {
     TypePtr t = returnType();
     if(t)
@@ -5895,8 +5587,7 @@ Slice::Operation::returnsData() const
     return false;
 }
 
-bool
-Slice::Operation::returnsMultipleValues() const
+bool Slice::Operation::returnsMultipleValues() const
 {
     size_t count = outParameters().size();
 
@@ -5908,8 +5599,7 @@ Slice::Operation::returnsMultipleValues() const
     return count > 1;
 }
 
-bool
-Slice::Operation::sendsOptionals() const
+bool Slice::Operation::sendsOptionals() const
 {
     ParamDeclList pdl = inParameters();
     for(ParamDeclList::const_iterator i = pdl.begin(); i != pdl.end(); ++i)
@@ -5922,8 +5612,7 @@ Slice::Operation::sendsOptionals() const
     return false;
 }
 
-int
-Slice::Operation::attributes() const
+int Slice::Operation::attributes() const
 {
     string freezeMD;
 
@@ -6007,8 +5696,7 @@ Slice::Operation::attributes() const
     }
 }
 
-FormatType
-Slice::Operation::format() const
+FormatType Slice::Operation::format() const
 {
     FormatType format = parseFormatMetaData(getMetaData());
     if(format == DefaultFormat)
@@ -6020,24 +5708,18 @@ Slice::Operation::format() const
     return format;
 }
 
-string
-Slice::Operation::kindOf() const
+string Slice::Operation::kindOf() const
 {
     return "operation";
 }
 
-void
-Slice::Operation::visit(ParserVisitor* visitor, bool)
+void Slice::Operation::visit(ParserVisitor* visitor, bool)
 {
     visitor->visitOperation(this);
 }
 
-Slice::Operation::Operation(const ContainerPtr& container,
-                            const string& name,
-                            const TypePtr& returnType,
-                            bool returnIsOptional,
-                            int returnTag,
-                            Mode mode) :
+Slice::Operation::Operation(const ContainerPtr& container, const string& name, const TypePtr& returnType,
+                            bool returnIsOptional, int returnTag, Mode mode) :
     SyntaxTreeBase(container->unit()),
     Contained(container, name),
     Container(container->unit()),
@@ -6056,38 +5738,32 @@ Slice::Operation::Operation(const ContainerPtr& container,
 // ParamDecl
 // ----------------------------------------------------------------------
 
-TypePtr
-Slice::ParamDecl::type() const
+TypePtr Slice::ParamDecl::type() const
 {
     return _type;
 }
 
-bool
-Slice::ParamDecl::isOutParam() const
+bool Slice::ParamDecl::isOutParam() const
 {
     return _isOutParam;
 }
 
-bool
-Slice::ParamDecl::optional() const
+bool Slice::ParamDecl::optional() const
 {
     return _optional;
 }
 
-int
-Slice::ParamDecl::tag() const
+int Slice::ParamDecl::tag() const
 {
     return _tag;
 }
 
-Contained::ContainedType
-Slice::ParamDecl::containedType() const
+Contained::ContainedType Slice::ParamDecl::containedType() const
 {
     return ContainedTypeDataMember;
 }
 
-bool
-Slice::ParamDecl::uses(const ContainedPtr& contained) const
+bool Slice::ParamDecl::uses(const ContainedPtr& contained) const
 {
     ContainedPtr contained2 = ContainedPtr::dynamicCast(_type);
     if(contained2 && contained2 == contained)
@@ -6098,14 +5774,12 @@ Slice::ParamDecl::uses(const ContainedPtr& contained) const
     return false;
 }
 
-string
-Slice::ParamDecl::kindOf() const
+string Slice::ParamDecl::kindOf() const
 {
     return "parameter declaration";
 }
 
-void
-Slice::ParamDecl::visit(ParserVisitor* visitor, bool)
+void Slice::ParamDecl::visit(ParserVisitor* visitor, bool)
 {
     visitor->visitParamDecl(this);
 }
@@ -6125,50 +5799,42 @@ Slice::ParamDecl::ParamDecl(const ContainerPtr& container, const string& name, c
 // DataMember
 // ----------------------------------------------------------------------
 
-TypePtr
-Slice::DataMember::type() const
+TypePtr Slice::DataMember::type() const
 {
     return _type;
 }
 
-bool
-Slice::DataMember::optional() const
+bool Slice::DataMember::optional() const
 {
     return _optional;
 }
 
-int
-Slice::DataMember::tag() const
+int Slice::DataMember::tag() const
 {
     return _tag;
 }
 
-string
-Slice::DataMember::defaultValue() const
+string Slice::DataMember::defaultValue() const
 {
     return _defaultValue;
 }
 
-string
-Slice::DataMember::defaultLiteral() const
+string Slice::DataMember::defaultLiteral() const
 {
     return _defaultLiteral;
 }
 
-SyntaxTreeBasePtr
-Slice::DataMember::defaultValueType() const
+SyntaxTreeBasePtr Slice::DataMember::defaultValueType() const
 {
     return _defaultValueType;
 }
 
-Contained::ContainedType
-Slice::DataMember::containedType() const
+Contained::ContainedType Slice::DataMember::containedType() const
 {
     return ContainedTypeDataMember;
 }
 
-bool
-Slice::DataMember::uses(const ContainedPtr& contained) const
+bool Slice::DataMember::uses(const ContainedPtr& contained) const
 {
     ContainedPtr contained2 = ContainedPtr::dynamicCast(_type);
     if(contained2 && contained2 == contained)
@@ -6179,21 +5845,19 @@ Slice::DataMember::uses(const ContainedPtr& contained) const
     return false;
 }
 
-string
-Slice::DataMember::kindOf() const
+string Slice::DataMember::kindOf() const
 {
     return "data member";
 }
 
-void
-Slice::DataMember::visit(ParserVisitor* visitor, bool)
+void Slice::DataMember::visit(ParserVisitor* visitor, bool)
 {
     visitor->visitDataMember(this);
 }
 
-Slice::DataMember::DataMember(const ContainerPtr& container, const string& name, const TypePtr& type,
-                              bool optional, int tag, const SyntaxTreeBasePtr& defaultValueType,
-                              const string& defaultValue, const string& defaultLiteral) :
+Slice::DataMember::DataMember(const ContainerPtr& container, const string& name, const TypePtr& type, bool optional,
+                              int tag, const SyntaxTreeBasePtr& defaultValueType, const string& defaultValue,
+                              const string& defaultLiteral) :
     SyntaxTreeBase(container->unit()),
     Contained(container, name),
     _type(type),
@@ -6209,33 +5873,28 @@ Slice::DataMember::DataMember(const ContainerPtr& container, const string& name,
 // Unit
 // ----------------------------------------------------------------------
 
-UnitPtr
-Slice::Unit::createUnit(bool ignRedefs, bool all, bool allowIcePrefix, bool allowUnderscore,
-                        const StringList& defaultGlobalMetadata)
+UnitPtr Slice::Unit::createUnit(bool ignRedefs, bool all, bool allowIcePrefix, bool allowUnderscore,
+                                const StringList& defaultGlobalMetadata)
 {
     return new Unit(ignRedefs, all, allowIcePrefix, allowUnderscore, defaultGlobalMetadata);
 }
 
-bool
-Slice::Unit::ignRedefs() const
+bool Slice::Unit::ignRedefs() const
 {
     return _ignRedefs;
 }
 
-bool
-Slice::Unit::allowIcePrefix() const
+bool Slice::Unit::allowIcePrefix() const
 {
     return _allowIcePrefix;
 }
 
-bool
-Slice::Unit::allowUnderscore() const
+bool Slice::Unit::allowUnderscore() const
 {
     return _allowUnderscore;
 }
 
-void
-Slice::Unit::setComment(const string& comment)
+void Slice::Unit::setComment(const string& comment)
 {
     _currentComment = "";
 
@@ -6287,16 +5946,14 @@ Slice::Unit::setComment(const string& comment)
     }
 }
 
-string
-Slice::Unit::currentComment()
+string Slice::Unit::currentComment()
 {
     string comment = "";
     comment.swap(_currentComment);
     return comment;
 }
 
-string
-Slice::Unit::currentFile() const
+string Slice::Unit::currentFile() const
 {
     DefinitionContextPtr dc = currentDefinitionContext();
     if(dc)
@@ -6309,32 +5966,28 @@ Slice::Unit::currentFile() const
     }
 }
 
-string
-Slice::Unit::topLevelFile() const
+string Slice::Unit::topLevelFile() const
 {
     return _topLevelFile;
 }
 
-int
-Slice::Unit::currentLine() const
+int Slice::Unit::currentLine() const
 {
     return _currentLine;
 }
 
-void
-Slice::Unit::nextLine()
+void Slice::Unit::nextLine()
 {
     _currentLine++;
 }
 
-bool
-Slice::Unit::scanPosition(const char* s)
+bool Slice::Unit::scanPosition(const char* s)
 {
     assert(*s == '#');
 
-    string line(s + 1);                      // Skip leading #
+    string line(s + 1); // Skip leading #
     eraseWhiteSpace(line);
-    if(line.find("line", 0) == 0)            // Erase optional "line"
+    if(line.find("line", 0) == 0) // Erase optional "line"
     {
         line.erase(0, 4);
         eraseWhiteSpace(line);
@@ -6342,9 +5995,9 @@ Slice::Unit::scanPosition(const char* s)
 
     string::size_type idx;
 
-    _currentLine = atoi(line.c_str()) - 1;   // Read line number
+    _currentLine = atoi(line.c_str()) - 1; // Read line number
 
-    idx = line.find_first_of(" \t\r");       // Erase line number
+    idx = line.find_first_of(" \t\r"); // Erase line number
     if(idx != string::npos)
     {
         line.erase(0, idx);
@@ -6368,7 +6021,12 @@ Slice::Unit::scanPosition(const char* s)
         }
     }
 
-    enum LineType { File, Push, Pop };
+    enum LineType
+    {
+        File,
+        Push,
+        Pop
+    };
 
     LineType type = File;
 
@@ -6433,8 +6091,7 @@ Slice::Unit::scanPosition(const char* s)
     return _currentLine == 0;
 }
 
-int
-Slice::Unit::currentIncludeLevel() const
+int Slice::Unit::currentIncludeLevel() const
 {
     if(_all)
     {
@@ -6446,8 +6103,7 @@ Slice::Unit::currentIncludeLevel() const
     }
 }
 
-void
-Slice::Unit::addGlobalMetaData(const StringList& metaData)
+void Slice::Unit::addGlobalMetaData(const StringList& metaData)
 {
     DefinitionContextPtr dc = currentDefinitionContext();
     assert(dc);
@@ -6466,23 +6122,20 @@ Slice::Unit::addGlobalMetaData(const StringList& metaData)
     }
 }
 
-void
-Slice::Unit::setSeenDefinition()
+void Slice::Unit::setSeenDefinition()
 {
     DefinitionContextPtr dc = currentDefinitionContext();
     assert(dc);
     dc->setSeenDefinition();
 }
 
-void
-Slice::Unit::error(const string& s)
+void Slice::Unit::error(const string& s)
 {
     emitError(currentFile(), _currentLine, s);
     _errors++;
 }
 
-void
-Slice::Unit::warning(WarningCategory category, const string& msg) const
+void Slice::Unit::warning(WarningCategory category, const string& msg) const
 {
     if(_definitionContextStack.empty())
     {
@@ -6494,28 +6147,24 @@ Slice::Unit::warning(WarningCategory category, const string& msg) const
     }
 }
 
-ContainerPtr
-Slice::Unit::currentContainer() const
+ContainerPtr Slice::Unit::currentContainer() const
 {
     assert(!_containerStack.empty());
     return _containerStack.top();
 }
 
-void
-Slice::Unit::pushContainer(const ContainerPtr& cont)
+void Slice::Unit::pushContainer(const ContainerPtr& cont)
 {
     _containerStack.push(cont);
 }
 
-void
-Slice::Unit::popContainer()
+void Slice::Unit::popContainer()
 {
     assert(!_containerStack.empty());
     _containerStack.pop();
 }
 
-DefinitionContextPtr
-Slice::Unit::currentDefinitionContext() const
+DefinitionContextPtr Slice::Unit::currentDefinitionContext() const
 {
     DefinitionContextPtr dc;
     if(!_definitionContextStack.empty())
@@ -6525,21 +6174,18 @@ Slice::Unit::currentDefinitionContext() const
     return dc;
 }
 
-void
-Slice::Unit::pushDefinitionContext()
+void Slice::Unit::pushDefinitionContext()
 {
     _definitionContextStack.push(new DefinitionContext(_currentIncludeLevel, _defaultGlobalMetaData));
 }
 
-void
-Slice::Unit::popDefinitionContext()
+void Slice::Unit::popDefinitionContext()
 {
     assert(!_definitionContextStack.empty());
     _definitionContextStack.pop();
 }
 
-DefinitionContextPtr
-Slice::Unit::findDefinitionContext(const string& file) const
+DefinitionContextPtr Slice::Unit::findDefinitionContext(const string& file) const
 {
     map<string, DefinitionContextPtr>::const_iterator p = _definitionContextMap.find(file);
     if(p != _definitionContextMap.end())
@@ -6549,15 +6195,13 @@ Slice::Unit::findDefinitionContext(const string& file) const
     return 0;
 }
 
-void
-Slice::Unit::addContent(const ContainedPtr& contained)
+void Slice::Unit::addContent(const ContainedPtr& contained)
 {
     string scoped = IceUtilInternal::toLower(contained->scoped());
     _contentMap[scoped].push_back(contained);
 }
 
-void
-Slice::Unit::removeContent(const ContainedPtr& contained)
+void Slice::Unit::removeContent(const ContainedPtr& contained)
 {
     string scoped = IceUtilInternal::toLower(contained->scoped());
     map<string, ContainedList>::iterator p = _contentMap.find(scoped);
@@ -6573,8 +6217,7 @@ Slice::Unit::removeContent(const ContainedPtr& contained)
     assert(false);
 }
 
-ContainedList
-Slice::Unit::findContents(const string& scoped) const
+ContainedList Slice::Unit::findContents(const string& scoped) const
 {
     assert(!scoped.empty());
     assert(scoped[0] == ':');
@@ -6591,8 +6234,7 @@ Slice::Unit::findContents(const string& scoped) const
     }
 }
 
-ClassList
-Slice::Unit::findDerivedClasses(const ClassDefPtr& cl) const
+ClassList Slice::Unit::findDerivedClasses(const ClassDefPtr& cl) const
 {
     ClassList derived;
     for(map<string, ContainedList>::const_iterator p = _contentMap.begin(); p != _contentMap.end(); ++p)
@@ -6615,8 +6257,7 @@ Slice::Unit::findDerivedClasses(const ClassDefPtr& cl) const
     return derived;
 }
 
-ExceptionList
-Slice::Unit::findDerivedExceptions(const ExceptionPtr& ex) const
+ExceptionList Slice::Unit::findDerivedExceptions(const ExceptionPtr& ex) const
 {
     ExceptionList derived;
     for(map<string, ContainedList>::const_iterator p = _contentMap.begin(); p != _contentMap.end(); ++p)
@@ -6639,8 +6280,7 @@ Slice::Unit::findDerivedExceptions(const ExceptionPtr& ex) const
     return derived;
 }
 
-ContainedList
-Slice::Unit::findUsedBy(const ContainedPtr& contained) const
+ContainedList Slice::Unit::findUsedBy(const ContainedPtr& contained) const
 {
     ContainedList usedBy;
     for(map<string, ContainedList>::const_iterator p = _contentMap.begin(); p != _contentMap.end(); ++p)
@@ -6658,14 +6298,12 @@ Slice::Unit::findUsedBy(const ContainedPtr& contained) const
     return usedBy;
 }
 
-void
-Slice::Unit::addTypeId(int compactId, const std::string& typeId)
+void Slice::Unit::addTypeId(int compactId, const std::string& typeId)
 {
     _typeIds.insert(make_pair(compactId, typeId));
 }
 
-std::string
-Slice::Unit::getTypeId(int compactId)
+std::string Slice::Unit::getTypeId(int compactId)
 {
     map<int, string>::const_iterator p = _typeIds.find(compactId);
     if(p != _typeIds.end())
@@ -6675,8 +6313,7 @@ Slice::Unit::getTypeId(int compactId)
     return string();
 }
 
-bool
-Slice::Unit::usesNonLocals() const
+bool Slice::Unit::usesNonLocals() const
 {
     for(map<string, ContainedList>::const_iterator p = _contentMap.begin(); p != _contentMap.end(); ++p)
     {
@@ -6714,8 +6351,7 @@ Slice::Unit::usesNonLocals() const
     return false;
 }
 
-bool
-Slice::Unit::usesConsts() const
+bool Slice::Unit::usesConsts() const
 {
     for(map<string, ContainedList>::const_iterator p = _contentMap.begin(); p != _contentMap.end(); ++p)
     {
@@ -6732,14 +6368,12 @@ Slice::Unit::usesConsts() const
     return false;
 }
 
-StringList
-Slice::Unit::includeFiles() const
+StringList Slice::Unit::includeFiles() const
 {
     return _includeFiles;
 }
 
-StringList
-Slice::Unit::allFiles() const
+StringList Slice::Unit::allFiles() const
 {
     StringList result;
     for(map<string, DefinitionContextPtr>::const_iterator p = _definitionContextMap.begin();
@@ -6750,8 +6384,7 @@ Slice::Unit::allFiles() const
     return result;
 }
 
-int
-Slice::Unit::parse(const string& filename, FILE* file, bool debug)
+int Slice::Unit::parse(const string& filename, FILE* file, bool debug)
 {
     slice_debug = debug ? 1 : 0;
 
@@ -6807,16 +6440,14 @@ Slice::Unit::parse(const string& filename, FILE* file, bool debug)
     return status;
 }
 
-void
-Slice::Unit::destroy()
+void Slice::Unit::destroy()
 {
     _contentMap.clear();
     _builtins.clear();
     Container::destroy();
 }
 
-void
-Slice::Unit::visit(ParserVisitor* visitor, bool all)
+void Slice::Unit::visit(ParserVisitor* visitor, bool all)
 {
     if(visitor->visitUnitStart(this))
     {
@@ -6825,8 +6456,7 @@ Slice::Unit::visit(ParserVisitor* visitor, bool all)
     }
 }
 
-BuiltinPtr
-Slice::Unit::builtin(Builtin::Kind kind)
+BuiltinPtr Slice::Unit::builtin(Builtin::Kind kind)
 {
     map<Builtin::Kind, BuiltinPtr>::const_iterator p = _builtins.find(kind);
     if(p != _builtins.end())
@@ -6838,10 +6468,9 @@ Slice::Unit::builtin(Builtin::Kind kind)
     return builtin;
 }
 
-void
-Slice::Unit::addTopLevelModule(const string& file, const string& module)
+void Slice::Unit::addTopLevelModule(const string& file, const string& module)
 {
-    map<string, set<string> >::iterator i = _fileTopLevelModules.find(file);
+    map<string, set<string>>::iterator i = _fileTopLevelModules.find(file);
     if(i == _fileTopLevelModules.end())
     {
         set<string> modules;
@@ -6853,10 +6482,9 @@ Slice::Unit::addTopLevelModule(const string& file, const string& module)
         i->second.insert(module);
     }
 }
-set<string>
-Slice::Unit::getTopLevelModules(const string& file) const
+set<string> Slice::Unit::getTopLevelModules(const string& file) const
 {
-    map<string, set<string> >::const_iterator i = _fileTopLevelModules.find(file);
+    map<string, set<string>>::const_iterator i = _fileTopLevelModules.find(file);
     if(i == _fileTopLevelModules.end())
     {
         return set<string>();
@@ -6884,8 +6512,7 @@ Slice::Unit::Unit(bool ignRedefs, bool all, bool allowIcePrefix, bool allowUnder
     _unit = this;
 }
 
-void
-Slice::Unit::eraseWhiteSpace(string& s)
+void Slice::Unit::eraseWhiteSpace(string& s)
 {
     string::size_type idx = s.find_first_not_of(" \t\r");
     if(idx != string::npos)
@@ -6899,16 +6526,12 @@ Slice::Unit::eraseWhiteSpace(string& s)
     }
 }
 
-bool
-Slice::Unit::checkUndefinedTypes()
+bool Slice::Unit::checkUndefinedTypes()
 {
     class Visitor : public ParserVisitor
     {
     public:
-
-        Visitor(int& errors) :
-            _errors(errors),
-            _local(false)
+        Visitor(int& errors) : _errors(errors), _local(false)
         {
         }
 
@@ -6967,7 +6590,6 @@ Slice::Unit::checkUndefinedTypes()
         }
 
     private:
-
         void checkUndefined(const TypePtr& type, const string& desc, const string& file, const string& line)
         {
             //
@@ -7010,8 +6632,7 @@ Slice::Unit::checkUndefinedTypes()
 // CICompare
 // ----------------------------------------------------------------------
 
-bool
-Slice::CICompare::operator()(const string& s1, const string& s2) const
+bool Slice::CICompare::operator()(const string& s1, const string& s2) const
 {
     string::const_iterator p1 = s1.begin();
     string::const_iterator p2 = s2.begin();
@@ -7040,8 +6661,7 @@ Slice::CICompare::operator()(const string& s1, const string& s2) const
 }
 
 #if defined(__SUNPRO_CC)
-bool
-Slice::cICompare(const std::string& s1, const std::string& s2)
+bool Slice::cICompare(const std::string& s1, const std::string& s2)
 {
     CICompare c;
     return c(s1, s2);
@@ -7052,15 +6672,13 @@ Slice::cICompare(const std::string& s1, const std::string& s2)
 // DerivedToBaseCompare
 // ----------------------------------------------------------------------
 
-bool
-Slice::DerivedToBaseCompare::operator()(const ExceptionPtr& e1, const ExceptionPtr& e2) const
+bool Slice::DerivedToBaseCompare::operator()(const ExceptionPtr& e1, const ExceptionPtr& e2) const
 {
     return e2->isBaseOf(e1);
 }
 
 #if defined(__SUNPRO_CC)
-bool
-Slice::derivedToBaseCompare(const ExceptionPtr& e1, const ExceptionPtr& e2)
+bool Slice::derivedToBaseCompare(const ExceptionPtr& e1, const ExceptionPtr& e2)
 {
     return e2->isBaseOf(e1);
 }

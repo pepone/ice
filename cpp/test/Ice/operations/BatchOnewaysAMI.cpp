@@ -15,100 +15,91 @@ using namespace std;
 
 namespace
 {
-
-class Callback : public IceUtil::Monitor<IceUtil::Mutex>, public IceUtil::Shared
-{
-public:
-
-    Callback() :
-        _called(false)
+    class Callback : public IceUtil::Monitor<IceUtil::Mutex>, public IceUtil::Shared
     {
-    }
-
-    virtual ~Callback()
-    {
-    }
-
-    void check()
-    {
-        IceUtil::Monitor<IceUtil::Mutex>::Lock sync(*this);
-        while(!_called)
+    public:
+        Callback() : _called(false)
         {
-            wait();
         }
-        _called = false;
-    }
 
-    void called()
+        virtual ~Callback()
+        {
+        }
+
+        void check()
+        {
+            IceUtil::Monitor<IceUtil::Mutex>::Lock sync(*this);
+            while(!_called)
+            {
+                wait();
+            }
+            _called = false;
+        }
+
+        void called()
+        {
+            IceUtil::Monitor<IceUtil::Mutex>::Lock sync(*this);
+            assert(!_called);
+            _called = true;
+            notify();
+        }
+
+    private:
+        bool _called;
+    };
+    typedef IceUtil::Handle<Callback> CallbackPtr;
+
+    class Callback_ByteSOneway : public IceUtil::Shared
     {
-        IceUtil::Monitor<IceUtil::Mutex>::Lock sync(*this);
-        assert(!_called);
-        _called = true;
-        notify();
-    }
+    public:
+        void response()
+        {
+        }
 
-private:
+        void exception(const ::Ice::Exception&)
+        {
+            test(false);
+        }
+    };
 
-    bool _called;
-};
-typedef IceUtil::Handle<Callback> CallbackPtr;
-
-class Callback_ByteSOneway : public IceUtil::Shared
-{
-public:
-
-    void response()
+    class Callback_ping : public IceUtil::Shared
     {
-    }
+        CallbackPtr _cb;
 
-    void exception(const ::Ice::Exception&)
-    {
-        test(false);
-    }
-};
+    public:
+        Callback_ping(const CallbackPtr& cb) : _cb(cb)
+        {
+        }
 
-class Callback_ping : public IceUtil::Shared
-{
-    CallbackPtr _cb;
+        void response()
+        {
+            test(false);
+        }
 
-public:
+        void exception(const ::Ice::Exception& ex)
+        {
+            test(dynamic_cast<const Ice::CloseConnectionException*>(&ex));
+            _cb->called();
+        }
+    };
+} // namespace
 
-    Callback_ping(const CallbackPtr& cb) : _cb(cb)
-    {
-    }
-
-    void response()
-    {
-        test(false);
-    }
-
-    void exception(const ::Ice::Exception& ex)
-    {
-        test(dynamic_cast<const Ice::CloseConnectionException*>(&ex));
-        _cb->called();
-    }
-};
-}
-
-void
-batchOnewaysAMI(const Test::MyClassPrxPtr& p)
+void batchOnewaysAMI(const Test::MyClassPrxPtr& p)
 {
     const Test::ByteS bs1(10 * 1024);
     Test::MyClassPrxPtr batch = ICE_UNCHECKED_CAST(Test::MyClassPrx, p->ice_batchOneway());
 #ifdef ICE_CPP11_MAPPING
 
     promise<void> prom;
-    batch->ice_flushBatchRequestsAsync(nullptr,
-        [&](bool sentSynchronously)
-        {
-            test(sentSynchronously);
-            prom.set_value();
-        }); // Empty flush
+    batch->ice_flushBatchRequestsAsync(nullptr, [&](bool sentSynchronously) {
+        test(sentSynchronously);
+        prom.set_value();
+    }); // Empty flush
     prom.get_future().get();
 
     for(int i = 0; i < 30; ++i)
     {
-        batch->opByteSOnewayAsync(bs1, nullptr, [](exception_ptr){ test(false); });
+        batch->opByteSOnewayAsync(bs1, nullptr, [](exception_ptr) { test(false); });
     }
 
     int count = 0;
@@ -155,8 +146,8 @@ batchOnewaysAMI(const Test::MyClassPrxPtr& p)
 #else
     batch->end_ice_flushBatchRequests(batch->begin_ice_flushBatchRequests()); // Empty flush
 
-    test(batch->begin_ice_flushBatchRequests()->isSent()); // Empty flush
-    test(batch->begin_ice_flushBatchRequests()->isCompleted()); // Empty flush
+    test(batch->begin_ice_flushBatchRequests()->isSent());            // Empty flush
+    test(batch->begin_ice_flushBatchRequests()->isCompleted());       // Empty flush
     test(batch->begin_ice_flushBatchRequests()->sentSynchronously()); // Empty flush
 
     for(int i = 0; i < 30; ++i)

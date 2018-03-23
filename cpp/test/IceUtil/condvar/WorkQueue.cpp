@@ -22,8 +22,9 @@ using namespace IceUtilInternal;
 class CountDown : public Monitor<Mutex>, public Shared
 {
 public:
-
-    CountDown(int count) : _count(count) { }
+    CountDown(int count) : _count(count)
+    {
+    }
 
     void decrement()
     {
@@ -46,22 +47,18 @@ public:
     }
 
 private:
-
     int _count;
 };
 typedef Handle<CountDown> CountDownPtr;
 
-class Queue: public Monitor<Mutex>, public Shared
+class Queue : public Monitor<Mutex>, public Shared
 {
 public:
-
-    Queue(bool broadcast) :
-        _broadcast(broadcast), _terminate(false)
+    Queue(bool broadcast) : _broadcast(broadcast), _terminate(false)
     {
     }
 
-    void
-    put(const int& item)
+    void put(const int& item)
     {
         Monitor<Mutex>::Lock lock(*this);
         _q.push_back(item);
@@ -75,16 +72,14 @@ public:
         }
     }
 
-    void
-    terminate()
+    void terminate()
     {
         Monitor<Mutex>::Lock lock(*this);
         _terminate = true;
         notifyAll();
     }
 
-    bool
-    timedGet(int& ret, const Time& timeout)
+    bool timedGet(int& ret, const Time& timeout)
     {
         Monitor<Mutex>::Lock lock(*this);
         if(_q.empty())
@@ -113,8 +108,7 @@ public:
         return true;
     }
 
-    int
-    get()
+    int get()
     {
         Monitor<Mutex>::Lock lock(*this);
         while(_q.empty() && !_terminate)
@@ -150,13 +144,10 @@ typedef Handle<Queue> QueuePtr;
 class TestThread : public Thread
 {
 public:
-
-    TestThread(const CountDownPtr& cd, const QueuePtr& q, bool poll) :
-        _cd(cd), _q(q), _poll(poll)
+    TestThread(const CountDownPtr& cd, const QueuePtr& q, bool poll) : _cd(cd), _q(q), _poll(poll)
     {
     }
-    virtual void
-    run()
+    virtual void run()
     {
         _cd->decrement();
         while(true)
@@ -187,14 +178,11 @@ typedef Handle<TestThread> TestThreadPtr;
 class EnqueueThread : public Thread
 {
 public:
-
-    EnqueueThread(const CountDownPtr& cd, const QueuePtr& q, int v) :
-        _cd(cd), _q(q), _v(v)
+    EnqueueThread(const CountDownPtr& cd, const QueuePtr& q, int v) : _cd(cd), _q(q), _v(v)
     {
     }
 
-    virtual void
-    run()
+    virtual void run()
     {
         _cd->decrement();
         // Forever
@@ -218,15 +206,13 @@ public:
     }
 
 private:
-
     const CountDownPtr _cd;
     const QueuePtr _q;
     int _v;
 };
 typedef Handle<EnqueueThread> EnqueueThreadPtr;
 
-int
-main(int argc, char** argv)
+int main(int argc, char** argv)
 {
     Options opts;
     opts.addOpt("n", "events", Options::NeedArg, "5000");

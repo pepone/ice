@@ -21,23 +21,20 @@ using namespace std;
 
 namespace IceUtil
 {
+    ICE_API MutexProtocol getDefaultMutexProtocol()
+    {
+#    if defined(_POSIX_THREAD_PRIO_INHERIT) && _POSIX_THREAD_PRIO_INHERIT > 0
+        return PrioInherit;
+#    else
+        return PrioNone;
+#    endif
+    }
 
-ICE_API MutexProtocol
-getDefaultMutexProtocol()
-{
-#  if defined(_POSIX_THREAD_PRIO_INHERIT) && _POSIX_THREAD_PRIO_INHERIT > 0
-    return PrioInherit;
-#  else
-    return PrioNone;
-#  endif
-}
-
-}
+} // namespace IceUtil
 
 #endif
 
-int
-main(int, char**)
+int main(int, char**)
 {
     try
     {

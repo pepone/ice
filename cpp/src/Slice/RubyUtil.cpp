@@ -21,107 +21,102 @@ using namespace IceUtilInternal;
 
 namespace
 {
-
-string
-getEscapedParamName(const OperationPtr& p, const string& name)
-{
-    ParamDeclList params = p->parameters();
-
-    for(ParamDeclList::const_iterator i = params.begin(); i != params.end(); ++i)
+    string getEscapedParamName(const OperationPtr& p, const string& name)
     {
-        if((*i)->name() == name)
-        {
-            return name + "_";
-        }
-    }
-    return name;
-}
+        ParamDeclList params = p->parameters();
 
-}
+        for(ParamDeclList::const_iterator i = params.begin(); i != params.end(); ++i)
+        {
+            if((*i)->name() == name)
+            {
+                return name + "_";
+            }
+        }
+        return name;
+    }
+
+} // namespace
 
 namespace Slice
 {
-namespace Ruby
-{
-
-//
-// CodeVisitor generates the Ruby mapping for a translation unit.
-//
-class CodeVisitor : public ParserVisitor
-{
-public:
-
-    CodeVisitor(IceUtilInternal::Output&);
-
-    virtual bool visitModuleStart(const ModulePtr&);
-    virtual void visitModuleEnd(const ModulePtr&);
-    virtual void visitClassDecl(const ClassDeclPtr&);
-    virtual bool visitClassDefStart(const ClassDefPtr&);
-    virtual bool visitExceptionStart(const ExceptionPtr&);
-    virtual bool visitStructStart(const StructPtr&);
-    virtual void visitSequence(const SequencePtr&);
-    virtual void visitDictionary(const DictionaryPtr&);
-    virtual void visitEnum(const EnumPtr&);
-    virtual void visitConst(const ConstPtr&);
-
-private:
-
-    //
-    // Return a Ruby symbol for the given parser element.
-    //
-    string getSymbol(const ContainedPtr&);
-
-    //
-    // Emit Ruby code to assign the given symbol in the current module.
-    //
-    void registerName(const string&);
-
-    //
-    // Emit the array that describes a Slice type.
-    //
-    void writeType(const TypePtr&);
-
-    //
-    // Get an initializer value for a given type.
-    //
-    string getInitializer(const DataMemberPtr&);
-
-    //
-    // Add a value to a hash code.
-    //
-    void writeHash(const string&, const TypePtr&, int&);
-
-    //
-    // Write a constant value.
-    //
-    void writeConstantValue(const TypePtr&, const SyntaxTreeBasePtr&, const string&);
-
-    struct MemberInfo
+    namespace Ruby
     {
-        string lowerName; // Mapped name beginning with a lower-case letter for use as the name of a local variable.
-        string fixedName;
-        bool inherited;
-        DataMemberPtr dataMember;
-    };
-    typedef list<MemberInfo> MemberInfoList;
+        //
+        // CodeVisitor generates the Ruby mapping for a translation unit.
+        //
+        class CodeVisitor : public ParserVisitor
+        {
+        public:
+            CodeVisitor(IceUtilInternal::Output&);
 
-    //
-    // Write constructor parameters with default values.
-    //
-    void writeConstructorParams(const MemberInfoList&);
+            virtual bool visitModuleStart(const ModulePtr&);
+            virtual void visitModuleEnd(const ModulePtr&);
+            virtual void visitClassDecl(const ClassDeclPtr&);
+            virtual bool visitClassDefStart(const ClassDefPtr&);
+            virtual bool visitExceptionStart(const ExceptionPtr&);
+            virtual bool visitStructStart(const StructPtr&);
+            virtual void visitSequence(const SequencePtr&);
+            virtual void visitDictionary(const DictionaryPtr&);
+            virtual void visitEnum(const EnumPtr&);
+            virtual void visitConst(const ConstPtr&);
 
-    void collectClassMembers(const ClassDefPtr&, MemberInfoList&, bool);
-    void collectExceptionMembers(const ExceptionPtr&, MemberInfoList&, bool);
+        private:
+            //
+            // Return a Ruby symbol for the given parser element.
+            //
+            string getSymbol(const ContainedPtr&);
 
-    Output& _out;
-    set<string> _classHistory;
-};
+            //
+            // Emit Ruby code to assign the given symbol in the current module.
+            //
+            void registerName(const string&);
 
-}
-}
+            //
+            // Emit the array that describes a Slice type.
+            //
+            void writeType(const TypePtr&);
 
-static string
-lookupKwd(const string& name)
+            //
+            // Get an initializer value for a given type.
+            //
+            string getInitializer(const DataMemberPtr&);
+
+            //
+            // Add a value to a hash code.
+            //
+            void writeHash(const string&, const TypePtr&, int&);
+
+            //
+            // Write a constant value.
+            //
+            void writeConstantValue(const TypePtr&, const SyntaxTreeBasePtr&, const string&);
+
+            struct MemberInfo
+            {
+                string lowerName; // Mapped name beginning with a lower-case letter for use as the name of a local
+                                  // variable.
+                string fixedName;
+                bool inherited;
+                DataMemberPtr dataMember;
+            };
+            typedef list<MemberInfo> MemberInfoList;
+
+            //
+            // Write constructor parameters with default values.
+            //
+            void writeConstructorParams(const MemberInfoList&);
+
+            void collectClassMembers(const ClassDefPtr&, MemberInfoList&, bool);
+            void collectExceptionMembers(const ExceptionPtr&, MemberInfoList&, bool);
+
+            Output& _out;
+            set<string> _classHistory;
+        };
+
+    } // namespace Ruby
+} // namespace Slice
+
+static string lookupKwd(const string& name)
 {
     //
     // Keyword list. *Must* be kept in alphabetical order.
@@ -133,27 +128,77 @@ lookupKwd(const string& name)
     // conflict with a Slice identifier, so names such as "inspect" and
     // "send" are included but "to_s" is not.
     //
-    static const string keywordList[] =
-    {
-        "BEGIN", "END", "alias", "and", "begin", "break", "case", "class", "clone", "def", "display", "do", "dup",
-        "else", "elsif", "end", "ensure", "extend", "false", "for", "freeze", "hash", "if", "in", "initialize_copy",
-        "inspect", "instance_eval", "instance_variable_get", "instance_variable_set", "instance_variables", "method",
-        "method_missing", "methods", "module", "new", "next", "nil", "not", "object_id", "or", "private_methods",
-        "protected_methods", "public_methods", "redo", "rescue", "retry", "return", "self", "send",
-        "singleton_methods", "super", "taint", "then", "to_a", "to_s", "true", "undef", "unless", "untaint", "until",
-        "when", "while", "yield"
-    };
-    bool found =  binary_search(&keywordList[0],
-                                &keywordList[sizeof(keywordList) / sizeof(*keywordList)],
-                                name);
+    static const string keywordList[] = {"BEGIN",
+                                         "END",
+                                         "alias",
+                                         "and",
+                                         "begin",
+                                         "break",
+                                         "case",
+                                         "class",
+                                         "clone",
+                                         "def",
+                                         "display",
+                                         "do",
+                                         "dup",
+                                         "else",
+                                         "elsif",
+                                         "end",
+                                         "ensure",
+                                         "extend",
+                                         "false",
+                                         "for",
+                                         "freeze",
+                                         "hash",
+                                         "if",
+                                         "in",
+                                         "initialize_copy",
+                                         "inspect",
+                                         "instance_eval",
+                                         "instance_variable_get",
+                                         "instance_variable_set",
+                                         "instance_variables",
+                                         "method",
+                                         "method_missing",
+                                         "methods",
+                                         "module",
+                                         "new",
+                                         "next",
+                                         "nil",
+                                         "not",
+                                         "object_id",
+                                         "or",
+                                         "private_methods",
+                                         "protected_methods",
+                                         "public_methods",
+                                         "redo",
+                                         "rescue",
+                                         "retry",
+                                         "return",
+                                         "self",
+                                         "send",
+                                         "singleton_methods",
+                                         "super",
+                                         "taint",
+                                         "then",
+                                         "to_a",
+                                         "to_s",
+                                         "true",
+                                         "undef",
+                                         "unless",
+                                         "untaint",
+                                         "until",
+                                         "when",
+                                         "while",
+                                         "yield"};
+    bool found = binary_search(&keywordList[0], &keywordList[sizeof(keywordList) / sizeof(*keywordList)], name);
     return found ? "_" + name : name;
 }
 
 //
 // Split a scoped name into its components and return the components as a list of (unscoped) identifiers.
 //
-static vector<string>
-splitScopedName(const string& scoped)
+static vector<string> splitScopedName(const string& scoped)
 {
     assert(scoped[0] == ':');
     vector<string> ids;
@@ -183,28 +228,24 @@ splitScopedName(const string& scoped)
 //
 // CodeVisitor implementation.
 //
-Slice::Ruby::CodeVisitor::CodeVisitor(Output& out) :
-    _out(out)
+Slice::Ruby::CodeVisitor::CodeVisitor(Output& out) : _out(out)
 {
 }
 
-bool
-Slice::Ruby::CodeVisitor::visitModuleStart(const ModulePtr& p)
+bool Slice::Ruby::CodeVisitor::visitModuleStart(const ModulePtr& p)
 {
     _out << sp << nl << "module " << fixIdent(p->name(), IdentToUpper);
     _out.inc();
     return true;
 }
 
-void
-Slice::Ruby::CodeVisitor::visitModuleEnd(const ModulePtr&)
+void Slice::Ruby::CodeVisitor::visitModuleEnd(const ModulePtr&)
 {
     _out.dec();
     _out << nl << "end";
 }
 
-void
-Slice::Ruby::CodeVisitor::visitClassDecl(const ClassDeclPtr& p)
+void Slice::Ruby::CodeVisitor::visitClassDecl(const ClassDeclPtr& p)
 {
     //
     // Emit forward declarations.
@@ -230,8 +271,7 @@ Slice::Ruby::CodeVisitor::visitClassDecl(const ClassDeclPtr& p)
     }
 }
 
-bool
-Slice::Ruby::CodeVisitor::visitClassDefStart(const ClassDefPtr& p)
+bool Slice::Ruby::CodeVisitor::visitClassDefStart(const ClassDefPtr& p)
 {
     bool isInterface = p->isInterface();
     bool isLocal = p->isLocal();
@@ -363,8 +403,8 @@ Slice::Ruby::CodeVisitor::visitClassDefStart(const ClassDefPtr& p)
                     //
                     // We need to list the symbols of the reader and the writer (e.g., ":member" and ":member=").
                     //
-                    _out << ":" << fixIdent((*q)->name(), IdentNormal) << ", :"
-                        << fixIdent((*q)->name(), IdentNormal) << '=';
+                    _out << ":" << fixIdent((*q)->name(), IdentNormal) << ", :" << fixIdent((*q)->name(), IdentNormal)
+                         << '=';
                 }
             }
         }
@@ -464,11 +504,9 @@ Slice::Ruby::CodeVisitor::visitClassDefStart(const ClassDefPtr& p)
 
     const bool preserved = p->hasMetaData("preserve-slice") || p->inheritsMetaData("preserve-slice");
 
-    _out << sp << nl << "T_" << name << ".defineClass("
-         << (isInterface ? "::Ice::Value" : name) << ", "
-         << p->compactId() << ", "
-         << (preserved ? "true" : "false") << ", "
-         << (isInterface ? "true" : "false") << ", ";
+    _out << sp << nl << "T_" << name << ".defineClass(" << (isInterface ? "::Ice::Value" : name) << ", "
+         << p->compactId() << ", " << (preserved ? "true" : "false") << ", " << (isInterface ? "true" : "false")
+         << ", ";
     if(!base)
     {
         _out << "nil";
@@ -567,43 +605,43 @@ Slice::Ruby::CodeVisitor::visitClassDefStart(const ClassDefPtr& p)
             string format;
             switch((*s)->format())
             {
-            case DefaultFormat:
-                format = "nil";
-                break;
-            case CompactFormat:
-                format = "::Ice::FormatType::CompactFormat";
-                break;
-            case SlicedFormat:
-                format = "::Ice::FormatType::SlicedFormat";
-                break;
+                case DefaultFormat:
+                    format = "nil";
+                    break;
+                case CompactFormat:
+                    format = "::Ice::FormatType::CompactFormat";
+                    break;
+                case SlicedFormat:
+                    format = "::Ice::FormatType::SlicedFormat";
+                    break;
             }
 
-            _out << nl << name << "Prx_mixin::OP_" << (*s)->name() << " = ::Ice::__defineOperation('"
-                 << (*s)->name() << "', ";
+            _out << nl << name << "Prx_mixin::OP_" << (*s)->name() << " = ::Ice::__defineOperation('" << (*s)->name()
+                 << "', ";
             switch((*s)->mode())
             {
-            case Operation::Normal:
-                _out << "::Ice::OperationMode::Normal";
-                break;
-            case Operation::Nonmutating:
-                _out << "::Ice::OperationMode::Nonmutating";
-                break;
-            case Operation::Idempotent:
-                _out << "::Ice::OperationMode::Idempotent";
-                break;
+                case Operation::Normal:
+                    _out << "::Ice::OperationMode::Normal";
+                    break;
+                case Operation::Nonmutating:
+                    _out << "::Ice::OperationMode::Nonmutating";
+                    break;
+                case Operation::Idempotent:
+                    _out << "::Ice::OperationMode::Idempotent";
+                    break;
             }
             _out << ", ";
             switch((*s)->sendMode())
             {
-            case Operation::Normal:
-                _out << "::Ice::OperationMode::Normal";
-                break;
-            case Operation::Nonmutating:
-                _out << "::Ice::OperationMode::Nonmutating";
-                break;
-            case Operation::Idempotent:
-                _out << "::Ice::OperationMode::Idempotent";
-                break;
+                case Operation::Normal:
+                    _out << "::Ice::OperationMode::Normal";
+                    break;
+                case Operation::Nonmutating:
+                    _out << "::Ice::OperationMode::Nonmutating";
+                    break;
+                case Operation::Idempotent:
+                    _out << "::Ice::OperationMode::Idempotent";
+                    break;
             }
             _out << ", " << ((p->hasMetaData("amd") || (*s)->hasMetaData("amd")) ? "true" : "false") << ", " << format
                  << ", [";
@@ -688,8 +726,7 @@ Slice::Ruby::CodeVisitor::visitClassDefStart(const ClassDefPtr& p)
     return false;
 }
 
-bool
-Slice::Ruby::CodeVisitor::visitExceptionStart(const ExceptionPtr& p)
+bool Slice::Ruby::CodeVisitor::visitExceptionStart(const ExceptionPtr& p)
 {
     string scoped = p->scoped();
     string name = fixIdent(p->name(), IdentToUpper);
@@ -802,7 +839,7 @@ Slice::Ruby::CodeVisitor::visitExceptionStart(const ExceptionPtr& p)
     }
     else
     {
-         _out << getAbsolute(base, IdentToUpper, "T_");
+        _out << getAbsolute(base, IdentToUpper, "T_");
     }
     _out << ", [";
     if(members.size() > 1)
@@ -841,8 +878,7 @@ Slice::Ruby::CodeVisitor::visitExceptionStart(const ExceptionPtr& p)
     return false;
 }
 
-bool
-Slice::Ruby::CodeVisitor::visitStructStart(const StructPtr& p)
+bool Slice::Ruby::CodeVisitor::visitStructStart(const StructPtr& p)
 {
     string scoped = p->scoped();
     string name = fixIdent(p->name(), IdentToUpper);
@@ -980,8 +1016,7 @@ Slice::Ruby::CodeVisitor::visitStructStart(const StructPtr& p)
     return false;
 }
 
-void
-Slice::Ruby::CodeVisitor::visitSequence(const SequencePtr& p)
+void Slice::Ruby::CodeVisitor::visitSequence(const SequencePtr& p)
 {
     //
     // Emit the type information.
@@ -997,8 +1032,7 @@ Slice::Ruby::CodeVisitor::visitSequence(const SequencePtr& p)
     _out << nl << "end"; // if not defined?()
 }
 
-void
-Slice::Ruby::CodeVisitor::visitDictionary(const DictionaryPtr& p)
+void Slice::Ruby::CodeVisitor::visitDictionary(const DictionaryPtr& p)
 {
     //
     // Emit the type information.
@@ -1016,8 +1050,7 @@ Slice::Ruby::CodeVisitor::visitDictionary(const DictionaryPtr& p)
     _out << nl << "end"; // if not defined?()
 }
 
-void
-Slice::Ruby::CodeVisitor::visitEnum(const EnumPtr& p)
+void Slice::Ruby::CodeVisitor::visitEnum(const EnumPtr& p)
 {
     string scoped = p->scoped();
     string name = fixIdent(p->name(), IdentToUpper);
@@ -1103,8 +1136,8 @@ Slice::Ruby::CodeVisitor::visitEnum(const EnumPtr& p)
     {
         ostringstream idx;
         idx << i;
-        _out << nl << fixIdent((*q)->name(), IdentToUpper) << " = " << name << ".new(\"" << (*q)->name()
-             << "\", " << (*q)->value() << ')';
+        _out << nl << fixIdent((*q)->name(), IdentToUpper) << " = " << name << ".new(\"" << (*q)->name() << "\", "
+             << (*q)->value() << ')';
     }
 
     _out << sp << nl << "@@_enumerators = {";
@@ -1139,8 +1172,7 @@ Slice::Ruby::CodeVisitor::visitEnum(const EnumPtr& p)
     _out << nl << "end"; // if not defined?()
 }
 
-void
-Slice::Ruby::CodeVisitor::visitConst(const ConstPtr& p)
+void Slice::Ruby::CodeVisitor::visitConst(const ConstPtr& p)
 {
     Slice::TypePtr type = p->type();
     string name = fixIdent(p->name(), IdentToUpper);
@@ -1149,8 +1181,7 @@ Slice::Ruby::CodeVisitor::visitConst(const ConstPtr& p)
     writeConstantValue(type, p->valueType(), p->value());
 }
 
-void
-Slice::Ruby::CodeVisitor::writeType(const TypePtr& p)
+void Slice::Ruby::CodeVisitor::writeType(const TypePtr& p)
 {
     BuiltinPtr builtin = BuiltinPtr::dynamicCast(p);
     if(builtin)
@@ -1237,8 +1268,7 @@ Slice::Ruby::CodeVisitor::writeType(const TypePtr& p)
     _out << getAbsolute(cont, IdentToUpper, "T_");
 }
 
-string
-Slice::Ruby::CodeVisitor::getInitializer(const DataMemberPtr& m)
+string Slice::Ruby::CodeVisitor::getInitializer(const DataMemberPtr& m)
 {
     TypePtr p = m->type();
     BuiltinPtr builtin = BuiltinPtr::dynamicCast(p);
@@ -1292,15 +1322,13 @@ Slice::Ruby::CodeVisitor::getInitializer(const DataMemberPtr& m)
     return "nil";
 }
 
-void
-Slice::Ruby::CodeVisitor::writeHash(const string& name, const TypePtr&, int&)
+void Slice::Ruby::CodeVisitor::writeHash(const string& name, const TypePtr&, int&)
 {
     _out << nl << "_h = 5 * _h + " << name << ".hash";
 }
 
-void
-Slice::Ruby::CodeVisitor::writeConstantValue(const TypePtr& type, const SyntaxTreeBasePtr& valueType,
-                                             const string& value)
+void Slice::Ruby::CodeVisitor::writeConstantValue(const TypePtr& type, const SyntaxTreeBasePtr& valueType,
+                                                  const string& value)
 {
     ConstPtr constant = ConstPtr::dynamicCast(valueType);
     if(constant)
@@ -1315,35 +1343,35 @@ Slice::Ruby::CodeVisitor::writeConstantValue(const TypePtr& type, const SyntaxTr
         {
             switch(b->kind())
             {
-            case Slice::Builtin::KindBool:
-            case Slice::Builtin::KindByte:
-            case Slice::Builtin::KindShort:
-            case Slice::Builtin::KindInt:
-            case Slice::Builtin::KindFloat:
-            case Slice::Builtin::KindDouble:
-            {
-                _out << value;
-                break;
-            }
-            case Slice::Builtin::KindLong:
-            {
-                IceUtil::Int64 l;
-                IceUtilInternal::stringToInt64(value, l);
-                _out << value;
-                break;
-            }
-            case Slice::Builtin::KindString:
-            {
-                // RubyUCN available in Ruby 1.9 or greater
-                _out << "\"" << toStringLiteral(value, "\a\b\f\n\r\t\v\x20\x1b", "", EC6UCN, 0) << "\"";
-                break;
-            }
+                case Slice::Builtin::KindBool:
+                case Slice::Builtin::KindByte:
+                case Slice::Builtin::KindShort:
+                case Slice::Builtin::KindInt:
+                case Slice::Builtin::KindFloat:
+                case Slice::Builtin::KindDouble:
+                {
+                    _out << value;
+                    break;
+                }
+                case Slice::Builtin::KindLong:
+                {
+                    IceUtil::Int64 l;
+                    IceUtilInternal::stringToInt64(value, l);
+                    _out << value;
+                    break;
+                }
+                case Slice::Builtin::KindString:
+                {
+                    // RubyUCN available in Ruby 1.9 or greater
+                    _out << "\"" << toStringLiteral(value, "\a\b\f\n\r\t\v\x20\x1b", "", EC6UCN, 0) << "\"";
+                    break;
+                }
 
-            case Slice::Builtin::KindValue:
-            case Slice::Builtin::KindObject:
-            case Slice::Builtin::KindObjectProxy:
-            case Slice::Builtin::KindLocalObject:
-                assert(false);
+                case Slice::Builtin::KindValue:
+                case Slice::Builtin::KindObject:
+                case Slice::Builtin::KindObjectProxy:
+                case Slice::Builtin::KindLocalObject:
+                    assert(false);
             }
         }
         else if(en)
@@ -1359,8 +1387,7 @@ Slice::Ruby::CodeVisitor::writeConstantValue(const TypePtr& type, const SyntaxTr
     }
 }
 
-void
-Slice::Ruby::CodeVisitor::writeConstructorParams(const MemberInfoList& members)
+void Slice::Ruby::CodeVisitor::writeConstructorParams(const MemberInfoList& members)
 {
     for(MemberInfoList::const_iterator p = members.begin(); p != members.end(); ++p)
     {
@@ -1386,8 +1413,7 @@ Slice::Ruby::CodeVisitor::writeConstructorParams(const MemberInfoList& members)
     }
 }
 
-void
-Slice::Ruby::CodeVisitor::collectClassMembers(const ClassDefPtr& p, MemberInfoList& allMembers, bool inherited)
+void Slice::Ruby::CodeVisitor::collectClassMembers(const ClassDefPtr& p, MemberInfoList& allMembers, bool inherited)
 {
     ClassList bases = p->bases();
     if(!bases.empty() && !bases.front()->isInterface())
@@ -1408,8 +1434,8 @@ Slice::Ruby::CodeVisitor::collectClassMembers(const ClassDefPtr& p, MemberInfoLi
     }
 }
 
-void
-Slice::Ruby::CodeVisitor::collectExceptionMembers(const ExceptionPtr& p, MemberInfoList& allMembers, bool inherited)
+void Slice::Ruby::CodeVisitor::collectExceptionMembers(const ExceptionPtr& p, MemberInfoList& allMembers,
+                                                       bool inherited)
 {
     ExceptionPtr base = p->base();
     if(base)
@@ -1430,8 +1456,7 @@ Slice::Ruby::CodeVisitor::collectExceptionMembers(const ExceptionPtr& p, MemberI
     }
 }
 
-void
-Slice::Ruby::generate(const UnitPtr& un, bool all, bool checksum, const vector<string>& includePaths, Output& out)
+void Slice::Ruby::generate(const UnitPtr& un, bool all, bool checksum, const vector<string>& includePaths, Output& out)
 {
     out << nl << "require 'Ice'";
 
@@ -1478,8 +1503,7 @@ Slice::Ruby::generate(const UnitPtr& un, bool all, bool checksum, const vector<s
     out << nl; // Trailing newline.
 }
 
-string
-Slice::Ruby::fixIdent(const string& ident, IdentStyle style)
+string Slice::Ruby::fixIdent(const string& ident, IdentStyle style)
 {
     assert(!ident.empty());
     if(ident[0] != ':')
@@ -1487,25 +1511,25 @@ Slice::Ruby::fixIdent(const string& ident, IdentStyle style)
         string id = ident;
         switch(style)
         {
-        case IdentNormal:
-            break;
-        case IdentToUpper:
-            // Special case BEGIN & END for class/module names.
-            if(id == "BEGIN" || id == "END")
-            {
-                return id + "_";
-            }
-            if(id[0] >= 'a' && id[0] <= 'z')
-            {
-                id[0] += 'A' - 'a';
-            }
-            break;
-        case IdentToLower:
-            if(id[0] >= 'A' && id[0] <= 'Z')
-            {
-                id[0] += 'a' - 'A';
-            }
-            break;
+            case IdentNormal:
+                break;
+            case IdentToUpper:
+                // Special case BEGIN & END for class/module names.
+                if(id == "BEGIN" || id == "END")
+                {
+                    return id + "_";
+                }
+                if(id[0] >= 'a' && id[0] <= 'z')
+                {
+                    id[0] += 'A' - 'a';
+                }
+                break;
+            case IdentToLower:
+                if(id[0] >= 'A' && id[0] <= 'Z')
+                {
+                    id[0] += 'a' - 'A';
+                }
+                break;
         }
         return lookupKwd(id);
     }
@@ -1537,8 +1561,7 @@ Slice::Ruby::fixIdent(const string& ident, IdentStyle style)
     return result.str();
 }
 
-string
-Slice::Ruby::getAbsolute(const ContainedPtr& cont, IdentStyle style, const string& prefix)
+string Slice::Ruby::getAbsolute(const ContainedPtr& cont, IdentStyle style, const string& prefix)
 {
     string scope = fixIdent(cont->scope(), IdentToUpper);
 
@@ -1552,19 +1575,16 @@ Slice::Ruby::getAbsolute(const ContainedPtr& cont, IdentStyle style, const strin
     }
 }
 
-void
-Slice::Ruby::printHeader(IceUtilInternal::Output& out)
+void Slice::Ruby::printHeader(IceUtilInternal::Output& out)
 {
-    static const char* header =
-"# **********************************************************************\n"
-"#\n"
-"# Copyright (c) 2003-2018 ZeroC, Inc. All rights reserved.\n"
-"#\n"
-"# This copy of Ice is licensed to you under the terms described in the\n"
-"# ICE_LICENSE file included in this distribution.\n"
-"#\n"
-"# **********************************************************************\n"
-        ;
+    static const char* header = "# **********************************************************************\n"
+                                "#\n"
+                                "# Copyright (c) 2003-2018 ZeroC, Inc. All rights reserved.\n"
+                                "#\n"
+                                "# This copy of Ice is licensed to you under the terms described in the\n"
+                                "# ICE_LICENSE file included in this distribution.\n"
+                                "#\n"
+                                "# **********************************************************************\n";
 
     out << header;
     out << "#\n";

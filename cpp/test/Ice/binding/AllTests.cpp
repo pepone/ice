@@ -30,9 +30,7 @@ struct RandomNumberGenerator : public std::unary_function<ptrdiff_t, ptrdiff_t>
 class GetAdapterNameCB : public IceUtil::Shared, public IceUtil::Monitor<IceUtil::Mutex>
 {
 public:
-
-    void
-    response(const string& name)
+    void response(const string& name)
     {
         Lock sync(*this);
         assert(!name.empty());
@@ -40,14 +38,12 @@ public:
         notify();
     }
 
-    void
-    exception(const Ice::Exception&)
+    void exception(const Ice::Exception&)
     {
         test(false);
     }
 
-    virtual string
-    getResult()
+    virtual string getResult()
     {
         Lock sync(*this);
         while(_name.empty())
@@ -58,27 +54,24 @@ public:
     }
 
 private:
-
     string _name;
 };
 typedef IceUtil::Handle<GetAdapterNameCB> GetAdapterNameCBPtr;
 #endif
 
-string
-getAdapterNameWithAMI(const TestIntfPrxPtr& test)
+string getAdapterNameWithAMI(const TestIntfPrxPtr& test)
 {
 #ifdef ICE_CPP11_MAPPING
     return test->getAdapterNameAsync().get();
 #else
     GetAdapterNameCBPtr cb = new GetAdapterNameCB();
     test->begin_getAdapterName(
-        newCallback_TestIntf_getAdapterName(cb, &GetAdapterNameCB::response,  &GetAdapterNameCB::exception));
+        newCallback_TestIntf_getAdapterName(cb, &GetAdapterNameCB::response, &GetAdapterNameCB::exception));
     return cb->getResult();
 #endif
 }
 
-TestIntfPrxPtr
-createTestIntfPrx(vector<RemoteObjectAdapterPrxPtr>& adapters)
+TestIntfPrxPtr createTestIntfPrx(vector<RemoteObjectAdapterPrxPtr>& adapters)
 {
     Ice::EndpointSeq endpoints;
     TestIntfPrxPtr test;
@@ -91,8 +84,7 @@ createTestIntfPrx(vector<RemoteObjectAdapterPrxPtr>& adapters)
     return ICE_UNCHECKED_CAST(TestIntfPrx, test->ice_endpoints(endpoints));
 }
 
-void
-deactivate(const RemoteCommunicatorPrxPtr& com, vector<RemoteObjectAdapterPrxPtr>& adapters)
+void deactivate(const RemoteCommunicatorPrxPtr& com, vector<RemoteObjectAdapterPrxPtr>& adapters)
 {
     for(vector<RemoteObjectAdapterPrxPtr>::const_iterator p = adapters.begin(); p != adapters.end(); ++p)
     {
@@ -100,8 +92,7 @@ deactivate(const RemoteCommunicatorPrxPtr& com, vector<RemoteObjectAdapterPrxPtr
     }
 }
 
-void
-allTests(const Ice::CommunicatorPtr& communicator)
+void allTests(const Ice::CommunicatorPtr& communicator)
 {
     string ref = "communicator:" + getTestEndpoint(communicator, 0);
     RemoteCommunicatorPrxPtr com = ICE_UNCHECKED_CAST(RemoteCommunicatorPrx, communicator->stringToProxy(ref));
@@ -187,7 +178,8 @@ allTests(const Ice::CommunicatorPtr& communicator)
             string name = test->getAdapterName();
             const int nRetry = 10;
             int i;
-            for(i = 0; i < nRetry &&  test->getAdapterName() == name; i++);
+            for(i = 0; i < nRetry && test->getAdapterName() == name; i++)
+                ;
             test(i == nRetry);
 
             for(vector<RemoteObjectAdapterPrxPtr>::const_iterator q = adapters.begin(); q != adapters.end(); ++q)
@@ -367,7 +359,8 @@ allTests(const Ice::CommunicatorPtr& communicator)
             string name = getAdapterNameWithAMI(test);
             const int nRetry = 10;
             int i;
-            for(i = 0; i < nRetry && getAdapterNameWithAMI(test) == name; i++);
+            for(i = 0; i < nRetry && getAdapterNameWithAMI(test) == name; i++)
+                ;
             test(i == nRetry);
 
             for(vector<RemoteObjectAdapterPrxPtr>::const_iterator q = adapters.begin(); q != adapters.end(); ++q)
@@ -433,7 +426,8 @@ allTests(const Ice::CommunicatorPtr& communicator)
             test->ice_getConnection()->close(Ice::ICE_SCOPED_ENUM(ConnectionClose, GracefullyWithWait));
         }
 
-        test = ICE_UNCHECKED_CAST(TestIntfPrx, test->ice_endpointSelection(Ice::ICE_ENUM(EndpointSelectionType, Random)));
+        test =
+            ICE_UNCHECKED_CAST(TestIntfPrx, test->ice_endpointSelection(Ice::ICE_ENUM(EndpointSelectionType, Random)));
         test(test->ice_getEndpointSelection() == Ice::ICE_ENUM(EndpointSelectionType, Random));
 
         names.insert("Adapter21");
@@ -457,7 +451,8 @@ allTests(const Ice::CommunicatorPtr& communicator)
         adapters.push_back(com->createObjectAdapter("Adapter33", "default"));
 
         TestIntfPrxPtr test = createTestIntfPrx(adapters);
-        test = ICE_UNCHECKED_CAST(TestIntfPrx, test->ice_endpointSelection(Ice::ICE_ENUM(EndpointSelectionType, Ordered)));
+        test =
+            ICE_UNCHECKED_CAST(TestIntfPrx, test->ice_endpointSelection(Ice::ICE_ENUM(EndpointSelectionType, Ordered)));
         test(test->ice_getEndpointSelection() == Ice::ICE_ENUM(EndpointSelectionType, Ordered));
         const int nRetry = 5;
         int i;
@@ -466,32 +461,38 @@ allTests(const Ice::CommunicatorPtr& communicator)
         // Ensure that endpoints are tried in order by deactiving the adapters
         // one after the other.
         //
-        for(i = 0; i < nRetry && test->getAdapterName() == "Adapter31"; i++);
+        for(i = 0; i < nRetry && test->getAdapterName() == "Adapter31"; i++)
+            ;
 #if TARGET_OS_IPHONE > 0
         if(i != nRetry)
         {
             test->ice_getConnection()->close(Ice::ICE_SCOPED_ENUM(ConnectionClose, GracefullyWithWait));
-            for(i = 0; i < nRetry && test->getAdapterName() == "Adapter31"; i++);
+            for(i = 0; i < nRetry && test->getAdapterName() == "Adapter31"; i++)
+                ;
         }
 #endif
         test(i == nRetry);
         com->deactivateObjectAdapter(adapters[0]);
-        for(i = 0; i < nRetry && test->getAdapterName() == "Adapter32"; i++);
+        for(i = 0; i < nRetry && test->getAdapterName() == "Adapter32"; i++)
+            ;
 #if TARGET_OS_IPHONE > 0
         if(i != nRetry)
         {
             test->ice_getConnection()->close(Ice::ICE_SCOPED_ENUM(ConnectionClose, GracefullyWithWait));
-            for(i = 0; i < nRetry && test->getAdapterName() == "Adapter32"; i++);
+            for(i = 0; i < nRetry && test->getAdapterName() == "Adapter32"; i++)
+                ;
         }
 #endif
         test(i == nRetry);
         com->deactivateObjectAdapter(adapters[1]);
-        for(i = 0; i < nRetry && test->getAdapterName() == "Adapter33"; i++);
+        for(i = 0; i < nRetry && test->getAdapterName() == "Adapter33"; i++)
+            ;
 #if TARGET_OS_IPHONE > 0
         if(i != nRetry)
         {
             test->ice_getConnection()->close(Ice::ICE_SCOPED_ENUM(ConnectionClose, GracefullyWithWait));
-            for(i = 0; i < nRetry && test->getAdapterName() == "Adapter33"; i++);
+            for(i = 0; i < nRetry && test->getAdapterName() == "Adapter33"; i++)
+                ;
         }
 #endif
         test(i == nRetry);
@@ -518,34 +519,40 @@ allTests(const Ice::CommunicatorPtr& communicator)
         // order.
         //
         adapters.push_back(com->createObjectAdapter("Adapter36", endpoints[2]->toString()));
-        for(i = 0; i < nRetry && test->getAdapterName() == "Adapter36"; i++);
+        for(i = 0; i < nRetry && test->getAdapterName() == "Adapter36"; i++)
+            ;
 #if TARGET_OS_IPHONE > 0
         if(i != nRetry)
         {
             test->ice_getConnection()->close(Ice::ICE_SCOPED_ENUM(ConnectionClose, GracefullyWithWait));
-            for(i = 0; i < nRetry && test->getAdapterName() == "Adapter36"; i++);
+            for(i = 0; i < nRetry && test->getAdapterName() == "Adapter36"; i++)
+                ;
         }
 #endif
         test(i == nRetry);
         test->ice_getConnection()->close(Ice::ICE_SCOPED_ENUM(ConnectionClose, GracefullyWithWait));
         adapters.push_back(com->createObjectAdapter("Adapter35", endpoints[1]->toString()));
-        for(i = 0; i < nRetry && test->getAdapterName() == "Adapter35"; i++);
+        for(i = 0; i < nRetry && test->getAdapterName() == "Adapter35"; i++)
+            ;
 #if TARGET_OS_IPHONE > 0
         if(i != nRetry)
         {
             test->ice_getConnection()->close(Ice::ICE_SCOPED_ENUM(ConnectionClose, GracefullyWithWait));
-            for(i = 0; i < nRetry && test->getAdapterName() == "Adapter35"; i++);
+            for(i = 0; i < nRetry && test->getAdapterName() == "Adapter35"; i++)
+                ;
         }
 #endif
         test(i == nRetry);
         test->ice_getConnection()->close(Ice::ICE_SCOPED_ENUM(ConnectionClose, GracefullyWithWait));
         adapters.push_back(com->createObjectAdapter("Adapter34", endpoints[0]->toString()));
-        for(i = 0; i < nRetry && test->getAdapterName() == "Adapter34"; i++);
+        for(i = 0; i < nRetry && test->getAdapterName() == "Adapter34"; i++)
+            ;
 #if TARGET_OS_IPHONE > 0
         if(i != nRetry)
         {
             test->ice_getConnection()->close(Ice::ICE_SCOPED_ENUM(ConnectionClose, GracefullyWithWait));
-            for(i = 0; i < nRetry && test->getAdapterName() == "Adapter34"; i++);
+            for(i = 0; i < nRetry && test->getAdapterName() == "Adapter34"; i++)
+                ;
         }
 #endif
         test(i == nRetry);
@@ -666,7 +673,8 @@ allTests(const Ice::CommunicatorPtr& communicator)
         adapters.push_back(com->createObjectAdapter("Adapter63", "default"));
 
         TestIntfPrxPtr test = createTestIntfPrx(adapters);
-        test = ICE_UNCHECKED_CAST(TestIntfPrx, test->ice_endpointSelection(Ice::ICE_ENUM(EndpointSelectionType, Ordered)));
+        test =
+            ICE_UNCHECKED_CAST(TestIntfPrx, test->ice_endpointSelection(Ice::ICE_ENUM(EndpointSelectionType, Ordered)));
         test(test->ice_getEndpointSelection() == Ice::ICE_ENUM(EndpointSelectionType, Ordered));
         test = ICE_UNCHECKED_CAST(TestIntfPrx, test->ice_connectionCached(false));
         test(!test->ice_isConnectionCached());
@@ -677,21 +685,24 @@ allTests(const Ice::CommunicatorPtr& communicator)
         // Ensure that endpoints are tried in order by deactiving the adapters
         // one after the other.
         //
-        for(i = 0; i < nRetry && test->getAdapterName() == "Adapter61"; i++);
+        for(i = 0; i < nRetry && test->getAdapterName() == "Adapter61"; i++)
+            ;
 #if TARGET_OS_IPHONE > 0
         test(i >= nRetry - 1); // WORKAROUND: for connection establishment hang.
 #else
         test(i == nRetry);
 #endif
         com->deactivateObjectAdapter(adapters[0]);
-        for(i = 0; i < nRetry && test->getAdapterName() == "Adapter62"; i++);
+        for(i = 0; i < nRetry && test->getAdapterName() == "Adapter62"; i++)
+            ;
 #if TARGET_OS_IPHONE > 0
         test(i >= nRetry - 1); // WORKAROUND: for connection establishment hang.
 #else
         test(i == nRetry);
 #endif
         com->deactivateObjectAdapter(adapters[1]);
-        for(i = 0; i < nRetry && test->getAdapterName() == "Adapter63"; i++);
+        for(i = 0; i < nRetry && test->getAdapterName() == "Adapter63"; i++)
+            ;
 #if TARGET_OS_IPHONE > 0
         test(i >= nRetry - 1); // WORKAROUND: for connection establishment hang.
 #else
@@ -720,21 +731,24 @@ allTests(const Ice::CommunicatorPtr& communicator)
         // order.
         //
         adapters.push_back(com->createObjectAdapter("Adapter66", endpoints[2]->toString()));
-        for(i = 0; i < nRetry && test->getAdapterName() == "Adapter66"; i++);
+        for(i = 0; i < nRetry && test->getAdapterName() == "Adapter66"; i++)
+            ;
 #if TARGET_OS_IPHONE > 0
         test(i >= nRetry - 1); // WORKAROUND: for connection establishment hang.
 #else
         test(i == nRetry);
 #endif
         adapters.push_back(com->createObjectAdapter("Adapter65", endpoints[1]->toString()));
-        for(i = 0; i < nRetry && test->getAdapterName() == "Adapter65"; i++);
+        for(i = 0; i < nRetry && test->getAdapterName() == "Adapter65"; i++)
+            ;
 #if TARGET_OS_IPHONE > 0
         test(i >= nRetry - 1); // WORKAROUND: for connection establishment hang.
 #else
         test(i == nRetry);
 #endif
         adapters.push_back(com->createObjectAdapter("Adapter64", endpoints[0]->toString()));
-        for(i = 0; i < nRetry && test->getAdapterName() == "Adapter64"; i++);
+        for(i = 0; i < nRetry && test->getAdapterName() == "Adapter64"; i++)
+            ;
 #if TARGET_OS_IPHONE > 0
         test(i >= nRetry - 1); // WORKAROUND: for connection establishment hang.
 #else
@@ -753,7 +767,8 @@ allTests(const Ice::CommunicatorPtr& communicator)
         adapters.push_back(com->createObjectAdapter("AdapterAMI63", "default"));
 
         TestIntfPrxPtr test = createTestIntfPrx(adapters);
-        test = ICE_UNCHECKED_CAST(TestIntfPrx, test->ice_endpointSelection(Ice::ICE_ENUM(EndpointSelectionType, Ordered)));
+        test =
+            ICE_UNCHECKED_CAST(TestIntfPrx, test->ice_endpointSelection(Ice::ICE_ENUM(EndpointSelectionType, Ordered)));
         test(test->ice_getEndpointSelection() == Ice::ICE_ENUM(EndpointSelectionType, Ordered));
         test = ICE_UNCHECKED_CAST(TestIntfPrx, test->ice_connectionCached(false));
         test(!test->ice_isConnectionCached());
@@ -764,21 +779,24 @@ allTests(const Ice::CommunicatorPtr& communicator)
         // Ensure that endpoints are tried in order by deactiving the adapters
         // one after the other.
         //
-        for(i = 0; i < nRetry && getAdapterNameWithAMI(test) == "AdapterAMI61"; i++);
+        for(i = 0; i < nRetry && getAdapterNameWithAMI(test) == "AdapterAMI61"; i++)
+            ;
 #if TARGET_OS_IPHONE > 0
         test(i >= nRetry - 1); // WORKAROUND: for connection establishment hang.
 #else
         test(i == nRetry);
 #endif
         com->deactivateObjectAdapter(adapters[0]);
-        for(i = 0; i < nRetry && getAdapterNameWithAMI(test) == "AdapterAMI62"; i++);
+        for(i = 0; i < nRetry && getAdapterNameWithAMI(test) == "AdapterAMI62"; i++)
+            ;
 #if TARGET_OS_IPHONE > 0
         test(i >= nRetry - 1); // WORKAROUND: for connection establishment hang.
 #else
         test(i == nRetry);
 #endif
         com->deactivateObjectAdapter(adapters[1]);
-        for(i = 0; i < nRetry && getAdapterNameWithAMI(test) == "AdapterAMI63"; i++);
+        for(i = 0; i < nRetry && getAdapterNameWithAMI(test) == "AdapterAMI63"; i++)
+            ;
 #if TARGET_OS_IPHONE > 0
         test(i >= nRetry - 1); // WORKAROUND: for connection establishment hang.
 #else
@@ -807,17 +825,20 @@ allTests(const Ice::CommunicatorPtr& communicator)
         // order.
         //
         adapters.push_back(com->createObjectAdapter("AdapterAMI66", endpoints[2]->toString()));
-        for(i = 0; i < nRetry && getAdapterNameWithAMI(test) == "AdapterAMI66"; i++);
+        for(i = 0; i < nRetry && getAdapterNameWithAMI(test) == "AdapterAMI66"; i++)
+            ;
 #if TARGET_OS_IPHONE > 0
         test(i >= nRetry - 1); // WORKAROUND: for connection establishment hang.
 #else
         test(i == nRetry);
 #endif
         adapters.push_back(com->createObjectAdapter("AdapterAMI65", endpoints[1]->toString()));
-        for(i = 0; i < nRetry && getAdapterNameWithAMI(test) == "AdapterAMI65"; i++);
+        for(i = 0; i < nRetry && getAdapterNameWithAMI(test) == "AdapterAMI65"; i++)
+            ;
         test(i == nRetry);
         adapters.push_back(com->createObjectAdapter("AdapterAMI64", endpoints[0]->toString()));
-        for(i = 0; i < nRetry && getAdapterNameWithAMI(test) == "AdapterAMI64"; i++);
+        for(i = 0; i < nRetry && getAdapterNameWithAMI(test) == "AdapterAMI64"; i++)
+            ;
         test(i == nRetry);
 
         deactivate(com, adapters);
@@ -1040,11 +1061,10 @@ allTests(const Ice::CommunicatorPtr& communicator)
                 {
                     test((*p == ipv4 && *q == ipv6) || (*p == ipv6 && *q == ipv4) ||
                          (*p == bothPreferIPv4 && *q == ipv6) || (*p == bothPreferIPv6 && *q == ipv4) ||
-                         (*p == bothPreferIPv6 && *q == ipv6 && ipv6NotSupported) ||
-                         (*p == anyipv4 && *q == ipv6) || (*p == anyipv6 && *q == ipv4) ||
-                         (*p == localipv4 && *q == ipv6) || (*p == localipv6 && *q == ipv4) ||
-                         (*p == ipv6 && *q == bothPreferIPv4) || (*p == ipv6 && *q == bothPreferIPv6) ||
-                         (*p == bothPreferIPv6 && *q == ipv6));
+                         (*p == bothPreferIPv6 && *q == ipv6 && ipv6NotSupported) || (*p == anyipv4 && *q == ipv6) ||
+                         (*p == anyipv6 && *q == ipv4) || (*p == localipv4 && *q == ipv6) ||
+                         (*p == localipv6 && *q == ipv4) || (*p == ipv6 && *q == bothPreferIPv4) ||
+                         (*p == ipv6 && *q == bothPreferIPv6) || (*p == bothPreferIPv6 && *q == ipv6));
                 }
             }
             serverCommunicator->destroy();

@@ -16,7 +16,6 @@
 class BI : public Test::B
 {
 public:
-
     virtual void ice_preMarshal();
     virtual void ice_postUnmarshal();
 };
@@ -24,7 +23,6 @@ public:
 class CI : public Test::C
 {
 public:
-
     virtual void ice_preMarshal();
     virtual void ice_postUnmarshal();
 };
@@ -32,7 +30,6 @@ public:
 class DI : public Test::D
 {
 public:
-
     virtual void ice_preMarshal();
     virtual void ice_postUnmarshal();
 };
@@ -40,7 +37,6 @@ public:
 class EI : public Test::E
 {
 public:
-
     EI();
 
     bool checkValues();
@@ -50,7 +46,6 @@ ICE_DEFINE_PTR(EIPtr, EI);
 class FI : public Test::F
 {
 public:
-
     FI();
     FI(const Test::EPtr&);
 
@@ -83,7 +78,6 @@ class HI : public Test::H
 class InitialI : public Test::Initial
 {
 public:
-
     InitialI(const Ice::ObjectAdapterPtr&);
     virtual ~InitialI();
 
@@ -101,8 +95,7 @@ public:
 #ifdef ICE_CPP11_MAPPING
     virtual GetMBMarshaledResult getMB(const Ice::Current&);
     virtual void getAMDMBAsync(std::function<void(const GetAMDMBMarshaledResult&)>,
-                               std::function<void(std::exception_ptr)>,
-                               const Ice::Current&);
+                               std::function<void(std::exception_ptr)>, const Ice::Current&);
 #else
     virtual Test::BPtr getMB(const Ice::Current&);
     virtual void getAMDMB_async(const Test::AMD_Initial_getAMDMBPtr&, const Ice::Current&);
@@ -141,7 +134,6 @@ public:
     virtual void throwInnerSubEx(const Ice::Current&);
 
 private:
-
     Ice::ObjectAdapterPtr _adapter;
     Test::BPtr _b1;
     Test::BPtr _b2;
@@ -154,7 +146,6 @@ private:
 class UnexpectedObjectExceptionTestI : public Ice::Blobject
 {
 public:
-
     virtual bool ice_invoke(ICE_IN(std::vector<Ice::Byte>), std::vector<Ice::Byte>&, const Ice::Current&);
 };
 ICE_DEFINE_PTR(UnexpectedObjectExceptionTestIPtr, UnexpectedObjectExceptionTestI);
@@ -162,7 +153,6 @@ ICE_DEFINE_PTR(UnexpectedObjectExceptionTestIPtr, UnexpectedObjectExceptionTestI
 class TestIntfI : public Test::TestIntf
 {
 public:
-
     virtual Test::BasePtr opDerived(const Ice::Current&);
     virtual void throwDerived(const Ice::Current&);
 };

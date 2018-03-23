@@ -25,7 +25,7 @@
 #if _MSC_VER == 1500
 typedef unsigned short uint16_t;
 #else
-#include <stdint.h>
+#    include <stdint.h>
 #endif
 
 #include <climits>
@@ -37,163 +37,159 @@ using namespace IceInternal;
 //
 // WebSocket opcodes
 //
-#define OP_CONT     0x0     // Continuation frame
-#define OP_TEXT     0x1     // Text frame
-#define OP_DATA     0x2     // Data frame
-#define OP_RES_0x3  0x3     // Reserved
-#define OP_RES_0x4  0x4     // Reserved
-#define OP_RES_0x5  0x5     // Reserved
-#define OP_RES_0x6  0x6     // Reserved
-#define OP_RES_0x7  0x7     // Reserved
-#define OP_CLOSE    0x8     // Connection close
-#define OP_PING     0x9     // Ping
-#define OP_PONG     0xA     // Pong
-#define OP_RES_0xB  0xB     // Reserved
-#define OP_RES_0xC  0xC     // Reserved
-#define OP_RES_0xD  0xD     // Reserved
-#define OP_RES_0xE  0xE     // Reserved
-#define OP_RES_0xF  0xF     // Reserved
-#define FLAG_FINAL  0x80    // Last frame
-#define FLAG_MASKED 0x80    // Payload is masked
+#define OP_CONT 0x0      // Continuation frame
+#define OP_TEXT 0x1      // Text frame
+#define OP_DATA 0x2      // Data frame
+#define OP_RES_0x3 0x3   // Reserved
+#define OP_RES_0x4 0x4   // Reserved
+#define OP_RES_0x5 0x5   // Reserved
+#define OP_RES_0x6 0x6   // Reserved
+#define OP_RES_0x7 0x7   // Reserved
+#define OP_CLOSE 0x8     // Connection close
+#define OP_PING 0x9      // Ping
+#define OP_PONG 0xA      // Pong
+#define OP_RES_0xB 0xB   // Reserved
+#define OP_RES_0xC 0xC   // Reserved
+#define OP_RES_0xD 0xD   // Reserved
+#define OP_RES_0xE 0xE   // Reserved
+#define OP_RES_0xF 0xF   // Reserved
+#define FLAG_FINAL 0x80  // Last frame
+#define FLAG_MASKED 0x80 // Payload is masked
 
-#define CLOSURE_NORMAL         1000
-#define CLOSURE_SHUTDOWN       1001
+#define CLOSURE_NORMAL 1000
+#define CLOSURE_SHUTDOWN 1001
 #define CLOSURE_PROTOCOL_ERROR 1002
-#define CLOSURE_TOO_BIG        1009
+#define CLOSURE_TOO_BIG 1009
 
 namespace
 {
+    const string _iceProtocol = "ice.zeroc.com";
+    const string _wsUUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
-const string _iceProtocol = "ice.zeroc.com";
-const string _wsUUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
-
-//
-// Rename to avoid conflict with OS 10.10 htonll
-//
-void ice_htonll(Long v, Byte* dest)
-{
     //
-    // Transfer a 64-bit integer in network (big-endian) order.
+    // Rename to avoid conflict with OS 10.10 htonll
     //
+    void ice_htonll(Long v, Byte* dest)
+    {
+        //
+        // Transfer a 64-bit integer in network (big-endian) order.
+        //
 #ifdef ICE_BIG_ENDIAN
-    const Byte* src = reinterpret_cast<const Byte*>(&v);
-    *dest++ = *src++;
-    *dest++ = *src++;
-    *dest++ = *src++;
-    *dest++ = *src++;
-    *dest++ = *src++;
-    *dest++ = *src++;
-    *dest++ = *src++;
-    *dest = *src;
+        const Byte* src = reinterpret_cast<const Byte*>(&v);
+        *dest++ = *src++;
+        *dest++ = *src++;
+        *dest++ = *src++;
+        *dest++ = *src++;
+        *dest++ = *src++;
+        *dest++ = *src++;
+        *dest++ = *src++;
+        *dest = *src;
 #else
-    const Byte* src = reinterpret_cast<const Byte*>(&v) + sizeof(Long) - 1;
-    *dest++ = *src--;
-    *dest++ = *src--;
-    *dest++ = *src--;
-    *dest++ = *src--;
-    *dest++ = *src--;
-    *dest++ = *src--;
-    *dest++ = *src--;
-    *dest = *src;
+        const Byte* src = reinterpret_cast<const Byte*>(&v) + sizeof(Long) - 1;
+        *dest++ = *src--;
+        *dest++ = *src--;
+        *dest++ = *src--;
+        *dest++ = *src--;
+        *dest++ = *src--;
+        *dest++ = *src--;
+        *dest++ = *src--;
+        *dest = *src;
 #endif
-}
-
-//
-// Rename to avoid conflict with OS 10.10 nlltoh
-//
-Long ice_nlltoh(const Byte* src)
-{
-    Long v;
+    }
 
     //
-    // Extract a 64-bit integer in network (big-endian) order.
+    // Rename to avoid conflict with OS 10.10 nlltoh
     //
+    Long ice_nlltoh(const Byte* src)
+    {
+        Long v;
+
+        //
+        // Extract a 64-bit integer in network (big-endian) order.
+        //
 #ifdef ICE_BIG_ENDIAN
-    Byte* dest = reinterpret_cast<Byte*>(&v);
-    *dest++ = *src++;
-    *dest++ = *src++;
-    *dest++ = *src++;
-    *dest++ = *src++;
-    *dest++ = *src++;
-    *dest++ = *src++;
-    *dest++ = *src++;
-    *dest = *src;
+        Byte* dest = reinterpret_cast<Byte*>(&v);
+        *dest++ = *src++;
+        *dest++ = *src++;
+        *dest++ = *src++;
+        *dest++ = *src++;
+        *dest++ = *src++;
+        *dest++ = *src++;
+        *dest++ = *src++;
+        *dest = *src;
 #else
-    Byte* dest = reinterpret_cast<Byte*>(&v) + sizeof(Long) - 1;
-    *dest-- = *src++;
-    *dest-- = *src++;
-    *dest-- = *src++;
-    *dest-- = *src++;
-    *dest-- = *src++;
-    *dest-- = *src++;
-    *dest-- = *src++;
-    *dest = *src;
+        Byte* dest = reinterpret_cast<Byte*>(&v) + sizeof(Long) - 1;
+        *dest-- = *src++;
+        *dest-- = *src++;
+        *dest-- = *src++;
+        *dest-- = *src++;
+        *dest-- = *src++;
+        *dest-- = *src++;
+        *dest-- = *src++;
+        *dest = *src;
 #endif
 
-    return v;
-}
+        return v;
+    }
 
 #if defined(ICE_OS_UWP)
-Short htons(Short v)
-{
-    Short result;
-    Byte* dest = reinterpret_cast<Byte*>(&result);
+    Short htons(Short v)
+    {
+        Short result;
+        Byte* dest = reinterpret_cast<Byte*>(&result);
 
-    //
-    // Transfer a short in network (big-endian) order.
-    //
-#ifdef ICE_BIG_ENDIAN
-    const Byte* src = reinterpret_cast<const Byte*>(&v);
-    *dest++ = *src++;
-    *dest = *src;
-#else
-    const Byte* src = reinterpret_cast<const Byte*>(&v) + sizeof(Short) - 1;
-    *dest++ = *src--;
-    *dest = *src;
+        //
+        // Transfer a short in network (big-endian) order.
+        //
+#    ifdef ICE_BIG_ENDIAN
+        const Byte* src = reinterpret_cast<const Byte*>(&v);
+        *dest++ = *src++;
+        *dest = *src;
+#    else
+        const Byte* src = reinterpret_cast<const Byte*>(&v) + sizeof(Short) - 1;
+        *dest++ = *src--;
+        *dest = *src;
+#    endif
+        return result;
+    }
+
+    Short ntohs(Short value)
+    {
+        const Byte* src = reinterpret_cast<Byte*>(&value);
+        Short v;
+
+        //
+        // Extract a 64-bit integer in network (big-endian) order.
+        //
+#    ifdef ICE_BIG_ENDIAN
+        Byte* dest = reinterpret_cast<Byte*>(&v);
+        *dest++ = *src++;
+        *dest = *src;
+#    else
+        Byte* dest = reinterpret_cast<Byte*>(&v) + sizeof(Short) - 1;
+        *dest-- = *src++;
+        *dest = *src;
+#    endif
+
+        return v;
+    }
 #endif
-    return result;
-}
 
-Short ntohs(Short value)
-{
-    const Byte* src = reinterpret_cast<Byte*>(&value);
-    Short v;
+} // namespace
 
-    //
-    // Extract a 64-bit integer in network (big-endian) order.
-    //
-#ifdef ICE_BIG_ENDIAN
-    Byte* dest = reinterpret_cast<Byte*>(&v);
-    *dest++ = *src++;
-    *dest = *src;
-#else
-    Byte* dest = reinterpret_cast<Byte*>(&v) + sizeof(Short) - 1;
-    *dest-- = *src++;
-    *dest = *src;
-#endif
-
-    return v;
-}
-#endif
-
-}
-
-NativeInfoPtr
-IceInternal::WSTransceiver::getNativeInfo()
+NativeInfoPtr IceInternal::WSTransceiver::getNativeInfo()
 {
     return _delegate->getNativeInfo();
 }
 
 #if defined(ICE_USE_IOCP) || defined(ICE_OS_UWP)
-AsyncInfo*
-IceInternal::WSTransceiver::getAsyncInfo(SocketOperation status)
+AsyncInfo* IceInternal::WSTransceiver::getAsyncInfo(SocketOperation status)
 {
     return _delegate->getNativeInfo()->getAsyncInfo(status);
 }
 #endif
 
-SocketOperation
-IceInternal::WSTransceiver::initialize(Buffer& readBuffer, Buffer& writeBuffer)
+SocketOperation IceInternal::WSTransceiver::initialize(Buffer& readBuffer, Buffer& writeBuffer)
 {
     //
     // Delegate logs exceptions that occur during initialize(), so there's no need to trap them here.
@@ -409,8 +405,7 @@ IceInternal::WSTransceiver::initialize(Buffer& readBuffer, Buffer& writeBuffer)
     return SocketOperationNone;
 }
 
-SocketOperation
-IceInternal::WSTransceiver::closing(bool initiator, const Ice::LocalException& reason)
+SocketOperation IceInternal::WSTransceiver::closing(bool initiator, const Ice::LocalException& reason)
 {
     if(_instance->traceLevel() >= 1)
     {
@@ -452,7 +447,7 @@ IceInternal::WSTransceiver::closing(bool initiator, const Ice::LocalException& r
     }
     else if(dynamic_cast<const Ice::ProtocolException*>(&reason))
     {
-        _closingReason  = CLOSURE_PROTOCOL_ERROR;
+        _closingReason = CLOSURE_PROTOCOL_ERROR;
     }
     else if(dynamic_cast<const Ice::MemoryLimitException*>(&reason))
     {
@@ -471,8 +466,7 @@ IceInternal::WSTransceiver::closing(bool initiator, const Ice::LocalException& r
     }
 }
 
-void
-IceInternal::WSTransceiver::close()
+void IceInternal::WSTransceiver::close()
 {
     _delegate->close();
     _state = StateClosed;
@@ -490,8 +484,7 @@ IceInternal::WSTransceiver::close()
     }
 }
 
-SocketOperation
-IceInternal::WSTransceiver::write(Buffer& buf)
+SocketOperation IceInternal::WSTransceiver::write(Buffer& buf)
 {
     if(_writePending)
     {
@@ -531,8 +524,7 @@ IceInternal::WSTransceiver::write(Buffer& buf)
                 }
             }
         }
-    }
-    while(postWrite(buf));
+    } while(postWrite(buf));
 
     if(_state == StateClosingResponsePending && !_closingInitiator)
     {
@@ -541,8 +533,7 @@ IceInternal::WSTransceiver::write(Buffer& buf)
     return SocketOperationNone;
 }
 
-SocketOperation
-IceInternal::WSTransceiver::read(Buffer& buf)
+SocketOperation IceInternal::WSTransceiver::read(Buffer& buf)
 {
     if(_readPending)
     {
@@ -617,8 +608,7 @@ IceInternal::WSTransceiver::read(Buffer& buf)
                 return s;
             }
         }
-    }
-    while(postRead(buf));
+    } while(postRead(buf));
 
     if(buf.i == buf.b.end())
     {
@@ -635,8 +625,7 @@ IceInternal::WSTransceiver::read(Buffer& buf)
     }
 
     if(((_state == StateClosingRequestPending && !_closingInitiator) ||
-        (_state == StateClosingResponsePending && _closingInitiator) ||
-        _state == StatePingPending ||
+        (_state == StateClosingResponsePending && _closingInitiator) || _state == StatePingPending ||
         _state == StatePongPending) &&
        _writeState == WriteStateHeader)
     {
@@ -647,8 +636,7 @@ IceInternal::WSTransceiver::read(Buffer& buf)
 }
 
 #if defined(ICE_USE_IOCP) || defined(ICE_OS_UWP)
-bool
-IceInternal::WSTransceiver::startWrite(Buffer& buf)
+bool IceInternal::WSTransceiver::startWrite(Buffer& buf)
 {
     _writePending = true;
     if(_state < StateOpened)
@@ -686,8 +674,7 @@ IceInternal::WSTransceiver::startWrite(Buffer& buf)
     }
 }
 
-void
-IceInternal::WSTransceiver::finishWrite(Buffer& buf)
+void IceInternal::WSTransceiver::finishWrite(Buffer& buf)
 {
     _writePending = false;
 
@@ -723,8 +710,7 @@ IceInternal::WSTransceiver::finishWrite(Buffer& buf)
     postWrite(buf);
 }
 
-void
-IceInternal::WSTransceiver::startRead(Buffer& buf)
+void IceInternal::WSTransceiver::startRead(Buffer& buf)
 {
     _readPending = true;
     if(_state < StateOpened)
@@ -749,7 +735,7 @@ IceInternal::WSTransceiver::startRead(Buffer& buf)
             // no more than the payload length. The remaining of the buffer will be
             // sent over in another frame.
             //
-            size_t readSz = _readPayloadLength  - (buf.i - _readStart);
+            size_t readSz = _readPayloadLength - (buf.i - _readStart);
             if(static_cast<size_t>(buf.b.end() - buf.i) > readSz)
             {
                 size_t size = buf.b.size();
@@ -773,8 +759,7 @@ IceInternal::WSTransceiver::startRead(Buffer& buf)
     }
 }
 
-void
-IceInternal::WSTransceiver::finishRead(Buffer& buf)
+void IceInternal::WSTransceiver::finishRead(Buffer& buf)
 {
     _readPending = false;
     if(_state < StateOpened)
@@ -813,26 +798,22 @@ IceInternal::WSTransceiver::finishRead(Buffer& buf)
 }
 #endif
 
-string
-IceInternal::WSTransceiver::protocol() const
+string IceInternal::WSTransceiver::protocol() const
 {
     return _instance->protocol();
 }
 
-string
-IceInternal::WSTransceiver::toString() const
+string IceInternal::WSTransceiver::toString() const
 {
     return _delegate->toString();
 }
 
-string
-IceInternal::WSTransceiver::toDetailedString() const
+string IceInternal::WSTransceiver::toDetailedString() const
 {
     return _delegate->toDetailedString();
 }
 
-Ice::ConnectionInfoPtr
-IceInternal::WSTransceiver::getInfo() const
+Ice::ConnectionInfoPtr IceInternal::WSTransceiver::getInfo() const
 {
     WSConnectionInfoPtr info = ICE_MAKE_SHARED(WSConnectionInfo);
     info->underlying = _delegate->getInfo();
@@ -840,14 +821,12 @@ IceInternal::WSTransceiver::getInfo() const
     return info;
 }
 
-void
-IceInternal::WSTransceiver::checkSendSize(const Buffer& buf)
+void IceInternal::WSTransceiver::checkSendSize(const Buffer& buf)
 {
     _delegate->checkSendSize(buf);
 }
 
-void
-IceInternal::WSTransceiver::setBufferSize(int rcvSize, int sndSize)
+void IceInternal::WSTransceiver::setBufferSize(int rcvSize, int sndSize)
 {
     _delegate->setBufferSize(rcvSize, sndSize);
 }
@@ -911,8 +890,7 @@ IceInternal::WSTransceiver::~WSTransceiver()
 {
 }
 
-void
-IceInternal::WSTransceiver::handleRequest(Buffer& responseBuffer)
+void IceInternal::WSTransceiver::handleRequest(Buffer& responseBuffer)
 {
     string val;
 
@@ -1032,7 +1010,8 @@ IceInternal::WSTransceiver::handleRequest(Buffer& responseBuffer)
     string input = key + _wsUUID;
     vector<unsigned char> hash;
     sha1(reinterpret_cast<const unsigned char*>(&input[0]), input.size(), hash);
-    out << IceInternal::Base64::encode(hash) << "\r\n" << "\r\n"; // EOM
+    out << IceInternal::Base64::encode(hash) << "\r\n"
+        << "\r\n"; // EOM
 
     string str = out.str();
     responseBuffer.b.resize(str.size());
@@ -1040,8 +1019,7 @@ IceInternal::WSTransceiver::handleRequest(Buffer& responseBuffer)
     responseBuffer.i = responseBuffer.b.begin();
 }
 
-void
-IceInternal::WSTransceiver::handleResponse()
+void IceInternal::WSTransceiver::handleResponse()
 {
     string val;
 
@@ -1136,8 +1114,7 @@ IceInternal::WSTransceiver::handleResponse()
     }
 }
 
-bool
-IceInternal::WSTransceiver::preRead(Buffer& buf)
+bool IceInternal::WSTransceiver::preRead(Buffer& buf)
 {
     while(true)
     {
@@ -1256,97 +1233,97 @@ IceInternal::WSTransceiver::preRead(Buffer& buf)
             if(_incoming)
             {
                 assert(_readBuffer.i - _readI >= 4); // We must have needed to read the mask.
-                memcpy(_readMask, _readI, 4); // Copy the mask.
+                memcpy(_readMask, _readI, 4);        // Copy the mask.
                 _readI += 4;
             }
 
             switch(_readOpCode)
             {
-            case OP_TEXT: // Text frame
-            {
-                throw ProtocolException(__FILE__, __LINE__, "text frames not supported");
-            }
-            case OP_DATA: // Data frame
-            case OP_CONT: // Continuation frame
-            {
-                if(_instance->traceLevel() >= 2)
+                case OP_TEXT: // Text frame
                 {
-                    Trace out(_instance->logger(), _instance->traceCategory());
-                    out << "received " << protocol() << (_readOpCode == OP_DATA ? " data" : " continuation");
-                    out << " frame with payload length of " << _readPayloadLength;
-                    out << " bytes\n" << toString();
+                    throw ProtocolException(__FILE__, __LINE__, "text frames not supported");
                 }
-
-                if(_readPayloadLength <= 0)
+                case OP_DATA: // Data frame
+                case OP_CONT: // Continuation frame
                 {
-                    throw ProtocolException(__FILE__, __LINE__, "payload length is 0");
-                }
-                _readState = ReadStatePayload;
-                assert(buf.i != buf.b.end());
-                _readFrameStart = buf.i;
-                break;
-            }
-            case OP_CLOSE: // Connection close
-            {
-                if(_instance->traceLevel() >= 2)
-                {
-                    Trace out(_instance->logger(), _instance->traceCategory());
-                    out << "received " << protocol() << " connection close frame\n" << toString();
-                }
-
-                State s = _nextState == StateOpened ? _state : _nextState;
-                if(s == StateClosingRequestPending)
-                {
-                    //
-                    // If we receive a close frame while we were actually
-                    // waiting to send one, change the role and send a
-                    // close frame response.
-                    //
-                    if(!_closingInitiator)
+                    if(_instance->traceLevel() >= 2)
                     {
-                        _closingInitiator = true;
+                        Trace out(_instance->logger(), _instance->traceCategory());
+                        out << "received " << protocol() << (_readOpCode == OP_DATA ? " data" : " continuation");
+                        out << " frame with payload length of " << _readPayloadLength;
+                        out << " bytes\n" << toString();
                     }
-                    if(_state == StateClosingRequestPending)
+
+                    if(_readPayloadLength <= 0)
                     {
-                        _state = StateClosingResponsePending;
+                        throw ProtocolException(__FILE__, __LINE__, "payload length is 0");
+                    }
+                    _readState = ReadStatePayload;
+                    assert(buf.i != buf.b.end());
+                    _readFrameStart = buf.i;
+                    break;
+                }
+                case OP_CLOSE: // Connection close
+                {
+                    if(_instance->traceLevel() >= 2)
+                    {
+                        Trace out(_instance->logger(), _instance->traceCategory());
+                        out << "received " << protocol() << " connection close frame\n" << toString();
+                    }
+
+                    State s = _nextState == StateOpened ? _state : _nextState;
+                    if(s == StateClosingRequestPending)
+                    {
+                        //
+                        // If we receive a close frame while we were actually
+                        // waiting to send one, change the role and send a
+                        // close frame response.
+                        //
+                        if(!_closingInitiator)
+                        {
+                            _closingInitiator = true;
+                        }
+                        if(_state == StateClosingRequestPending)
+                        {
+                            _state = StateClosingResponsePending;
+                        }
+                        else
+                        {
+                            _nextState = StateClosingResponsePending;
+                        }
+                        return false; // No longer interested in reading
                     }
                     else
                     {
-                        _nextState = StateClosingResponsePending;
+                        throw ConnectionLostException(__FILE__, __LINE__, 0);
                     }
-                    return false; // No longer interested in reading
                 }
-                else
+                case OP_PING:
                 {
-                    throw ConnectionLostException(__FILE__, __LINE__, 0);
+                    if(_instance->traceLevel() >= 2)
+                    {
+                        Trace out(_instance->logger(), _instance->traceCategory());
+                        out << "received " << protocol() << " connection ping frame\n" << toString();
+                    }
+                    _readState = ReadStateControlFrame;
+                    break;
                 }
-            }
-            case OP_PING:
-            {
-                if(_instance->traceLevel() >= 2)
+                case OP_PONG: // Pong
                 {
-                    Trace out(_instance->logger(), _instance->traceCategory());
-                    out << "received " << protocol() << " connection ping frame\n" << toString();
+                    if(_instance->traceLevel() >= 2)
+                    {
+                        Trace out(_instance->logger(), _instance->traceCategory());
+                        out << "received " << protocol() << " connection pong frame\n" << toString();
+                    }
+                    _readState = ReadStateControlFrame;
+                    break;
                 }
-                _readState = ReadStateControlFrame;
-                break;
-            }
-            case OP_PONG: // Pong
-            {
-                if(_instance->traceLevel() >= 2)
+                default:
                 {
-                    Trace out(_instance->logger(), _instance->traceCategory());
-                    out << "received " << protocol() << " connection pong frame\n" << toString();
+                    ostringstream ostr;
+                    ostr << "unsupported opcode: " << _readOpCode;
+                    throw ProtocolException(__FILE__, __LINE__, ostr.str());
                 }
-                _readState = ReadStateControlFrame;
-                break;
-            }
-            default:
-            {
-                ostringstream ostr;
-                ostr << "unsupported opcode: " << _readOpCode;
-                throw ProtocolException(__FILE__, __LINE__, ostr.str());
-            }
             }
         }
 
@@ -1420,8 +1397,7 @@ IceInternal::WSTransceiver::preRead(Buffer& buf)
     }
 }
 
-bool
-IceInternal::WSTransceiver::postRead(Buffer& buf)
+bool IceInternal::WSTransceiver::postRead(Buffer& buf)
 {
     if(_readState != ReadStatePayload)
     {
@@ -1458,8 +1434,7 @@ IceInternal::WSTransceiver::postRead(Buffer& buf)
     return buf.i != buf.b.end();
 }
 
-bool
-IceInternal::WSTransceiver::preWrite(Buffer& buf)
+bool IceInternal::WSTransceiver::preWrite(Buffer& buf)
 {
     if(_writeState == WriteStateHeader)
     {
@@ -1581,8 +1556,7 @@ IceInternal::WSTransceiver::preWrite(Buffer& buf)
     }
 }
 
-bool
-IceInternal::WSTransceiver::postWrite(Buffer& buf)
+bool IceInternal::WSTransceiver::postWrite(Buffer& buf)
 {
     if(_state > StateOpened && _writeState == WriteStateControlFrame)
     {
@@ -1650,8 +1624,7 @@ IceInternal::WSTransceiver::postWrite(Buffer& buf)
     if(buf.b.empty() || buf.i == buf.b.end())
     {
         _writeState = WriteStateHeader;
-        if(_state == StatePingPending ||
-           _state == StatePongPending ||
+        if(_state == StatePingPending || _state == StatePongPending ||
            (_state == StateClosingRequestPending && !_closingInitiator) ||
            (_state == StateClosingResponsePending && _closingInitiator))
         {
@@ -1665,8 +1638,7 @@ IceInternal::WSTransceiver::postWrite(Buffer& buf)
     return false;
 }
 
-bool
-IceInternal::WSTransceiver::readBuffered(IceInternal::Buffer::Container::size_type sz)
+bool IceInternal::WSTransceiver::readBuffered(IceInternal::Buffer::Container::size_type sz)
 {
     if(_readI == _readBuffer.i)
     {
@@ -1697,8 +1669,8 @@ IceInternal::WSTransceiver::readBuffered(IceInternal::Buffer::Container::size_ty
     return true;
 }
 
-void
-IceInternal::WSTransceiver::prepareWriteHeader(Byte opCode, IceInternal::Buffer::Container::size_type payloadLength)
+void IceInternal::WSTransceiver::prepareWriteHeader(Byte opCode,
+                                                    IceInternal::Buffer::Container::size_type payloadLength)
 {
     //
     // We need to prepare the frame header.

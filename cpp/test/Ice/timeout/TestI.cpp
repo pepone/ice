@@ -17,37 +17,30 @@ using namespace Ice;
 class ActivateAdapterThread : public IceUtil::Thread
 {
 public:
-
-    ActivateAdapterThread(const ObjectAdapterPtr& adapter, int timeout) :
-        _adapter(adapter), _timeout(timeout)
+    ActivateAdapterThread(const ObjectAdapterPtr& adapter, int timeout) : _adapter(adapter), _timeout(timeout)
     {
     }
 
-    virtual void
-    run()
+    virtual void run()
     {
         IceUtil::ThreadControl::sleep(IceUtil::Time::milliSeconds(_timeout));
         _adapter->activate();
     }
 
 private:
-
     ObjectAdapterPtr _adapter;
     int _timeout;
 };
 
-void
-TimeoutI::op(const Ice::Current&)
+void TimeoutI::op(const Ice::Current&)
 {
 }
 
-void
-TimeoutI::sendData(ICE_IN(Test::ByteSeq), const Ice::Current&)
+void TimeoutI::sendData(ICE_IN(Test::ByteSeq), const Ice::Current&)
 {
 }
 
-void
-TimeoutI::sleep(Ice::Int to, const Ice::Current& c)
+void TimeoutI::sleep(Ice::Int to, const Ice::Current& c)
 {
     IceUtil::ThreadControl::sleep(IceUtil::Time::milliSeconds(to));
 }
@@ -56,8 +49,7 @@ ControllerI::ControllerI(const Ice::ObjectAdapterPtr& adapter) : _adapter(adapte
 {
 }
 
-void
-ControllerI::holdAdapter(Ice::Int to, const Ice::Current&)
+void ControllerI::holdAdapter(Ice::Int to, const Ice::Current&)
 {
     _adapter->hold();
 
@@ -69,14 +61,12 @@ ControllerI::holdAdapter(Ice::Int to, const Ice::Current&)
     }
 }
 
-void
-ControllerI::resumeAdapter(const Ice::Current&)
+void ControllerI::resumeAdapter(const Ice::Current&)
 {
     _adapter->activate();
 }
 
-void
-ControllerI::shutdown(const Ice::Current&)
+void ControllerI::shutdown(const Ice::Current&)
 {
     _adapter->getCommunicator()->shutdown();
 }

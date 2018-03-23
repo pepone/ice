@@ -20,145 +20,144 @@
 
 namespace IceGrid
 {
+    class AdapterCache;
 
-class AdapterCache;
+    class SynchronizationCallback;
+    typedef IceUtil::Handle<SynchronizationCallback> SynchronizationCallbackPtr;
 
-class SynchronizationCallback;
-typedef IceUtil::Handle<SynchronizationCallback> SynchronizationCallbackPtr;
+    class ServerEntry;
+    typedef IceUtil::Handle<ServerEntry> ServerEntryPtr;
+    typedef std::vector<ServerEntryPtr> ServerEntrySeq;
 
-class ServerEntry;
-typedef IceUtil::Handle<ServerEntry> ServerEntryPtr;
-typedef std::vector<ServerEntryPtr> ServerEntrySeq;
+    class AdapterEntry;
+    typedef IceUtil::Handle<AdapterEntry> AdapterEntryPtr;
 
-class AdapterEntry;
-typedef IceUtil::Handle<AdapterEntry> AdapterEntryPtr;
+    struct LocatorAdapterInfo
+    {
+        std::string id;
+        AdapterPrx proxy;
+        int activationTimeout;
+        int deactivationTimeout;
+    };
+    typedef std::vector<LocatorAdapterInfo> LocatorAdapterInfoSeq;
 
-struct LocatorAdapterInfo
-{
-    std::string id;
-    AdapterPrx proxy;
-    int activationTimeout;
-    int deactivationTimeout;
-};
-typedef std::vector<LocatorAdapterInfo> LocatorAdapterInfoSeq;
+    class AdapterEntry : public virtual IceUtil::Shared
+    {
+    public:
+        AdapterEntry(AdapterCache&, const std::string&, const std::string&);
 
-class AdapterEntry : public virtual IceUtil::Shared
-{
-public:
+        virtual bool addSyncCallback(const SynchronizationCallbackPtr&, const std::set<std::string>&) = 0;
 
-    AdapterEntry(AdapterCache&, const std::string&, const std::string&);
+        virtual void getLocatorAdapterInfo(LocatorAdapterInfoSeq&, int&, bool&, bool&, std::string&,
+                                           const std::set<std::string>&) = 0;
+        virtual float getLeastLoadedNodeLoad(LoadSample) const = 0;
+        virtual AdapterInfoSeq getAdapterInfo() const = 0;
+        virtual AdapterPrx getProxy(const std::string&, bool) const = 0;
 
-    virtual bool addSyncCallback(const SynchronizationCallbackPtr&, const std::set<std::string>&) = 0;
+        virtual bool canRemove();
 
-    virtual void getLocatorAdapterInfo(LocatorAdapterInfoSeq&, int&, bool&, bool&, std::string&,
-                                       const std::set<std::string>&) = 0;
-    virtual float getLeastLoadedNodeLoad(LoadSample) const = 0;
-    virtual AdapterInfoSeq getAdapterInfo() const = 0;
-    virtual AdapterPrx getProxy(const std::string&, bool) const = 0;
+        std::string getId() const;
+        std::string getApplication() const;
 
-    virtual bool canRemove();
+    protected:
+        AdapterCache& _cache;
+        const std::string _id;
+        std::string _application;
+    };
+    typedef IceUtil::Handle<AdapterEntry> AdapterEntryPtr;
 
-    std::string getId() const;
-    std::string getApplication() const;
+    class ServerAdapterEntry : public AdapterEntry
+    {
+    public:
+        ServerAdapterEntry(AdapterCache&, const std::string&, const std::string&, const std::string&, int,
+                           const ServerEntryPtr&);
 
-protected:
+        virtual bool addSyncCallback(const SynchronizationCallbackPtr&, const std::set<std::string>&);
 
-    AdapterCache& _cache;
-    const std::string _id;
-    std::string _application;
-};
-typedef IceUtil::Handle<AdapterEntry> AdapterEntryPtr;
+        virtual void getLocatorAdapterInfo(LocatorAdapterInfoSeq&, int&, bool&, bool&, std::string&,
+                                           const std::set<std::string>&);
 
-class ServerAdapterEntry : public AdapterEntry
-{
-public:
+        virtual float getLeastLoadedNodeLoad(LoadSample) const;
+        virtual AdapterInfoSeq getAdapterInfo() const;
+        virtual AdapterPrx getProxy(const std::string&, bool) const;
 
-    ServerAdapterEntry(AdapterCache&, const std::string&, const std::string&, const std::string&, int,
-                       const ServerEntryPtr&);
+        void getLocatorAdapterInfo(LocatorAdapterInfoSeq&) const;
+        const std::string& getReplicaGroupId() const
+        {
+            return _replicaGroupId;
+        }
+        int getPriority() const;
 
-    virtual bool addSyncCallback(const SynchronizationCallbackPtr&, const std::set<std::string>&);
+        std::string getServerId() const;
+        std::string getNodeName() const;
 
-    virtual void getLocatorAdapterInfo(LocatorAdapterInfoSeq&, int&, bool&, bool&, std::string&,
-                                       const std::set<std::string>&);
+    private:
+        const std::string _replicaGroupId;
+        const int _priority;
+        const ServerEntryPtr _server;
+    };
+    typedef IceUtil::Handle<ServerAdapterEntry> ServerAdapterEntryPtr;
 
-    virtual float getLeastLoadedNodeLoad(LoadSample) const;
-    virtual AdapterInfoSeq getAdapterInfo() const;
-    virtual AdapterPrx getProxy(const std::string&, bool) const;
+    class ReplicaGroupEntry : public AdapterEntry, public IceUtil::Monitor<IceUtil::Mutex>
+    {
+    public:
+        ReplicaGroupEntry(AdapterCache&, const std::string&, const std::string&, const LoadBalancingPolicyPtr&,
+                          const std::string&);
 
-    void getLocatorAdapterInfo(LocatorAdapterInfoSeq&) const;
-    const std::string& getReplicaGroupId() const { return _replicaGroupId; }
-    int getPriority() const;
+        virtual bool addSyncCallback(const SynchronizationCallbackPtr&, const std::set<std::string>&);
 
-    std::string getServerId() const;
-    std::string getNodeName() const;
+        virtual void getLocatorAdapterInfo(LocatorAdapterInfoSeq&, int&, bool&, bool&, std::string&,
+                                           const std::set<std::string>&);
+        virtual float getLeastLoadedNodeLoad(LoadSample) const;
+        virtual AdapterInfoSeq getAdapterInfo() const;
+        virtual AdapterPrx getProxy(const std::string&, bool) const
+        {
+            return 0;
+        }
 
-private:
+        void addReplica(const std::string&, const ServerAdapterEntryPtr&);
+        bool removeReplica(const std::string&);
 
-    const std::string _replicaGroupId;
-    const int _priority;
-    const ServerEntryPtr _server;
-};
-typedef IceUtil::Handle<ServerAdapterEntry> ServerAdapterEntryPtr;
+        void update(const std::string&, const LoadBalancingPolicyPtr&, const std::string&);
+        bool hasAdaptersFromOtherApplications() const;
 
-class ReplicaGroupEntry : public AdapterEntry, public IceUtil::Monitor<IceUtil::Mutex>
-{
-public:
+        const std::string& getFilter() const
+        {
+            return _filter;
+        }
 
-    ReplicaGroupEntry(AdapterCache&, const std::string&, const std::string&, const LoadBalancingPolicyPtr&,
-                      const std::string&);
+    private:
+        LoadBalancingPolicyPtr _loadBalancing;
+        int _loadBalancingNReplicas;
+        LoadSample _loadSample;
+        std::string _filter;
+        std::vector<ServerAdapterEntryPtr> _replicas;
+        int _lastReplica;
+        bool _requestInProgress;
+    };
+    typedef IceUtil::Handle<ReplicaGroupEntry> ReplicaGroupEntryPtr;
 
-    virtual bool addSyncCallback(const SynchronizationCallbackPtr&, const std::set<std::string>&);
+    class AdapterCache : public CacheByString<AdapterEntry>
+    {
+    public:
+        AdapterCache(const Ice::CommunicatorPtr&);
 
-    virtual void getLocatorAdapterInfo(LocatorAdapterInfoSeq&, int&, bool&, bool&, std::string&,
-                                       const std::set<std::string>&);
-    virtual float getLeastLoadedNodeLoad(LoadSample) const;
-    virtual AdapterInfoSeq getAdapterInfo() const;
-    virtual AdapterPrx getProxy(const std::string&, bool) const { return 0; }
+        void addServerAdapter(const AdapterDescriptor&, const ServerEntryPtr&, const std::string&);
+        void addReplicaGroup(const ReplicaGroupDescriptor&, const std::string&);
 
-    void addReplica(const std::string&, const ServerAdapterEntryPtr&);
-    bool removeReplica(const std::string&);
+        AdapterEntryPtr get(const std::string&) const;
 
-    void update(const std::string&, const LoadBalancingPolicyPtr&, const std::string&);
-    bool hasAdaptersFromOtherApplications() const;
+        void removeServerAdapter(const std::string&);
+        void removeReplicaGroup(const std::string&);
 
-    const std::string& getFilter() const { return _filter; }
+    protected:
+        virtual AdapterEntryPtr addImpl(const std::string&, const AdapterEntryPtr&);
+        virtual void removeImpl(const std::string&);
 
-private:
+    private:
+        const Ice::CommunicatorPtr _communicator;
+    };
 
-    LoadBalancingPolicyPtr _loadBalancing;
-    int _loadBalancingNReplicas;
-    LoadSample _loadSample;
-    std::string _filter;
-    std::vector<ServerAdapterEntryPtr> _replicas;
-    int _lastReplica;
-    bool _requestInProgress;
-};
-typedef IceUtil::Handle<ReplicaGroupEntry> ReplicaGroupEntryPtr;
-
-class AdapterCache : public CacheByString<AdapterEntry>
-{
-public:
-
-    AdapterCache(const Ice::CommunicatorPtr&);
-
-    void addServerAdapter(const AdapterDescriptor&, const ServerEntryPtr&, const std::string&);
-    void addReplicaGroup(const ReplicaGroupDescriptor&, const std::string&);
-
-    AdapterEntryPtr get(const std::string&) const;
-
-    void removeServerAdapter(const std::string&);
-    void removeReplicaGroup(const std::string&);
-
-protected:
-
-    virtual AdapterEntryPtr addImpl(const std::string&, const AdapterEntryPtr&);
-    virtual void removeImpl(const std::string&);
-
-private:
-
-    const Ice::CommunicatorPtr _communicator;
-};
-
-};
+}; // namespace IceGrid
 
 #endif

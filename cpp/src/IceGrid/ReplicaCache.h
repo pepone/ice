@@ -18,63 +18,61 @@
 
 namespace IceGrid
 {
+    class ReplicaCache;
 
-class ReplicaCache;
+    class ReplicaSessionI;
+    typedef IceUtil::Handle<ReplicaSessionI> ReplicaSessionIPtr;
 
-class ReplicaSessionI;
-typedef IceUtil::Handle<ReplicaSessionI> ReplicaSessionIPtr;
+    class ReplicaEntry : public IceUtil::Shared
+    {
+    public:
+        ReplicaEntry(const std::string&, const ReplicaSessionIPtr&);
+        virtual ~ReplicaEntry();
 
-class ReplicaEntry : public IceUtil::Shared
-{
-public:
+        bool canRemove() const
+        {
+            return true;
+        }
+        const ReplicaSessionIPtr& getSession() const;
+        InternalReplicaInfoPtr getInfo() const;
+        InternalRegistryPrx getProxy() const;
 
-    ReplicaEntry(const std::string&, const ReplicaSessionIPtr&);
-    virtual ~ReplicaEntry();
+        Ice::ObjectPrx getAdminProxy() const;
 
-    bool canRemove() const { return true; }
-    const ReplicaSessionIPtr& getSession() const;
-    InternalReplicaInfoPtr getInfo() const;
-    InternalRegistryPrx getProxy() const;
+    private:
+        const std::string _name;
+        const ReplicaSessionIPtr _session;
+    };
+    typedef IceUtil::Handle<ReplicaEntry> ReplicaEntryPtr;
 
-    Ice::ObjectPrx getAdminProxy() const;
-
-private:
-
-    const std::string _name;
-    const ReplicaSessionIPtr _session;
-};
-typedef IceUtil::Handle<ReplicaEntry> ReplicaEntryPtr;
-
-class ReplicaCache : public CacheByString<ReplicaEntry>
-{
-public:
-
+    class ReplicaCache : public CacheByString<ReplicaEntry>
+    {
+    public:
 #ifdef __SUNPRO_CC
-    using CacheByString<ReplicaEntry>::remove;
+        using CacheByString<ReplicaEntry>::remove;
 #endif
 
-    ReplicaCache(const Ice::CommunicatorPtr&, const IceStorm::TopicManagerPrx&);
+        ReplicaCache(const Ice::CommunicatorPtr&, const IceStorm::TopicManagerPrx&);
 
-    ReplicaEntryPtr add(const std::string&, const ReplicaSessionIPtr&);
-    ReplicaEntryPtr remove(const std::string&, bool);
-    ReplicaEntryPtr get(const std::string&) const;
+        ReplicaEntryPtr add(const std::string&, const ReplicaSessionIPtr&);
+        ReplicaEntryPtr remove(const std::string&, bool);
+        ReplicaEntryPtr get(const std::string&) const;
 
-    void subscribe(const ReplicaObserverPrx&);
-    void unsubscribe(const ReplicaObserverPrx&);
+        void subscribe(const ReplicaObserverPrx&);
+        void unsubscribe(const ReplicaObserverPrx&);
 
-    Ice::ObjectPrx getEndpoints(const std::string&, const Ice::ObjectPrx&) const;
+        Ice::ObjectPrx getEndpoints(const std::string&, const Ice::ObjectPrx&) const;
 
-    void setInternalRegistry(const InternalRegistryPrx&);
-    InternalRegistryPrx getInternalRegistry() const;
+        void setInternalRegistry(const InternalRegistryPrx&);
+        InternalRegistryPrx getInternalRegistry() const;
 
-private:
+    private:
+        const Ice::CommunicatorPtr _communicator;
+        const IceStorm::TopicPrx _topic;
+        const ReplicaObserverPrx _observers;
+        InternalRegistryPrx _self; // This replica internal registry proxy.
+    };
 
-    const Ice::CommunicatorPtr _communicator;
-    const IceStorm::TopicPrx _topic;
-    const ReplicaObserverPrx _observers;
-    InternalRegistryPrx _self; // This replica internal registry proxy.
-};
-
-};
+}; // namespace IceGrid
 
 #endif

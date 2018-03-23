@@ -16,11 +16,10 @@
 
 namespace IceSSL
 {
+    class TrustManager;
+    IceUtil::Shared* upCast(IceSSL::TrustManager*);
+    typedef IceInternal::Handle<TrustManager> TrustManagerPtr;
 
-class TrustManager;
-IceUtil::Shared* upCast(IceSSL::TrustManager*);
-typedef IceInternal::Handle<TrustManager> TrustManagerPtr;
-
-}
+} // namespace IceSSL
 
 #endif

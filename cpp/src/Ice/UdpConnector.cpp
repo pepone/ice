@@ -17,26 +17,22 @@ using namespace std;
 using namespace Ice;
 using namespace IceInternal;
 
-TransceiverPtr
-IceInternal::UdpConnector::connect()
+TransceiverPtr IceInternal::UdpConnector::connect()
 {
     return new UdpTransceiver(_instance, _addr, _sourceAddr, _mcastInterface, _mcastTtl);
 }
 
-Short
-IceInternal::UdpConnector::type() const
+Short IceInternal::UdpConnector::type() const
 {
     return _instance->type();
 }
 
-string
-IceInternal::UdpConnector::toString() const
+string IceInternal::UdpConnector::toString() const
 {
     return addrToString(_addr);
 }
 
-bool
-IceInternal::UdpConnector::operator==(const Connector& r) const
+bool IceInternal::UdpConnector::operator==(const Connector& r) const
 {
     const UdpConnector* p = dynamic_cast<const UdpConnector*>(&r);
     if(!p)
@@ -71,8 +67,7 @@ IceInternal::UdpConnector::operator==(const Connector& r) const
     return true;
 }
 
-bool
-IceInternal::UdpConnector::operator<(const Connector& r) const
+bool IceInternal::UdpConnector::operator<(const Connector& r) const
 {
     const UdpConnector* p = dynamic_cast<const UdpConnector*>(&r);
     if(!p)

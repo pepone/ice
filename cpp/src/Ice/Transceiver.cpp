@@ -13,10 +13,12 @@ using namespace std;
 using namespace Ice;
 using namespace IceInternal;
 
-IceUtil::Shared* IceInternal::upCast(Transceiver* p) { return p; }
+IceUtil::Shared* IceInternal::upCast(Transceiver* p)
+{
+    return p;
+}
 
-EndpointIPtr
-IceInternal::Transceiver::bind()
+EndpointIPtr IceInternal::Transceiver::bind()
 {
     assert(false);
     return 0;

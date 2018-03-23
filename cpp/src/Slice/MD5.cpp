@@ -37,21 +37,18 @@ Slice::MD5::~MD5()
     delete _state;
 }
 
-void
-Slice::MD5::update(const unsigned char* data, int n)
+void Slice::MD5::update(const unsigned char* data, int n)
 {
     md5_append(_state, data, n);
 }
 
-void
-Slice::MD5::finish()
+void Slice::MD5::finish()
 {
     md5_finish(_state, _digest);
     md5_init(_state);
 }
 
-void
-Slice::MD5::getDigest(unsigned char* digest) const
+void Slice::MD5::getDigest(unsigned char* digest) const
 {
     memcpy(digest, _digest, sizeof(unsigned char) * 16);
 }

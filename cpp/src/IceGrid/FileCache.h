@@ -16,22 +16,19 @@
 
 namespace IceGrid
 {
+    class FileCache : public IceUtil::Shared
+    {
+    public:
+        FileCache(const Ice::CommunicatorPtr&);
 
-class FileCache : public IceUtil::Shared
-{
-public:
+        Ice::Long getOffsetFromEnd(const std::string&, int);
+        bool read(const std::string&, Ice::Long, int, Ice::Long&, Ice::StringSeq&);
 
-    FileCache(const Ice::CommunicatorPtr&);
+    private:
+        const int _messageSizeMax;
+    };
+    typedef IceUtil::Handle<FileCache> FileCachePtr;
 
-    Ice::Long getOffsetFromEnd(const std::string&, int);
-    bool read(const std::string&, Ice::Long, int, Ice::Long&, Ice::StringSeq&);
-
-private:
-
-    const int _messageSizeMax;
-};
-typedef IceUtil::Handle<FileCache> FileCachePtr;
-
-};
+}; // namespace IceGrid
 
 #endif

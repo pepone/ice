@@ -13,15 +13,14 @@
 #include <Test.h>
 
 #if defined(ICE_USE_OPENSSL)
-#  include <IceSSL/OpenSSL.h>
+#    include <IceSSL/OpenSSL.h>
 #endif
 
 DEFINE_TEST("client")
 
 using namespace std;
 
-int
-run(int argc, char* argv[], const Ice::CommunicatorPtr& communicator)
+int run(int argc, char* argv[], const Ice::CommunicatorPtr& communicator)
 {
     string testdir;
 #if TARGET_OS_IPHONE == 0
@@ -61,8 +60,7 @@ run(int argc, char* argv[], const Ice::CommunicatorPtr& communicator)
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
     //
     // Explicitly register the IceSSL plugin to test registerIceSSL. The tests

@@ -14,30 +14,29 @@
 
 namespace Ice
 {
-
 /**
  * Describes the possible formats for classes and exceptions.
  */
 #ifdef ICE_CPP11_MAPPING
-enum class FormatType : unsigned char
+    enum class FormatType : unsigned char
 #else
-enum FormatType
+    enum FormatType
 #endif
-{
-    /**
-     * Indicates that no preference was specified.
-     */
-    DefaultFormat,
-    /**
-     * A minimal format that eliminates the possibility for slicing unrecognized types.
-     */
-    CompactFormat,
-    /**
-     * Allow slicing and preserve slices for unknown types.
-     */
-    SlicedFormat
-};
+    {
+        /**
+         * Indicates that no preference was specified.
+         */
+        DefaultFormat,
+        /**
+         * A minimal format that eliminates the possibility for slicing unrecognized types.
+         */
+        CompactFormat,
+        /**
+         * Allow slicing and preserve slices for unknown types.
+         */
+        SlicedFormat
+    };
 
-}
+} // namespace Ice
 
 #endif

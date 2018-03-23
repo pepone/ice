@@ -17,68 +17,58 @@ using namespace Test;
 
 namespace
 {
-
-class Condition : public IceUtil::Mutex, public IceUtil::Shared
-{
-public:
-
-    Condition(bool value) : _value(value)
+    class Condition : public IceUtil::Mutex, public IceUtil::Shared
     {
-    }
-
-    void
-    set(bool value)
-    {
-        Lock sync(*this);
-        _value = value;
-    }
-
-    bool
-    value() const
-    {
-        Lock sync(*this);
-        return _value;
-    }
-
-private:
-
-    bool _value;
-};
-typedef IceUtil::Handle<Condition> ConditionPtr;
-
-class SetCB : public IceUtil::Shared, public IceUtil::Monitor<IceUtil::Mutex>
-{
-public:
-
-    SetCB(const ConditionPtr& condition, Ice::Int expected) : _condition(condition), _expected(expected)
-    {
-    }
-
-    void
-    response(Ice::Int value)
-    {
-        if(value != _expected)
+    public:
+        Condition(bool value) : _value(value)
         {
-            _condition->set(false);
         }
-    }
 
-    void
-    exception(const Ice::Exception&)
+        void set(bool value)
+        {
+            Lock sync(*this);
+            _value = value;
+        }
+
+        bool value() const
+        {
+            Lock sync(*this);
+            return _value;
+        }
+
+    private:
+        bool _value;
+    };
+    typedef IceUtil::Handle<Condition> ConditionPtr;
+
+    class SetCB : public IceUtil::Shared, public IceUtil::Monitor<IceUtil::Mutex>
     {
-    }
+    public:
+        SetCB(const ConditionPtr& condition, Ice::Int expected) : _condition(condition), _expected(expected)
+        {
+        }
 
-private:
+        void response(Ice::Int value)
+        {
+            if(value != _expected)
+            {
+                _condition->set(false);
+            }
+        }
 
-    const ConditionPtr _condition;
-    Ice::Int _expected;
-};
-typedef IceUtil::Handle<SetCB> SetCBPtr;
+        void exception(const Ice::Exception&)
+        {
+        }
 
-}
+    private:
+        const ConditionPtr _condition;
+        Ice::Int _expected;
+    };
+    typedef IceUtil::Handle<SetCB> SetCBPtr;
 
-void
-allTests(const Ice::CommunicatorPtr& communicator)
+} // namespace
+
+void allTests(const Ice::CommunicatorPtr& communicator)
 {
     cout << "testing stringToProxy... " << flush;
     string ref = "hold:" + getTestEndpoint(communicator, 0);
@@ -139,22 +129,15 @@ allTests(const Ice::CommunicatorPtr& communicator)
             auto sent = make_shared<promise<bool>>();
             auto expected = value;
             hold->setAsync(value + 1, IceUtilInternal::random(5),
-                [cond, expected, completed](int value)
-                {
-                    if(value != expected)
-                    {
-                        cond->set(false);
-                    }
-                    completed->set_value();
-                },
-                [completed](exception_ptr)
-                {
-                    completed->set_value();
-                },
-                [sent](bool sentSynchronously)
-                {
-                    sent->set_value(sentSynchronously);
-                });
+                           [cond, expected, completed](int value) {
+                               if(value != expected)
+                               {
+                                   cond->set(false);
+                               }
+                               completed->set_value();
+                           },
+                           [completed](exception_ptr) { completed->set_value(); },
+                           [sent](bool sentSynchronously) { sent->set_value(sentSynchronously); });
 
             ++value;
             if(value % 100 == 0)
@@ -177,8 +160,7 @@ allTests(const Ice::CommunicatorPtr& communicator)
         Ice::AsyncResultPtr result;
         while(cond->value())
         {
-            result = hold->begin_set(value + 1,
-                                     IceUtilInternal::random(5),
+            result = hold->begin_set(value + 1, IceUtilInternal::random(5),
                                      newCallback_Hold_set(new SetCB(cond, value), &SetCB::response, &SetCB::exception));
             ++value;
             if(value % 100 == 0)
@@ -211,25 +193,16 @@ allTests(const Ice::CommunicatorPtr& communicator)
             completed = make_shared<promise<void>>();
             auto sent = make_shared<promise<bool>>();
             auto expected = value;
-            holdSerialized->setAsync(
-                value + 1,
-                IceUtilInternal::random(1),
-                [cond, expected, completed](int value)
-                {
-                    if(value != expected)
-                    {
-                        cond->set(false);
-                    }
-                    completed->set_value();
-                },
-                [completed](exception_ptr)
-                {
-                    completed->set_value();
-                },
-                [sent](bool sentSynchronously)
-                {
-                    sent->set_value(sentSynchronously);
-                });
+            holdSerialized->setAsync(value + 1, IceUtilInternal::random(1),
+                                     [cond, expected, completed](int value) {
+                                         if(value != expected)
+                                         {
+                                             cond->set(false);
+                                         }
+                                         completed->set_value();
+                                     },
+                                     [completed](exception_ptr) { completed->set_value(); },
+                                     [sent](bool sentSynchronously) { sent->set_value(sentSynchronously); });
             ++value;
             if(value % 100 == 0)
             {
@@ -240,11 +213,9 @@ allTests(const Ice::CommunicatorPtr& communicator)
         Ice::AsyncResultPtr result;
         while(value < 3000 && cond->value())
         {
-            result = holdSerialized->begin_set(value + 1,
-                                               IceUtilInternal::random(1),
-                                               newCallback_Hold_set(new SetCB(cond, value),
-                                                                    &SetCB::response,
-                                                                    &SetCB::exception));
+            result = holdSerialized->begin_set(
+                value + 1, IceUtilInternal::random(1),
+                newCallback_Hold_set(new SetCB(cond, value), &SetCB::response, &SetCB::exception));
             ++value;
             if(value % 100 == 0)
             {
@@ -276,15 +247,9 @@ allTests(const Ice::CommunicatorPtr& communicator)
         {
             completed = make_shared<promise<void>>();
             // Create a new proxy for each request
-            holdSerialized->ice_oneway()->setOnewayAsync(value + 1, value,
-                nullptr,
-                [](exception_ptr)
-                {
-                },
-                [completed](bool sentSynchronously)
-                {
-                    completed->set_value();
-                });
+            holdSerialized->ice_oneway()->setOnewayAsync(
+                value + 1, value, nullptr, [](exception_ptr) {},
+                [completed](bool sentSynchronously) { completed->set_value(); });
             ++value;
             if((i % 100) == 0)
             {

@@ -16,7 +16,6 @@
 class Acceptor : public IceInternal::Acceptor
 {
 public:
-
     virtual IceInternal::NativeInfoPtr getNativeInfo();
 
     virtual void close();
@@ -30,10 +29,12 @@ public:
     virtual std::string toString() const;
     virtual std::string toDetailedString() const;
 
-    IceInternal::AcceptorPtr delegate() const { return _acceptor; }
+    IceInternal::AcceptorPtr delegate() const
+    {
+        return _acceptor;
+    }
 
 private:
-
     Acceptor(const EndpointIPtr&, const IceInternal::AcceptorPtr&);
     friend class EndpointI;
 

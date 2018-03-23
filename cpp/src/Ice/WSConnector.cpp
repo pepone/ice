@@ -16,26 +16,22 @@ using namespace std;
 using namespace Ice;
 using namespace IceInternal;
 
-TransceiverPtr
-IceInternal::WSConnector::connect()
+TransceiverPtr IceInternal::WSConnector::connect()
 {
     return new WSTransceiver(_instance, _delegate->connect(), _host, _resource);
 }
 
-Short
-IceInternal::WSConnector::type() const
+Short IceInternal::WSConnector::type() const
 {
     return _delegate->type();
 }
 
-string
-IceInternal::WSConnector::toString() const
+string IceInternal::WSConnector::toString() const
 {
     return _delegate->toString();
 }
 
-bool
-IceInternal::WSConnector::operator==(const Connector& r) const
+bool IceInternal::WSConnector::operator==(const Connector& r) const
 {
     const WSConnector* p = dynamic_cast<const WSConnector*>(&r);
     if(!p)
@@ -61,8 +57,7 @@ IceInternal::WSConnector::operator==(const Connector& r) const
     return true;
 }
 
-bool
-IceInternal::WSConnector::operator<(const Connector& r) const
+bool IceInternal::WSConnector::operator<(const Connector& r) const
 {
     const WSConnector* p = dynamic_cast<const WSConnector*>(&r);
     if(!p)
@@ -98,7 +93,10 @@ IceInternal::WSConnector::operator<(const Connector& r) const
 
 IceInternal::WSConnector::WSConnector(const ProtocolInstancePtr& instance, const ConnectorPtr& del, const string& host,
                                       const string& resource) :
-    _instance(instance), _delegate(del), _host(host), _resource(resource)
+    _instance(instance),
+    _delegate(del),
+    _host(host),
+    _resource(resource)
 {
 }
 

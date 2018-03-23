@@ -56,9 +56,8 @@ TestControllerI::TestControllerI(const string& endpoint)
     _configurations.push_back(current);
 };
 
-void
-TestControllerI::step(const Glacier2::SessionPrx& currentSession, const TestToken& currentState, TestToken& newState,
-                      const Ice::Current&)
+void TestControllerI::step(const Glacier2::SessionPrx& currentSession, const TestToken& currentState,
+                           TestToken& newState, const Ice::Current&)
 {
     switch(currentState.code)
     {
@@ -155,20 +154,17 @@ TestControllerI::step(const Glacier2::SessionPrx& currentSession, const TestToke
     }
 }
 
-void
-TestControllerI::shutdown(const Ice::Current& current)
+void TestControllerI::shutdown(const Ice::Current& current)
 {
     current.adapter->getCommunicator()->shutdown();
 }
 
-void
-TestControllerI::addSession(const SessionTuple& s)
+void TestControllerI::addSession(const SessionTuple& s)
 {
     _sessions.push_back(s);
 }
 
-void
-TestControllerI::notifyDestroy(const Glacier2::SessionControlPrx& control)
+void TestControllerI::notifyDestroy(const Glacier2::SessionControlPrx& control)
 {
     for(vector<SessionTuple>::iterator i = _sessions.begin(); i != _sessions.end(); ++i)
     {

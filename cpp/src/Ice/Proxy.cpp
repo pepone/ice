@@ -31,9 +31,7 @@ using namespace IceInternal;
 
 namespace Ice
 {
-
-const Context noExplicitContext;
-
+    const Context noExplicitContext;
 }
 
 #if defined(_MSC_VER) && (_MSC_VER <= 1600)
@@ -43,36 +41,31 @@ const Context noExplicitContext;
 //
 namespace IceProxy
 {
+    namespace Ice
+    {
+        const Context noExplicitContext;
+    }
 
-namespace Ice
-{
-
-const Context noExplicitContext;
-
-}
-
-}
+} // namespace IceProxy
 #endif
 
 namespace
 {
+    const string ice_ping_name = "ice_ping";
+    const string ice_ids_name = "ice_ids";
+    const string ice_id_name = "ice_id";
+    const string ice_isA_name = "ice_isA";
+    const string ice_invoke_name = "ice_invoke";
+    const string ice_getConnection_name = "ice_getConnection";
+    const string ice_flushBatchRequests_name = "ice_flushBatchRequests";
 
-const string ice_ping_name = "ice_ping";
-const string ice_ids_name = "ice_ids";
-const string ice_id_name = "ice_id";
-const string ice_isA_name = "ice_isA";
-const string ice_invoke_name = "ice_invoke";
-const string ice_getConnection_name = "ice_getConnection";
-const string ice_flushBatchRequests_name = "ice_flushBatchRequests";
-
-}
+} // namespace
 
 ProxyFlushBatchAsync::ProxyFlushBatchAsync(const ObjectPrxPtr& proxy) : ProxyOutgoingAsyncBase(proxy)
 {
 }
 
-AsyncStatus
-ProxyFlushBatchAsync::invokeRemote(const ConnectionIPtr& connection, bool compress, bool)
+AsyncStatus ProxyFlushBatchAsync::invokeRemote(const ConnectionIPtr& connection, bool compress, bool)
 {
     if(_batchRequestNum == 0)
     {
@@ -89,8 +82,7 @@ ProxyFlushBatchAsync::invokeRemote(const ConnectionIPtr& connection, bool compre
     return connection->sendAsyncRequest(ICE_SHARED_FROM_THIS, compress, false, _batchRequestNum);
 }
 
-AsyncStatus
-ProxyFlushBatchAsync::invokeCollocated(CollocatedRequestHandler* handler)
+AsyncStatus ProxyFlushBatchAsync::invokeCollocated(CollocatedRequestHandler* handler)
 {
     if(_batchRequestNum == 0)
     {
@@ -106,8 +98,7 @@ ProxyFlushBatchAsync::invokeCollocated(CollocatedRequestHandler* handler)
     return handler->invokeAsyncRequest(this, _batchRequestNum, false);
 }
 
-void
-ProxyFlushBatchAsync::invoke(const string& operation)
+void ProxyFlushBatchAsync::invoke(const string& operation)
 {
     checkSupportedProtocol(getCompatibleProtocol(_proxy->_getReference()->getProtocol()));
     _observer.attach(_proxy, operation, ::Ice::noExplicitContext);
@@ -120,8 +111,7 @@ ProxyGetConnection::ProxyGetConnection(const ObjectPrxPtr& prx) : ProxyOutgoingA
 {
 }
 
-AsyncStatus
-ProxyGetConnection::invokeRemote(const ConnectionIPtr& connection, bool, bool)
+AsyncStatus ProxyGetConnection::invokeRemote(const ConnectionIPtr& connection, bool, bool)
 {
     _cachedConnection = connection;
     if(responseImpl(true, true))
@@ -131,8 +121,7 @@ ProxyGetConnection::invokeRemote(const ConnectionIPtr& connection, bool, bool)
     return AsyncStatusSent;
 }
 
-AsyncStatus
-ProxyGetConnection::invokeCollocated(CollocatedRequestHandler*)
+AsyncStatus ProxyGetConnection::invokeCollocated(CollocatedRequestHandler*)
 {
     if(responseImpl(true, true))
     {
@@ -141,14 +130,12 @@ ProxyGetConnection::invokeCollocated(CollocatedRequestHandler*)
     return AsyncStatusSent;
 }
 
-Ice::ConnectionPtr
-ProxyGetConnection::getConnection() const
+Ice::ConnectionPtr ProxyGetConnection::getConnection() const
 {
     return _cachedConnection;
 }
 
-void
-ProxyGetConnection::invoke(const string& operation)
+void ProxyGetConnection::invoke(const string& operation)
 {
     _observer.attach(_proxy, operation, ::Ice::noExplicitContext);
     invokeImpl(true); // userThread = true
@@ -158,81 +145,66 @@ ProxyGetConnection::invoke(const string& operation)
 
 namespace Ice
 {
+    bool operator<(const ObjectPrx& lhs, const ObjectPrx& rhs)
+    {
+        return lhs._reference < rhs._reference;
+    }
 
-bool
-operator<(const ObjectPrx& lhs, const ObjectPrx& rhs)
-{
-    return lhs._reference < rhs._reference;
-}
+    bool operator==(const ObjectPrx& lhs, const ObjectPrx& rhs)
+    {
+        return lhs._reference == rhs._reference;
+    }
 
-bool
-operator==(const ObjectPrx& lhs, const ObjectPrx& rhs)
-{
-    return lhs._reference == rhs._reference;
-}
+} // namespace Ice
 
-}
-
-void
-Ice::ObjectPrx::_iceI_isA(const shared_ptr<IceInternal::OutgoingAsyncT<bool>>& outAsync,
-                          const string& typeId,
-                          const Context& ctx)
+void Ice::ObjectPrx::_iceI_isA(const shared_ptr<IceInternal::OutgoingAsyncT<bool>>& outAsync, const string& typeId,
+                               const Context& ctx)
 {
     _checkTwowayOnly(ice_isA_name);
     outAsync->invoke(ice_isA_name, OperationMode::Nonmutating, ICE_ENUM(FormatType, DefaultFormat), ctx,
-                     [&](Ice::OutputStream* os)
-                     {
-                         os->write(typeId, false);
-                     },
+                     [&](Ice::OutputStream* os) { os->write(typeId, false); }, nullptr);
+}
+
+void Ice::ObjectPrx::_iceI_ping(const shared_ptr<IceInternal::OutgoingAsyncT<void>>& outAsync, const Context& ctx)
+{
+    outAsync->invoke(ice_ping_name, OperationMode::Nonmutating, ICE_ENUM(FormatType, DefaultFormat), ctx, nullptr,
                      nullptr);
 }
 
-void
-Ice::ObjectPrx::_iceI_ping(const shared_ptr<IceInternal::OutgoingAsyncT<void>>& outAsync, const Context& ctx)
-{
-    outAsync->invoke(ice_ping_name, OperationMode::Nonmutating, ICE_ENUM(FormatType, DefaultFormat), ctx, nullptr, nullptr);
-}
-
-void
-Ice::ObjectPrx::_iceI_ids(const shared_ptr<IceInternal::OutgoingAsyncT<vector<string>>>& outAsync, const Context& ctx)
+void Ice::ObjectPrx::_iceI_ids(const shared_ptr<IceInternal::OutgoingAsyncT<vector<string>>>& outAsync,
+                               const Context& ctx)
 {
     _checkTwowayOnly(ice_ids_name);
-    outAsync->invoke(ice_ids_name, OperationMode::Nonmutating, ICE_ENUM(FormatType, DefaultFormat), ctx, nullptr, nullptr,
-                     [](Ice::InputStream* stream)
-                     {
+    outAsync->invoke(ice_ids_name, OperationMode::Nonmutating, ICE_ENUM(FormatType, DefaultFormat), ctx, nullptr,
+                     nullptr, [](Ice::InputStream* stream) {
                          vector<string> v;
                          stream->read(v, false); // no conversion
                          return v;
                      });
 }
 
-void
-Ice::ObjectPrx::_iceI_id(const shared_ptr<IceInternal::OutgoingAsyncT<string>>& outAsync, const Context& ctx)
+void Ice::ObjectPrx::_iceI_id(const shared_ptr<IceInternal::OutgoingAsyncT<string>>& outAsync, const Context& ctx)
 {
     _checkTwowayOnly(ice_id_name);
-    outAsync->invoke(ice_id_name, OperationMode::Nonmutating, ICE_ENUM(FormatType, DefaultFormat), ctx, nullptr, nullptr,
-                     [](Ice::InputStream* stream)
-                     {
+    outAsync->invoke(ice_id_name, OperationMode::Nonmutating, ICE_ENUM(FormatType, DefaultFormat), ctx, nullptr,
+                     nullptr, [](Ice::InputStream* stream) {
                          string v;
                          stream->read(v, false); // no conversion
                          return v;
                      });
 }
 
-void
-Ice::ObjectPrx::_iceI_getConnection(const shared_ptr<IceInternal::ProxyGetConnection>& outAsync)
+void Ice::ObjectPrx::_iceI_getConnection(const shared_ptr<IceInternal::ProxyGetConnection>& outAsync)
 {
     outAsync->invoke(ice_getConnection_name);
 }
 
-void
-Ice::ObjectPrx::_iceI_flushBatchRequests(const shared_ptr<IceInternal::ProxyFlushBatchAsync>& outAsync)
+void Ice::ObjectPrx::_iceI_flushBatchRequests(const shared_ptr<IceInternal::ProxyFlushBatchAsync>& outAsync)
 {
     outAsync->invoke(ice_flushBatchRequests_name);
 }
 
-void
-Ice::ObjectPrx::_checkTwowayOnly(const string& name) const
+void Ice::ObjectPrx::_checkTwowayOnly(const string& name) const
 {
     //
     // No mutex lock necessary, there is nothing mutable in this operation.
@@ -243,22 +215,20 @@ Ice::ObjectPrx::_checkTwowayOnly(const string& name) const
     }
 }
 
-shared_ptr<ObjectPrx>
-Ice::ObjectPrx::_newInstance() const
+shared_ptr<ObjectPrx> Ice::ObjectPrx::_newInstance() const
 {
     return createProxy<ObjectPrx>();
 }
 
-ostream&
-Ice::operator<<(ostream& os, const Ice::ObjectPrx& p)
+ostream& Ice::operator<<(ostream& os, const Ice::ObjectPrx& p)
 {
     return os << p.ice_toString();
 }
 
 #else // C++98 mapping
 
-::Ice::ObjectPrxPtr
-IceInternal::checkedCastImpl(const ObjectPrxPtr& b, const string& f, const string& typeId, const Context& context)
+::Ice::ObjectPrxPtr IceInternal::checkedCastImpl(const ObjectPrxPtr& b, const string& f, const string& typeId,
+                                                 const Context& context)
 {
     if(b != ICE_NULLPTR)
     {
@@ -269,12 +239,12 @@ IceInternal::checkedCastImpl(const ObjectPrxPtr& b, const string& f, const strin
             {
                 return bb;
             }
-#ifndef NDEBUG
+#    ifndef NDEBUG
             else
             {
                 assert(typeId != "::Ice::Object");
             }
-#endif
+#    endif
         }
         catch(const FacetNotExistException&)
         {
@@ -283,24 +253,19 @@ IceInternal::checkedCastImpl(const ObjectPrxPtr& b, const string& f, const strin
     return ICE_NULLPTR;
 }
 
-bool
-IceProxy::Ice::Object::operator==(const Object& r) const
+bool IceProxy::Ice::Object::operator==(const Object& r) const
 {
     return _reference == r._reference;
 }
 
-bool
-IceProxy::Ice::Object::operator<(const Object& r) const
+bool IceProxy::Ice::Object::operator<(const Object& r) const
 {
     return _reference < r._reference;
 }
 
-Ice::AsyncResultPtr
-IceProxy::Ice::Object::_iceI_begin_ice_isA(const string& typeId,
-                                           const Context& ctx,
-                                           const ::IceInternal::CallbackBasePtr& del,
-                                           const ::Ice::LocalObjectPtr& cookie,
-                                           bool sync)
+Ice::AsyncResultPtr IceProxy::Ice::Object::_iceI_begin_ice_isA(const string& typeId, const Context& ctx,
+                                                               const ::IceInternal::CallbackBasePtr& del,
+                                                               const ::Ice::LocalObjectPtr& cookie, bool sync)
 {
     _checkTwowayOnly(ice_isA_name, sync);
     OutgoingAsyncPtr result = new CallbackOutgoing(this, ice_isA_name, del, cookie, sync);
@@ -319,8 +284,7 @@ IceProxy::Ice::Object::_iceI_begin_ice_isA(const string& typeId,
     return result;
 }
 
-bool
-IceProxy::Ice::Object::end_ice_isA(const AsyncResultPtr& result)
+bool IceProxy::Ice::Object::end_ice_isA(const AsyncResultPtr& result)
 {
     AsyncResult::_check(result, this, ice_isA_name);
     bool ok = result->_waitForResponse();
@@ -342,11 +306,9 @@ IceProxy::Ice::Object::end_ice_isA(const AsyncResultPtr& result)
     return ret;
 }
 
-AsyncResultPtr
-IceProxy::Ice::Object::_iceI_begin_ice_ping(const Context& ctx,
-                                            const ::IceInternal::CallbackBasePtr& del,
-                                            const ::Ice::LocalObjectPtr& cookie,
-                                            bool sync)
+AsyncResultPtr IceProxy::Ice::Object::_iceI_begin_ice_ping(const Context& ctx,
+                                                           const ::IceInternal::CallbackBasePtr& del,
+                                                           const ::Ice::LocalObjectPtr& cookie, bool sync)
 {
     OutgoingAsyncPtr result = new CallbackOutgoing(this, ice_ping_name, del, cookie, sync);
     try
@@ -362,17 +324,13 @@ IceProxy::Ice::Object::_iceI_begin_ice_ping(const Context& ctx,
     return result;
 }
 
-void
-IceProxy::Ice::Object::end_ice_ping(const AsyncResultPtr& result)
+void IceProxy::Ice::Object::end_ice_ping(const AsyncResultPtr& result)
 {
     _end(result, ice_ping_name);
 }
 
-AsyncResultPtr
-IceProxy::Ice::Object::_iceI_begin_ice_ids(const Context& ctx,
-                                           const ::IceInternal::CallbackBasePtr& del,
-                                           const ::Ice::LocalObjectPtr& cookie,
-                                           bool sync)
+AsyncResultPtr IceProxy::Ice::Object::_iceI_begin_ice_ids(const Context& ctx, const ::IceInternal::CallbackBasePtr& del,
+                                                          const ::Ice::LocalObjectPtr& cookie, bool sync)
 {
     _checkTwowayOnly(ice_ids_name, sync);
     OutgoingAsyncPtr result = new CallbackOutgoing(this, ice_ids_name, del, cookie, sync);
@@ -389,8 +347,7 @@ IceProxy::Ice::Object::_iceI_begin_ice_ids(const Context& ctx,
     return result;
 }
 
-vector<string>
-IceProxy::Ice::Object::end_ice_ids(const AsyncResultPtr& result)
+vector<string> IceProxy::Ice::Object::end_ice_ids(const AsyncResultPtr& result)
 {
     AsyncResult::_check(result, this, ice_ids_name);
     bool ok = result->_waitForResponse();
@@ -412,11 +369,8 @@ IceProxy::Ice::Object::end_ice_ids(const AsyncResultPtr& result)
     return ret;
 }
 
-AsyncResultPtr
-IceProxy::Ice::Object::_iceI_begin_ice_id(const Context& ctx,
-                                          const ::IceInternal::CallbackBasePtr& del,
-                                          const ::Ice::LocalObjectPtr& cookie,
-                                          bool sync)
+AsyncResultPtr IceProxy::Ice::Object::_iceI_begin_ice_id(const Context& ctx, const ::IceInternal::CallbackBasePtr& del,
+                                                         const ::Ice::LocalObjectPtr& cookie, bool sync)
 {
     _checkTwowayOnly(ice_id_name, sync);
     OutgoingAsyncPtr result = new CallbackOutgoing(this, ice_id_name, del, cookie, sync);
@@ -433,8 +387,7 @@ IceProxy::Ice::Object::_iceI_begin_ice_id(const Context& ctx,
     return result;
 }
 
-string
-IceProxy::Ice::Object::end_ice_id(const AsyncResultPtr& result)
+string IceProxy::Ice::Object::end_ice_id(const AsyncResultPtr& result)
 {
     AsyncResult::_check(result, this, ice_id_name);
     bool ok = result->_waitForResponse();
@@ -456,12 +409,8 @@ IceProxy::Ice::Object::end_ice_id(const AsyncResultPtr& result)
     return ret;
 }
 
-bool
-IceProxy::Ice::Object::ice_invoke(const string& operation,
-                                  OperationMode mode,
-                                  const vector<Byte>& inEncaps,
-                                  vector<Byte>& outEncaps,
-                                  const Context& context)
+bool IceProxy::Ice::Object::ice_invoke(const string& operation, OperationMode mode, const vector<Byte>& inEncaps,
+                                       vector<Byte>& outEncaps, const Context& context)
 {
     pair<const Byte*, const Byte*> inPair;
     if(inEncaps.empty())
@@ -476,14 +425,10 @@ IceProxy::Ice::Object::ice_invoke(const string& operation,
     return ice_invoke(operation, mode, inPair, outEncaps, context);
 }
 
-AsyncResultPtr
-IceProxy::Ice::Object::_iceI_begin_ice_invoke(const string& operation,
-                                              OperationMode mode,
-                                              const vector<Byte>& inEncaps,
-                                              const Context& ctx,
-                                              const ::IceInternal::CallbackBasePtr& del,
-                                              const ::Ice::LocalObjectPtr& cookie,
-                                              bool sync)
+AsyncResultPtr IceProxy::Ice::Object::_iceI_begin_ice_invoke(const string& operation, OperationMode mode,
+                                                             const vector<Byte>& inEncaps, const Context& ctx,
+                                                             const ::IceInternal::CallbackBasePtr& del,
+                                                             const ::Ice::LocalObjectPtr& cookie, bool sync)
 {
     pair<const Byte*, const Byte*> inPair;
     if(inEncaps.empty())
@@ -498,8 +443,7 @@ IceProxy::Ice::Object::_iceI_begin_ice_invoke(const string& operation,
     return _iceI_begin_ice_invoke(operation, mode, inPair, ctx, del, cookie);
 }
 
-bool
-IceProxy::Ice::Object::end_ice_invoke(vector<Byte>& outEncaps, const AsyncResultPtr& result)
+bool IceProxy::Ice::Object::end_ice_invoke(vector<Byte>& outEncaps, const AsyncResultPtr& result)
 {
     AsyncResult::_check(result, this, ice_invoke_name);
     bool ok = result->_waitForResponse();
@@ -513,14 +457,11 @@ IceProxy::Ice::Object::end_ice_invoke(vector<Byte>& outEncaps, const AsyncResult
     return ok;
 }
 
-AsyncResultPtr
-IceProxy::Ice::Object::_iceI_begin_ice_invoke(const string& operation,
-                                              OperationMode mode,
-                                              const pair<const Byte*, const Byte*>& inEncaps,
-                                              const Context& ctx,
-                                              const ::IceInternal::CallbackBasePtr& del,
-                                              const ::Ice::LocalObjectPtr& cookie,
-                                              bool sync)
+AsyncResultPtr IceProxy::Ice::Object::_iceI_begin_ice_invoke(const string& operation, OperationMode mode,
+                                                             const pair<const Byte*, const Byte*>& inEncaps,
+                                                             const Context& ctx,
+                                                             const ::IceInternal::CallbackBasePtr& del,
+                                                             const ::Ice::LocalObjectPtr& cookie, bool sync)
 {
     OutgoingAsyncPtr result = new CallbackOutgoing(this, ice_invoke_name, del, cookie, sync);
     try
@@ -536,8 +477,8 @@ IceProxy::Ice::Object::_iceI_begin_ice_invoke(const string& operation,
     return result;
 }
 
-bool
-IceProxy::Ice::Object::_iceI_end_ice_invoke(pair<const Byte*, const Byte*>& outEncaps, const AsyncResultPtr& result)
+bool IceProxy::Ice::Object::_iceI_end_ice_invoke(pair<const Byte*, const Byte*>& outEncaps,
+                                                 const AsyncResultPtr& result)
 {
     AsyncResult::_check(result, this, ice_invoke_name);
     bool ok = result->_waitForResponse();
@@ -557,17 +498,15 @@ IceProxy::Ice::Object::_iceI_begin_ice_flushBatchRequests(const ::IceInternal::C
     class ProxyFlushBatchAsyncWithCallback : public ProxyFlushBatchAsync, public CallbackCompletion
     {
     public:
-
-        ProxyFlushBatchAsyncWithCallback(const ::Ice::ObjectPrx& proxy,
-                                         const CallbackBasePtr& cb,
+        ProxyFlushBatchAsyncWithCallback(const ::Ice::ObjectPrx& proxy, const CallbackBasePtr& cb,
                                          const ::Ice::LocalObjectPtr& cookie) :
-            ProxyFlushBatchAsync(proxy), CallbackCompletion(cb, cookie)
+            ProxyFlushBatchAsync(proxy),
+            CallbackCompletion(cb, cookie)
         {
             _cookie = cookie;
         }
 
-        virtual const std::string&
-        getOperation() const
+        virtual const std::string& getOperation() const
         {
             return ice_flushBatchRequests_name;
         }
@@ -585,15 +524,13 @@ IceProxy::Ice::Object::_iceI_begin_ice_flushBatchRequests(const ::IceInternal::C
     return result;
 }
 
-void
-IceProxy::Ice::Object::end_ice_flushBatchRequests(const AsyncResultPtr& result)
+void IceProxy::Ice::Object::end_ice_flushBatchRequests(const AsyncResultPtr& result)
 {
     AsyncResult::_check(result, this, ice_flushBatchRequests_name);
     result->_waitForResponse();
 }
 
-void
-IceProxy::Ice::Object::_end(const ::Ice::AsyncResultPtr& result, const std::string& operation) const
+void IceProxy::Ice::Object::_end(const ::Ice::AsyncResultPtr& result, const std::string& operation) const
 {
     AsyncResult::_check(result, this, operation);
     bool ok = result->_waitForResponse();
@@ -616,44 +553,37 @@ IceProxy::Ice::Object::_end(const ::Ice::AsyncResultPtr& result, const std::stri
 
 namespace IceProxy
 {
+    namespace Ice
+    {
+        ostream& operator<<(ostream& os, const ::IceProxy::Ice::Object& p)
+        {
+            return os << p.ice_toString();
+        }
 
-namespace Ice
-{
+    } // namespace Ice
 
-ostream&
-operator<<(ostream& os, const ::IceProxy::Ice::Object& p)
-{
-    return os << p.ice_toString();
-}
+} // namespace IceProxy
 
-}
-
-}
-
-IceProxy::Ice::Object*
-IceProxy::Ice::Object::_newInstance() const
+IceProxy::Ice::Object* IceProxy::Ice::Object::_newInstance() const
 {
     return new Object;
 }
 
-AsyncResultPtr
-IceProxy::Ice::Object::_iceI_begin_ice_getConnection(const ::IceInternal::CallbackBasePtr& del,
-                                                     const ::Ice::LocalObjectPtr& cookie)
+AsyncResultPtr IceProxy::Ice::Object::_iceI_begin_ice_getConnection(const ::IceInternal::CallbackBasePtr& del,
+                                                                    const ::Ice::LocalObjectPtr& cookie)
 {
-    class ProxyGetConnectionWithCallback :  public ProxyGetConnection, public CallbackCompletion
+    class ProxyGetConnectionWithCallback : public ProxyGetConnection, public CallbackCompletion
     {
     public:
-
-        ProxyGetConnectionWithCallback(const ::Ice::ObjectPrx& proxy,
-                                       const ::IceInternal::CallbackBasePtr& cb,
+        ProxyGetConnectionWithCallback(const ::Ice::ObjectPrx& proxy, const ::IceInternal::CallbackBasePtr& cb,
                                        const ::Ice::LocalObjectPtr& cookie) :
-            ProxyGetConnection(proxy), CallbackCompletion(cb, cookie)
+            ProxyGetConnection(proxy),
+            CallbackCompletion(cb, cookie)
         {
             _cookie = cookie;
         }
 
-        virtual const std::string&
-        getOperation() const
+        virtual const std::string& getOperation() const
         {
             return ice_getConnection_name;
         }
@@ -671,16 +601,14 @@ IceProxy::Ice::Object::_iceI_begin_ice_getConnection(const ::IceInternal::Callba
     return result;
 }
 
-ConnectionPtr
-IceProxy::Ice::Object::end_ice_getConnection(const AsyncResultPtr& result)
+ConnectionPtr IceProxy::Ice::Object::end_ice_getConnection(const AsyncResultPtr& result)
 {
     AsyncResult::_check(result, this, ice_getConnection_name);
     result->_waitForResponse();
     return result->getConnection();
 }
 
-void
-IceProxy::Ice::Object::_checkTwowayOnly(const string& name, bool sync) const
+void IceProxy::Ice::Object::_checkTwowayOnly(const string& name, bool sync) const
 {
     //
     // No mutex lock necessary, there is nothing mutable in this operation.
@@ -693,8 +621,7 @@ IceProxy::Ice::Object::_checkTwowayOnly(const string& name, bool sync) const
         }
         else
         {
-            throw IceUtil::IllegalArgumentException(__FILE__,
-                                                    __LINE__,
+            throw IceUtil::IllegalArgumentException(__FILE__, __LINE__,
                                                     "`" + name + "' can only be called with a twoway proxy");
         }
     }
@@ -703,25 +630,23 @@ IceProxy::Ice::Object::_checkTwowayOnly(const string& name, bool sync) const
 #endif
 
 #ifdef ICE_CPP11_MAPPING
-#  define ICE_OBJECT_PRX Ice::ObjectPrx
-#  define CONST_POINTER_CAST_OBJECT_PRX const_pointer_cast<ObjectPrx>(shared_from_this())
+#    define ICE_OBJECT_PRX Ice::ObjectPrx
+#    define CONST_POINTER_CAST_OBJECT_PRX const_pointer_cast<ObjectPrx>(shared_from_this())
 #else
-#  define ICE_OBJECT_PRX IceProxy::Ice::Object
-#  define CONST_POINTER_CAST_OBJECT_PRX ObjectPrx(const_cast< ::IceProxy::Ice::Object*>(this))
+#    define ICE_OBJECT_PRX IceProxy::Ice::Object
+#    define CONST_POINTER_CAST_OBJECT_PRX ObjectPrx(const_cast<::IceProxy::Ice::Object*>(this))
 #endif
 
 //
 // methods common for both C++11/C++98 mappings
 //
 
-Identity
-ICE_OBJECT_PRX::ice_getIdentity() const
+Identity ICE_OBJECT_PRX::ice_getIdentity() const
 {
     return _reference->getIdentity();
 }
 
-ObjectPrxPtr
-ICE_OBJECT_PRX::ice_identity(const Identity& newIdentity) const
+ObjectPrxPtr ICE_OBJECT_PRX::ice_identity(const Identity& newIdentity) const
 {
     if(newIdentity.name.empty())
     {
@@ -743,28 +668,24 @@ ICE_OBJECT_PRX::ice_identity(const Identity& newIdentity) const
     }
 }
 
-Context
-ICE_OBJECT_PRX::ice_getContext() const
+Context ICE_OBJECT_PRX::ice_getContext() const
 {
     return _reference->getContext()->getValue();
 }
 
-ObjectPrxPtr
-ICE_OBJECT_PRX::ice_context(const Context& newContext) const
+ObjectPrxPtr ICE_OBJECT_PRX::ice_context(const Context& newContext) const
 {
     ObjectPrxPtr proxy = _newInstance();
     proxy->setup(_reference->changeContext(newContext));
     return proxy;
 }
 
-const string&
-ICE_OBJECT_PRX::ice_getFacet() const
+const string& ICE_OBJECT_PRX::ice_getFacet() const
 {
     return _reference->getFacet();
 }
 
-ObjectPrxPtr
-ICE_OBJECT_PRX::ice_facet(const string& newFacet) const
+ObjectPrxPtr ICE_OBJECT_PRX::ice_facet(const string& newFacet) const
 {
     if(newFacet == _reference->getFacet())
     {
@@ -782,14 +703,12 @@ ICE_OBJECT_PRX::ice_facet(const string& newFacet) const
     }
 }
 
-string
-ICE_OBJECT_PRX::ice_getAdapterId() const
+string ICE_OBJECT_PRX::ice_getAdapterId() const
 {
     return _reference->getAdapterId();
 }
 
-ObjectPrxPtr
-ICE_OBJECT_PRX::ice_adapterId(const string& newAdapterId) const
+ObjectPrxPtr ICE_OBJECT_PRX::ice_adapterId(const string& newAdapterId) const
 {
     if(newAdapterId == _reference->getAdapterId())
     {
@@ -803,8 +722,7 @@ ICE_OBJECT_PRX::ice_adapterId(const string& newAdapterId) const
     }
 }
 
-EndpointSeq
-ICE_OBJECT_PRX::ice_getEndpoints() const
+EndpointSeq ICE_OBJECT_PRX::ice_getEndpoints() const
 {
     vector<EndpointIPtr> endpoints = _reference->getEndpoints();
     EndpointSeq retSeq;
@@ -815,8 +733,7 @@ ICE_OBJECT_PRX::ice_getEndpoints() const
     return retSeq;
 }
 
-ObjectPrxPtr
-ICE_OBJECT_PRX::ice_endpoints(const EndpointSeq& newEndpoints) const
+ObjectPrxPtr ICE_OBJECT_PRX::ice_endpoints(const EndpointSeq& newEndpoints) const
 {
     vector<EndpointIPtr> endpoints;
     for(EndpointSeq::const_iterator p = newEndpoints.begin(); p != newEndpoints.end(); ++p)
@@ -836,14 +753,12 @@ ICE_OBJECT_PRX::ice_endpoints(const EndpointSeq& newEndpoints) const
     }
 }
 
-Int
-ICE_OBJECT_PRX::ice_getLocatorCacheTimeout() const
+Int ICE_OBJECT_PRX::ice_getLocatorCacheTimeout() const
 {
     return _reference->getLocatorCacheTimeout();
 }
 
-ObjectPrxPtr
-ICE_OBJECT_PRX::ice_locatorCacheTimeout(Int newTimeout) const
+ObjectPrxPtr ICE_OBJECT_PRX::ice_locatorCacheTimeout(Int newTimeout) const
 {
     if(newTimeout < -1)
     {
@@ -867,14 +782,12 @@ ICE_OBJECT_PRX::ice_locatorCacheTimeout(Int newTimeout) const
     }
 }
 
-bool
-ICE_OBJECT_PRX::ice_isConnectionCached() const
+bool ICE_OBJECT_PRX::ice_isConnectionCached() const
 {
     return _reference->getCacheConnection();
 }
 
-ObjectPrxPtr
-ICE_OBJECT_PRX::ice_connectionCached(bool newCache) const
+ObjectPrxPtr ICE_OBJECT_PRX::ice_connectionCached(bool newCache) const
 {
     if(newCache == _reference->getCacheConnection())
     {
@@ -888,14 +801,12 @@ ICE_OBJECT_PRX::ice_connectionCached(bool newCache) const
     }
 }
 
-EndpointSelectionType
-ICE_OBJECT_PRX::ice_getEndpointSelection() const
+EndpointSelectionType ICE_OBJECT_PRX::ice_getEndpointSelection() const
 {
     return _reference->getEndpointSelection();
 }
 
-ObjectPrxPtr
-ICE_OBJECT_PRX::ice_endpointSelection(EndpointSelectionType newType) const
+ObjectPrxPtr ICE_OBJECT_PRX::ice_endpointSelection(EndpointSelectionType newType) const
 {
     if(newType == _reference->getEndpointSelection())
     {
@@ -909,14 +820,12 @@ ICE_OBJECT_PRX::ice_endpointSelection(EndpointSelectionType newType) const
     }
 }
 
-bool
-ICE_OBJECT_PRX::ice_isSecure() const
+bool ICE_OBJECT_PRX::ice_isSecure() const
 {
     return _reference->getSecure();
 }
 
-ObjectPrxPtr
-ICE_OBJECT_PRX::ice_secure(bool b) const
+ObjectPrxPtr ICE_OBJECT_PRX::ice_secure(bool b) const
 {
     if(b == _reference->getSecure())
     {
@@ -930,14 +839,12 @@ ICE_OBJECT_PRX::ice_secure(bool b) const
     }
 }
 
-::Ice::EncodingVersion
-ICE_OBJECT_PRX::ice_getEncodingVersion() const
+::Ice::EncodingVersion ICE_OBJECT_PRX::ice_getEncodingVersion() const
 {
     return _reference->getEncoding();
 }
 
-ObjectPrxPtr
-ICE_OBJECT_PRX::ice_encodingVersion(const ::Ice::EncodingVersion& encoding) const
+ObjectPrxPtr ICE_OBJECT_PRX::ice_encodingVersion(const ::Ice::EncodingVersion& encoding) const
 {
     if(encoding == _reference->getEncoding())
     {
@@ -951,14 +858,12 @@ ICE_OBJECT_PRX::ice_encodingVersion(const ::Ice::EncodingVersion& encoding) cons
     }
 }
 
-bool
-ICE_OBJECT_PRX::ice_isPreferSecure() const
+bool ICE_OBJECT_PRX::ice_isPreferSecure() const
 {
     return _reference->getPreferSecure();
 }
 
-ObjectPrxPtr
-ICE_OBJECT_PRX::ice_preferSecure(bool b) const
+ObjectPrxPtr ICE_OBJECT_PRX::ice_preferSecure(bool b) const
 {
     if(b == _reference->getPreferSecure())
     {
@@ -972,8 +877,7 @@ ICE_OBJECT_PRX::ice_preferSecure(bool b) const
     }
 }
 
-RouterPrxPtr
-ICE_OBJECT_PRX::ice_getRouter() const
+RouterPrxPtr ICE_OBJECT_PRX::ice_getRouter() const
 {
     RouterInfoPtr ri = _reference->getRouterInfo();
 #ifdef ICE_CPP11_MAPPING
@@ -983,8 +887,7 @@ ICE_OBJECT_PRX::ice_getRouter() const
 #endif
 }
 
-ObjectPrxPtr
-ICE_OBJECT_PRX::ice_router(const RouterPrxPtr& router) const
+ObjectPrxPtr ICE_OBJECT_PRX::ice_router(const RouterPrxPtr& router) const
 {
     ReferencePtr ref = _reference->changeRouter(router);
     if(ref == _reference)
@@ -999,8 +902,7 @@ ICE_OBJECT_PRX::ice_router(const RouterPrxPtr& router) const
     }
 }
 
-LocatorPrxPtr
-ICE_OBJECT_PRX::ice_getLocator() const
+LocatorPrxPtr ICE_OBJECT_PRX::ice_getLocator() const
 {
     LocatorInfoPtr ri = _reference->getLocatorInfo();
 #ifdef ICE_CPP11_MAPPING
@@ -1010,8 +912,7 @@ ICE_OBJECT_PRX::ice_getLocator() const
 #endif
 }
 
-ObjectPrxPtr
-ICE_OBJECT_PRX::ice_locator(const LocatorPrxPtr& locator) const
+ObjectPrxPtr ICE_OBJECT_PRX::ice_locator(const LocatorPrxPtr& locator) const
 {
     ReferencePtr ref = _reference->changeLocator(locator);
     if(ref == _reference)
@@ -1026,14 +927,12 @@ ICE_OBJECT_PRX::ice_locator(const LocatorPrxPtr& locator) const
     }
 }
 
-bool
-ICE_OBJECT_PRX::ice_isCollocationOptimized() const
+bool ICE_OBJECT_PRX::ice_isCollocationOptimized() const
 {
     return _reference->getCollocationOptimized();
 }
 
-ObjectPrxPtr
-ICE_OBJECT_PRX::ice_collocationOptimized(bool b) const
+ObjectPrxPtr ICE_OBJECT_PRX::ice_collocationOptimized(bool b) const
 {
     if(b == _reference->getCollocationOptimized())
     {
@@ -1047,14 +946,12 @@ ICE_OBJECT_PRX::ice_collocationOptimized(bool b) const
     }
 }
 
-Int
-ICE_OBJECT_PRX::ice_getInvocationTimeout() const
+Int ICE_OBJECT_PRX::ice_getInvocationTimeout() const
 {
     return _reference->getInvocationTimeout();
 }
 
-ObjectPrxPtr
-ICE_OBJECT_PRX::ice_invocationTimeout(Int newTimeout) const
+ObjectPrxPtr ICE_OBJECT_PRX::ice_invocationTimeout(Int newTimeout) const
 {
     if(newTimeout < 1 && newTimeout != -1 && newTimeout != -2)
     {
@@ -1078,8 +975,7 @@ ICE_OBJECT_PRX::ice_invocationTimeout(Int newTimeout) const
     }
 }
 
-ObjectPrxPtr
-ICE_OBJECT_PRX::ice_twoway() const
+ObjectPrxPtr ICE_OBJECT_PRX::ice_twoway() const
 {
     if(_reference->getMode() == Reference::ModeTwoway)
     {
@@ -1093,14 +989,12 @@ ICE_OBJECT_PRX::ice_twoway() const
     }
 }
 
-bool
-ICE_OBJECT_PRX::ice_isTwoway() const
+bool ICE_OBJECT_PRX::ice_isTwoway() const
 {
     return _reference->getMode() == Reference::ModeTwoway;
 }
 
-ObjectPrxPtr
-ICE_OBJECT_PRX::ice_oneway() const
+ObjectPrxPtr ICE_OBJECT_PRX::ice_oneway() const
 {
     if(_reference->getMode() == Reference::ModeOneway)
     {
@@ -1114,14 +1008,12 @@ ICE_OBJECT_PRX::ice_oneway() const
     }
 }
 
-bool
-ICE_OBJECT_PRX::ice_isOneway() const
+bool ICE_OBJECT_PRX::ice_isOneway() const
 {
     return _reference->getMode() == Reference::ModeOneway;
 }
 
-ObjectPrxPtr
-ICE_OBJECT_PRX::ice_batchOneway() const
+ObjectPrxPtr ICE_OBJECT_PRX::ice_batchOneway() const
 {
     if(_reference->getMode() == Reference::ModeBatchOneway)
     {
@@ -1135,14 +1027,12 @@ ICE_OBJECT_PRX::ice_batchOneway() const
     }
 }
 
-bool
-ICE_OBJECT_PRX::ice_isBatchOneway() const
+bool ICE_OBJECT_PRX::ice_isBatchOneway() const
 {
     return _reference->getMode() == Reference::ModeBatchOneway;
 }
 
-ObjectPrxPtr
-ICE_OBJECT_PRX::ice_datagram() const
+ObjectPrxPtr ICE_OBJECT_PRX::ice_datagram() const
 {
     if(_reference->getMode() == Reference::ModeDatagram)
     {
@@ -1156,14 +1046,12 @@ ICE_OBJECT_PRX::ice_datagram() const
     }
 }
 
-bool
-ICE_OBJECT_PRX::ice_isDatagram() const
+bool ICE_OBJECT_PRX::ice_isDatagram() const
 {
     return _reference->getMode() == Reference::ModeDatagram;
 }
 
-ObjectPrxPtr
-ICE_OBJECT_PRX::ice_batchDatagram() const
+ObjectPrxPtr ICE_OBJECT_PRX::ice_batchDatagram() const
 {
     if(_reference->getMode() == Reference::ModeBatchDatagram)
     {
@@ -1177,14 +1065,12 @@ ICE_OBJECT_PRX::ice_batchDatagram() const
     }
 }
 
-bool
-ICE_OBJECT_PRX::ice_isBatchDatagram() const
+bool ICE_OBJECT_PRX::ice_isBatchDatagram() const
 {
     return _reference->getMode() == Reference::ModeBatchDatagram;
 }
 
-ObjectPrxPtr
-ICE_OBJECT_PRX::ice_compress(bool b) const
+ObjectPrxPtr ICE_OBJECT_PRX::ice_compress(bool b) const
 {
     ReferencePtr ref = _reference->changeCompress(b);
     if(ref == _reference)
@@ -1199,14 +1085,12 @@ ICE_OBJECT_PRX::ice_compress(bool b) const
     }
 }
 
-IceUtil::Optional<bool>
-ICE_OBJECT_PRX::ice_getCompress() const
+IceUtil::Optional<bool> ICE_OBJECT_PRX::ice_getCompress() const
 {
     return _reference->getCompress();
 }
 
-ObjectPrxPtr
-ICE_OBJECT_PRX::ice_timeout(int t) const
+ObjectPrxPtr ICE_OBJECT_PRX::ice_timeout(int t) const
 {
     if(t < 1 && t != -1)
     {
@@ -1231,14 +1115,12 @@ ICE_OBJECT_PRX::ice_timeout(int t) const
     }
 }
 
-IceUtil::Optional<int>
-ICE_OBJECT_PRX::ice_getTimeout() const
+IceUtil::Optional<int> ICE_OBJECT_PRX::ice_getTimeout() const
 {
     return _reference->getTimeout();
 }
 
-ObjectPrxPtr
-ICE_OBJECT_PRX::ice_connectionId(const string& id) const
+ObjectPrxPtr ICE_OBJECT_PRX::ice_connectionId(const string& id) const
 {
     ReferencePtr ref = _reference->changeConnectionId(id);
     if(ref == _reference)
@@ -1253,14 +1135,12 @@ ICE_OBJECT_PRX::ice_connectionId(const string& id) const
     }
 }
 
-string
-ICE_OBJECT_PRX::ice_getConnectionId() const
+string ICE_OBJECT_PRX::ice_getConnectionId() const
 {
     return _reference->getConnectionId();
 }
 
-ObjectPrxPtr
-ICE_OBJECT_PRX::ice_fixed(const ::Ice::ConnectionPtr& connection) const
+ObjectPrxPtr ICE_OBJECT_PRX::ice_fixed(const ::Ice::ConnectionPtr& connection) const
 {
     if(!connection)
     {
@@ -1292,13 +1172,12 @@ ICE_OBJECT_PRX::ice_fixed(const ::Ice::ConnectionPtr& connection) const
     }
 }
 
-ConnectionPtr
-ICE_OBJECT_PRX::ice_getCachedConnection() const
+ConnectionPtr ICE_OBJECT_PRX::ice_getCachedConnection() const
 {
     RequestHandlerPtr handler;
     {
         IceUtil::Mutex::Lock sync(_mutex);
-        handler =  _requestHandler;
+        handler = _requestHandler;
     }
 
     if(handler)
@@ -1314,8 +1193,7 @@ ICE_OBJECT_PRX::ice_getCachedConnection() const
     return 0;
 }
 
-void
-ICE_OBJECT_PRX::setup(const ReferencePtr& ref)
+void ICE_OBJECT_PRX::setup(const ReferencePtr& ref)
 {
     //
     // No need to synchronize "*this", as this operation is only
@@ -1328,12 +1206,8 @@ ICE_OBJECT_PRX::setup(const ReferencePtr& ref)
     _reference = ref;
 }
 
-int
-ICE_OBJECT_PRX::_handleException(const Exception& ex,
-                                 const RequestHandlerPtr& handler,
-                                 OperationMode mode,
-                                 bool sent,
-                                 int& cnt)
+int ICE_OBJECT_PRX::_handleException(const Exception& ex, const RequestHandlerPtr& handler, OperationMode mode,
+                                     bool sent, int& cnt)
 {
     _updateRequestHandler(handler, 0); // Clear the request handler
 
@@ -1353,10 +1227,9 @@ ICE_OBJECT_PRX::_handleException(const Exception& ex,
     // also always be retried if the retry count isn't reached.
     //
     const LocalException* localEx = dynamic_cast<const LocalException*>(&ex);
-    if(localEx && (!sent ||
-                   mode == ICE_ENUM(OperationMode, Nonmutating) || mode == ICE_ENUM(OperationMode, Idempotent) ||
-                   dynamic_cast<const CloseConnectionException*>(&ex) ||
-                   dynamic_cast<const ObjectNotExistException*>(&ex)))
+    if(localEx &&
+       (!sent || mode == ICE_ENUM(OperationMode, Nonmutating) || mode == ICE_ENUM(OperationMode, Idempotent) ||
+        dynamic_cast<const CloseConnectionException*>(&ex) || dynamic_cast<const ObjectNotExistException*>(&ex)))
     {
         try
         {
@@ -1377,8 +1250,7 @@ ICE_OBJECT_PRX::_handleException(const Exception& ex,
     return 0; // Keep the compiler happy.
 }
 
-::IceInternal::RequestHandlerPtr
-ICE_OBJECT_PRX::_getRequestHandler()
+::IceInternal::RequestHandlerPtr ICE_OBJECT_PRX::_getRequestHandler()
 {
     RequestHandlerPtr handler;
     if(_reference->getCacheConnection())
@@ -1392,8 +1264,7 @@ ICE_OBJECT_PRX::_getRequestHandler()
     return _reference->getRequestHandler(ICE_SHARED_FROM_THIS);
 }
 
-IceInternal::BatchRequestQueuePtr
-ICE_OBJECT_PRX::_getBatchRequestQueue()
+IceInternal::BatchRequestQueuePtr ICE_OBJECT_PRX::_getBatchRequestQueue()
 {
     IceUtil::Mutex::Lock sync(_mutex);
     if(!_batchRequestQueue)
@@ -1403,8 +1274,7 @@ ICE_OBJECT_PRX::_getBatchRequestQueue()
     return _batchRequestQueue;
 }
 
-::IceInternal::RequestHandlerPtr
-ICE_OBJECT_PRX::_setRequestHandler(const ::IceInternal::RequestHandlerPtr& handler)
+::IceInternal::RequestHandlerPtr ICE_OBJECT_PRX::_setRequestHandler(const ::IceInternal::RequestHandlerPtr& handler)
 {
     if(_reference->getCacheConnection())
     {
@@ -1418,9 +1288,8 @@ ICE_OBJECT_PRX::_setRequestHandler(const ::IceInternal::RequestHandlerPtr& handl
     return handler;
 }
 
-void
-ICE_OBJECT_PRX::_updateRequestHandler(const ::IceInternal::RequestHandlerPtr& previous,
-                                      const ::IceInternal::RequestHandlerPtr& handler)
+void ICE_OBJECT_PRX::_updateRequestHandler(const ::IceInternal::RequestHandlerPtr& previous,
+                                           const ::IceInternal::RequestHandlerPtr& handler)
 {
     if(_reference->getCacheConnection() && previous)
     {
@@ -1439,22 +1308,19 @@ ICE_OBJECT_PRX::_updateRequestHandler(const ::IceInternal::RequestHandlerPtr& pr
     }
 }
 
-void
-ICE_OBJECT_PRX::_copyFrom(const ObjectPrxPtr& from)
+void ICE_OBJECT_PRX::_copyFrom(const ObjectPrxPtr& from)
 {
     IceUtil::Mutex::Lock sync(from->_mutex);
     _reference = from->_reference;
     _requestHandler = from->_requestHandler;
 }
 
-CommunicatorPtr
-ICE_OBJECT_PRX::ice_getCommunicator() const
+CommunicatorPtr ICE_OBJECT_PRX::ice_getCommunicator() const
 {
     return _reference->getCommunicator();
 }
 
-string
-ICE_OBJECT_PRX::ice_toString() const
+string ICE_OBJECT_PRX::ice_toString() const
 {
     //
     // Returns the stringified proxy. There's no need to convert the
@@ -1464,21 +1330,18 @@ ICE_OBJECT_PRX::ice_toString() const
     return _reference->toString();
 }
 
-Int
-ICE_OBJECT_PRX::_hash() const
+Int ICE_OBJECT_PRX::_hash() const
 {
     return _reference->hash();
 }
 
-void
-ICE_OBJECT_PRX::_write(OutputStream& os) const
+void ICE_OBJECT_PRX::_write(OutputStream& os) const
 {
     os.write(_getReference()->getIdentity());
     _getReference()->streamWrite(&os);
 }
 
-bool
-Ice::proxyIdentityLess(const ObjectPrxPtr& lhs, const ObjectPrxPtr& rhs)
+bool Ice::proxyIdentityLess(const ObjectPrxPtr& lhs, const ObjectPrxPtr& rhs)
 {
     if(!lhs && !rhs)
     {
@@ -1498,8 +1361,7 @@ Ice::proxyIdentityLess(const ObjectPrxPtr& lhs, const ObjectPrxPtr& rhs)
     }
 }
 
-bool
-Ice::proxyIdentityEqual(const ObjectPrxPtr& lhs, const ObjectPrxPtr& rhs)
+bool Ice::proxyIdentityEqual(const ObjectPrxPtr& lhs, const ObjectPrxPtr& rhs)
 {
     if(!lhs && !rhs)
     {
@@ -1519,8 +1381,7 @@ Ice::proxyIdentityEqual(const ObjectPrxPtr& lhs, const ObjectPrxPtr& rhs)
     }
 }
 
-bool
-Ice::proxyIdentityAndFacetLess(const ObjectPrxPtr& lhs, const ObjectPrxPtr& rhs)
+bool Ice::proxyIdentityAndFacetLess(const ObjectPrxPtr& lhs, const ObjectPrxPtr& rhs)
 {
     if(!lhs && !rhs)
     {
@@ -1564,8 +1425,7 @@ Ice::proxyIdentityAndFacetLess(const ObjectPrxPtr& lhs, const ObjectPrxPtr& rhs)
     }
 }
 
-bool
-Ice::proxyIdentityAndFacetEqual(const ObjectPrxPtr& lhs, const ObjectPrxPtr& rhs)
+bool Ice::proxyIdentityAndFacetEqual(const ObjectPrxPtr& lhs, const ObjectPrxPtr& rhs)
 {
     if(!lhs && !rhs)
     {

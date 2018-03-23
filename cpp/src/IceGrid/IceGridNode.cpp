@@ -27,9 +27,9 @@
 #include <IcePatch2Lib/Util.h>
 
 #ifdef _WIN32
-#   include <direct.h>
-#   include <sys/types.h>
-#   include <winsock2.h>
+#    include <direct.h>
+#    include <sys/types.h>
+#    include <winsock2.h>
 #endif
 
 using namespace std;
@@ -39,95 +39,82 @@ using namespace IceGrid;
 
 namespace
 {
+    class ProcessI : public Process
+    {
+    public:
+        ProcessI(const ActivatorPtr&, const ProcessPtr&);
 
-class ProcessI : public Process
-{
-public:
+        virtual void shutdown(const Current&);
+        virtual void writeMessage(const std::string&, Int, const Current&);
 
-    ProcessI(const ActivatorPtr&, const ProcessPtr&);
+    private:
+        ActivatorPtr _activator;
+        ProcessPtr _origProcess;
+    };
 
-    virtual void shutdown(const Current&);
-    virtual void writeMessage(const std::string&, Int, const Current&);
+    class NodeService : public Service
+    {
+    public:
+        NodeService();
+        ~NodeService();
 
-private:
+        virtual bool shutdown();
 
-    ActivatorPtr _activator;
-    ProcessPtr _origProcess;
-};
+    protected:
+        virtual bool start(int, char* [], int&);
+        bool startImpl(int, char* [], int&);
+        virtual void waitForShutdown();
+        virtual bool stop();
+        virtual CommunicatorPtr initializeCommunicator(int&, char* [], const InitializationData&, int);
 
-class NodeService : public Service
-{
-public:
+    private:
+        void usage(const std::string&);
 
-    NodeService();
-    ~NodeService();
+        ActivatorPtr _activator;
+        IceUtil::TimerPtr _timer;
+        RegistryIPtr _registry;
+        NodeIPtr _node;
+        IceInternal::UniquePtr<NodeSessionManager> _sessions;
+        Ice::ObjectAdapterPtr _adapter;
+    };
 
-    virtual bool shutdown();
+    class CollocatedRegistry : public RegistryI
+    {
+    public:
+        CollocatedRegistry(const CommunicatorPtr&, const ActivatorPtr&, bool, bool, const std::string&,
+                           const std::string&);
+        virtual void shutdown();
 
-protected:
-
-    virtual bool start(int, char*[], int&);
-    bool startImpl(int, char*[], int&);
-    virtual void waitForShutdown();
-    virtual bool stop();
-    virtual CommunicatorPtr initializeCommunicator(int&, char*[], const InitializationData&, int);
-
-private:
-
-    void usage(const std::string&);
-
-    ActivatorPtr _activator;
-    IceUtil::TimerPtr _timer;
-    RegistryIPtr _registry;
-    NodeIPtr _node;
-    IceInternal::UniquePtr<NodeSessionManager> _sessions;
-    Ice::ObjectAdapterPtr _adapter;
-};
-
-class CollocatedRegistry : public RegistryI
-{
-public:
-
-    CollocatedRegistry(const CommunicatorPtr&, const ActivatorPtr&, bool, bool, const std::string&, const std::string&);
-    virtual void shutdown();
-
-private:
-
-    ActivatorPtr _activator;
-};
+    private:
+        ActivatorPtr _activator;
+    };
 
 #ifdef _WIN32
-void
-setNoIndexingAttribute(const string& path)
-{
-    wstring wpath = Ice::stringToWstring(path);
-    DWORD attrs = GetFileAttributesW(wpath.c_str());
-    if(attrs == INVALID_FILE_ATTRIBUTES)
+    void setNoIndexingAttribute(const string& path)
     {
-        throw FileException(__FILE__, __LINE__, IceInternal::getSystemErrno(), path);
+        wstring wpath = Ice::stringToWstring(path);
+        DWORD attrs = GetFileAttributesW(wpath.c_str());
+        if(attrs == INVALID_FILE_ATTRIBUTES)
+        {
+            throw FileException(__FILE__, __LINE__, IceInternal::getSystemErrno(), path);
+        }
+        if(!SetFileAttributesW(wpath.c_str(), attrs | FILE_ATTRIBUTE_NOT_CONTENT_INDEXED))
+        {
+            throw FileException(__FILE__, __LINE__, IceInternal::getSystemErrno(), path);
+        }
     }
-    if(!SetFileAttributesW(wpath.c_str(), attrs | FILE_ATTRIBUTE_NOT_CONTENT_INDEXED))
-    {
-        throw FileException(__FILE__, __LINE__, IceInternal::getSystemErrno(), path);
-    }
-}
 #endif
 
-}
+} // namespace
 
-CollocatedRegistry::CollocatedRegistry(const CommunicatorPtr& com,
-                                       const ActivatorPtr& activator,
-                                       bool nowarn,
-                                       bool readonly,
-                                       const string& initFromReplica,
-                                       const string& nodeName) :
+CollocatedRegistry::CollocatedRegistry(const CommunicatorPtr& com, const ActivatorPtr& activator, bool nowarn,
+                                       bool readonly, const string& initFromReplica, const string& nodeName) :
     RegistryI(com, new TraceLevels(com, "IceGrid.Registry"), nowarn, readonly, initFromReplica, nodeName),
     _activator(activator)
 {
 }
 
-void
-CollocatedRegistry::shutdown()
+void CollocatedRegistry::shutdown()
 {
     _activator->shutdown();
 }
@@ -138,14 +125,12 @@ ProcessI::ProcessI(const ActivatorPtr& activator, const ProcessPtr& origProcess)
 {
 }
 
-void
-ProcessI::shutdown(const Current&)
+void ProcessI::shutdown(const Current&)
 {
     _activator->shutdown();
 }
 
-void
-ProcessI::writeMessage(const string& message, Int fd, const Current& current)
+void ProcessI::writeMessage(const string& message, Int fd, const Current& current)
 {
     _origProcess->writeMessage(message, fd, current);
 }
@@ -158,8 +143,7 @@ NodeService::~NodeService()
 {
 }
 
-bool
-NodeService::shutdown()
+bool NodeService::shutdown()
 {
     assert(_activator && _sessions.get());
     _activator->shutdown();
@@ -167,8 +151,7 @@ NodeService::shutdown()
     return true;
 }
 
-bool
-NodeService::start(int argc, char* argv[], int& status)
+bool NodeService::start(int argc, char* argv[], int& status)
 {
     try
     {
@@ -186,8 +169,7 @@ NodeService::start(int argc, char* argv[], int& status)
     return true;
 }
 
-bool
-NodeService::startImpl(int argc, char* argv[], int& status)
+bool NodeService::startImpl(int argc, char* argv[], int& status)
 {
     bool nowarn = false;
     bool readonly = false;
@@ -621,8 +603,7 @@ NodeService::startImpl(int argc, char* argv[], int& status)
     return true;
 }
 
-void
-NodeService::waitForShutdown()
+void NodeService::waitForShutdown()
 {
     //
     // Wait for the activator shutdown. Once the run method returns
@@ -633,8 +614,7 @@ NodeService::waitForShutdown()
     disableInterrupt();
 }
 
-bool
-NodeService::stop()
+bool NodeService::stop()
 {
     if(_activator)
     {
@@ -734,10 +714,8 @@ NodeService::stop()
     return true;
 }
 
-CommunicatorPtr
-NodeService::initializeCommunicator(int& argc, char* argv[],
-                                    const InitializationData& initializationData,
-                                    int version)
+CommunicatorPtr NodeService::initializeCommunicator(int& argc, char* argv[],
+                                                    const InitializationData& initializationData, int version)
 {
     InitializationData initData = initializationData;
     initData.properties = createProperties(argc, argv, initData.properties);
@@ -768,43 +746,37 @@ NodeService::initializeCommunicator(int& argc, char* argv[],
     return Service::initializeCommunicator(argc, argv, initData, version);
 }
 
-void
-NodeService::usage(const string& appName)
+void NodeService::usage(const string& appName)
 {
-    string options =
-        "Options:\n"
-        "-h, --help           Show this message.\n"
-        "-v, --version        Display the Ice version.\n"
-        "--nowarn             Don't print any security warnings.\n"
-        "--readonly           Start the collocated master registry in read-only mode.\n"
-        "--initdb-from-replica <replica>\n"
-        "                     Initialize the collocated registry database from the\n"
-        "                     given replica.\n"
-        "--deploy DESCRIPTOR [TARGET1 [TARGET2 ...]]\n"
-        "                     Add or update descriptor in file DESCRIPTOR, with\n"
-        "                     optional targets.\n";
+    string options = "Options:\n"
+                     "-h, --help           Show this message.\n"
+                     "-v, --version        Display the Ice version.\n"
+                     "--nowarn             Don't print any security warnings.\n"
+                     "--readonly           Start the collocated master registry in read-only mode.\n"
+                     "--initdb-from-replica <replica>\n"
+                     "                     Initialize the collocated registry database from the\n"
+                     "                     given replica.\n"
+                     "--deploy DESCRIPTOR [TARGET1 [TARGET2 ...]]\n"
+                     "                     Add or update descriptor in file DESCRIPTOR, with\n"
+                     "                     optional targets.\n";
 #ifndef _WIN32
-    options.append(
-        "\n"
-        "\n"
-        "--daemon             Run as a daemon.\n"
-        "--noclose            Do not close open file descriptors.\n"
-        "--nochdir            Do not change the current working directory.\n"
-        "--pidfile FILE       Write process ID into FILE."
-    );
+    options.append("\n"
+                   "\n"
+                   "--daemon             Run as a daemon.\n"
+                   "--noclose            Do not close open file descriptors.\n"
+                   "--nochdir            Do not change the current working directory.\n"
+                   "--pidfile FILE       Write process ID into FILE.");
 #endif
     print("Usage: " + appName + " [options]\n" + options);
 }
 
 #ifdef _WIN32
 
-int
-wmain(int argc, wchar_t* argv[])
+int wmain(int argc, wchar_t* argv[])
 
 #else
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 
 #endif
 {

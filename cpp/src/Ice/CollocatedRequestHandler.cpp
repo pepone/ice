@@ -24,57 +24,53 @@ using namespace IceInternal;
 
 namespace
 {
-
-class InvokeAllAsync : public DispatchWorkItem
-{
-public:
-
-    InvokeAllAsync(const OutgoingAsyncBasePtr& outAsync,
-                   OutputStream* os,
-                   const CollocatedRequestHandlerPtr& handler,
-                   Int requestId,
-                   Int batchRequestNum) :
-        _outAsync(outAsync), _os(os), _handler(handler), _requestId(requestId), _batchRequestNum(batchRequestNum)
+    class InvokeAllAsync : public DispatchWorkItem
     {
-    }
-
-    virtual void
-    run()
-    {
-        if(_handler->sentAsync(_outAsync.get()))
+    public:
+        InvokeAllAsync(const OutgoingAsyncBasePtr& outAsync, OutputStream* os,
+                       const CollocatedRequestHandlerPtr& handler, Int requestId, Int batchRequestNum) :
+            _outAsync(outAsync),
+            _os(os),
+            _handler(handler),
+            _requestId(requestId),
+            _batchRequestNum(batchRequestNum)
         {
-            _handler->invokeAll(_os, _requestId, _batchRequestNum);
         }
+
+        virtual void run()
+        {
+            if(_handler->sentAsync(_outAsync.get()))
+            {
+                _handler->invokeAll(_os, _requestId, _batchRequestNum);
+            }
+        }
+
+    private:
+        OutgoingAsyncBasePtr _outAsync;
+        OutputStream* _os;
+        CollocatedRequestHandlerPtr _handler;
+        Int _requestId;
+        Int _batchRequestNum;
+    };
+
+    void fillInValue(OutputStream* os, int pos, Int value)
+    {
+        const Byte* p = reinterpret_cast<const Byte*>(&value);
+#ifdef ICE_BIG_ENDIAN
+        reverse_copy(p, p + sizeof(Int), os->b.begin() + pos);
+#else
+        copy(p, p + sizeof(Int), os->b.begin() + pos);
+#endif
     }
 
-private:
-
-    OutgoingAsyncBasePtr _outAsync;
-    OutputStream* _os;
-    CollocatedRequestHandlerPtr _handler;
-    Int _requestId;
-    Int _batchRequestNum;
-};
-
-void
-fillInValue(OutputStream* os, int pos, Int value)
-{
-    const Byte* p = reinterpret_cast<const Byte*>(&value);
-#ifdef ICE_BIG_ENDIAN
-    reverse_copy(p, p + sizeof(Int), os->b.begin() + pos);
-#else
-    copy(p, p + sizeof(Int), os->b.begin() + pos);
-#endif
-}
-
-}
+} // namespace
 
 CollocatedRequestHandler::CollocatedRequestHandler(const ReferencePtr& ref, const ObjectAdapterPtr& adapter) :
     RequestHandler(ref),
     _adapter(ICE_DYNAMIC_CAST(ObjectAdapterI, adapter)),
     _dispatcher(_reference->getInstance()->initializationData().dispatcher),
     _logger(_reference->getInstance()->initializationData().logger), // Cached for better performance.
-    _traceLevels(_reference->getInstance()->traceLevels()), // Cached for better performance.
+    _traceLevels(_reference->getInstance()->traceLevels()),          // Cached for better performance.
     _requestId(0)
 {
 }
@@ -83,20 +79,18 @@ CollocatedRequestHandler::~CollocatedRequestHandler()
 {
 }
 
-RequestHandlerPtr
-CollocatedRequestHandler::update(const RequestHandlerPtr& previousHandler, const RequestHandlerPtr& newHandler)
+RequestHandlerPtr CollocatedRequestHandler::update(const RequestHandlerPtr& previousHandler,
+                                                   const RequestHandlerPtr& newHandler)
 {
     return previousHandler.get() == this ? newHandler : ICE_SHARED_FROM_THIS;
 }
 
-AsyncStatus
-CollocatedRequestHandler::sendAsyncRequest(const ProxyOutgoingAsyncBasePtr& outAsync)
+AsyncStatus CollocatedRequestHandler::sendAsyncRequest(const ProxyOutgoingAsyncBasePtr& outAsync)
 {
     return outAsync->invokeCollocated(this);
 }
 
-void
-CollocatedRequestHandler::asyncRequestCanceled(const OutgoingAsyncBasePtr& outAsync, const LocalException& ex)
+void CollocatedRequestHandler::asyncRequestCanceled(const OutgoingAsyncBasePtr& outAsync, const LocalException& ex)
 {
     Lock sync(*this);
 
@@ -134,8 +128,8 @@ CollocatedRequestHandler::asyncRequestCanceled(const OutgoingAsyncBasePtr& outAs
     }
 }
 
-AsyncStatus
-CollocatedRequestHandler::invokeAsyncRequest(OutgoingAsyncBase* outAsync, int batchRequestNum, bool synchronous)
+AsyncStatus CollocatedRequestHandler::invokeAsyncRequest(OutgoingAsyncBase* outAsync, int batchRequestNum,
+                                                         bool synchronous)
 {
     //
     // Increase the direct count to prevent the thread pool from being destroyed before
@@ -163,8 +157,8 @@ CollocatedRequestHandler::invokeAsyncRequest(OutgoingAsyncBase* outAsync, int ba
     }
     catch(...)
     {
-         _adapter->decDirectCount();
-         throw;
+        _adapter->decDirectCount();
+        throw;
     }
 
     outAsync->attachCollocatedObserver(_adapter, requestId);
@@ -172,19 +166,13 @@ CollocatedRequestHandler::invokeAsyncRequest(OutgoingAsyncBase* outAsync, int ba
     if(!synchronous || !_response || _reference->getInvocationTimeout() > 0)
     {
         // Don't invoke from the user thread if async or invocation timeout is set
-        _adapter->getThreadPool()->dispatch(new InvokeAllAsync(ICE_GET_SHARED_FROM_THIS(outAsync),
-                                                               outAsync->getOs(),
-                                                               ICE_SHARED_FROM_THIS,
-                                                               requestId,
-                                                               batchRequestNum));
+        _adapter->getThreadPool()->dispatch(new InvokeAllAsync(ICE_GET_SHARED_FROM_THIS(outAsync), outAsync->getOs(),
+                                                               ICE_SHARED_FROM_THIS, requestId, batchRequestNum));
     }
     else if(_dispatcher)
     {
-        _adapter->getThreadPool()->dispatchFromThisThread(new InvokeAllAsync(ICE_GET_SHARED_FROM_THIS(outAsync),
-                                                                             outAsync->getOs(),
-                                                                             ICE_SHARED_FROM_THIS,
-                                                                             requestId,
-                                                                             batchRequestNum));
+        _adapter->getThreadPool()->dispatchFromThisThread(new InvokeAllAsync(
+            ICE_GET_SHARED_FROM_THIS(outAsync), outAsync->getOs(), ICE_SHARED_FROM_THIS, requestId, batchRequestNum));
     }
     else // Optimization: directly call invokeAll if there's no dispatcher.
     {
@@ -203,8 +191,7 @@ CollocatedRequestHandler::invokeAsyncRequest(OutgoingAsyncBase* outAsync, int ba
     return AsyncStatusQueued;
 }
 
-void
-CollocatedRequestHandler::sendResponse(Int requestId, OutputStream* os, Byte, bool amd)
+void CollocatedRequestHandler::sendResponse(Int requestId, OutputStream* os, Byte, bool amd)
 {
     OutgoingAsyncBasePtr outAsync;
     {
@@ -256,41 +243,35 @@ CollocatedRequestHandler::sendResponse(Int requestId, OutputStream* os, Byte, bo
     _adapter->decDirectCount();
 }
 
-void
-CollocatedRequestHandler::sendNoResponse()
+void CollocatedRequestHandler::sendNoResponse()
 {
     _adapter->decDirectCount();
 }
 
-bool
-CollocatedRequestHandler::systemException(Int requestId, const SystemException& ex, bool amd)
+bool CollocatedRequestHandler::systemException(Int requestId, const SystemException& ex, bool amd)
 {
     handleException(requestId, ex, amd);
     _adapter->decDirectCount();
     return true;
 }
 
-void
-CollocatedRequestHandler::invokeException(Int requestId, const LocalException& ex, int invokeNum, bool amd)
+void CollocatedRequestHandler::invokeException(Int requestId, const LocalException& ex, int invokeNum, bool amd)
 {
     handleException(requestId, ex, amd);
     _adapter->decDirectCount();
 }
 
-ConnectionIPtr
-CollocatedRequestHandler::getConnection()
+ConnectionIPtr CollocatedRequestHandler::getConnection()
 {
     return 0;
 }
 
-ConnectionIPtr
-CollocatedRequestHandler::waitForConnection()
+ConnectionIPtr CollocatedRequestHandler::waitForConnection()
 {
     return 0;
 }
 
-bool
-CollocatedRequestHandler::sentAsync(OutgoingAsyncBase* outAsync)
+bool CollocatedRequestHandler::sentAsync(OutgoingAsyncBase* outAsync)
 {
     {
         Lock sync(*this);
@@ -308,8 +289,7 @@ CollocatedRequestHandler::sentAsync(OutgoingAsyncBase* outAsync)
     return true;
 }
 
-void
-CollocatedRequestHandler::invokeAll(OutputStream* os, Int requestId, Int batchRequestNum)
+void CollocatedRequestHandler::invokeAll(OutputStream* os, Int requestId, Int batchRequestNum)
 {
     if(_traceLevels->protocol >= 1)
     {
@@ -371,8 +351,7 @@ CollocatedRequestHandler::invokeAll(OutputStream* os, Int requestId, Int batchRe
     _adapter->decDirectCount();
 }
 
-void
-CollocatedRequestHandler::handleException(int requestId, const Exception& ex, bool amd)
+void CollocatedRequestHandler::handleException(int requestId, const Exception& ex, bool amd)
 {
     if(requestId == 0)
     {

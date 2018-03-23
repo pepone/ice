@@ -17,13 +17,11 @@ using namespace IceUtil;
 
 static const string priorityTestName("timer priority");
 
-TimerPriorityTest::TimerPriorityTest() :
-    TestBase(priorityTestName)
+TimerPriorityTest::TimerPriorityTest() : TestBase(priorityTestName)
 {
 }
 
-void
-TimerPriorityTest::run()
+void TimerPriorityTest::run()
 {
 #ifdef _WIN32
     //
@@ -67,7 +65,7 @@ TimerPriorityTest::run()
     }
     catch(const ThreadSyscallException&)
     {
-        //Expected
+        // Expected
     }
     catch(...)
     {
@@ -84,7 +82,7 @@ TimerPriorityTest::run()
     }
     catch(const ThreadSyscallException&)
     {
-        //Expected
+        // Expected
     }
     catch(...)
     {
@@ -121,7 +119,7 @@ TimerPriorityTest::run()
         }
         catch(const ThreadSyscallException& e)
         {
-            //Expected
+            // Expected
         }
         catch(...)
         {
@@ -141,7 +139,7 @@ TimerPriorityTest::run()
         }
         catch(const ThreadSyscallException& e)
         {
-            //Expected
+            // Expected
         }
         catch(...)
         {

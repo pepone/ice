@@ -21,133 +21,126 @@ using namespace IceMX;
 
 namespace
 {
-
-class SessionHelper : public MetricsHelperT<SessionMetrics>
-{
-public:
-
-    class Attributes : public AttributeResolverT<SessionHelper>
+    class SessionHelper : public MetricsHelperT<SessionMetrics>
     {
     public:
-
-        Attributes()
+        class Attributes : public AttributeResolverT<SessionHelper>
         {
-            add("parent", &SessionHelper::getInstanceName);
-            add("id", &SessionHelper::getId);
-            add("connection", &SessionHelper::getConnection);
-            IceInternal::addConnectionAttributes<SessionHelper>(*this);
+        public:
+            Attributes()
+            {
+                add("parent", &SessionHelper::getInstanceName);
+                add("id", &SessionHelper::getId);
+                add("connection", &SessionHelper::getConnection);
+                IceInternal::addConnectionAttributes<SessionHelper>(*this);
+            }
+        };
+        static Attributes attributes;
+
+        SessionHelper(const string& instanceName, const string& id, const ::Ice::ConnectionPtr& connection,
+                      int rtSize) :
+            _instanceName(instanceName),
+            _id(id),
+            _connection(connection),
+            _routingTableSize(rtSize)
+        {
         }
+
+        virtual string operator()(const string& attribute) const
+        {
+            return attributes(this, attribute);
+        }
+
+        virtual void initMetrics(const SessionMetricsPtr& v) const
+        {
+            v->routingTableSize += _routingTableSize;
+        }
+
+        const string& getInstanceName() const
+        {
+            return _instanceName;
+        }
+
+        const string& getId() const
+        {
+            return _id;
+        }
+
+        ::Ice::ConnectionInfoPtr getConnectionInfo() const
+        {
+            return _connection->getInfo();
+        }
+
+        ::Ice::EndpointPtr getEndpoint() const
+        {
+            return _connection->getEndpoint();
+        }
+
+        const ::Ice::ConnectionPtr& getConnection() const
+        {
+            return _connection;
+        }
+
+        const ::Ice::EndpointInfoPtr& getEndpointInfo() const
+        {
+            if(!_endpointInfo)
+            {
+                _endpointInfo = _connection->getEndpoint()->getInfo();
+            }
+            return _endpointInfo;
+        }
+
+    private:
+        const string& _instanceName;
+        const string& _id;
+        const ::Ice::ConnectionPtr& _connection;
+        const int _routingTableSize;
+        mutable ::Ice::EndpointInfoPtr _endpointInfo;
     };
-    static Attributes attributes;
 
-    SessionHelper(const string& instanceName, const string& id, const ::Ice::ConnectionPtr& connection, int rtSize) :
-        _instanceName(instanceName), _id(id), _connection(connection), _routingTableSize(rtSize)
-    {
-    }
+    SessionHelper::Attributes SessionHelper::attributes;
 
-    virtual string operator()(const string& attribute) const
+    namespace
     {
-        return attributes(this, attribute);
-    }
-
-    virtual void initMetrics(const SessionMetricsPtr& v) const
-    {
-        v->routingTableSize += _routingTableSize;
-    }
-
-    const string& getInstanceName() const
-    {
-        return _instanceName;
-    }
-
-    const string& getId() const
-    {
-        return _id;
-    }
-
-    ::Ice::ConnectionInfoPtr
-    getConnectionInfo() const
-    {
-        return _connection->getInfo();
-    }
-
-    ::Ice::EndpointPtr
-    getEndpoint() const
-    {
-        return _connection->getEndpoint();
-    }
-
-    const ::Ice::ConnectionPtr&
-    getConnection() const
-    {
-        return _connection;
-    }
-
-    const ::Ice::EndpointInfoPtr&
-    getEndpointInfo() const
-    {
-        if(!_endpointInfo)
+        struct ForwardedUpdate
         {
-            _endpointInfo = _connection->getEndpoint()->getInfo();
-        }
-        return _endpointInfo;
-    }
-
-private:
-
-    const string& _instanceName;
-    const string& _id;
-    const ::Ice::ConnectionPtr& _connection;
-    const int _routingTableSize;
-    mutable ::Ice::EndpointInfoPtr _endpointInfo;
-};
-
-SessionHelper::Attributes SessionHelper::attributes;
-
-namespace
-{
-
-struct ForwardedUpdate
-{
-    ForwardedUpdate(bool client) : client(client)
-    {
-    }
-
-    void operator()(const SessionMetricsPtr& v)
-    {
-        if(client)
-        {
-            ++v->forwardedClient;
-            if(v->queuedClient > 0)
+            ForwardedUpdate(bool client) : client(client)
             {
-                --v->queuedClient;
             }
-        }
-        else
-        {
-            ++v->forwardedServer;
-            if(v->queuedServer > 0)
+
+            void operator()(const SessionMetricsPtr& v)
             {
-                --v->queuedServer;
+                if(client)
+                {
+                    ++v->forwardedClient;
+                    if(v->queuedClient > 0)
+                    {
+                        --v->queuedClient;
+                    }
+                }
+                else
+                {
+                    ++v->forwardedServer;
+                    if(v->queuedServer > 0)
+                    {
+                        --v->queuedServer;
+                    }
+                }
             }
-        }
-    }
 
-    int client;
-};
+            int client;
+        };
 
-}
+    } // namespace
 
-}
+} // namespace
 
-void
-SessionObserverI::forwarded(bool client)
+void SessionObserverI::forwarded(bool client)
 {
     forEach(ForwardedUpdate(client));
 }
 
-void
-SessionObserverI::queued(bool client)
+void SessionObserverI::queued(bool client)
 {
     if(client)
     {
@@ -159,8 +152,7 @@ SessionObserverI::queued(bool client)
     }
 }
 
-void
-SessionObserverI::overridden(bool client)
+void SessionObserverI::overridden(bool client)
 {
     if(client)
     {
@@ -172,28 +164,25 @@ SessionObserverI::overridden(bool client)
     }
 }
 
-void
-SessionObserverI::routingTableSize(int delta)
+void SessionObserverI::routingTableSize(int delta)
 {
     forEach(add(&SessionMetrics::routingTableSize, delta));
 }
 
 RouterObserverI::RouterObserverI(const IceInternal::MetricsAdminIPtr& metrics, const string& instanceName) :
-    _metrics(metrics), _instanceName(instanceName), _sessions(metrics, "Session")
+    _metrics(metrics),
+    _instanceName(instanceName),
+    _sessions(metrics, "Session")
 {
 }
 
-void
-RouterObserverI::setObserverUpdater(const ObserverUpdaterPtr& updater)
+void RouterObserverI::setObserverUpdater(const ObserverUpdaterPtr& updater)
 {
     _sessions.setUpdater(newUpdater(updater, &ObserverUpdater::updateSessionObservers));
 }
 
-SessionObserverPtr
-RouterObserverI::getSessionObserver(const string& id,
-                                    const ::Ice::ConnectionPtr& connection,
-                                    int routingTableSize,
-                                    const SessionObserverPtr& old)
+SessionObserverPtr RouterObserverI::getSessionObserver(const string& id, const ::Ice::ConnectionPtr& connection,
+                                                       int routingTableSize, const SessionObserverPtr& old)
 {
     if(_sessions.isEnabled())
     {

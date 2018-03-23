@@ -11,8 +11,7 @@
 
 using namespace std;
 
-void
-IceBox::FailureException::ice_print(ostream& out) const
+void IceBox::FailureException::ice_print(ostream& out) const
 {
     Exception::ice_print(out);
     out << ":\nservice failure exception: " << reason;

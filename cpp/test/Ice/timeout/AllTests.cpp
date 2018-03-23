@@ -17,101 +17,93 @@ using namespace Test;
 
 namespace
 {
-
-class CallbackBase : public IceUtil::Monitor<IceUtil::Mutex>
-{
-public:
-
-    CallbackBase() :
-        _called(false)
+    class CallbackBase : public IceUtil::Monitor<IceUtil::Mutex>
     {
-    }
-
-    virtual ~CallbackBase()
-    {
-    }
-
-    void check()
-    {
-        IceUtil::Monitor<IceUtil::Mutex>::Lock sync(*this);
-        while(!_called)
+    public:
+        CallbackBase() : _called(false)
         {
-            wait();
         }
-        _called = false;
-    }
 
-protected:
-
-    void called()
-    {
-        IceUtil::Monitor<IceUtil::Mutex>::Lock sync(*this);
-        assert(!_called);
-        _called = true;
-        notify();
-    }
-
-private:
-
-    bool _called;
-};
-
-class Callback : public IceUtil::Shared, public CallbackBase
-{
-public:
-
-    void response()
-    {
-        called();
-    }
-
-    void exception(const ::Ice::Exception&)
-    {
-        test(false);
-    }
-
-    void responseEx()
-    {
-        test(false);
-    }
-
-    void exceptionEx(const ::Ice::Exception& ex)
-    {
-        test(dynamic_cast<const Ice::InvocationTimeoutException*>(&ex));
-        called();
-    }
-};
-typedef IceUtil::Handle<Callback> CallbackPtr;
-
-Ice::ConnectionPtr
-connect(const Ice::ObjectPrxPtr& prx)
-{
-    //
-    // Establish connection with the given proxy (which might have a timeout
-    // set and might sporadically fail on connection establishment if it's
-    // too slow). The loop ensures that the connection is established by retrying
-    // in case we can a ConnectTimeoutException
-    //
-    int nRetry = 10;
-    while(--nRetry > 0)
-    {
-        try
+        virtual ~CallbackBase()
         {
-            prx->ice_getConnection(); // Establish connection
-            break;
         }
-        catch(const Ice::ConnectTimeoutException&)
+
+        void check()
         {
-            // Can sporadically occur with slow machines
+            IceUtil::Monitor<IceUtil::Mutex>::Lock sync(*this);
+            while(!_called)
+            {
+                wait();
+            }
+            _called = false;
         }
+
+    protected:
+        void called()
+        {
+            IceUtil::Monitor<IceUtil::Mutex>::Lock sync(*this);
+            assert(!_called);
+            _called = true;
+            notify();
+        }
+
+    private:
+        bool _called;
+    };
+
+    class Callback : public IceUtil::Shared, public CallbackBase
+    {
+    public:
+        void response()
+        {
+            called();
+        }
+
+        void exception(const ::Ice::Exception&)
+        {
+            test(false);
+        }
+
+        void responseEx()
+        {
+            test(false);
+        }
+
+        void exceptionEx(const ::Ice::Exception& ex)
+        {
+            test(dynamic_cast<const Ice::InvocationTimeoutException*>(&ex));
+            called();
+        }
+    };
+    typedef IceUtil::Handle<Callback> CallbackPtr;
+
+    Ice::ConnectionPtr connect(const Ice::ObjectPrxPtr& prx)
+    {
+        //
+        // Establish connection with the given proxy (which might have a timeout
+        // set and might sporadically fail on connection establishment if it's
+        // too slow). The loop ensures that the connection is established by retrying
+        // in case we can a ConnectTimeoutException
+        //
+        int nRetry = 10;
+        while(--nRetry > 0)
+        {
+            try
+            {
+                prx->ice_getConnection(); // Establish connection
+                break;
+            }
+            catch(const Ice::ConnectTimeoutException&)
+            {
+                // Can sporadically occur with slow machines
+            }
+        }
+        return prx->ice_getConnection();
     }
-    return prx->ice_getConnection();
-}
 
-}
+} // namespace
 
-void
-allTests(const Ice::CommunicatorPtr& communicator)
+void allTests(const Ice::CommunicatorPtr& communicator)
 {
     string sref = "timeout:" + getTestEndpoint(communicator, 0);
     Ice::ObjectPrxPtr obj = communicator->stringToProxy(sref);
@@ -511,11 +503,11 @@ allTests(const Ice::CommunicatorPtr& communicator)
         try
         {
             timeout->ice_invocationTimeout(-2)->ice_ping();
-            #ifdef ICE_CPP11_MAPPING
+#ifdef ICE_CPP11_MAPPING
             timeout->ice_invocationTimeout(-2)->ice_pingAsync().get();
-            #else
+#else
             timeout->ice_invocationTimeout(-2)->begin_ice_ping()->waitForCompleted();
-            #endif
+#endif
         }
         catch(const Ice::Exception&)
         {

@@ -21,22 +21,19 @@
 
 namespace IceInternal
 {
+    class RequestHandlerFactory : public IceUtil::Shared, private IceUtil::Mutex
+    {
+    public:
+        RequestHandlerFactory(const InstancePtr&);
 
-class RequestHandlerFactory : public IceUtil::Shared, private IceUtil::Mutex
-{
-public:
+        RequestHandlerPtr getRequestHandler(const RoutableReferencePtr&, const Ice::ObjectPrxPtr&);
+        void removeRequestHandler(const ReferencePtr&, const RequestHandlerPtr&);
 
-    RequestHandlerFactory(const InstancePtr&);
+    private:
+        const InstancePtr _instance;
+        std::map<ReferencePtr, ConnectRequestHandlerPtr> _handlers;
+    };
 
-    RequestHandlerPtr getRequestHandler(const RoutableReferencePtr&, const Ice::ObjectPrxPtr&);
-    void removeRequestHandler(const ReferencePtr&, const RequestHandlerPtr&);
-
-private:
-
-    const InstancePtr _instance;
-    std::map<ReferencePtr, ConnectRequestHandlerPtr> _handlers;
-};
-
-}
+} // namespace IceInternal
 
 #endif

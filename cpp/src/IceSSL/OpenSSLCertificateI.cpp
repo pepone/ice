@@ -26,7 +26,7 @@ using namespace std;
 // Avoid old style cast warnings from OpenSSL macros
 //
 #if defined(__GNUC__)
-#  pragma GCC diagnostic ignored "-Wold-style-cast"
+#    pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
 #ifdef __SUNPRO_CC
@@ -38,271 +38,256 @@ using namespace std;
 
 extern "C" typedef void (*FreeFunc)(void*);
 
-#undef CHECKED_SK_FREE_FUNC
-#define CHECKED_SK_FREE_FUNC(type, p) \
-    (FreeFunc) (p)
+#    undef CHECKED_SK_FREE_FUNC
+#    define CHECKED_SK_FREE_FUNC(type, p) (FreeFunc)(p)
 
 #endif
 
 namespace
 {
-
-static string
-convertX509NameToString(X509_name_st* name)
-{
-    BIO* out = BIO_new(BIO_s_mem());
-    X509_NAME_print_ex(out, name, 0, XN_FLAG_RFC2253);
-    BUF_MEM* p;
-    BIO_get_mem_ptr(out, &p);
-    string result = string(p->data, p->length);
-    BIO_free(out);
-    return result;
-}
-
-static vector<pair<int, string> >
-convertGeneralNames(GENERAL_NAMES* gens)
-{
-    vector<pair<int, string> > alt;
-    if (gens == 0)
+    static string convertX509NameToString(X509_name_st* name)
     {
+        BIO* out = BIO_new(BIO_s_mem());
+        X509_NAME_print_ex(out, name, 0, XN_FLAG_RFC2253);
+        BUF_MEM* p;
+        BIO_get_mem_ptr(out, &p);
+        string result = string(p->data, p->length);
+        BIO_free(out);
+        return result;
+    }
+
+    static vector<pair<int, string>> convertGeneralNames(GENERAL_NAMES* gens)
+    {
+        vector<pair<int, string>> alt;
+        if(gens == 0)
+        {
+            return alt;
+        }
+        for(int i = 0; i < sk_GENERAL_NAME_num(gens); ++i)
+        {
+            GENERAL_NAME* gen = sk_GENERAL_NAME_value(gens, i);
+            pair<int, string> p;
+            p.first = gen->type;
+            switch(gen->type)
+            {
+                case GEN_EMAIL:
+                {
+                    ASN1_IA5STRING* str = gen->d.rfc822Name;
+                    if(str && str->type == V_ASN1_IA5STRING && str->data && str->length > 0)
+                    {
+                        p.second = string(reinterpret_cast<const char*>(str->data), str->length);
+                    }
+                    break;
+                }
+                case GEN_DNS:
+                {
+                    ASN1_IA5STRING* str = gen->d.dNSName;
+                    if(str && str->type == V_ASN1_IA5STRING && str->data && str->length > 0)
+                    {
+                        p.second = string(reinterpret_cast<const char*>(str->data), str->length);
+                    }
+                    break;
+                }
+                case GEN_DIRNAME:
+                {
+                    p.second = convertX509NameToString(gen->d.directoryName);
+                    break;
+                }
+                case GEN_URI:
+                {
+                    ASN1_IA5STRING* str = gen->d.uniformResourceIdentifier;
+                    if(str && str->type == V_ASN1_IA5STRING && str->data && str->length > 0)
+                    {
+                        p.second = string(reinterpret_cast<const char*>(str->data), str->length);
+                    }
+                    break;
+                }
+                case GEN_IPADD:
+                {
+                    ASN1_OCTET_STRING* addr = gen->d.iPAddress;
+                    // TODO: Support IPv6 someday.
+                    if(addr && addr->type == V_ASN1_OCTET_STRING && addr->data && addr->length == 4)
+                    {
+                        ostringstream ostr;
+                        for(int j = 0; j < 4; ++j)
+                        {
+                            if(j > 0)
+                            {
+                                ostr << '.';
+                            }
+                            ostr << static_cast<int>(addr->data[j]);
+                        }
+                        p.second = ostr.str();
+                    }
+                    break;
+                }
+                case GEN_OTHERNAME:
+                case GEN_EDIPARTY:
+                case GEN_X400:
+                case GEN_RID:
+                {
+                    //
+                    // TODO: These types are not supported. If the user wants
+                    // them, they have to get at the certificate data. Another
+                    // alternative is to DER encode the data (as the Java
+                    // certificate does).
+                    //
+                    break;
+                }
+            }
+            alt.push_back(p);
+        }
+        sk_GENERAL_NAME_pop_free(gens, GENERAL_NAME_free);
         return alt;
     }
-    for (int i = 0; i < sk_GENERAL_NAME_num(gens); ++i)
+
+    class DistinguishedNameI : public IceSSL::DistinguishedName
     {
-        GENERAL_NAME* gen = sk_GENERAL_NAME_value(gens, i);
-        pair<int, string> p;
-        p.first = gen->type;
-        switch (gen->type)
+    public:
+        DistinguishedNameI(X509_name_st* name) :
+            IceSSL::DistinguishedName(IceSSL::RFC2253::parseStrict(convertX509NameToString(name)))
         {
-        case GEN_EMAIL:
-        {
-            ASN1_IA5STRING* str = gen->d.rfc822Name;
-            if (str && str->type == V_ASN1_IA5STRING && str->data && str->length > 0)
-            {
-                p.second = string(reinterpret_cast<const char*>(str->data), str->length);
-            }
-            break;
+            unescape();
         }
-        case GEN_DNS:
-        {
-            ASN1_IA5STRING* str = gen->d.dNSName;
-            if (str && str->type == V_ASN1_IA5STRING && str->data && str->length > 0)
-            {
-                p.second = string(reinterpret_cast<const char*>(str->data), str->length);
-            }
-            break;
-        }
-        case GEN_DIRNAME:
-        {
-            p.second = convertX509NameToString(gen->d.directoryName);
-            break;
-        }
-        case GEN_URI:
-        {
-            ASN1_IA5STRING* str = gen->d.uniformResourceIdentifier;
-            if (str && str->type == V_ASN1_IA5STRING && str->data && str->length > 0)
-            {
-                p.second = string(reinterpret_cast<const char*>(str->data), str->length);
-            }
-            break;
-        }
-        case GEN_IPADD:
-        {
-            ASN1_OCTET_STRING* addr = gen->d.iPAddress;
-            // TODO: Support IPv6 someday.
-            if (addr && addr->type == V_ASN1_OCTET_STRING && addr->data && addr->length == 4)
-            {
-                ostringstream ostr;
-                for (int j = 0; j < 4; ++j)
-                {
-                    if (j > 0)
-                    {
-                        ostr << '.';
-                    }
-                    ostr << static_cast<int>(addr->data[j]);
-                }
-                p.second = ostr.str();
-            }
-            break;
-        }
-        case GEN_OTHERNAME:
-        case GEN_EDIPARTY:
-        case GEN_X400:
-        case GEN_RID:
-        {
-            //
-            // TODO: These types are not supported. If the user wants
-            // them, they have to get at the certificate data. Another
-            // alternative is to DER encode the data (as the Java
-            // certificate does).
-            //
-            break;
-        }
-        }
-        alt.push_back(p);
-    }
-    sk_GENERAL_NAME_pop_free(gens, GENERAL_NAME_free);
-    return alt;
-}
+    };
 
-class DistinguishedNameI : public IceSSL::DistinguishedName
-{
-public:
+    IceUtil::Mutex* mut = 0;
 
-    DistinguishedNameI(X509_name_st* name) :
-        IceSSL::DistinguishedName(IceSSL::RFC2253::parseStrict(convertX509NameToString(name)))
+    class Init
     {
-        unescape();
-    }
+    public:
+        Init()
+        {
+            mut = new IceUtil::Mutex;
+        }
 
-};
+        ~Init()
+        {
+            delete mut;
+            mut = 0;
+        }
+    };
 
-IceUtil::Mutex* mut = 0;
-
-class Init
-{
-public:
-
-    Init()
-    {
-        mut = new IceUtil::Mutex;
-    }
-
-    ~Init()
-    {
-        delete mut;
-        mut = 0;
-    }
-};
-
-Init init;
+    Init init;
 
 #ifdef ICE_CPP11_MAPPING
-chrono::system_clock::time_point
+    chrono::system_clock::time_point
 #else
-static IceUtil::Time
+    static IceUtil::Time
 #endif
-ASMUtcTimeToTime(const ASN1_UTCTIME* s)
-{
-    struct tm tm;
-    int offset;
+    ASMUtcTimeToTime(const ASN1_UTCTIME* s)
+    {
+        struct tm tm;
+        int offset;
 
-    memset(&tm, '\0', sizeof tm);
+        memset(&tm, '\0', sizeof tm);
 
-#  define g2(p) (((p)[0]-'0')*10+(p)[1]-'0')
-    tm.tm_year = g2(s->data);
-    if(tm.tm_year < 50)
-    {
-        tm.tm_year += 100;
-    }
-    tm.tm_mon = g2(s->data + 2) - 1;
-    tm.tm_mday = g2(s->data + 4);
-    tm.tm_hour = g2(s->data + 6);
-    tm.tm_min = g2(s->data + 8);
-    tm.tm_sec = g2(s->data + 10);
-    if(s->data[12] == 'Z')
-    {
-        offset = 0;
-    }
-    else
-    {
-        offset = g2(s->data + 13) * 60 + g2(s->data + 15);
-        if(s->data[12] == '-')
+#define g2(p) (((p)[0] - '0') * 10 + (p)[1] - '0')
+        tm.tm_year = g2(s->data);
+        if(tm.tm_year < 50)
         {
-            offset = -offset;
+            tm.tm_year += 100;
         }
-    }
-#  undef g2
+        tm.tm_mon = g2(s->data + 2) - 1;
+        tm.tm_mday = g2(s->data + 4);
+        tm.tm_hour = g2(s->data + 6);
+        tm.tm_min = g2(s->data + 8);
+        tm.tm_sec = g2(s->data + 10);
+        if(s->data[12] == 'Z')
+        {
+            offset = 0;
+        }
+        else
+        {
+            offset = g2(s->data + 13) * 60 + g2(s->data + 15);
+            if(s->data[12] == '-')
+            {
+                offset = -offset;
+            }
+        }
+#undef g2
 
-    //
-    // If timegm was on all systems this code could be
-    // return IceUtil::Time::seconds(timegm(&tm) - offset*60);
-    //
-    // Windows doesn't support the re-entrant _r versions.
-    //
+        //
+        // If timegm was on all systems this code could be
+        // return IceUtil::Time::seconds(timegm(&tm) - offset*60);
+        //
+        // Windows doesn't support the re-entrant _r versions.
+        //
 #if defined(_MSC_VER)
-#   pragma warning(disable:4996) // localtime is depercated
+#    pragma warning(disable : 4996) // localtime is depercated
 #endif
-    time_t tzone;
-    {
-        IceUtilInternal::MutexPtrLock<IceUtil::Mutex> sync(mut);
-        time_t now = time(0);
-        tzone = mktime(localtime(&now)) - mktime(gmtime(&now));
-    }
+        time_t tzone;
+        {
+            IceUtilInternal::MutexPtrLock<IceUtil::Mutex> sync(mut);
+            time_t now = time(0);
+            tzone = mktime(localtime(&now)) - mktime(gmtime(&now));
+        }
 #if defined(_MSC_VER)
-#   pragma warning(default:4996) // localtime is depercated
+#    pragma warning(default : 4996) // localtime is depercated
 #endif
 
-    IceUtil::Time time = IceUtil::Time::seconds(mktime(&tm) - offset * 60 + tzone);
+        IceUtil::Time time = IceUtil::Time::seconds(mktime(&tm) - offset * 60 + tzone);
 
 #ifdef ICE_CPP11_MAPPING
-    return chrono::system_clock::time_point(chrono::microseconds(time.toMicroSeconds()));
+        return chrono::system_clock::time_point(chrono::microseconds(time.toMicroSeconds()));
 #else
-    return time;
+        return time;
 #endif
-}
+    }
 
-class OpenSSLX509ExtensionI : public IceSSL::X509Extension
-{
+    class OpenSSLX509ExtensionI : public IceSSL::X509Extension
+    {
+    public:
+        OpenSSLX509ExtensionI(struct X509_extension_st*, const string&, x509_st*);
+        ~OpenSSLX509ExtensionI();
+        virtual bool isCritical() const;
+        virtual string getOID() const;
+        virtual vector<Ice::Byte> getData() const;
 
-public:
+    private:
+        struct X509_extension_st* _extension;
+        string _oid;
+        x509_st* _cert;
+    };
 
-    OpenSSLX509ExtensionI(struct X509_extension_st*, const string&, x509_st*);
-    ~OpenSSLX509ExtensionI();
-    virtual bool isCritical() const;
-    virtual string getOID() const;
-    virtual vector<Ice::Byte> getData() const;
+    class OpenSSLCertificateI : public IceSSL::OpenSSL::Certificate, public CertificateI, public IceUtil::Mutex
+    {
+    public:
+        OpenSSLCertificateI(x509_st*);
+        ~OpenSSLCertificateI();
 
-private:
+        virtual bool operator==(const IceSSL::Certificate&) const;
 
-    struct X509_extension_st* _extension;
-    string _oid;
-    x509_st* _cert;
-};
+        virtual vector<Ice::Byte> getAuthorityKeyIdentifier() const;
+        virtual vector<Ice::Byte> getSubjectKeyIdentifier() const;
+        virtual bool verify(const IceSSL::CertificatePtr&) const;
+        virtual string encode() const;
 
-class OpenSSLCertificateI : public IceSSL::OpenSSL::Certificate,
-                            public CertificateI,
-                            public IceUtil::Mutex
-{
-public:
+#ifdef ICE_CPP11_MAPPING
+        virtual chrono::system_clock::time_point getNotAfter() const;
+        virtual chrono::system_clock::time_point getNotBefore() const;
+#else
+        virtual IceUtil::Time getNotAfter() const;
+        virtual IceUtil::Time getNotBefore() const;
+#endif
+        virtual string getSerialNumber() const;
+        virtual IceSSL::DistinguishedName getIssuerDN() const;
+        virtual vector<pair<int, string>> getIssuerAlternativeNames() const;
+        virtual IceSSL::DistinguishedName getSubjectDN() const;
+        virtual vector<pair<int, string>> getSubjectAlternativeNames() const;
+        virtual int getVersion() const;
+        virtual x509_st* getCert() const;
 
-    OpenSSLCertificateI(x509_st*);
-    ~OpenSSLCertificateI();
+    protected:
+        virtual void loadX509Extensions() const;
 
-    virtual bool operator==(const IceSSL::Certificate&) const;
-
-    virtual vector<Ice::Byte> getAuthorityKeyIdentifier() const;
-    virtual vector<Ice::Byte> getSubjectKeyIdentifier() const;
-    virtual bool verify(const IceSSL::CertificatePtr&) const;
-    virtual string encode() const;
-
-#  ifdef ICE_CPP11_MAPPING
-    virtual chrono::system_clock::time_point getNotAfter() const;
-    virtual chrono::system_clock::time_point getNotBefore() const;
-#  else
-    virtual IceUtil::Time getNotAfter() const;
-    virtual IceUtil::Time getNotBefore() const;
-#  endif
-    virtual string getSerialNumber() const;
-    virtual IceSSL::DistinguishedName getIssuerDN() const;
-    virtual vector<pair<int, string> > getIssuerAlternativeNames() const;
-    virtual IceSSL::DistinguishedName getSubjectDN() const;
-    virtual vector<pair<int, string> > getSubjectAlternativeNames() const;
-    virtual int getVersion() const;
-    virtual x509_st* getCert() const;
-
-protected:
-
-    virtual void loadX509Extensions() const;
-
-private:
-
-    x509_st* _cert;
-};
+    private:
+        x509_st* _cert;
+    };
 
 } // end anonymous namespace
 
-OpenSSLX509ExtensionI::OpenSSLX509ExtensionI(struct X509_extension_st* extension, const string& oid, x509_st* cert):
+OpenSSLX509ExtensionI::OpenSSLX509ExtensionI(struct X509_extension_st* extension, const string& oid, x509_st* cert) :
     _extension(extension),
     _oid(oid),
     _cert(cert)
@@ -319,20 +304,17 @@ OpenSSLX509ExtensionI::~OpenSSLX509ExtensionI()
     X509_free(_cert);
 }
 
-bool
-OpenSSLX509ExtensionI::isCritical() const
+bool OpenSSLX509ExtensionI::isCritical() const
 {
     return X509_EXTENSION_get_critical(_extension) == 1;
 }
 
-string
-OpenSSLX509ExtensionI::getOID() const
+string OpenSSLX509ExtensionI::getOID() const
 {
     return _oid;
 }
 
-vector<Ice::Byte>
-OpenSSLX509ExtensionI::getData() const
+vector<Ice::Byte> OpenSSLX509ExtensionI::getData() const
 {
     vector<Ice::Byte> data;
     ASN1_OCTET_STRING* buffer = X509_EXTENSION_get_data(_extension);
@@ -365,8 +347,7 @@ OpenSSLCertificateI::~OpenSSLCertificateI()
     }
 }
 
-bool
-OpenSSLCertificateI::operator==(const IceSSL::Certificate& r) const
+bool OpenSSLCertificateI::operator==(const IceSSL::Certificate& r) const
 {
     const OpenSSLCertificateI* p = dynamic_cast<const OpenSSLCertificateI*>(&r);
     if(!p)
@@ -377,8 +358,7 @@ OpenSSLCertificateI::operator==(const IceSSL::Certificate& r) const
     return X509_cmp(_cert, p->_cert) == 0;
 }
 
-vector<Ice::Byte>
-OpenSSLCertificateI::getAuthorityKeyIdentifier() const
+vector<Ice::Byte> OpenSSLCertificateI::getAuthorityKeyIdentifier() const
 {
     vector<Ice::Byte> keyid;
     int index = X509_get_ext_by_NID(_cert, NID_authority_key_identifier, -1);
@@ -400,8 +380,7 @@ OpenSSLCertificateI::getAuthorityKeyIdentifier() const
     return keyid;
 }
 
-vector<Ice::Byte>
-OpenSSLCertificateI::getSubjectKeyIdentifier() const
+vector<Ice::Byte> OpenSSLCertificateI::getSubjectKeyIdentifier() const
 {
     vector<Ice::Byte> keyid;
     int index = X509_get_ext_by_NID(_cert, NID_subject_key_identifier, -1);
@@ -423,8 +402,7 @@ OpenSSLCertificateI::getSubjectKeyIdentifier() const
     return keyid;
 }
 
-bool
-OpenSSLCertificateI::verify(const IceSSL::CertificatePtr& cert) const
+bool OpenSSLCertificateI::verify(const IceSSL::CertificatePtr& cert) const
 {
     OpenSSLCertificateI* c = dynamic_cast<OpenSSLCertificateI*>(cert.get());
     if(c)
@@ -437,8 +415,7 @@ OpenSSLCertificateI::verify(const IceSSL::CertificatePtr& cert) const
     return false;
 }
 
-string
-OpenSSLCertificateI::encode() const
+string OpenSSLCertificateI::encode() const
 {
     BIO* out = BIO_new(BIO_s_mem());
     int i = PEM_write_bio_X509(out, _cert);
@@ -454,28 +431,27 @@ OpenSSLCertificateI::encode() const
     return result;
 }
 
-#  ifdef ICE_CPP11_MAPPING
+#ifdef ICE_CPP11_MAPPING
 chrono::system_clock::time_point
-#  else
+#else
 IceUtil::Time
-#  endif
+#endif
 OpenSSLCertificateI::getNotAfter() const
 {
     return ASMUtcTimeToTime(X509_get_notAfter(_cert));
 }
 
-#  ifdef ICE_CPP11_MAPPING
+#ifdef ICE_CPP11_MAPPING
 chrono::system_clock::time_point
-#  else
+#else
 IceUtil::Time
-#  endif
+#endif
 OpenSSLCertificateI::getNotBefore() const
 {
     return ASMUtcTimeToTime(X509_get_notBefore(_cert));
 }
 
-string
-OpenSSLCertificateI::getSerialNumber() const
+string OpenSSLCertificateI::getSerialNumber() const
 {
     BIGNUM* bn = ASN1_INTEGER_to_BN(X509_get_serialNumber(_cert), 0);
     char* dec = BN_bn2dec(bn);
@@ -485,44 +461,39 @@ OpenSSLCertificateI::getSerialNumber() const
     return result;
 }
 
-IceSSL::DistinguishedName
-OpenSSLCertificateI::getIssuerDN() const
+IceSSL::DistinguishedName OpenSSLCertificateI::getIssuerDN() const
 {
-    return IceSSL::DistinguishedName(IceSSL::RFC2253::parseStrict(convertX509NameToString(X509_get_issuer_name(_cert))));
+    return IceSSL::DistinguishedName(
+        IceSSL::RFC2253::parseStrict(convertX509NameToString(X509_get_issuer_name(_cert))));
 }
 
-vector<pair<int, string> >
-OpenSSLCertificateI::getIssuerAlternativeNames() const
+vector<pair<int, string>> OpenSSLCertificateI::getIssuerAlternativeNames() const
 {
     return convertGeneralNames(reinterpret_cast<GENERAL_NAMES*>(X509_get_ext_d2i(_cert, NID_issuer_alt_name, 0, 0)));
 }
 
-IceSSL::DistinguishedName
-OpenSSLCertificateI::getSubjectDN() const
+IceSSL::DistinguishedName OpenSSLCertificateI::getSubjectDN() const
 {
-    return IceSSL::DistinguishedName(IceSSL::RFC2253::parseStrict(convertX509NameToString(X509_get_subject_name(_cert))));
+    return IceSSL::DistinguishedName(
+        IceSSL::RFC2253::parseStrict(convertX509NameToString(X509_get_subject_name(_cert))));
 }
 
-vector<pair<int, string> >
-OpenSSLCertificateI::getSubjectAlternativeNames() const
+vector<pair<int, string>> OpenSSLCertificateI::getSubjectAlternativeNames() const
 {
     return convertGeneralNames(reinterpret_cast<GENERAL_NAMES*>(X509_get_ext_d2i(_cert, NID_subject_alt_name, 0, 0)));
 }
 
-int
-OpenSSLCertificateI::getVersion() const
+int OpenSSLCertificateI::getVersion() const
 {
     return static_cast<int>(X509_get_version(_cert));
 }
 
-x509_st*
-OpenSSLCertificateI::getCert() const
+x509_st* OpenSSLCertificateI::getCert() const
 {
     return _cert;
 }
 
-void
-OpenSSLCertificateI::loadX509Extensions() const
+void OpenSSLCertificateI::loadX509Extensions() const
 {
     IceUtil::Mutex::Lock sync(*this);
     if(_extensions.empty())
@@ -541,20 +512,18 @@ OpenSSLCertificateI::loadX509Extensions() const
             oid.resize(len);
             len = OBJ_obj2txt(&oid[0], len, obj, 1);
             oid.resize(len);
-            _extensions.push_back(ICE_DYNAMIC_CAST(IceSSL::X509Extension,
-                ICE_MAKE_SHARED(OpenSSLX509ExtensionI, ext, oid, _cert)));
+            _extensions.push_back(
+                ICE_DYNAMIC_CAST(IceSSL::X509Extension, ICE_MAKE_SHARED(OpenSSLX509ExtensionI, ext, oid, _cert)));
         }
     }
 }
 
-IceSSL::OpenSSL::CertificatePtr
-IceSSL::OpenSSL::Certificate::create(x509_st* cert)
+IceSSL::OpenSSL::CertificatePtr IceSSL::OpenSSL::Certificate::create(x509_st* cert)
 {
     return ICE_MAKE_SHARED(OpenSSLCertificateI, cert);
 }
 
-IceSSL::OpenSSL::CertificatePtr
-IceSSL::OpenSSL::Certificate::load(const std::string& file)
+IceSSL::OpenSSL::CertificatePtr IceSSL::OpenSSL::Certificate::load(const std::string& file)
 {
     BIO* cert = BIO_new(BIO_s_file());
     if(BIO_read_filename(cert, file.c_str()) <= 0)
@@ -573,10 +542,9 @@ IceSSL::OpenSSL::Certificate::load(const std::string& file)
     return ICE_MAKE_SHARED(OpenSSLCertificateI, x);
 }
 
-IceSSL::OpenSSL::CertificatePtr
-IceSSL::OpenSSL::Certificate::decode(const std::string& encoding)
+IceSSL::OpenSSL::CertificatePtr IceSSL::OpenSSL::Certificate::decode(const std::string& encoding)
 {
-    BIO *cert = BIO_new_mem_buf(static_cast<void*>(const_cast<char*>(&encoding[0])), static_cast<int>(encoding.size()));
+    BIO* cert = BIO_new_mem_buf(static_cast<void*>(const_cast<char*>(&encoding[0])), static_cast<int>(encoding.size()));
     x509_st* x = PEM_read_bio_X509(cert, ICE_NULLPTR, ICE_NULLPTR, ICE_NULLPTR);
     if(x == ICE_NULLPTR)
     {

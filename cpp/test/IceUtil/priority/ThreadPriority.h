@@ -15,11 +15,9 @@
 class ThreadPriorityTest : public TestBase
 {
 public:
-
     ThreadPriorityTest();
 
 private:
-
     virtual void run();
 };
 

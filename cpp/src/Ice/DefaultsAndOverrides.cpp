@@ -16,7 +16,10 @@ using namespace std;
 using namespace Ice;
 using namespace IceInternal;
 
-IceUtil::Shared* IceInternal::upCast(DefaultsAndOverrides* p) { return p; }
+IceUtil::Shared* IceInternal::upCast(DefaultsAndOverrides* p)
+{
+    return p;
+}
 
 IceInternal::DefaultsAndOverrides::DefaultsAndOverrides(const PropertiesPtr& properties, const LoggerPtr& logger) :
     overrideTimeout(false),
@@ -43,8 +46,8 @@ IceInternal::DefaultsAndOverrides::DefaultsAndOverrides(const PropertiesPtr& pro
         const_cast<Address&>(defaultSourceAddress) = getNumericAddress(value);
         if(!isAddressValid(defaultSourceAddress))
         {
-            throw InitializationException(__FILE__, __LINE__, "invalid IP address set for Ice.Default.SourceAddress: `" +
-                                          value + "'");
+            throw InitializationException(__FILE__, __LINE__,
+                                          "invalid IP address set for Ice.Default.SourceAddress: `" + value + "'");
         }
     }
 #endif
@@ -119,12 +122,11 @@ IceInternal::DefaultsAndOverrides::DefaultsAndOverrides(const PropertiesPtr& pro
     }
     else
     {
-        throw EndpointSelectionTypeParseException(__FILE__, __LINE__, "illegal value `" + value +
-                                                  "'; expected `Random' or `Ordered'");
+        throw EndpointSelectionTypeParseException(__FILE__, __LINE__,
+                                                  "illegal value `" + value + "'; expected `Random' or `Ordered'");
     }
 
-    const_cast<int&>(defaultTimeout) =
-        properties->getPropertyAsIntWithDefault("Ice.Default.Timeout", 60000);
+    const_cast<int&>(defaultTimeout) = properties->getPropertyAsIntWithDefault("Ice.Default.Timeout", 60000);
     if(defaultTimeout < 1 && defaultTimeout != -1)
     {
         const_cast<Int&>(defaultTimeout) = 60000;
@@ -153,14 +155,13 @@ IceInternal::DefaultsAndOverrides::DefaultsAndOverrides(const PropertiesPtr& pro
             << properties->getProperty("Ice.Default.LocatorCacheTimeout") << "': defaulting to -1";
     }
 
-    const_cast<bool&>(defaultPreferSecure) =
-        properties->getPropertyAsIntWithDefault("Ice.Default.PreferSecure", 0) > 0;
+    const_cast<bool&>(defaultPreferSecure) = properties->getPropertyAsIntWithDefault("Ice.Default.PreferSecure", 0) > 0;
 
     value = properties->getPropertyWithDefault("Ice.Default.EncodingVersion", encodingVersionToString(currentEncoding));
     defaultEncoding = stringToEncodingVersion(value);
     checkSupportedEncoding(defaultEncoding);
 
     bool slicedFormat = properties->getPropertyAsIntWithDefault("Ice.Default.SlicedFormat", 0) > 0;
-    const_cast<FormatType&>(defaultFormat) = slicedFormat ?
-        ICE_ENUM(FormatType, SlicedFormat) : ICE_ENUM(FormatType, CompactFormat);
+    const_cast<FormatType&>(defaultFormat) =
+        slicedFormat ? ICE_ENUM(FormatType, SlicedFormat) : ICE_ENUM(FormatType, CompactFormat);
 }

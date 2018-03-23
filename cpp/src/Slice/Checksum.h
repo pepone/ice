@@ -16,11 +16,10 @@
 
 namespace Slice
 {
+    typedef std::map<std::string, std::vector<unsigned char>> ChecksumMap;
 
-typedef std::map<std::string, std::vector<unsigned char> > ChecksumMap;
+    ChecksumMap createChecksums(const UnitPtr&);
 
-ChecksumMap createChecksums(const UnitPtr&);
-
-}
+} // namespace Slice
 
 #endif

@@ -22,13 +22,15 @@ using namespace Test;
 class SingleI : public Single
 {
 public:
-
-    SingleI() {}
-    virtual void event(int, const Current&) {}
+    SingleI()
+    {
+    }
+    virtual void event(int, const Current&)
+    {
+    }
 };
 
-int
-run(int argc, char* argv[], const CommunicatorPtr& communicator)
+int run(int argc, char* argv[], const CommunicatorPtr& communicator)
 {
     IceUtilInternal::Options opts;
     opts.addOpt("", "id", IceUtilInternal::Options::NeedArg);
@@ -89,8 +91,7 @@ run(int argc, char* argv[], const CommunicatorPtr& communicator)
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
     int status;
     CommunicatorPtr communicator;

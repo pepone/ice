@@ -8,7 +8,7 @@
 // **********************************************************************
 
 #ifndef TEST_API_EXPORTS
-#   define TEST_API_EXPORTS
+#    define TEST_API_EXPORTS
 #endif
 
 #include <Ice/EndpointFactoryManager.h>
@@ -18,31 +18,26 @@
 
 using namespace std;
 
-EndpointFactory::EndpointFactory(const IceInternal::EndpointFactoryPtr& factory) :
-    _factory(factory)
+EndpointFactory::EndpointFactory(const IceInternal::EndpointFactoryPtr& factory) : _factory(factory)
 {
 }
 
-Ice::Short
-EndpointFactory::type() const
+Ice::Short EndpointFactory::type() const
 {
     return (Ice::Short)(EndpointI::TYPE_BASE + _factory->type());
 }
 
-string
-EndpointFactory::protocol() const
+string EndpointFactory::protocol() const
 {
     return "test-" + _factory->protocol();
 }
 
-IceInternal::EndpointIPtr
-EndpointFactory::create(vector<string>& args, bool oaEndpoint) const
+IceInternal::EndpointIPtr EndpointFactory::create(vector<string>& args, bool oaEndpoint) const
 {
     return ICE_MAKE_SHARED(EndpointI, _factory->create(args, oaEndpoint));
 }
 
-IceInternal::EndpointIPtr
-EndpointFactory::read(Ice::InputStream* s) const
+IceInternal::EndpointIPtr EndpointFactory::read(Ice::InputStream* s) const
 {
     short type;
     s->read(type);
@@ -54,13 +49,11 @@ EndpointFactory::read(Ice::InputStream* s) const
     return endpoint;
 }
 
-void
-EndpointFactory::destroy()
+void EndpointFactory::destroy()
 {
 }
 
-IceInternal::EndpointFactoryPtr
-EndpointFactory::clone(const IceInternal::ProtocolInstancePtr&) const
+IceInternal::EndpointFactoryPtr EndpointFactory::clone(const IceInternal::ProtocolInstancePtr&) const
 {
     return const_cast<EndpointFactory*>(this);
 }

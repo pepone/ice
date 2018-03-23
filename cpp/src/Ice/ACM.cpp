@@ -19,8 +19,14 @@ using namespace Ice;
 using namespace IceInternal;
 
 #ifndef ICE_CPP11_MAPPING
-IceUtil::Shared* IceInternal::upCast(ACMMonitor* p) { return p; }
-IceUtil::Shared* IceInternal::upCast(FactoryACMMonitor* p) { return p; }
+IceUtil::Shared* IceInternal::upCast(ACMMonitor* p)
+{
+    return p;
+}
+IceUtil::Shared* IceInternal::upCast(FactoryACMMonitor* p)
+{
+    return p;
+}
 #endif
 
 IceInternal::ACMConfig::ACMConfig(bool server) :
@@ -30,9 +36,7 @@ IceInternal::ACMConfig::ACMConfig(bool server) :
 {
 }
 
-IceInternal::ACMConfig::ACMConfig(const Ice::PropertiesPtr& p,
-                                  const Ice::LoggerPtr& l,
-                                  const string& prefix,
+IceInternal::ACMConfig::ACMConfig(const Ice::PropertiesPtr& p, const Ice::LoggerPtr& l, const string& prefix,
                                   const ACMConfig& dflt)
 {
     string timeoutProperty;
@@ -82,7 +86,8 @@ IceInternal::ACMConfig::ACMConfig(const Ice::PropertiesPtr& p,
 }
 
 IceInternal::FactoryACMMonitor::FactoryACMMonitor(const InstancePtr& instance, const ACMConfig& config) :
-    _instance(instance), _config(config)
+    _instance(instance),
+    _config(config)
 {
 }
 
@@ -94,8 +99,7 @@ IceInternal::FactoryACMMonitor::~FactoryACMMonitor()
     assert(_reapedConnections.empty());
 }
 
-void
-IceInternal::FactoryACMMonitor::destroy()
+void IceInternal::FactoryACMMonitor::destroy()
 {
     Lock sync(*this);
     if(!_instance)
@@ -133,8 +137,7 @@ IceInternal::FactoryACMMonitor::destroy()
     }
 }
 
-void
-IceInternal::FactoryACMMonitor::add(const ConnectionIPtr& connection)
+void IceInternal::FactoryACMMonitor::add(const ConnectionIPtr& connection)
 {
     if(_config.timeout == IceUtil::Time())
     {
@@ -153,8 +156,7 @@ IceInternal::FactoryACMMonitor::add(const ConnectionIPtr& connection)
     }
 }
 
-void
-IceInternal::FactoryACMMonitor::remove(const ConnectionIPtr& connection)
+void IceInternal::FactoryACMMonitor::remove(const ConnectionIPtr& connection)
 {
     if(_config.timeout == IceUtil::Time())
     {
@@ -166,17 +168,15 @@ IceInternal::FactoryACMMonitor::remove(const ConnectionIPtr& connection)
     _changes.push_back(make_pair(connection, false));
 }
 
-void
-IceInternal::FactoryACMMonitor::reap(const ConnectionIPtr& connection)
+void IceInternal::FactoryACMMonitor::reap(const ConnectionIPtr& connection)
 {
     Lock sync(*this);
     _reapedConnections.push_back(connection);
 }
 
-ACMMonitorPtr
-IceInternal::FactoryACMMonitor::acm(const IceUtil::Optional<int>& timeout,
-                                    const IceUtil::Optional<Ice::ACMClose>& close,
-                                    const IceUtil::Optional<Ice::ACMHeartbeat>& heartbeat)
+ACMMonitorPtr IceInternal::FactoryACMMonitor::acm(const IceUtil::Optional<int>& timeout,
+                                                  const IceUtil::Optional<Ice::ACMClose>& close,
+                                                  const IceUtil::Optional<Ice::ACMHeartbeat>& heartbeat)
 {
     Lock sync(*this);
     assert(_instance);
@@ -197,8 +197,7 @@ IceInternal::FactoryACMMonitor::acm(const IceUtil::Optional<int>& timeout,
     return ICE_MAKE_SHARED(ConnectionACMMonitor, ICE_SHARED_FROM_THIS, _instance->timer(), config);
 }
 
-Ice::ACM
-IceInternal::FactoryACMMonitor::getACM()
+Ice::ACM IceInternal::FactoryACMMonitor::getACM()
 {
     Ice::ACM acm;
     acm.timeout = static_cast<int>(_config.timeout.toSeconds());
@@ -207,15 +206,13 @@ IceInternal::FactoryACMMonitor::getACM()
     return acm;
 }
 
-void
-IceInternal::FactoryACMMonitor::swapReapedConnections(vector<ConnectionIPtr>& connections)
+void IceInternal::FactoryACMMonitor::swapReapedConnections(vector<ConnectionIPtr>& connections)
 {
     Lock sync(*this);
     _reapedConnections.swap(connections);
 }
 
-void
-IceInternal::FactoryACMMonitor::runTimerTask()
+void IceInternal::FactoryACMMonitor::runTimerTask()
 {
     {
         Lock sync(*this);
@@ -226,7 +223,7 @@ IceInternal::FactoryACMMonitor::runTimerTask()
             return;
         }
 
-        for(vector<pair<ConnectionIPtr, bool> >::const_iterator p = _changes.begin(); p != _changes.end(); ++p)
+        for(vector<pair<ConnectionIPtr, bool>>::const_iterator p = _changes.begin(); p != _changes.end(); ++p)
         {
             if(p->second)
             {
@@ -268,8 +265,7 @@ IceInternal::FactoryACMMonitor::runTimerTask()
     }
 }
 
-void
-FactoryACMMonitor::handleException(const exception& ex)
+void FactoryACMMonitor::handleException(const exception& ex)
 {
     Lock sync(*this);
     if(!_instance)
@@ -281,8 +277,7 @@ FactoryACMMonitor::handleException(const exception& ex)
     out << "exception in connection monitor:\n" << ex.what();
 }
 
-void
-FactoryACMMonitor::handleException()
+void FactoryACMMonitor::handleException()
 {
     Lock sync(*this);
     if(!_instance)
@@ -295,9 +290,10 @@ FactoryACMMonitor::handleException()
 }
 
 IceInternal::ConnectionACMMonitor::ConnectionACMMonitor(const FactoryACMMonitorPtr& parent,
-                                                        const IceUtil::TimerPtr& timer,
-                                                        const ACMConfig& config) :
-    _parent(parent), _timer(timer), _config(config)
+                                                        const IceUtil::TimerPtr& timer, const ACMConfig& config) :
+    _parent(parent),
+    _timer(timer),
+    _config(config)
 {
 }
 
@@ -306,8 +302,7 @@ IceInternal::ConnectionACMMonitor::~ConnectionACMMonitor()
     assert(!_connection);
 }
 
-void
-IceInternal::ConnectionACMMonitor::add(const ConnectionIPtr& connection)
+void IceInternal::ConnectionACMMonitor::add(const ConnectionIPtr& connection)
 {
     Lock sync(*this);
     assert(!_connection && connection);
@@ -318,8 +313,7 @@ IceInternal::ConnectionACMMonitor::add(const ConnectionIPtr& connection)
     }
 }
 
-void
-IceInternal::ConnectionACMMonitor::remove(const ConnectionIPtr& connection)
+void IceInternal::ConnectionACMMonitor::remove(const ConnectionIPtr& connection)
 {
     Lock sync(*this);
     assert(_connection == connection);
@@ -330,22 +324,19 @@ IceInternal::ConnectionACMMonitor::remove(const ConnectionIPtr& connection)
     _connection = 0;
 }
 
-void
-IceInternal::ConnectionACMMonitor::reap(const ConnectionIPtr& connection)
+void IceInternal::ConnectionACMMonitor::reap(const ConnectionIPtr& connection)
 {
     _parent->reap(connection);
 }
 
-ACMMonitorPtr
-IceInternal::ConnectionACMMonitor::acm(const IceUtil::Optional<int>& timeout,
-                                       const IceUtil::Optional<Ice::ACMClose>& close,
-                                       const IceUtil::Optional<Ice::ACMHeartbeat>& heartbeat)
+ACMMonitorPtr IceInternal::ConnectionACMMonitor::acm(const IceUtil::Optional<int>& timeout,
+                                                     const IceUtil::Optional<Ice::ACMClose>& close,
+                                                     const IceUtil::Optional<Ice::ACMHeartbeat>& heartbeat)
 {
     return _parent->acm(timeout, close, heartbeat);
 }
 
-Ice::ACM
-IceInternal::ConnectionACMMonitor::getACM()
+Ice::ACM IceInternal::ConnectionACMMonitor::getACM()
 {
     Ice::ACM acm;
     acm.timeout = static_cast<int>(_config.timeout.toSeconds());
@@ -354,8 +345,7 @@ IceInternal::ConnectionACMMonitor::getACM()
     return acm;
 }
 
-void
-IceInternal::ConnectionACMMonitor::runTimerTask()
+void IceInternal::ConnectionACMMonitor::runTimerTask()
 {
     Ice::ConnectionIPtr connection;
     {

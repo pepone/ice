@@ -15,7 +15,6 @@
 class MyObjectI : public virtual Test::MyObject
 {
 public:
-
     virtual void ice_ping(const Ice::Current&) const;
     virtual std::string getName(const Ice::Current&);
 };

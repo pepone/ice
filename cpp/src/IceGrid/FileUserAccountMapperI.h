@@ -14,20 +14,17 @@
 
 namespace IceGrid
 {
+    class FileUserAccountMapperI : public UserAccountMapper
+    {
+    public:
+        FileUserAccountMapperI(const std::string&);
 
-class FileUserAccountMapperI : public UserAccountMapper
-{
-public:
+        virtual std::string getUserAccount(const std::string&, const Ice::Current&);
 
-    FileUserAccountMapperI(const std::string&);
+    private:
+        std::map<std::string, std::string> _accounts;
+    };
 
-    virtual std::string getUserAccount(const std::string&, const Ice::Current&);
-
-private:
-
-    std::map<std::string, std::string> _accounts;
-};
-
-};
+}; // namespace IceGrid
 
 #endif

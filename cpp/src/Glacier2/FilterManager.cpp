@@ -22,8 +22,7 @@ using namespace Ice;
 // Parse a space delimited string into a sequence of strings.
 //
 
-static void
-stringToSeq(const string& str, vector<string>& seq)
+static void stringToSeq(const string& str, vector<string>& seq)
 {
     IceUtilInternal::splitString(str, " \t", seq);
 
@@ -32,8 +31,7 @@ stringToSeq(const string& str, vector<string>& seq)
     //
 }
 
-static void
-stringToSeq(const string& str, vector<Identity>& seq)
+static void stringToSeq(const string& str, vector<Identity>& seq)
 {
     string const ws = " \t";
 
@@ -46,57 +44,57 @@ stringToSeq(const string& str, vector<Identity>& seq)
     {
         switch(str[current])
         {
-        case '"':
-        case '\'':
-        {
-            char quote = str[current];
-            end = current+1;
-            while(true)
+            case '"':
+            case '\'':
             {
-                end = str.find(quote, end);
+                char quote = str[current];
+                end = current + 1;
+                while(true)
+                {
+                    end = str.find(quote, end);
 
-                if(end == string::npos)
-                {
-                    //
-                    // TODO: should this be an unmatched quote error?
-                    //
-                    seq.push_back(stringToIdentity(str.substr(current)));
-                    break;
-                }
+                    if(end == string::npos)
+                    {
+                        //
+                        // TODO: should this be an unmatched quote error?
+                        //
+                        seq.push_back(stringToIdentity(str.substr(current)));
+                        break;
+                    }
 
-                bool markString = true;
-                for(string::size_type r = end -1 ; r > current && str[r] == '\\' ; --r)
-                {
-                    markString = !markString;
+                    bool markString = true;
+                    for(string::size_type r = end - 1; r > current && str[r] == '\\'; --r)
+                    {
+                        markString = !markString;
+                    }
+                    //
+                    // We don't want the quote so we skip that.
+                    //
+                    if(markString)
+                    {
+                        ++current;
+                        seq.push_back(stringToIdentity(str.substr(current, end - current)));
+                        break;
+                    }
+                    else
+                    {
+                        ++end;
+                    }
                 }
-                //
-                // We don't want the quote so we skip that.
-                //
-                if(markString)
-                {
-                    ++current;
-                    seq.push_back(stringToIdentity(str.substr(current, end-current)));
-                    break;
-                }
-                else
+                if(end != string::npos)
                 {
                     ++end;
                 }
+                break;
             }
-            if(end != string::npos)
-            {
-                ++end;
-            }
-            break;
-        }
 
-        default:
-        {
-            end = str.find_first_of(ws, current);
-            string::size_type len = (end == string::npos) ? string::npos : end - current;
-            seq.push_back(stringToIdentity(str.substr(current, len)));
-            break;
-        }
+            default:
+            {
+                end = str.find_first_of(ws, current);
+                string::size_type len = (end == string::npos) ? string::npos : end - current;
+                seq.push_back(stringToIdentity(str.substr(current, len)));
+                break;
+            }
         }
         current = str.find_first_not_of(ws, end);
     }
@@ -107,8 +105,7 @@ Glacier2::FilterManager::~FilterManager()
     destroy();
 }
 
-void
-Glacier2::FilterManager::destroy()
+void Glacier2::FilterManager::destroy()
 {
     Ice::ObjectAdapterPtr adapter = _instance->serverObjectAdapter();
     if(adapter)
@@ -171,8 +168,8 @@ Glacier2::FilterManager::FilterManager(const InstancePtr& instance, const Glacie
     }
 }
 
-Glacier2::FilterManagerPtr
-Glacier2::FilterManager::create(const InstancePtr& instance, const string& userId, const bool allowAddUser)
+Glacier2::FilterManagerPtr Glacier2::FilterManager::create(const InstancePtr& instance, const string& userId,
+                                                           const bool allowAddUser)
 {
     PropertiesPtr props = instance->properties();
     string allow = props->getProperty("Glacier2.Filter.Category.Accept");

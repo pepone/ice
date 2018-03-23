@@ -19,9 +19,7 @@ using namespace std;
 class EchoI : public Test::Echo
 {
 public:
-
-    EchoI(const BlobjectIPtr& blob) :
-        _blob(blob)
+    EchoI(const BlobjectIPtr& blob) : _blob(blob)
     {
     }
 
@@ -46,12 +44,10 @@ public:
     }
 
 private:
-
     BlobjectIPtr _blob;
 };
 
-int
-run(int argc, char* argv[], const Ice::CommunicatorPtr& communicator)
+int run(int argc, char* argv[], const Ice::CommunicatorPtr& communicator)
 {
     communicator->getProperties()->setProperty("TestAdapter.Endpoints", getTestEndpoint(communicator, 0));
     Ice::ObjectAdapterPtr adapter = communicator->createObjectAdapter("TestAdapter");
@@ -66,8 +62,7 @@ run(int argc, char* argv[], const Ice::CommunicatorPtr& communicator)
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
     int status;
     Ice::CommunicatorPtr communicator;

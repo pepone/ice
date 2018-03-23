@@ -17,8 +17,7 @@ using namespace std;
 using namespace Ice;
 using namespace IceBT;
 
-IceInternal::TransceiverPtr
-IceBT::ConnectorI::connect()
+IceInternal::TransceiverPtr IceBT::ConnectorI::connect()
 {
     //
     // The plug-in may not be initialized.
@@ -34,20 +33,17 @@ IceBT::ConnectorI::connect()
     return new TransceiverI(_instance, _addr, _uuid);
 }
 
-Short
-IceBT::ConnectorI::type() const
+Short IceBT::ConnectorI::type() const
 {
     return _instance->type();
 }
 
-string
-IceBT::ConnectorI::toString() const
+string IceBT::ConnectorI::toString() const
 {
     return _addr;
 }
 
-bool
-IceBT::ConnectorI::operator==(const IceInternal::Connector& r) const
+bool IceBT::ConnectorI::operator==(const IceInternal::Connector& r) const
 {
     const ConnectorI* p = dynamic_cast<const ConnectorI*>(&r);
     if(!p)
@@ -78,14 +74,12 @@ IceBT::ConnectorI::operator==(const IceInternal::Connector& r) const
     return true;
 }
 
-bool
-IceBT::ConnectorI::operator!=(const IceInternal::Connector& r) const
+bool IceBT::ConnectorI::operator!=(const IceInternal::Connector& r) const
 {
     return !operator==(r);
 }
 
-bool
-IceBT::ConnectorI::operator<(const IceInternal::Connector& r) const
+bool IceBT::ConnectorI::operator<(const IceInternal::Connector& r) const
 {
     const ConnectorI* p = dynamic_cast<const ConnectorI*>(&r);
     if(!p)

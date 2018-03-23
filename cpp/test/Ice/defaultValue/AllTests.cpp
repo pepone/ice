@@ -14,8 +14,7 @@
 using namespace std;
 using namespace Test;
 
-void
-allTests()
+void allTests()
 {
     cout << "testing default values... " << flush;
 

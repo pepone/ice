@@ -25,14 +25,12 @@ using namespace std;
 using namespace Ice;
 using namespace IceInternal;
 
-NativeInfoPtr
-IceObjC::StreamAcceptor::getNativeInfo()
+NativeInfoPtr IceObjC::StreamAcceptor::getNativeInfo()
 {
     return this;
 }
 
-void
-IceObjC::StreamAcceptor::close()
+void IceObjC::StreamAcceptor::close()
 {
     if(_fd != INVALID_SOCKET)
     {
@@ -41,8 +39,7 @@ IceObjC::StreamAcceptor::close()
     }
 }
 
-EndpointIPtr
-IceObjC::StreamAcceptor::listen()
+EndpointIPtr IceObjC::StreamAcceptor::listen()
 {
     try
     {
@@ -59,8 +56,7 @@ IceObjC::StreamAcceptor::listen()
     return _endpoint;
 }
 
-TransceiverPtr
-IceObjC::StreamAcceptor::accept()
+TransceiverPtr IceObjC::StreamAcceptor::accept()
 {
     SOCKET fd = doAccept(_fd);
     setBlock(fd, false);
@@ -87,20 +83,17 @@ IceObjC::StreamAcceptor::accept()
     }
 }
 
-string
-IceObjC::StreamAcceptor::protocol() const
+string IceObjC::StreamAcceptor::protocol() const
 {
     return _instance->protocol();
 }
 
-string
-IceObjC::StreamAcceptor::toString() const
+string IceObjC::StreamAcceptor::toString() const
 {
     return addrToString(_addr);
 }
 
-string
-IceObjC::StreamAcceptor::toDetailedString() const
+string IceObjC::StreamAcceptor::toDetailedString() const
 {
     ostringstream os;
     os << "local address = " << toString();
@@ -113,16 +106,13 @@ IceObjC::StreamAcceptor::toDetailedString() const
     return os.str();
 }
 
-int
-IceObjC::StreamAcceptor::effectivePort() const
+int IceObjC::StreamAcceptor::effectivePort() const
 {
     return getPort(_addr);
 }
 
-IceObjC::StreamAcceptor::StreamAcceptor(const StreamEndpointIPtr& endpoint,
-                                        const InstancePtr& instance,
-                                        const string& host,
-                                        int port) :
+IceObjC::StreamAcceptor::StreamAcceptor(const StreamEndpointIPtr& endpoint, const InstancePtr& instance,
+                                        const string& host, int port) :
     _endpoint(endpoint),
     _instance(instance),
     _addr(getAddressForServer(host, port, instance->protocolSupport(), instance->preferIPv6(), true))

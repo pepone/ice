@@ -23,69 +23,62 @@ using namespace IceUtilInternal;
 
 namespace
 {
+    IceUtil::Mutex* globalMutex = 0;
+    bool interrupted = false;
 
-IceUtil::Mutex* globalMutex = 0;
-bool interrupted = false;
-
-class Init
-{
-public:
-
-    Init()
+    class Init
     {
-        globalMutex = new IceUtil::Mutex;
-    }
+    public:
+        Init()
+        {
+            globalMutex = new IceUtil::Mutex;
+        }
 
-    ~Init()
-    {
-        delete globalMutex;
-        globalMutex = 0;
-    }
-};
+        ~Init()
+        {
+            delete globalMutex;
+            globalMutex = 0;
+        }
+    };
 
-Init init;
+    Init init;
 
-}
+} // namespace
 
-void
-interruptedCallback(int signal)
+void interruptedCallback(int signal)
 {
     IceUtilInternal::MutexPtrLock<IceUtil::Mutex> sync(globalMutex);
     interrupted = true;
 }
 
-void
-usage(const string& n)
+void usage(const string& n)
 {
     consoleErr << "Usage: " << n << " [options] slice-files...\n";
-    consoleErr <<
-        "Options:\n"
-        "-h, --help               Show this message.\n"
-        "-v, --version            Display the Ice version.\n"
-        "-DNAME                   Define NAME as 1.\n"
-        "-DNAME=DEF               Define NAME as DEF.\n"
-        "-UNAME                   Remove any definition for NAME.\n"
-        "-IDIR                    Put DIR in the include file search path.\n"
-        "-E                       Print preprocessor output on stdout.\n"
-        "--output-dir DIR         Create files in the directory DIR.\n"
-        "-d, --debug              Print debug messages.\n"
-        "--depend                 Generate Makefile dependencies.\n"
-        "--depend-xml             Generate dependencies in XML format.\n"
-        "--depend-file FILE       Write dependencies to FILE instead of standard output.\n"
-        "--validate               Validate command line options.\n"
-        "--include-dir DIR        Use DIR as the header include directory in source files.\n"
-        "--dll-export SYMBOL      Use SYMBOL for DLL exports\n"
-        "                         deprecated: use instead [[\"objc:dll-export:SYMBOL\"]] metadata.\n"
-        "--ice                    Allow reserved Ice prefix in Slice identifiers\n"
-        "                         deprecated: use instead [[\"ice-prefix\"]] metadata.\n"
-        "--underscore             Allow underscores in Slice identifiers\n"
-        "                         deprecated: use instead [[\"underscore\"]] metadata.\n"
-        ;
+    consoleErr << "Options:\n"
+                  "-h, --help               Show this message.\n"
+                  "-v, --version            Display the Ice version.\n"
+                  "-DNAME                   Define NAME as 1.\n"
+                  "-DNAME=DEF               Define NAME as DEF.\n"
+                  "-UNAME                   Remove any definition for NAME.\n"
+                  "-IDIR                    Put DIR in the include file search path.\n"
+                  "-E                       Print preprocessor output on stdout.\n"
+                  "--output-dir DIR         Create files in the directory DIR.\n"
+                  "-d, --debug              Print debug messages.\n"
+                  "--depend                 Generate Makefile dependencies.\n"
+                  "--depend-xml             Generate dependencies in XML format.\n"
+                  "--depend-file FILE       Write dependencies to FILE instead of standard output.\n"
+                  "--validate               Validate command line options.\n"
+                  "--include-dir DIR        Use DIR as the header include directory in source files.\n"
+                  "--dll-export SYMBOL      Use SYMBOL for DLL exports\n"
+                  "                         deprecated: use instead [[\"objc:dll-export:SYMBOL\"]] metadata.\n"
+                  "--ice                    Allow reserved Ice prefix in Slice identifiers\n"
+                  "                         deprecated: use instead [[\"ice-prefix\"]] metadata.\n"
+                  "--underscore             Allow underscores in Slice identifiers\n"
+                  "                         deprecated: use instead [[\"underscore\"]] metadata.\n";
     // Note: --case-sensitive is intentionally not shown here!
 }
 
-int
-compile(const vector<string>& argv)
+int compile(const vector<string>& argv)
 {
     IceUtilInternal::Options opts;
     opts.addOpt("h", "help");
@@ -360,7 +353,8 @@ int main(int argc, char* argv[])
     }
     catch(...)
     {
-        consoleErr << args[0] << ": error:" << "unknown exception" << endl;
+        consoleErr << args[0] << ": error:"
+                   << "unknown exception" << endl;
         return EXIT_FAILURE;
     }
 }

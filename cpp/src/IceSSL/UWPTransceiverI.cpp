@@ -28,87 +28,84 @@ using namespace Windows::Security::Cryptography::Certificates;
 
 namespace
 {
-
-std::string
-validationResultToString(ChainValidationResult result)
-{
-    switch (result)
+    std::string validationResultToString(ChainValidationResult result)
     {
-        case ChainValidationResult::Success:
+        switch(result)
         {
-            return "The certificate chain was verified.";
-        }
-        case ChainValidationResult::Untrusted:
-        {
-            return "A certificate in the chain is not trusted.";
-        }
-        case ChainValidationResult::Revoked:
-        {
-            return "A certificate in the chain has been revoked.";
-        }
-        case ChainValidationResult::Expired:
-        {
-            return "A certificate in the chain has expired.";
-        }
-        case ChainValidationResult::IncompleteChain:
-        {
-            return "The certificate chain is missing one or more certificates.";
-        }
-        case ChainValidationResult::InvalidSignature:
-        {
-            return "The signature of a certificate in the chain cannot be verified.";
-        }
-        case ChainValidationResult::WrongUsage:
-        {
-            return "A certificate in the chain is being used for a purpose other than one specified by its CA.";
-        }
-        case ChainValidationResult::InvalidName:
-        {
-            return "A certificate in the chain has a name that is not valid. The name is either not included in "
-                   "the permitted list or is explicitly excluded.";
-        }
-        case ChainValidationResult::InvalidCertificateAuthorityPolicy:
-        {
-            return "A certificate in the chain has a policy that is not valid.";
-        }
-        case ChainValidationResult::BasicConstraintsError:
-        {
-            return "The basic constraint extension of a certificate in the chain has not been observed.";
-        }
-        case ChainValidationResult::UnknownCriticalExtension:
-        {
-            return "A certificate in the chain contains an unknown extension that is marked \"critical\".";
-        }
-        case ChainValidationResult::RevocationInformationMissing:
-        {
-            return "No installed or registered DLL was found to verify revocation.";
-        }
-        case ChainValidationResult::RevocationFailure:
-        {
-            return "Unable to connect to the revocation server.";
-        }
-        case ChainValidationResult::OtherErrors:
-        {
-            return "An unexpected error occurred while validating the certificate chain.";
-        }
-        default:
-        {
-            assert(false);
-            return "";
+            case ChainValidationResult::Success:
+            {
+                return "The certificate chain was verified.";
+            }
+            case ChainValidationResult::Untrusted:
+            {
+                return "A certificate in the chain is not trusted.";
+            }
+            case ChainValidationResult::Revoked:
+            {
+                return "A certificate in the chain has been revoked.";
+            }
+            case ChainValidationResult::Expired:
+            {
+                return "A certificate in the chain has expired.";
+            }
+            case ChainValidationResult::IncompleteChain:
+            {
+                return "The certificate chain is missing one or more certificates.";
+            }
+            case ChainValidationResult::InvalidSignature:
+            {
+                return "The signature of a certificate in the chain cannot be verified.";
+            }
+            case ChainValidationResult::WrongUsage:
+            {
+                return "A certificate in the chain is being used for a purpose other than one specified by its CA.";
+            }
+            case ChainValidationResult::InvalidName:
+            {
+                return "A certificate in the chain has a name that is not valid. The name is either not included in "
+                       "the permitted list or is explicitly excluded.";
+            }
+            case ChainValidationResult::InvalidCertificateAuthorityPolicy:
+            {
+                return "A certificate in the chain has a policy that is not valid.";
+            }
+            case ChainValidationResult::BasicConstraintsError:
+            {
+                return "The basic constraint extension of a certificate in the chain has not been observed.";
+            }
+            case ChainValidationResult::UnknownCriticalExtension:
+            {
+                return "A certificate in the chain contains an unknown extension that is marked \"critical\".";
+            }
+            case ChainValidationResult::RevocationInformationMissing:
+            {
+                return "No installed or registered DLL was found to verify revocation.";
+            }
+            case ChainValidationResult::RevocationFailure:
+            {
+                return "Unable to connect to the revocation server.";
+            }
+            case ChainValidationResult::OtherErrors:
+            {
+                return "An unexpected error occurred while validating the certificate chain.";
+            }
+            default:
+            {
+                assert(false);
+                return "";
+            }
         }
     }
-}
 
-}
+} // namespace
 
-IceInternal::NativeInfoPtr
-UWP::TransceiverI::getNativeInfo()
+IceInternal::NativeInfoPtr UWP::TransceiverI::getNativeInfo()
 {
     return _delegate->getNativeInfo();
 }
 
-IceInternal::SocketOperation
-UWP::TransceiverI::initialize(IceInternal::Buffer& readBuffer, IceInternal::Buffer& writeBuffer)
+IceInternal::SocketOperation UWP::TransceiverI::initialize(IceInternal::Buffer& readBuffer,
+                                                           IceInternal::Buffer& writeBuffer)
 {
     if(!_connected)
     {
@@ -130,7 +127,7 @@ UWP::TransceiverI::initialize(IceInternal::Buffer& readBuffer, IceInternal::Buff
         _upgraded = true;
         try
         {
-            auto fd = safe_cast<StreamSocket^>(_delegate->getNativeInfo()->fd());
+            auto fd = safe_cast<StreamSocket ^>(_delegate->getNativeInfo()->fd());
             if(fd->Information->ServerCertificate)
             {
                 //
@@ -146,16 +143,17 @@ UWP::TransceiverI::initialize(IceInternal::Buffer& readBuffer, IceInternal::Buff
                 // BUGFIX: It is currently not possible to set ExclusiveTrustRoots programatically
                 // it is causing a read access exception see:https://goo.gl/B6OaNx
                 //
-                //if(_engine->ca())
+                // if(_engine->ca())
                 //{
                 // params->ExclusiveTrustRoots->Append(_engine->ca()->getCert());
                 //}
                 try
                 {
                     _chain = create_task(fd->Information->ServerCertificate->BuildChainAsync(
-                                         fd->Information->ServerIntermediateCertificates, params)).get();
+                                             fd->Information->ServerIntermediateCertificates, params))
+                                 .get();
                 }
-                catch(Platform::Exception^ ex)
+                catch(Platform::Exception ^ ex)
                 {
                     throw SyscallException(__FILE__, __LINE__, ex->HResult);
                 }
@@ -168,14 +166,15 @@ UWP::TransceiverI::initialize(IceInternal::Buffer& readBuffer, IceInternal::Buff
                         if(_instance->traceLevel() >= 1)
                         {
                             _instance->logger()->trace(_instance->traceCategory(),
-                                "IceSSL: ignoring certificate verification failure\n" +
-                                validationResultToString(result));
+                                                       "IceSSL: ignoring certificate verification failure\n" +
+                                                           validationResultToString(result));
                         }
                     }
                     else
                     {
                         throw SecurityException(__FILE__, __LINE__,
-                            "IceSSL: certificate validation error:\n" + validationResultToString(result));
+                                                "IceSSL: certificate validation error:\n" +
+                                                    validationResultToString(result));
                     }
                 }
                 else
@@ -204,7 +203,7 @@ UWP::TransceiverI::initialize(IceInternal::Buffer& readBuffer, IceInternal::Buff
 
             _engine->verifyPeer(_host, dynamic_pointer_cast<IceSSL::ConnectionInfo>(getInfo()), toString());
         }
-        catch(Platform::Exception^ ex)
+        catch(Platform::Exception ^ ex)
         {
             ostringstream os;
             os << "IceSSL: certificate verification failure:\n" << wstringToString(ex->Message->Data());
@@ -214,37 +213,32 @@ UWP::TransceiverI::initialize(IceInternal::Buffer& readBuffer, IceInternal::Buff
     return IceInternal::SocketOperationNone;
 }
 
-IceInternal::SocketOperation
-UWP::TransceiverI::closing(bool initiator, const Ice::LocalException& ex)
+IceInternal::SocketOperation UWP::TransceiverI::closing(bool initiator, const Ice::LocalException& ex)
 {
     return _delegate->closing(initiator, ex);
 }
 
-void
-UWP::TransceiverI::close()
+void UWP::TransceiverI::close()
 {
     _delegate->close();
 }
 
-IceInternal::SocketOperation
-UWP::TransceiverI::write(IceInternal::Buffer& buf)
+IceInternal::SocketOperation UWP::TransceiverI::write(IceInternal::Buffer& buf)
 {
     return _delegate->write(buf);
 }
 
-IceInternal::SocketOperation
-UWP::TransceiverI::read(IceInternal::Buffer& buf)
+IceInternal::SocketOperation UWP::TransceiverI::read(IceInternal::Buffer& buf)
 {
     return _delegate->read(buf);
 }
 
-bool
-UWP::TransceiverI::startWrite(IceInternal::Buffer& buf)
+bool UWP::TransceiverI::startWrite(IceInternal::Buffer& buf)
 {
     if(_connected && !_upgraded)
     {
-        StreamSocket^ stream = safe_cast<StreamSocket^>(_delegate->getNativeInfo()->fd());
-        HostName^ host = ref new HostName(ref new String(IceUtil::stringToWstring(_host).c_str()));
+        StreamSocket ^ stream = safe_cast<StreamSocket ^>(_delegate->getNativeInfo()->fd());
+        HostName ^ host = ref new HostName(ref new String(IceUtil::stringToWstring(_host).c_str()));
 
         //
         // We ignore SSL Certificate errors at this point, the certificate chain will be validated
@@ -271,10 +265,10 @@ UWP::TransceiverI::startWrite(IceInternal::Buffer& buf)
 
         try
         {
-            Windows::Foundation::IAsyncAction^ action = stream->UpgradeToSslAsync(SocketProtectionLevel::Tls12, host);
+            Windows::Foundation::IAsyncAction ^ action = stream->UpgradeToSslAsync(SocketProtectionLevel::Tls12, host);
             getNativeInfo()->queueAction(IceInternal::SocketOperationWrite, action);
         }
-        catch(Platform::Exception^ ex)
+        catch(Platform::Exception ^ ex)
         {
             IceInternal::checkErrorCode(__FILE__, __LINE__, ex->HResult);
         }
@@ -283,8 +277,7 @@ UWP::TransceiverI::startWrite(IceInternal::Buffer& buf)
     return _delegate->startWrite(buf);
 }
 
-void
-UWP::TransceiverI::finishWrite(IceInternal::Buffer& buf)
+void UWP::TransceiverI::finishWrite(IceInternal::Buffer& buf)
 {
     if(_connected && !_upgraded)
     {
@@ -314,38 +307,32 @@ UWP::TransceiverI::finishWrite(IceInternal::Buffer& buf)
     _delegate->finishWrite(buf);
 }
 
-void
-UWP::TransceiverI::startRead(IceInternal::Buffer& buf)
+void UWP::TransceiverI::startRead(IceInternal::Buffer& buf)
 {
     _delegate->startRead(buf);
 }
 
-void
-UWP::TransceiverI::finishRead(IceInternal::Buffer& buf)
+void UWP::TransceiverI::finishRead(IceInternal::Buffer& buf)
 {
     _delegate->finishRead(buf);
 }
 
-string
-UWP::TransceiverI::protocol() const
+string UWP::TransceiverI::protocol() const
 {
     return _instance->protocol();
 }
 
-string
-UWP::TransceiverI::toString() const
+string UWP::TransceiverI::toString() const
 {
     return _delegate->toString();
 }
 
-string
-UWP::TransceiverI::toDetailedString() const
+string UWP::TransceiverI::toDetailedString() const
 {
     return toString();
 }
 
-Ice::ConnectionInfoPtr
-UWP::TransceiverI::getInfo() const
+Ice::ConnectionInfoPtr UWP::TransceiverI::getInfo() const
 {
     ConnectionInfoPtr info = ICE_MAKE_SHARED(ConnectionInfo);
     info->verified = _verified;
@@ -356,21 +343,17 @@ UWP::TransceiverI::getInfo() const
     return info;
 }
 
-void
-UWP::TransceiverI::checkSendSize(const IceInternal::Buffer&)
+void UWP::TransceiverI::checkSendSize(const IceInternal::Buffer&)
 {
 }
 
-void
-UWP::TransceiverI::setBufferSize(int rcvSize, int sndSize)
+void UWP::TransceiverI::setBufferSize(int rcvSize, int sndSize)
 {
     _delegate->setBufferSize(rcvSize, sndSize);
 }
 
-UWP::TransceiverI::TransceiverI(const InstancePtr& instance,
-                                   const IceInternal::TransceiverPtr& delegate,
-                                   const string& hostOrAdapterName,
-                                   bool incoming) :
+UWP::TransceiverI::TransceiverI(const InstancePtr& instance, const IceInternal::TransceiverPtr& delegate,
+                                const string& hostOrAdapterName, bool incoming) :
     _instance(instance),
     _engine(UWP::SSLEnginePtr::dynamicCast(instance->engine())),
     _host(incoming ? "" : hostOrAdapterName),

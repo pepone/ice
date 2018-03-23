@@ -15,45 +15,43 @@
 
 namespace Glacier2
 {
-
-//
-// Base class for proxy rule implementations.
-//
-
-class ProxyRule
-{
-public:
-
-    virtual ~ProxyRule() {}
-
     //
-    // Checks to see if the proxy passes.
+    // Base class for proxy rule implementations.
     //
-    virtual bool check(const Ice::ObjectPrx&) const = 0;
-};
 
-class ProxyVerifier : public IceUtil::Shared
-{
-public:
+    class ProxyRule
+    {
+    public:
+        virtual ~ProxyRule()
+        {
+        }
 
-    ProxyVerifier(const Ice::CommunicatorPtr&);
-    ~ProxyVerifier();
+        //
+        // Checks to see if the proxy passes.
+        //
+        virtual bool check(const Ice::ObjectPrx&) const = 0;
+    };
 
-    //
-    // Verifies that the proxy is permissible under the configured
-    // rules.
-    //
-    bool verify(const Ice::ObjectPrx&);
+    class ProxyVerifier : public IceUtil::Shared
+    {
+    public:
+        ProxyVerifier(const Ice::CommunicatorPtr&);
+        ~ProxyVerifier();
 
-private:
+        //
+        // Verifies that the proxy is permissible under the configured
+        // rules.
+        //
+        bool verify(const Ice::ObjectPrx&);
 
-    const Ice::CommunicatorPtr _communicator;
-    const int _traceLevel;
+    private:
+        const Ice::CommunicatorPtr _communicator;
+        const int _traceLevel;
 
-    std::vector<ProxyRule*> _acceptRules;
-    std::vector<ProxyRule*> _rejectRules;
-};
-typedef IceUtil::Handle<ProxyVerifier> ProxyVerifierPtr;
+        std::vector<ProxyRule*> _acceptRules;
+        std::vector<ProxyRule*> _rejectRules;
+    };
+    typedef IceUtil::Handle<ProxyVerifier> ProxyVerifierPtr;
 
-}
+} // namespace Glacier2
 #endif

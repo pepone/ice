@@ -15,7 +15,6 @@
 class BlobjectI : public Ice::BlobjectAsync, private IceUtil::Monitor<IceUtil::Mutex>
 {
 public:
-
     BlobjectI();
 
     void startBatch();
@@ -24,10 +23,8 @@ public:
 
 #ifdef ICE_CPP11_MAPPING
 
-    virtual void ice_invokeAsync(std::vector<Ice::Byte>,
-                                 std::function<void(bool, const std::vector<Ice::Byte>&)>,
-                                 std::function<void(std::exception_ptr)>,
-                                 const Ice::Current&) override;
+    virtual void ice_invokeAsync(std::vector<Ice::Byte>, std::function<void(bool, const std::vector<Ice::Byte>&)>,
+                                 std::function<void(std::exception_ptr)>, const Ice::Current&) override;
 
 #else
     virtual void ice_invoke_async(const Ice::AMD_Object_ice_invokePtr&, const std::vector<Ice::Byte>&,
@@ -35,7 +32,6 @@ public:
 #endif
 
 private:
-
     Ice::ConnectionPtr getConnection(const Ice::Current&);
 
     bool _startBatch;

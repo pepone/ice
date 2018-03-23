@@ -15,7 +15,10 @@
 using namespace std;
 using namespace IceInternal;
 
-IceUtil::Shared* IceInternal::upCast(NetworkProxy* p) { return p; }
+IceUtil::Shared* IceInternal::upCast(NetworkProxy* p)
+{
+    return p;
+}
 
 NetworkProxy::~NetworkProxy()
 {
@@ -26,57 +29,52 @@ NetworkProxy::~NetworkProxy()
 
 namespace
 {
+    class SOCKSNetworkProxy : public NetworkProxy
+    {
+    public:
+        SOCKSNetworkProxy(const string&, int);
+        SOCKSNetworkProxy(const Address&);
 
-class SOCKSNetworkProxy : public NetworkProxy
-{
-public:
+        virtual void beginWrite(const Address&, Buffer&);
+        virtual SocketOperation endWrite(Buffer&);
+        virtual void beginRead(Buffer&);
+        virtual SocketOperation endRead(Buffer&);
+        virtual void finish(Buffer&, Buffer&);
+        virtual NetworkProxyPtr resolveHost(ProtocolSupport) const;
+        virtual Address getAddress() const;
+        virtual string getName() const;
+        virtual ProtocolSupport getProtocolSupport() const;
 
-    SOCKSNetworkProxy(const string&, int);
-    SOCKSNetworkProxy(const Address&);
+    private:
+        string _host;
+        int _port;
+        Address _address;
+    };
 
-    virtual void beginWrite(const Address&, Buffer&);
-    virtual SocketOperation endWrite(Buffer&);
-    virtual void beginRead(Buffer&);
-    virtual SocketOperation endRead(Buffer&);
-    virtual void finish(Buffer&, Buffer&);
-    virtual NetworkProxyPtr resolveHost(ProtocolSupport) const;
-    virtual Address getAddress() const;
-    virtual string getName() const;
-    virtual ProtocolSupport getProtocolSupport() const;
+    class HTTPNetworkProxy : public NetworkProxy
+    {
+    public:
+        HTTPNetworkProxy(const string&, int);
+        HTTPNetworkProxy(const Address&, ProtocolSupport);
 
-private:
+        virtual void beginWrite(const Address&, Buffer&);
+        virtual SocketOperation endWrite(Buffer&);
+        virtual void beginRead(Buffer&);
+        virtual SocketOperation endRead(Buffer&);
+        virtual void finish(Buffer&, Buffer&);
+        virtual NetworkProxyPtr resolveHost(ProtocolSupport) const;
+        virtual Address getAddress() const;
+        virtual string getName() const;
+        virtual ProtocolSupport getProtocolSupport() const;
 
-    string _host;
-    int _port;
-    Address _address;
-};
+    private:
+        string _host;
+        int _port;
+        Address _address;
+        ProtocolSupport _protocol;
+    };
 
-class HTTPNetworkProxy : public NetworkProxy
-{
-public:
-
-    HTTPNetworkProxy(const string&, int);
-    HTTPNetworkProxy(const Address&, ProtocolSupport);
-
-    virtual void beginWrite(const Address&, Buffer&);
-    virtual SocketOperation endWrite(Buffer&);
-    virtual void beginRead(Buffer&);
-    virtual SocketOperation endRead(Buffer&);
-    virtual void finish(Buffer&, Buffer&);
-    virtual NetworkProxyPtr resolveHost(ProtocolSupport) const;
-    virtual Address getAddress() const;
-    virtual string getName() const;
-    virtual ProtocolSupport getProtocolSupport() const;
-
-private:
-
-    string _host;
-    int _port;
-    Address _address;
-    ProtocolSupport _protocol;
-};
-
-}
+} // namespace
 
 SOCKSNetworkProxy::SOCKSNetworkProxy(const string& host, int port) : _host(host), _port(port)
 {
@@ -88,8 +86,7 @@ SOCKSNetworkProxy::SOCKSNetworkProxy(const Address& addr) : _port(0), _address(a
 {
 }
 
-void
-SOCKSNetworkProxy::beginWrite(const Address& addr, Buffer& buf)
+void SOCKSNetworkProxy::beginWrite(const Address& addr, Buffer& buf)
 {
     //
     // SOCKS connect request
@@ -121,15 +118,13 @@ SOCKSNetworkProxy::beginWrite(const Address& addr, Buffer& buf)
     *dest = 0x00; // User ID.
 }
 
-SocketOperation
-SOCKSNetworkProxy::endWrite(Buffer& buf)
+SocketOperation SOCKSNetworkProxy::endWrite(Buffer& buf)
 {
     // Once the request is sent, read the response
     return buf.i != buf.b.end() ? SocketOperationWrite : SocketOperationRead;
 }
 
-void
-SOCKSNetworkProxy::beginRead(Buffer& buf)
+void SOCKSNetworkProxy::beginRead(Buffer& buf)
 {
     //
     // Read the SOCKS4 response whose size is 8 bytes.
@@ -138,15 +133,13 @@ SOCKSNetworkProxy::beginRead(Buffer& buf)
     buf.i = buf.b.begin();
 }
 
-SocketOperation
-SOCKSNetworkProxy::endRead(Buffer& buf)
+SocketOperation SOCKSNetworkProxy::endRead(Buffer& buf)
 {
     // We're done once we read the response
     return buf.i != buf.b.end() ? SocketOperationRead : SocketOperationNone;
 }
 
-void
-SOCKSNetworkProxy::finish(Buffer& readBuffer, Buffer&)
+void SOCKSNetworkProxy::finish(Buffer& readBuffer, Buffer&)
 {
     readBuffer.i = readBuffer.b.begin();
 
@@ -164,67 +157,63 @@ SOCKSNetworkProxy::finish(Buffer& readBuffer, Buffer&)
     }
 }
 
-NetworkProxyPtr
-SOCKSNetworkProxy::resolveHost(ProtocolSupport protocol) const
+NetworkProxyPtr SOCKSNetworkProxy::resolveHost(ProtocolSupport protocol) const
 {
     assert(!_host.empty());
-    return new SOCKSNetworkProxy(getAddresses(_host, _port, protocol, Ice::ICE_ENUM(EndpointSelectionType, Random), false, true)[0]);
+    return new SOCKSNetworkProxy(
+        getAddresses(_host, _port, protocol, Ice::ICE_ENUM(EndpointSelectionType, Random), false, true)[0]);
 }
 
-Address
-SOCKSNetworkProxy::getAddress() const
+Address SOCKSNetworkProxy::getAddress() const
 {
     assert(_host.empty()); // Host must be resolved.
     return _address;
 }
 
-string
-SOCKSNetworkProxy::getName() const
+string SOCKSNetworkProxy::getName() const
 {
     return "SOCKS";
 }
 
-ProtocolSupport
-SOCKSNetworkProxy::getProtocolSupport() const
+ProtocolSupport SOCKSNetworkProxy::getProtocolSupport() const
 {
     return EnableIPv4;
 }
 
-HTTPNetworkProxy::HTTPNetworkProxy(const string& host, int port) :
-    _host(host), _port(port), _protocol(EnableBoth)
+HTTPNetworkProxy::HTTPNetworkProxy(const string& host, int port) : _host(host), _port(port), _protocol(EnableBoth)
 {
     assert(!host.empty());
     memset(&_address, 0, sizeof(_address));
 }
 
 HTTPNetworkProxy::HTTPNetworkProxy(const Address& addr, ProtocolSupport protocol) :
-    _port(0), _address(addr), _protocol(protocol)
+    _port(0),
+    _address(addr),
+    _protocol(protocol)
 {
 }
 
-void
-HTTPNetworkProxy::beginWrite(const Address& addr, Buffer& buf)
+void HTTPNetworkProxy::beginWrite(const Address& addr, Buffer& buf)
 {
     //
     // HTTP connect request
     //
     ostringstream out;
-    out << "CONNECT " << addrToString(addr) << " HTTP/1.1\r\n" << "Host: " << addrToString(addr) << "\r\n\r\n";
+    out << "CONNECT " << addrToString(addr) << " HTTP/1.1\r\n"
+        << "Host: " << addrToString(addr) << "\r\n\r\n";
     string str = out.str();
     buf.b.resize(str.size());
     memcpy(&buf.b[0], str.c_str(), str.size());
     buf.i = buf.b.begin();
 }
 
-SocketOperation
-HTTPNetworkProxy::endWrite(Buffer& buf)
+SocketOperation HTTPNetworkProxy::endWrite(Buffer& buf)
 {
     // Once the request is sent, read the response
     return buf.i != buf.b.end() ? SocketOperationWrite : SocketOperationRead;
 }
 
-void
-HTTPNetworkProxy::beginRead(Buffer& buf)
+void HTTPNetworkProxy::beginRead(Buffer& buf)
 {
     //
     // Read the Http response
@@ -233,8 +222,7 @@ HTTPNetworkProxy::beginRead(Buffer& buf)
     buf.i = buf.b.begin();
 }
 
-SocketOperation
-HTTPNetworkProxy::endRead(Buffer& buf)
+SocketOperation HTTPNetworkProxy::endRead(Buffer& buf)
 {
     //
     // Check if we received the full HTTP response, if not, continue
@@ -257,8 +245,7 @@ HTTPNetworkProxy::endRead(Buffer& buf)
     return SocketOperationNone;
 }
 
-void
-HTTPNetworkProxy::finish(Buffer& readBuffer, Buffer&)
+void HTTPNetworkProxy::finish(Buffer& readBuffer, Buffer&)
 {
     HttpParser parser;
     parser.parse(readBuffer.b.begin(), readBuffer.b.end());
@@ -268,36 +255,32 @@ HTTPNetworkProxy::finish(Buffer& readBuffer, Buffer&)
     }
 }
 
-NetworkProxyPtr
-HTTPNetworkProxy::resolveHost(ProtocolSupport protocol) const
+NetworkProxyPtr HTTPNetworkProxy::resolveHost(ProtocolSupport protocol) const
 {
     assert(!_host.empty());
-    return new HTTPNetworkProxy(getAddresses(_host, _port, protocol, Ice::ICE_ENUM(EndpointSelectionType, Random), false, true)[0], protocol);
+    return new HTTPNetworkProxy(
+        getAddresses(_host, _port, protocol, Ice::ICE_ENUM(EndpointSelectionType, Random), false, true)[0], protocol);
 }
 
-Address
-HTTPNetworkProxy::getAddress() const
+Address HTTPNetworkProxy::getAddress() const
 {
     assert(_host.empty()); // Host must be resolved.
     return _address;
 }
 
-string
-HTTPNetworkProxy::getName() const
+string HTTPNetworkProxy::getName() const
 {
     return "HTTP";
 }
 
-ProtocolSupport
-HTTPNetworkProxy::getProtocolSupport() const
+ProtocolSupport HTTPNetworkProxy::getProtocolSupport() const
 {
     return _protocol;
 }
 
 #endif
 
-NetworkProxyPtr
-IceInternal::createNetworkProxy(const Ice::PropertiesPtr& properties, ProtocolSupport protocolSupport)
+NetworkProxyPtr IceInternal::createNetworkProxy(const Ice::PropertiesPtr& properties, ProtocolSupport protocolSupport)
 {
     string proxyHost;
 

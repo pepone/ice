@@ -12,7 +12,7 @@
 // _wfindfirst
 //
 #ifdef _WIN32
-#   include <io.h>
+#    include <io.h>
 #endif
 
 #include <IceUtil/IceUtil.h>
@@ -26,17 +26,17 @@
 #include <iomanip>
 
 #ifdef _WIN32
-#   include <direct.h>
+#    include <direct.h>
 #else
-#   include <unistd.h>
-#   include <dirent.h>
+#    include <unistd.h>
+#    include <dirent.h>
 #endif
 
 #include <iterator>
 
 // Ignore macOS OpenSSL deprecation warnings
 #ifdef __APPLE__
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#    pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
 const char* IcePatch2Internal::checksumFile = "IcePatch2.sum";
@@ -47,8 +47,7 @@ using namespace Ice;
 using namespace IcePatch2;
 using namespace IcePatch2Internal;
 
-FileInfo
-IcePatch2Internal::toFileInfo(const LargeFileInfo& largeInfo)
+FileInfo IcePatch2Internal::toFileInfo(const LargeFileInfo& largeInfo)
 {
     if(largeInfo.size > 0x7FFFFFFF)
     {
@@ -60,14 +59,12 @@ IcePatch2Internal::toFileInfo(const LargeFileInfo& largeInfo)
     FileInfo info;
     info.path = largeInfo.path;
     info.checksum = largeInfo.checksum;
-    info.size = static_cast<Ice::Int>(largeInfo.size),
-    info.executable = largeInfo.executable;
+    info.size = static_cast<Ice::Int>(largeInfo.size), info.executable = largeInfo.executable;
 
     return info;
 }
 
-LargeFileInfo
-IcePatch2Internal::toLargeFileInfo(const FileInfo& info)
+LargeFileInfo IcePatch2Internal::toLargeFileInfo(const FileInfo& info)
 {
     LargeFileInfo largeInfo;
     largeInfo.path = info.path;
@@ -77,19 +74,15 @@ IcePatch2Internal::toLargeFileInfo(const FileInfo& info)
     return largeInfo;
 }
 
-bool
-IcePatch2Internal::writeFileInfo(FILE* fp, const LargeFileInfo& info)
+bool IcePatch2Internal::writeFileInfo(FILE* fp, const LargeFileInfo& info)
 {
-    int rc = fprintf(fp, "%s\t%s\t" ICE_INT64_FORMAT "\t%d\n",
-                     escapeString(info.path, "", IceUtilInternal::Compat).c_str(),
-                     bytesToString(info.checksum).c_str(),
-                     info.size,
-                     static_cast<int>(info.executable));
+    int rc =
+        fprintf(fp, "%s\t%s\t" ICE_INT64_FORMAT "\t%d\n", escapeString(info.path, "", IceUtilInternal::Compat).c_str(),
+                bytesToString(info.checksum).c_str(), info.size, static_cast<int>(info.executable));
     return rc > 0;
 }
 
-bool
-IcePatch2Internal::readFileInfo(FILE* fp, LargeFileInfo& info)
+bool IcePatch2Internal::readFileInfo(FILE* fp, LargeFileInfo& info)
 {
     string data;
     char buf[BUFSIZ];
@@ -130,19 +123,18 @@ IcePatch2Internal::readFileInfo(FILE* fp, LargeFileInfo& info)
     return true;
 }
 
-string
-IcePatch2Internal::bytesToString(const ByteSeq& bytes)
+string IcePatch2Internal::bytesToString(const ByteSeq& bytes)
 {
-/*
-    ostringstream s;
+    /*
+        ostringstream s;
 
-    for(ByteSeq::const_iterator p = bytes.begin(); p != bytes.end(); ++p)
-    {
-        s << setw(2) << setfill('0') << hex << static_cast<int>(*p);
-    }
+        for(ByteSeq::const_iterator p = bytes.begin(); p != bytes.end(); ++p)
+        {
+            s << setw(2) << setfill('0') << hex << static_cast<int>(*p);
+        }
 
-    return s.str();
-*/
+        return s.str();
+    */
 
     static const char* toHex = "0123456789abcdef";
 
@@ -158,19 +150,18 @@ IcePatch2Internal::bytesToString(const ByteSeq& bytes)
     return s;
 }
 
-ByteSeq
-IcePatch2Internal::stringToBytes(const string& str)
+ByteSeq IcePatch2Internal::stringToBytes(const string& str)
 {
     ByteSeq bytes;
     bytes.reserve((str.size() + 1) / 2);
 
     for(unsigned int i = 0; i + 1 < str.size(); i += 2)
     {
-/*
-        istringstream is(str.substr(i, 2));
-        int byte;
-        is >> hex >> byte;
-*/
+        /*
+                istringstream is(str.substr(i, 2));
+                int byte;
+                is >> hex >> byte;
+        */
 
         int byte = 0;
 
@@ -203,8 +194,7 @@ IcePatch2Internal::stringToBytes(const string& str)
     return bytes;
 }
 
-string
-IcePatch2Internal::simplify(const string& path)
+string IcePatch2Internal::simplify(const string& path)
 {
     string result = path;
 
@@ -248,11 +238,10 @@ IcePatch2Internal::simplify(const string& path)
         result.erase(0, 2);
     }
 
-    if(result == "/." ||
-       (result.size() == 4 && IceUtilInternal::isAlpha(result[0]) && result[1] == ':' &&
-        result[2] == '/' && result[3] == '.'))
+    if(result == "/." || (result.size() == 4 && IceUtilInternal::isAlpha(result[0]) && result[1] == ':' &&
+                          result[2] == '/' && result[3] == '.'))
     {
-       return result.substr(0, result.size() - 1);
+        return result.substr(0, result.size() - 1);
     }
 
     if(result.size() >= 2 && result.substr(result.size() - 2, 2) == "/.")
@@ -260,8 +249,8 @@ IcePatch2Internal::simplify(const string& path)
         result.erase(result.size() - 2, 2);
     }
 
-    if(result == "/" || (result.size() == 3 && IceUtilInternal::isAlpha(result[0]) && result[1] == ':' &&
-                         result[2] == '/'))
+    if(result == "/" ||
+       (result.size() == 3 && IceUtilInternal::isAlpha(result[0]) && result[1] == ':' && result[2] == '/'))
     {
         return result;
     }
@@ -279,20 +268,17 @@ IcePatch2Internal::simplify(const string& path)
     return result;
 }
 
-bool
-IcePatch2Internal::isRoot(const string& pa)
+bool IcePatch2Internal::isRoot(const string& pa)
 {
     string path = simplify(pa);
 #ifdef _WIN32
-    return path == "/" || path.size() == 3 && IceUtilInternal::isAlpha(path[0]) && path[1] == ':' &&
-           path[2] == '/';
+    return path == "/" || path.size() == 3 && IceUtilInternal::isAlpha(path[0]) && path[1] == ':' && path[2] == '/';
 #else
     return path == "/";
 #endif
 }
 
-string
-IcePatch2Internal::getSuffix(const string& pa)
+string IcePatch2Internal::getSuffix(const string& pa)
 {
     const string path = simplify(pa);
 
@@ -307,8 +293,7 @@ IcePatch2Internal::getSuffix(const string& pa)
     return path.substr(dotPos + 1);
 }
 
-string
-IcePatch2Internal::getWithoutSuffix(const string& pa)
+string IcePatch2Internal::getWithoutSuffix(const string& pa)
 {
     const string path = simplify(pa);
 
@@ -323,18 +308,15 @@ IcePatch2Internal::getWithoutSuffix(const string& pa)
     return path.substr(0, dotPos);
 }
 
-bool
-IcePatch2Internal::ignoreSuffix(const string& path)
+bool IcePatch2Internal::ignoreSuffix(const string& path)
 {
     string suffix = getSuffix(path);
-    return suffix == "md5" // For legacy IcePatch.
-        || suffix == "tot" // For legacy IcePatch.
-        || suffix == "bz2"
-        || suffix == "bz2temp";
+    return suffix == "md5"    // For legacy IcePatch.
+           || suffix == "tot" // For legacy IcePatch.
+           || suffix == "bz2" || suffix == "bz2temp";
 }
 
-string
-IcePatch2Internal::getBasename(const string& pa)
+string IcePatch2Internal::getBasename(const string& pa)
 {
     const string path = simplify(pa);
 
@@ -349,8 +331,7 @@ IcePatch2Internal::getBasename(const string& pa)
     }
 }
 
-string
-IcePatch2Internal::getDirname(const string& pa)
+string IcePatch2Internal::getDirname(const string& pa)
 {
     const string path = simplify(pa);
 
@@ -365,22 +346,20 @@ IcePatch2Internal::getDirname(const string& pa)
     }
 }
 
-void
-IcePatch2Internal::rename(const string& fromPa, const string& toPa)
+void IcePatch2Internal::rename(const string& fromPa, const string& toPa)
 {
-
     const string fromPath = simplify(fromPa);
     const string toPath = simplify(toPa);
 
     IceUtilInternal::remove(toPath); // We ignore errors, as the file we are renaming to might not exist.
     if(IceUtilInternal::rename(fromPath, toPath) == -1)
     {
-        throw runtime_error("cannot rename `" + fromPath + "' to  `" + toPath + "': " + IceUtilInternal::lastErrorToString());
+        throw runtime_error("cannot rename `" + fromPath + "' to  `" + toPath +
+                            "': " + IceUtilInternal::lastErrorToString());
     }
 }
 
-void
-IcePatch2Internal::remove(const string& pa)
+void IcePatch2Internal::remove(const string& pa)
 {
     const string path = simplify(pa);
 
@@ -410,8 +389,7 @@ IcePatch2Internal::remove(const string& pa)
     }
 }
 
-void
-IcePatch2Internal::removeRecursive(const string& pa)
+void IcePatch2Internal::removeRecursive(const string& pa)
 {
     const string path = simplify(pa);
 
@@ -446,8 +424,7 @@ IcePatch2Internal::removeRecursive(const string& pa)
     }
 }
 
-StringSeq
-IcePatch2Internal::readDirectory(const string& pa)
+StringSeq IcePatch2Internal::readDirectory(const string& pa)
 {
     const string path = simplify(pa);
 
@@ -496,7 +473,7 @@ IcePatch2Internal::readDirectory(const string& pa)
 
 #else
 
-    struct dirent **namelist;
+    struct dirent** namelist;
     int n = scandir(path.c_str(), &namelist, 0, alphasort);
 
     if(n < 0)
@@ -526,8 +503,7 @@ IcePatch2Internal::readDirectory(const string& pa)
 #endif
 }
 
-void
-IcePatch2Internal::createDirectory(const string& pa)
+void IcePatch2Internal::createDirectory(const string& pa)
 {
     const string path = simplify(pa);
 
@@ -540,8 +516,7 @@ IcePatch2Internal::createDirectory(const string& pa)
     }
 }
 
-void
-IcePatch2Internal::createDirectoryRecursive(const string& pa)
+void IcePatch2Internal::createDirectoryRecursive(const string& pa)
 {
     const string path = simplify(pa);
 
@@ -572,8 +547,7 @@ IcePatch2Internal::createDirectoryRecursive(const string& pa)
     }
 }
 
-void
-IcePatch2Internal::compressBytesToFile(const string& pa, const ByteSeq& bytes, Int pos)
+void IcePatch2Internal::compressBytesToFile(const string& pa, const ByteSeq& bytes, Int pos)
 {
     const string path = simplify(pa);
 
@@ -624,8 +598,7 @@ IcePatch2Internal::compressBytesToFile(const string& pa, const ByteSeq& bytes, I
     fclose(stdioFile);
 }
 
-void
-IcePatch2Internal::decompressFile(const string& pa)
+void IcePatch2Internal::decompressFile(const string& pa)
 {
     const string path = simplify(pa);
     const string pathBZ2 = path + ".bz2";
@@ -681,7 +654,8 @@ IcePatch2Internal::decompressFile(const string& pa)
                 long pos = ftell(stdioFileBZ2);
                 if(pos == -1)
                 {
-                    throw runtime_error("cannot get read position for `" + pathBZ2 + "':\n" + IceUtilInternal::lastErrorToString());
+                    throw runtime_error("cannot get read position for `" + pathBZ2 + "':\n" +
+                                        IceUtilInternal::lastErrorToString());
                 }
 
                 if(fwrite(bytesBZ2, sz, 1, fp) != 1)
@@ -725,8 +699,7 @@ IcePatch2Internal::decompressFile(const string& pa)
 }
 
 #ifndef _WIN32
-void
-IcePatch2Internal::setFileFlags(const string& pa, const LargeFileInfo& info)
+void IcePatch2Internal::setFileFlags(const string& pa, const LargeFileInfo& info)
 {
     const string path = simplify(pa);
     IceUtilInternal::structstat buf;
@@ -737,299 +710,299 @@ IcePatch2Internal::setFileFlags(const string& pa, const LargeFileInfo& info)
     chmod(path.c_str(), info.executable ? buf.st_mode | S_IXUSR : buf.st_mode & ~S_IXUSR);
 }
 #else // Windows doesn't support the executable flag
-void
-IcePatch2Internal::setFileFlags(const string&, const LargeFileInfo&)
+void IcePatch2Internal::setFileFlags(const string&, const LargeFileInfo&)
 {
 }
 #endif
 
 namespace
 {
-
-static bool
-getFileInfoSeqInternal(const string& basePath, const string& relPath, int compress, GetFileInfoSeqCB* cb,
-                       LargeFileInfoSeq& infoSeq)
-{
-    if(relPath == checksumFile || relPath == logFile)
+    static bool getFileInfoSeqInternal(const string& basePath, const string& relPath, int compress,
+                                       GetFileInfoSeqCB* cb, LargeFileInfoSeq& infoSeq)
     {
-        return true;
-    }
-
-    const string path = simplify(basePath + '/' + relPath);
-
-    if(ignoreSuffix(path))
-    {
-        const string pathWithoutSuffix = getWithoutSuffix(path);
-
-        if(ignoreSuffix(pathWithoutSuffix))
+        if(relPath == checksumFile || relPath == logFile)
         {
-            if(cb && !cb->remove(relPath))
-            {
-                return false;
-            }
-
-            remove(path); // Removing file with suffix for another file that already has a suffix.
+            return true;
         }
-        else
-        {
-            IceUtilInternal::structstat buf;
-            if(IceUtilInternal::stat(getWithoutSuffix(path), &buf) == -1)
-            {
-                if(errno == ENOENT)
-                {
-                    if(cb && !cb->remove(relPath))
-                    {
-                        return false;
-                    }
 
-                    remove(path); // Removing orphaned file.
-                }
-                else
-                {
-                    throw runtime_error("cannot stat `" + path + "':\n" + IceUtilInternal::lastErrorToString());
-                }
-            }
-            else if(buf.st_size == 0)
+        const string path = simplify(basePath + '/' + relPath);
+
+        if(ignoreSuffix(path))
+        {
+            const string pathWithoutSuffix = getWithoutSuffix(path);
+
+            if(ignoreSuffix(pathWithoutSuffix))
             {
                 if(cb && !cb->remove(relPath))
                 {
                     return false;
                 }
 
-                remove(path); // Removing file with suffix for empty file.
-            }
-        }
-    }
-    else
-    {
-
-        IceUtilInternal::structstat buf;
-        if(IceUtilInternal::stat(path, &buf) == -1)
-        {
-            throw runtime_error("cannot stat `" + path + "':\n" + IceUtilInternal::lastErrorToString());
-        }
-
-        if(S_ISDIR(buf.st_mode))
-        {
-            LargeFileInfo info;
-            info.path = relPath;
-            info.size = -1;
-            info.executable = false;
-
-            ByteSeq bytes(relPath.size());
-            copy(relPath.begin(), relPath.end(), bytes.begin());
-
-            ByteSeq bytesSHA(20);
-            if(!bytes.empty())
-            {
-                IceInternal::sha1(reinterpret_cast<unsigned char*>(&bytes[0]), bytes.size(), bytesSHA);
+                remove(path); // Removing file with suffix for another file that already has a suffix.
             }
             else
             {
-                fill(bytesSHA.begin(), bytesSHA.end(), 0);
-            }
-            info.checksum.swap(bytesSHA);
-
-            infoSeq.push_back(info);
-
-            StringSeq content = readDirectory(path);
-            for(StringSeq::const_iterator p = content.begin(); p != content.end() ; ++p)
-            {
-                if(!getFileInfoSeqInternal(basePath, simplify(relPath + '/' + *p), compress, cb, infoSeq))
+                IceUtilInternal::structstat buf;
+                if(IceUtilInternal::stat(getWithoutSuffix(path), &buf) == -1)
                 {
-                    return false;
+                    if(errno == ENOENT)
+                    {
+                        if(cb && !cb->remove(relPath))
+                        {
+                            return false;
+                        }
+
+                        remove(path); // Removing orphaned file.
+                    }
+                    else
+                    {
+                        throw runtime_error("cannot stat `" + path + "':\n" + IceUtilInternal::lastErrorToString());
+                    }
                 }
-            }
-        }
-        else if(S_ISREG(buf.st_mode))
-        {
-            LargeFileInfo info;
-            info.path = relPath;
-            info.size = 0;
-#ifdef _WIN32
-            info.executable = false; // Windows doesn't support the executable flag
-#else
-            info.executable = buf.st_mode & S_IXUSR;
-#endif
-
-            IceUtilInternal::structstat bufBZ2;
-            const string pathBZ2 = path + ".bz2";
-            bool doCompress = false;
-            if(buf.st_size != 0 && compress > 0)
-            {
-                //
-                // compress == 0: Never compress.
-                // compress == 1: Compress if necessary.
-                // compress >= 2: Always compress.
-                //
-                if(compress >= 2 || IceUtilInternal::stat(pathBZ2, &bufBZ2) == -1 || buf.st_mtime >= bufBZ2.st_mtime)
+                else if(buf.st_size == 0)
                 {
-                    if(cb && !cb->compress(relPath))
+                    if(cb && !cb->remove(relPath))
                     {
                         return false;
                     }
 
-                    doCompress = true;
+                    remove(path); // Removing file with suffix for empty file.
+                }
+            }
+        }
+        else
+        {
+            IceUtilInternal::structstat buf;
+            if(IceUtilInternal::stat(path, &buf) == -1)
+            {
+                throw runtime_error("cannot stat `" + path + "':\n" + IceUtilInternal::lastErrorToString());
+            }
+
+            if(S_ISDIR(buf.st_mode))
+            {
+                LargeFileInfo info;
+                info.path = relPath;
+                info.size = -1;
+                info.executable = false;
+
+                ByteSeq bytes(relPath.size());
+                copy(relPath.begin(), relPath.end(), bytes.begin());
+
+                ByteSeq bytesSHA(20);
+                if(!bytes.empty())
+                {
+                    IceInternal::sha1(reinterpret_cast<unsigned char*>(&bytes[0]), bytes.size(), bytesSHA);
                 }
                 else
                 {
-                    info.size = bufBZ2.st_size;
+                    fill(bytesSHA.begin(), bytesSHA.end(), 0);
+                }
+                info.checksum.swap(bytesSHA);
+
+                infoSeq.push_back(info);
+
+                StringSeq content = readDirectory(path);
+                for(StringSeq::const_iterator p = content.begin(); p != content.end(); ++p)
+                {
+                    if(!getFileInfoSeqInternal(basePath, simplify(relPath + '/' + *p), compress, cb, infoSeq))
+                    {
+                        return false;
+                    }
                 }
             }
-
-            if(cb && !cb->checksum(relPath))
+            else if(S_ISREG(buf.st_mode))
             {
-                return false;
-            }
-
-            ByteSeq bytesSHA;
-
-            if(relPath.size() + buf.st_size == 0)
-            {
-                bytesSHA.resize(20);
-                fill(bytesSHA.begin(), bytesSHA.end(), 0);
-            }
-            else
-            {
-                IceInternal::SHA1 hasher;
-                if(relPath.size() != 0)
-                {
-                    hasher.update(reinterpret_cast<const IceUtil::Byte*>(relPath.c_str()), relPath.size());
-                }
-
-                if(buf.st_size != 0)
-                {
-                    int fd = IceUtilInternal::open(path.c_str(), O_BINARY|O_RDONLY);
-                    if(fd == -1)
-                    {
-                        throw runtime_error("cannot open `" + path + "' for reading:\n" + IceUtilInternal::lastErrorToString());
-                    }
-
-                    const string pathBZ2Temp = path + ".bz2temp";
-                    FILE* stdioFile = 0;
-                    int bzError = 0;
-                    BZFILE* bzFile = 0;
-                    if(doCompress)
-                    {
-                        stdioFile = IceUtilInternal::fopen(simplify(pathBZ2Temp), "wb");
-                        if(!stdioFile)
-                        {
-                            IceUtilInternal::close(fd);
-                            throw runtime_error("cannot open `" + pathBZ2Temp + "' for writing:\n" + IceUtilInternal::lastErrorToString());
-                        }
-
-                        bzFile = BZ2_bzWriteOpen(&bzError, stdioFile, 5, 0, 0);
-                        if(bzError != BZ_OK)
-                        {
-                            string reason = "BZ2_bzWriteOpen failed";
-                            if(bzError == BZ_IO_ERROR)
-                            {
-                                reason += ": " + IceUtilInternal::lastErrorToString();
-                            }
-                            fclose(stdioFile);
-                            IceUtilInternal::close(fd);
-                            throw runtime_error(reason);
-                        }
-                    }
-
-                    long bytesLeft = buf.st_size;
-                    while(bytesLeft > 0)
-                    {
-                        ByteSeq bytes(min(bytesLeft, 1024l*1024));
-                        if(
-#if defined(_MSC_VER)
-                            _read(fd, &bytes[0], static_cast<unsigned int>(bytes.size()))
+                LargeFileInfo info;
+                info.path = relPath;
+                info.size = 0;
+#ifdef _WIN32
+                info.executable = false; // Windows doesn't support the executable flag
 #else
-                            read(fd, &bytes[0], static_cast<unsigned int>(bytes.size()))
+                info.executable = buf.st_mode & S_IXUSR;
 #endif
-                            == -1)
-                        {
-                            if(doCompress)
-                            {
-                                fclose(stdioFile);
-                            }
 
-                            IceUtilInternal::close(fd);
-                            throw runtime_error("cannot read from `" + path + "':\n" + IceUtilInternal::lastErrorToString());
+                IceUtilInternal::structstat bufBZ2;
+                const string pathBZ2 = path + ".bz2";
+                bool doCompress = false;
+                if(buf.st_size != 0 && compress > 0)
+                {
+                    //
+                    // compress == 0: Never compress.
+                    // compress == 1: Compress if necessary.
+                    // compress >= 2: Always compress.
+                    //
+                    if(compress >= 2 || IceUtilInternal::stat(pathBZ2, &bufBZ2) == -1 ||
+                       buf.st_mtime >= bufBZ2.st_mtime)
+                    {
+                        if(cb && !cb->compress(relPath))
+                        {
+                            return false;
                         }
-                        bytesLeft -= static_cast<unsigned int>(bytes.size());
+
+                        doCompress = true;
+                    }
+                    else
+                    {
+                        info.size = bufBZ2.st_size;
+                    }
+                }
+
+                if(cb && !cb->checksum(relPath))
+                {
+                    return false;
+                }
+
+                ByteSeq bytesSHA;
+
+                if(relPath.size() + buf.st_size == 0)
+                {
+                    bytesSHA.resize(20);
+                    fill(bytesSHA.begin(), bytesSHA.end(), 0);
+                }
+                else
+                {
+                    IceInternal::SHA1 hasher;
+                    if(relPath.size() != 0)
+                    {
+                        hasher.update(reinterpret_cast<const IceUtil::Byte*>(relPath.c_str()), relPath.size());
+                    }
+
+                    if(buf.st_size != 0)
+                    {
+                        int fd = IceUtilInternal::open(path.c_str(), O_BINARY | O_RDONLY);
+                        if(fd == -1)
+                        {
+                            throw runtime_error("cannot open `" + path + "' for reading:\n" +
+                                                IceUtilInternal::lastErrorToString());
+                        }
+
+                        const string pathBZ2Temp = path + ".bz2temp";
+                        FILE* stdioFile = 0;
+                        int bzError = 0;
+                        BZFILE* bzFile = 0;
                         if(doCompress)
                         {
-                            BZ2_bzWrite(&bzError, bzFile, const_cast<Byte*>(&bytes[0]), static_cast<int>(bytes.size()));
+                            stdioFile = IceUtilInternal::fopen(simplify(pathBZ2Temp), "wb");
+                            if(!stdioFile)
+                            {
+                                IceUtilInternal::close(fd);
+                                throw runtime_error("cannot open `" + pathBZ2Temp + "' for writing:\n" +
+                                                    IceUtilInternal::lastErrorToString());
+                            }
+
+                            bzFile = BZ2_bzWriteOpen(&bzError, stdioFile, 5, 0, 0);
                             if(bzError != BZ_OK)
                             {
-                                string reason = "BZ2_bzWrite failed";
+                                string reason = "BZ2_bzWriteOpen failed";
                                 if(bzError == BZ_IO_ERROR)
                                 {
                                     reason += ": " + IceUtilInternal::lastErrorToString();
                                 }
-                                BZ2_bzWriteClose(&bzError, bzFile, 0, 0, 0);
                                 fclose(stdioFile);
                                 IceUtilInternal::close(fd);
                                 throw runtime_error(reason);
                             }
                         }
 
-                        hasher.update(reinterpret_cast<IceUtil::Byte*>(&bytes[0]), bytes.size());
-                    }
-
-                    IceUtilInternal::close(fd);
-
-                    if(doCompress)
-                    {
-                        BZ2_bzWriteClose(&bzError, bzFile, 0, 0, 0);
-                        if(bzError != BZ_OK)
+                        long bytesLeft = buf.st_size;
+                        while(bytesLeft > 0)
                         {
-                            string reason = "BZ2_bzWriteClose failed";
-                            if(bzError == BZ_IO_ERROR)
+                            ByteSeq bytes(min(bytesLeft, 1024l * 1024));
+                            if(
+#if defined(_MSC_VER)
+                                _read(fd, &bytes[0], static_cast<unsigned int>(bytes.size()))
+#else
+                                read(fd, &bytes[0], static_cast<unsigned int>(bytes.size()))
+#endif
+                                == -1)
                             {
-                                reason += ": " + IceUtilInternal::lastErrorToString();
+                                if(doCompress)
+                                {
+                                    fclose(stdioFile);
+                                }
+
+                                IceUtilInternal::close(fd);
+                                throw runtime_error("cannot read from `" + path + "':\n" +
+                                                    IceUtilInternal::lastErrorToString());
                             }
-                            fclose(stdioFile);
-                            throw runtime_error(reason);
+                            bytesLeft -= static_cast<unsigned int>(bytes.size());
+                            if(doCompress)
+                            {
+                                BZ2_bzWrite(&bzError, bzFile, const_cast<Byte*>(&bytes[0]),
+                                            static_cast<int>(bytes.size()));
+                                if(bzError != BZ_OK)
+                                {
+                                    string reason = "BZ2_bzWrite failed";
+                                    if(bzError == BZ_IO_ERROR)
+                                    {
+                                        reason += ": " + IceUtilInternal::lastErrorToString();
+                                    }
+                                    BZ2_bzWriteClose(&bzError, bzFile, 0, 0, 0);
+                                    fclose(stdioFile);
+                                    IceUtilInternal::close(fd);
+                                    throw runtime_error(reason);
+                                }
+                            }
+
+                            hasher.update(reinterpret_cast<IceUtil::Byte*>(&bytes[0]), bytes.size());
                         }
 
-                        fclose(stdioFile);
+                        IceUtilInternal::close(fd);
 
-                        rename(pathBZ2Temp, pathBZ2);
-
-                        if(IceUtilInternal::stat(pathBZ2, &bufBZ2) == -1)
+                        if(doCompress)
                         {
-                            throw runtime_error("cannot stat `" + pathBZ2 + "':\n" + IceUtilInternal::lastErrorToString());
+                            BZ2_bzWriteClose(&bzError, bzFile, 0, 0, 0);
+                            if(bzError != BZ_OK)
+                            {
+                                string reason = "BZ2_bzWriteClose failed";
+                                if(bzError == BZ_IO_ERROR)
+                                {
+                                    reason += ": " + IceUtilInternal::lastErrorToString();
+                                }
+                                fclose(stdioFile);
+                                throw runtime_error(reason);
+                            }
+
+                            fclose(stdioFile);
+
+                            rename(pathBZ2Temp, pathBZ2);
+
+                            if(IceUtilInternal::stat(pathBZ2, &bufBZ2) == -1)
+                            {
+                                throw runtime_error("cannot stat `" + pathBZ2 + "':\n" +
+                                                    IceUtilInternal::lastErrorToString());
+                            }
+
+                            info.size = bufBZ2.st_size;
                         }
-
-                        info.size = bufBZ2.st_size;
                     }
+                    hasher.finalize(bytesSHA);
                 }
-                hasher.finalize(bytesSHA);
+
+                info.checksum.swap(bytesSHA);
+
+                infoSeq.push_back(info);
             }
-
-            info.checksum.swap(bytesSHA);
-
-            infoSeq.push_back(info);
         }
+
+        return true;
     }
 
-    return true;
-}
-
-}
+} // namespace
 
 IcePatch2Internal::GetFileInfoSeqCB::~GetFileInfoSeqCB()
 {
     // Out of line to avoid weak vtable
 }
 
-bool
-IcePatch2Internal::getFileInfoSeq(const string& basePath, int compress, GetFileInfoSeqCB* cb,
-                                  LargeFileInfoSeq& infoSeq)
+bool IcePatch2Internal::getFileInfoSeq(const string& basePath, int compress, GetFileInfoSeqCB* cb,
+                                       LargeFileInfoSeq& infoSeq)
 {
     return getFileInfoSeqSubDir(basePath, ".", compress, cb, infoSeq);
 }
 
-bool
-IcePatch2Internal::getFileInfoSeqSubDir(const string& basePa, const string& relPa, int compress, GetFileInfoSeqCB* cb,
-                                        LargeFileInfoSeq& infoSeq)
+bool IcePatch2Internal::getFileInfoSeqSubDir(const string& basePa, const string& relPa, int compress,
+                                             GetFileInfoSeqCB* cb, LargeFileInfoSeq& infoSeq)
 {
     const string basePath = simplify(basePa);
     const string relPath = simplify(relPa);
@@ -1045,8 +1018,7 @@ IcePatch2Internal::getFileInfoSeqSubDir(const string& basePa, const string& relP
     return true;
 }
 
-void
-IcePatch2Internal::saveFileInfoSeq(const string& pa, const LargeFileInfoSeq& infoSeq)
+void IcePatch2Internal::saveFileInfoSeq(const string& pa, const LargeFileInfoSeq& infoSeq)
 {
     {
         const string path = simplify(pa + '/' + checksumFile);
@@ -1086,8 +1058,7 @@ IcePatch2Internal::saveFileInfoSeq(const string& pa, const LargeFileInfoSeq& inf
     }
 }
 
-void
-IcePatch2Internal::loadFileInfoSeq(const string& pa, LargeFileInfoSeq& infoSeq)
+void IcePatch2Internal::loadFileInfoSeq(const string& pa, LargeFileInfoSeq& infoSeq)
 {
     {
         const string path = simplify(pa + '/' + checksumFile);
@@ -1159,11 +1130,7 @@ IcePatch2Internal::loadFileInfoSeq(const string& pa, LargeFileInfoSeq& infoSeq)
             LargeFileInfoSeq newInfoSeq;
             newInfoSeq.reserve(infoSeq.size());
 
-            set_difference(infoSeq.begin(),
-                           infoSeq.end(),
-                           remove.begin(),
-                           remove.end(),
-                           back_inserter(newInfoSeq),
+            set_difference(infoSeq.begin(), infoSeq.end(), remove.begin(), remove.end(), back_inserter(newInfoSeq),
                            FileInfoLess());
 
             infoSeq.swap(newInfoSeq);
@@ -1171,11 +1138,7 @@ IcePatch2Internal::loadFileInfoSeq(const string& pa, LargeFileInfoSeq& infoSeq)
             newInfoSeq.clear();
             newInfoSeq.reserve(infoSeq.size());
 
-            set_union(infoSeq.begin(),
-                      infoSeq.end(),
-                      update.begin(),
-                      update.end(),
-                      back_inserter(newInfoSeq),
+            set_union(infoSeq.begin(), infoSeq.end(), update.begin(), update.end(), back_inserter(newInfoSeq),
                       FileInfoLess());
 
             infoSeq.swap(newInfoSeq);
@@ -1185,8 +1148,7 @@ IcePatch2Internal::loadFileInfoSeq(const string& pa, LargeFileInfoSeq& infoSeq)
     }
 }
 
-void
-IcePatch2Internal::getFileTree0(const LargeFileInfoSeq& infoSeq, FileTree0& tree0)
+void IcePatch2Internal::getFileTree0(const LargeFileInfoSeq& infoSeq, FileTree0& tree0)
 {
     tree0.nodes.resize(256);
     tree0.checksum.resize(20);
@@ -1222,7 +1184,8 @@ IcePatch2Internal::getFileTree0(const LargeFileInfoSeq& infoSeq, FileTree0& tree
 
         if(!allChecksums1.empty())
         {
-            IceInternal::sha1(reinterpret_cast<unsigned char*>(&allChecksums1[0]), allChecksums1.size(), tree1.checksum);
+            IceInternal::sha1(reinterpret_cast<unsigned char*>(&allChecksums1[0]), allChecksums1.size(),
+                              tree1.checksum);
         }
         else
         {

@@ -25,22 +25,21 @@ using namespace IceGrid;
 
 namespace IceGrid
 {
-
     struct AddCommunicator : std::unary_function<CommunicatorDescriptorPtr&, void>
     {
         AddCommunicator(ServerCache& serverCache, const ServerEntryPtr& entry, const string& application) :
-            _serverCache(serverCache), _entry(entry), _application(application)
+            _serverCache(serverCache),
+            _entry(entry),
+            _application(application)
         {
         }
 
-        void
-        operator()(const CommunicatorDescriptorPtr& desc)
+        void operator()(const CommunicatorDescriptorPtr& desc)
         {
             _serverCache.addCommunicator(0, desc, _entry, _application);
         }
 
-        void
-        operator()(const CommunicatorDescriptorPtr& oldDesc, const CommunicatorDescriptorPtr& newDesc)
+        void operator()(const CommunicatorDescriptorPtr& oldDesc, const CommunicatorDescriptorPtr& newDesc)
         {
             _serverCache.addCommunicator(oldDesc, newDesc, _entry, _application);
         }
@@ -53,18 +52,17 @@ namespace IceGrid
     struct RemoveCommunicator : std::unary_function<CommunicatorDescriptorPtr&, void>
     {
         RemoveCommunicator(ServerCache& serverCache, const ServerEntryPtr& entry) :
-            _serverCache(serverCache), _entry(entry)
+            _serverCache(serverCache),
+            _entry(entry)
         {
         }
 
-        void
-        operator()(const CommunicatorDescriptorPtr& desc)
+        void operator()(const CommunicatorDescriptorPtr& desc)
         {
             _serverCache.removeCommunicator(desc, 0, _entry);
         }
 
-        void
-        operator()(const CommunicatorDescriptorPtr& oldDesc, const CommunicatorDescriptorPtr& newDesc)
+        void operator()(const CommunicatorDescriptorPtr& oldDesc, const CommunicatorDescriptorPtr& newDesc)
         {
             _serverCache.removeCommunicator(oldDesc, newDesc, _entry);
         }
@@ -73,19 +71,18 @@ namespace IceGrid
         const ServerEntryPtr _entry;
     };
 
-}
+} // namespace IceGrid
 
-CheckUpdateResult::CheckUpdateResult(const string& server,
-                                     const string& node,
-                                     bool noRestart,
-                                     bool remove,
+CheckUpdateResult::CheckUpdateResult(const string& server, const string& node, bool noRestart, bool remove,
                                      const Ice::AsyncResultPtr& result) :
-    _server(server), _node(node), _noRestart(noRestart), _result(result)
+    _server(server),
+    _node(node),
+    _noRestart(noRestart),
+    _result(result)
 {
 }
 
-bool
-CheckUpdateResult::getResult()
+bool CheckUpdateResult::getResult()
 {
     try
     {
@@ -114,11 +111,8 @@ CheckUpdateResult::getResult()
     return false;
 }
 
-ServerCache::ServerCache(const Ice::CommunicatorPtr& communicator,
-                         const string& instanceName,
-                         NodeCache& nodeCache,
-                         AdapterCache& adapterCache,
-                         ObjectCache& objectCache,
+ServerCache::ServerCache(const Ice::CommunicatorPtr& communicator, const string& instanceName, NodeCache& nodeCache,
+                         AdapterCache& adapterCache, ObjectCache& objectCache,
                          AllocatableObjectCache& allocatableObjectCache) :
     _communicator(communicator),
     _instanceName(instanceName),
@@ -129,8 +123,7 @@ ServerCache::ServerCache(const Ice::CommunicatorPtr& communicator,
 {
 }
 
-ServerEntryPtr
-ServerCache::add(const ServerInfo& info)
+ServerEntryPtr ServerCache::add(const ServerInfo& info)
 {
     Lock sync(*this);
 
@@ -155,8 +148,7 @@ ServerCache::add(const ServerInfo& info)
     return entry;
 }
 
-ServerEntryPtr
-ServerCache::get(const string& id) const
+ServerEntryPtr ServerCache::get(const string& id) const
 {
     Lock sync(*this);
     ServerEntryPtr entry = getImpl(id);
@@ -167,16 +159,14 @@ ServerCache::get(const string& id) const
     return entry;
 }
 
-bool
-ServerCache::has(const string& id) const
+bool ServerCache::has(const string& id) const
 {
     Lock sync(*this);
     ServerEntryPtr entry = getImpl(id);
     return entry && !entry->isDestroyed();
 }
 
-ServerEntryPtr
-ServerCache::remove(const string& id, bool noRestart)
+ServerEntryPtr ServerCache::remove(const string& id, bool noRestart)
 {
     Lock sync(*this);
 
@@ -200,8 +190,7 @@ ServerCache::remove(const string& id, bool noRestart)
     return entry;
 }
 
-void
-ServerCache::preUpdate(const ServerInfo& newInfo, bool noRestart)
+void ServerCache::preUpdate(const ServerInfo& newInfo, bool noRestart)
 {
     Lock sync(*this);
 
@@ -227,8 +216,7 @@ ServerCache::preUpdate(const ServerInfo& newInfo, bool noRestart)
     }
 }
 
-ServerEntryPtr
-ServerCache::postUpdate(const ServerInfo& info, bool noRestart)
+ServerEntryPtr ServerCache::postUpdate(const ServerInfo& info, bool noRestart)
 {
     Lock sync(*this);
 
@@ -253,35 +241,30 @@ ServerCache::postUpdate(const ServerInfo& info, bool noRestart)
     return entry;
 }
 
-void
-ServerCache::clear(const string& id)
+void ServerCache::clear(const string& id)
 {
     Lock sync(*this);
     CacheByString<ServerEntry>::removeImpl(id);
 }
 
-void
-ServerCache::setNodeObserverTopic(const NodeObserverTopicPtr& nodeObserverTopic)
+void ServerCache::setNodeObserverTopic(const NodeObserverTopicPtr& nodeObserverTopic)
 {
     _nodeObserverTopic = nodeObserverTopic;
 }
 
-void
-ServerCache::addCommunicator(const CommunicatorDescriptorPtr& oldDesc,
-                             const CommunicatorDescriptorPtr& newDesc,
-                             const ServerEntryPtr& server,
-                             const string& application)
+void ServerCache::addCommunicator(const CommunicatorDescriptorPtr& oldDesc, const CommunicatorDescriptorPtr& newDesc,
+                                  const ServerEntryPtr& server, const string& application)
 {
     if(!newDesc)
     {
         return; // Nothing to add
     }
-    for(AdapterDescriptorSeq::const_iterator q = newDesc->adapters.begin() ; q != newDesc->adapters.end(); ++q)
+    for(AdapterDescriptorSeq::const_iterator q = newDesc->adapters.begin(); q != newDesc->adapters.end(); ++q)
     {
         AdapterDescriptor oldAdpt;
         if(oldDesc)
         {
-            for(AdapterDescriptorSeq::const_iterator p = oldDesc->adapters.begin() ; p != oldDesc->adapters.end(); ++p)
+            for(AdapterDescriptorSeq::const_iterator p = oldDesc->adapters.begin(); p != oldDesc->adapters.end(); ++p)
             {
                 if(p->id == q->id)
                 {
@@ -300,7 +283,8 @@ ServerCache::addCommunicator(const CommunicatorDescriptorPtr& oldDesc,
         for(ObjectDescriptorSeq::const_iterator r = q->allocatables.begin(); r != q->allocatables.end(); ++r)
         {
             ObjectDescriptorSeq::const_iterator s;
-            for(s = oldAdpt.allocatables.begin(); s != oldAdpt.allocatables.end() && s->id != r->id; ++s);
+            for(s = oldAdpt.allocatables.begin(); s != oldAdpt.allocatables.end() && s->id != r->id; ++s)
+                ;
             if(s == oldAdpt.allocatables.end() || *s != *r) // Only add new or updated allocatables
             {
                 _allocatableObjectCache.add(toObjectInfo(_communicator, *r, q->id), server);
@@ -309,21 +293,19 @@ ServerCache::addCommunicator(const CommunicatorDescriptorPtr& oldDesc,
     }
 }
 
-void
-ServerCache::removeCommunicator(const CommunicatorDescriptorPtr& oldDesc,
-                                const CommunicatorDescriptorPtr& newDesc,
-                                const ServerEntryPtr& /*entry*/)
+void ServerCache::removeCommunicator(const CommunicatorDescriptorPtr& oldDesc, const CommunicatorDescriptorPtr& newDesc,
+                                     const ServerEntryPtr& /*entry*/)
 {
     if(!oldDesc)
     {
         return; // Nothing to remove
     }
-    for(AdapterDescriptorSeq::const_iterator q = oldDesc->adapters.begin() ; q != oldDesc->adapters.end(); ++q)
+    for(AdapterDescriptorSeq::const_iterator q = oldDesc->adapters.begin(); q != oldDesc->adapters.end(); ++q)
     {
         AdapterDescriptor newAdpt;
         if(newDesc)
         {
-            for(AdapterDescriptorSeq::const_iterator p = newDesc->adapters.begin() ; p != newDesc->adapters.end(); ++p)
+            for(AdapterDescriptorSeq::const_iterator p = newDesc->adapters.begin(); p != newDesc->adapters.end(); ++p)
             {
                 if(p->id == q->id)
                 {
@@ -341,7 +323,8 @@ ServerCache::removeCommunicator(const CommunicatorDescriptorPtr& oldDesc,
         {
             // Don't remove the allocatable if it's still in the new descriptor.
             ObjectDescriptorSeq::const_iterator s;
-            for(s = newAdpt.allocatables.begin(); s != newAdpt.allocatables.end() && s->id != r->id; ++s);
+            for(s = newAdpt.allocatables.begin(); s != newAdpt.allocatables.end() && s->id != r->id; ++s)
+                ;
             if(s == newAdpt.allocatables.end() || *s != *r) // Only removed updated or removed allocatables
             {
                 _allocatableObjectCache.remove(r->id);
@@ -363,20 +346,17 @@ ServerEntry::ServerEntry(ServerCache& cache, const string& id) :
 {
 }
 
-void
-ServerEntry::sync()
+void ServerEntry::sync()
 {
     syncImpl();
 }
 
-void
-ServerEntry::waitForSync(int timeout)
+void ServerEntry::waitForSync(int timeout)
 {
     waitImpl(timeout);
 }
 
-void
-ServerEntry::waitForSyncNoThrow(int timeout)
+void ServerEntry::waitForSyncNoThrow(int timeout)
 {
     try
     {
@@ -391,8 +371,7 @@ ServerEntry::waitForSyncNoThrow(int timeout)
     }
 }
 
-void
-ServerEntry::unsync()
+void ServerEntry::unsync()
 {
     Lock sync(*this);
     if(_loaded.get())
@@ -405,8 +384,7 @@ ServerEntry::unsync()
     _deactivationTimeout = -1;
 }
 
-bool
-ServerEntry::addSyncCallback(const SynchronizationCallbackPtr& callback)
+bool ServerEntry::addSyncCallback(const SynchronizationCallbackPtr& callback)
 {
     Lock sync(*this);
     if(!_loaded.get() && !_load.get())
@@ -420,8 +398,7 @@ ServerEntry::addSyncCallback(const SynchronizationCallbackPtr& callback)
     return _synchronizing;
 }
 
-void
-ServerEntry::update(const ServerInfo& info, bool noRestart)
+void ServerEntry::update(const ServerInfo& info, bool noRestart)
 {
     Lock sync(*this);
 
@@ -453,8 +430,7 @@ ServerEntry::update(const ServerInfo& info, bool noRestart)
     }
 }
 
-void
-ServerEntry::destroy(bool noRestart)
+void ServerEntry::destroy(bool noRestart)
 {
     Lock sync(*this);
 
@@ -481,8 +457,7 @@ ServerEntry::destroy(bool noRestart)
     _allocatable = false;
 }
 
-ServerInfo
-ServerEntry::getInfo(bool resolve) const
+ServerInfo ServerEntry::getInfo(bool resolve) const
 {
     ServerInfo info;
     SessionIPtr session;
@@ -515,14 +490,12 @@ ServerEntry::getInfo(bool resolve) const
     return info;
 }
 
-string
-ServerEntry::getId() const
+string ServerEntry::getId() const
 {
     return _id;
 }
 
-ServerPrx
-ServerEntry::getProxy(bool upToDate, int timeout)
+ServerPrx ServerEntry::getProxy(bool upToDate, int timeout)
 {
     //
     // NOTE: this might throw ServerNotExistException, NodeUnreachableException
@@ -534,8 +507,8 @@ ServerEntry::getProxy(bool upToDate, int timeout)
     return getProxy(actTimeout, deactTimeout, node, upToDate, timeout);
 }
 
-ServerPrx
-ServerEntry::getProxy(int& activationTimeout, int& deactivationTimeout, string& node, bool upToDate, int timeout)
+ServerPrx ServerEntry::getProxy(int& activationTimeout, int& deactivationTimeout, string& node, bool upToDate,
+                                int timeout)
 {
     //
     // NOTE: this might throw ServerNotExistException, NodeUnreachableException
@@ -564,8 +537,7 @@ ServerEntry::getProxy(int& activationTimeout, int& deactivationTimeout, string& 
     }
 }
 
-Ice::ObjectPrx
-ServerEntry::getAdminProxy()
+Ice::ObjectPrx ServerEntry::getAdminProxy()
 {
     //
     // The category must match the server admin category used by nodes
@@ -576,8 +548,7 @@ ServerEntry::getAdminProxy()
     return getProxy(true)->ice_identity(adminId);
 }
 
-AdapterPrx
-ServerEntry::getAdapter(const string& id, bool upToDate)
+AdapterPrx ServerEntry::getAdapter(const string& id, bool upToDate)
 {
     //
     // NOTE: this might throw AdapterNotExistException, NodeUnreachableException
@@ -588,8 +559,7 @@ ServerEntry::getAdapter(const string& id, bool upToDate)
     return getAdapter(activationTimeout, deactivationTimeout, id, upToDate);
 }
 
-AdapterPrx
-ServerEntry::getAdapter(int& activationTimeout, int& deactivationTimeout, const string& id, bool upToDate)
+AdapterPrx ServerEntry::getAdapter(int& activationTimeout, int& deactivationTimeout, const string& id, bool upToDate)
 {
     //
     // NOTE: this might throw AdapterNotExistException, NodeUnreachableException
@@ -625,8 +595,7 @@ ServerEntry::getAdapter(int& activationTimeout, int& deactivationTimeout, const 
     }
 }
 
-float
-ServerEntry::getLoad(LoadSample sample) const
+float ServerEntry::getLoad(LoadSample sample) const
 {
     string application;
     string node;
@@ -652,20 +621,19 @@ ServerEntry::getLoad(LoadSample sample) const
     LoadInfo load = _cache.getNodeCache().get(node)->getLoadInfoAndLoadFactor(application, factor);
     switch(sample)
     {
-    case LoadSample1:
-        return load.avg1 < 0.f ? 1.0f : load.avg1 * factor;
-    case LoadSample5:
-        return load.avg5 < 0.f ? 1.0f : load.avg5 * factor;
-    case LoadSample15:
-        return load.avg15 < 0.f ? 1.0f : load.avg15 * factor;
-    default:
-        assert(false);
-        return 1.0f;
+        case LoadSample1:
+            return load.avg1 < 0.f ? 1.0f : load.avg1 * factor;
+        case LoadSample5:
+            return load.avg5 < 0.f ? 1.0f : load.avg5 * factor;
+        case LoadSample15:
+            return load.avg15 < 0.f ? 1.0f : load.avg15 * factor;
+        default:
+            assert(false);
+            return 1.0f;
     }
 }
 
-void
-ServerEntry::syncImpl()
+void ServerEntry::syncImpl()
 {
     ServerInfo load;
     SessionIPtr session;
@@ -732,8 +700,7 @@ ServerEntry::syncImpl()
     }
 }
 
-void
-ServerEntry::waitImpl(int timeout)
+void ServerEntry::waitImpl(int timeout)
 {
     Lock sync(*this);
     if(timeout != 0)
@@ -787,8 +754,7 @@ ServerEntry::waitImpl(int timeout)
     }
 }
 
-void
-ServerEntry::synchronized()
+void ServerEntry::synchronized()
 {
     vector<SynchronizationCallbackPtr> callbacks;
     {
@@ -808,8 +774,7 @@ ServerEntry::synchronized()
     }
 }
 
-void
-ServerEntry::synchronized(const Ice::Exception& ex)
+void ServerEntry::synchronized(const Ice::Exception& ex)
 {
     vector<SynchronizationCallbackPtr> callbacks;
     {
@@ -829,8 +794,7 @@ ServerEntry::synchronized(const Ice::Exception& ex)
     }
 }
 
-void
-ServerEntry::loadCallback(const ServerPrx& proxy, const AdapterPrxDict& adpts, int at, int dt)
+void ServerEntry::loadCallback(const ServerPrx& proxy, const AdapterPrxDict& adpts, int at, int dt)
 {
     ServerInfo load;
     SessionIPtr session;
@@ -911,8 +875,7 @@ ServerEntry::loadCallback(const ServerPrx& proxy, const AdapterPrxDict& adpts, i
     }
 }
 
-void
-ServerEntry::destroyCallback()
+void ServerEntry::destroyCallback()
 {
     ServerInfo load;
     bool noRestart = false;
@@ -959,8 +922,7 @@ ServerEntry::destroyCallback()
     }
 }
 
-void
-ServerEntry::exception(const Ice::Exception& ex)
+void ServerEntry::exception(const Ice::Exception& ex)
 {
     ServerInfo load;
     SessionIPtr session;
@@ -1014,22 +976,19 @@ ServerEntry::exception(const Ice::Exception& ex)
     }
 }
 
-bool
-ServerEntry::isDestroyed()
+bool ServerEntry::isDestroyed()
 {
-     Lock sync(*this);
-     return !_loaded.get() && !_load.get();
+    Lock sync(*this);
+    return !_loaded.get() && !_load.get();
 }
 
-bool
-ServerEntry::canRemove()
+bool ServerEntry::canRemove()
 {
-     Lock sync(*this);
-     return !_loaded.get() && !_load.get() && !_destroy.get();
+    Lock sync(*this);
+    return !_loaded.get() && !_load.get() && !_destroy.get();
 }
 
-CheckUpdateResultPtr
-ServerEntry::checkUpdate(const ServerInfo& info, bool noRestart)
+CheckUpdateResultPtr ServerEntry::checkUpdate(const ServerInfo& info, bool noRestart)
 {
     SessionIPtr session;
     ServerInfo oldInfo;
@@ -1095,14 +1054,12 @@ ServerEntry::checkUpdate(const ServerInfo& info, bool noRestart)
     return new CheckUpdateResult(_id, oldInfo.node, noRestart, desc, server->begin_checkUpdate(desc, noRestart));
 }
 
-bool
-ServerEntry::isEnabled() const
+bool ServerEntry::isEnabled() const
 {
     return _cache.getNodeObserverTopic()->isServerEnabled(_id);
 }
 
-void
-ServerEntry::allocated(const SessionIPtr& session)
+void ServerEntry::allocated(const SessionIPtr& session)
 {
     if(!_loaded.get() && !_load.get())
     {
@@ -1169,20 +1126,19 @@ ServerEntry::allocated(const SessionIPtr& session)
             if(traceLevels && traceLevels->server > 0)
             {
                 Ice::Trace out(traceLevels->logger, traceLevels->serverCat);
-                out << "couldn't add Glacier2 filters for server `" << _id << "' allocated by `"
-                    << session->getId() << ":\n" << ex;
+                out << "couldn't add Glacier2 filters for server `" << _id << "' allocated by `" << session->getId()
+                    << ":\n"
+                    << ex;
             }
         }
     }
 }
 
-void
-ServerEntry::allocatedNoSync(const SessionIPtr& /*session*/)
+void ServerEntry::allocatedNoSync(const SessionIPtr& /*session*/)
 {
     {
         Lock sync(*this);
-        if(!_updated ||
-           (_loaded.get() && _loaded->descriptor->activation != "session") ||
+        if(!_updated || (_loaded.get() && _loaded->descriptor->activation != "session") ||
            (_load.get() && _load->descriptor->activation != "session"))
         {
             return;
@@ -1193,8 +1149,7 @@ ServerEntry::allocatedNoSync(const SessionIPtr& /*session*/)
     waitForSyncNoThrow();
 }
 
-void
-ServerEntry::released(const SessionIPtr& session)
+void ServerEntry::released(const SessionIPtr& session)
 {
     if(!_loaded.get() && !_load.get())
     {
@@ -1270,13 +1225,11 @@ ServerEntry::released(const SessionIPtr& session)
     }
 }
 
-void
-ServerEntry::releasedNoSync(const SessionIPtr& /*session*/)
+void ServerEntry::releasedNoSync(const SessionIPtr& /*session*/)
 {
     {
         Lock sync(*this);
-        if(!_updated ||
-           (_loaded.get() && _loaded->descriptor->activation != "session") ||
+        if(!_updated || (_loaded.get() && _loaded->descriptor->activation != "session") ||
            (_load.get() && _load->descriptor->activation != "session"))
         {
             return;

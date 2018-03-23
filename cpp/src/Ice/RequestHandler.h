@@ -21,63 +21,58 @@
 
 namespace Ice
 {
-
-class LocalException;
-
+    class LocalException;
 }
 
 namespace IceInternal
 {
+    //
+    // An exception wrapper, which is used to notify that the request
+    // handler should be cleared and the invocation retried.
+    //
+    class RetryException
+    {
+    public:
+        RetryException(const Ice::LocalException&);
+        RetryException(const RetryException&);
 
-//
-// An exception wrapper, which is used to notify that the request
-// handler should be cleared and the invocation retried.
-//
-class RetryException
-{
-public:
+        const Ice::LocalException* get() const;
 
-    RetryException(const Ice::LocalException&);
-    RetryException(const RetryException&);
+    private:
+        IceInternal::UniquePtr<Ice::LocalException> _ex;
+    };
 
-    const Ice::LocalException* get() const;
-
-private:
-
-    IceInternal::UniquePtr<Ice::LocalException> _ex;
-};
-
-class CancellationHandler
+    class CancellationHandler
 #ifndef ICE_CPP11_MAPPING
-    : public virtual IceUtil::Shared
+        : public virtual IceUtil::Shared
 #endif
-{
-public:
+    {
+    public:
+        virtual void asyncRequestCanceled(const OutgoingAsyncBasePtr&, const Ice::LocalException&) = 0;
+    };
 
-    virtual void asyncRequestCanceled(const OutgoingAsyncBasePtr&, const Ice::LocalException&) = 0;
-};
+    class RequestHandler : public CancellationHandler
+    {
+    public:
+        RequestHandler(const ReferencePtr&);
 
-class RequestHandler : public CancellationHandler
-{
-public:
+        virtual RequestHandlerPtr update(const RequestHandlerPtr&, const RequestHandlerPtr&) = 0;
 
-    RequestHandler(const ReferencePtr&);
+        virtual AsyncStatus sendAsyncRequest(const ProxyOutgoingAsyncBasePtr&) = 0;
 
-    virtual RequestHandlerPtr update(const RequestHandlerPtr&, const RequestHandlerPtr&) = 0;
+        const ReferencePtr& getReference() const
+        {
+            return _reference;
+        } // Inlined for performances.
 
-    virtual AsyncStatus sendAsyncRequest(const ProxyOutgoingAsyncBasePtr&) = 0;
+        virtual Ice::ConnectionIPtr getConnection() = 0;
+        virtual Ice::ConnectionIPtr waitForConnection() = 0;
 
-    const ReferencePtr& getReference() const { return _reference; } // Inlined for performances.
+    protected:
+        const ReferencePtr _reference;
+        const bool _response;
+    };
 
-    virtual Ice::ConnectionIPtr getConnection() = 0;
-    virtual Ice::ConnectionIPtr waitForConnection() = 0;
-
-protected:
-
-    const ReferencePtr _reference;
-    const bool _response;
-};
-
-}
+} // namespace IceInternal
 
 #endif

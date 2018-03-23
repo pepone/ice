@@ -20,69 +20,60 @@
 
 namespace Glacier2
 {
+    class FilterManager;
+    typedef IceUtil::Handle<FilterManager> FilterManagerPtr;
 
-class FilterManager;
-typedef IceUtil::Handle<FilterManager> FilterManagerPtr;
-
-class FilterManager : public IceUtil::Shared
-{
-public:
-    virtual ~FilterManager();
-
-    void destroy();
-
-    StringSetIPtr
-    categories() const
+    class FilterManager : public IceUtil::Shared
     {
-        return _categories;
-    }
+    public:
+        virtual ~FilterManager();
 
-    StringSetIPtr
-    adapterIds() const
-    {
-        return _adapters;
-    }
+        void destroy();
 
-    IdentitySetIPtr
-    identities() const
-    {
-        return _identities;
-    }
+        StringSetIPtr categories() const
+        {
+            return _categories;
+        }
 
-    StringSetPrx
-    categoriesPrx() const
-    {
-        return _categoriesPrx;
-    }
+        StringSetIPtr adapterIds() const
+        {
+            return _adapters;
+        }
 
-    StringSetPrx
-    adapterIdsPrx() const
-    {
-        return _adapterIdsPrx;
-    }
+        IdentitySetIPtr identities() const
+        {
+            return _identities;
+        }
 
-    IdentitySetPrx
-    identitiesPrx() const
-    {
-        return _identitiesPrx;
-    }
+        StringSetPrx categoriesPrx() const
+        {
+            return _categoriesPrx;
+        }
 
-    static FilterManagerPtr
-    create(const InstancePtr&, const std::string&, const bool);
+        StringSetPrx adapterIdsPrx() const
+        {
+            return _adapterIdsPrx;
+        }
 
-private:
+        IdentitySetPrx identitiesPrx() const
+        {
+            return _identitiesPrx;
+        }
 
-    StringSetPrx _categoriesPrx;
-    StringSetPrx _adapterIdsPrx;
-    IdentitySetPrx _identitiesPrx;
+        static FilterManagerPtr create(const InstancePtr&, const std::string&, const bool);
 
-    const StringSetIPtr _categories;
-    const StringSetIPtr _adapters;
-    const IdentitySetIPtr _identities;
-    const InstancePtr _instance;
+    private:
+        StringSetPrx _categoriesPrx;
+        StringSetPrx _adapterIdsPrx;
+        IdentitySetPrx _identitiesPrx;
 
-    FilterManager(const InstancePtr& , const StringSetIPtr&, const StringSetIPtr&, const IdentitySetIPtr&);
-};
-};
+        const StringSetIPtr _categories;
+        const StringSetIPtr _adapters;
+        const IdentitySetIPtr _identities;
+        const InstancePtr _instance;
+
+        FilterManager(const InstancePtr&, const StringSetIPtr&, const StringSetIPtr&, const IdentitySetIPtr&);
+    };
+}; // namespace Glacier2
 
 #endif /* FILTER_MANAGER_H */

@@ -11,9 +11,9 @@
 #include <TestCommon.h>
 
 #ifdef _WIN32
-#   include <io.h>
+#    include <io.h>
 #else
-#   include <unistd.h>
+#    include <unistd.h>
 #endif
 #include <fstream>
 
@@ -28,16 +28,14 @@ using namespace std;
 // converts these BOMs back and forth.
 //
 
-//COMPILERFIX: MINGW doesn't support wmain for console applications.
+// COMPILERFIX: MINGW doesn't support wmain for console applications.
 #if defined(_WIN32) && !defined(__MINGW32__)
 
-int
-wmain(int argc, wchar_t* argv[])
+int wmain(int argc, wchar_t* argv[])
 
 #else
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 
 #endif
 {
@@ -47,11 +45,11 @@ main(int argc, char* argv[])
     {
 #ifdef _WIN32
 
-#   ifdef __MINGW32__
+#    ifdef __MINGW32__
         dir = argv[1];
-#   else
+#    else
         dir = wstringToString(argv[1]);
-#   endif
+#    endif
         dir += "\\";
 #else
         dir = argv[1];
@@ -266,8 +264,7 @@ main(int argc, char* argv[])
         }
         fromU8 = IceUtil::Time::now(IceUtil::Time::Monotonic) - fromU8;
 
-        cout << "toUTF8 = " << toU8 * 1000 << " ms; fromUTF8 = "
-             << fromU8 * 1000 << " ms ok" << endl;
+        cout << "toUTF8 = " << toU8 * 1000 << " ms; fromUTF8 = " << fromU8 * 1000 << " ms ok" << endl;
     }
 
 #endif
@@ -277,18 +274,16 @@ main(int argc, char* argv[])
 
         // From http://stackoverflow.com/questions/1301402/example-invalid-utf8-string
 
-        string badUTF8[] = {
-            "\xc3\x28",
-            "\xa0\xa1",
-            "\xe2\x28\xa1",
-            "\xe2\x82\x28",
-            "\xf0\x28\x8c\xbc",
-            "\xf0\x90\x28\xbc",
-            "\xf0\x28\x8c\x28",
-            "\xf8\xa1\xa1\xa1\xa1",
-            "\xfc\xa1\xa1\xa1\xa1\xa1",
-            ""
-        };
+        string badUTF8[] = {"\xc3\x28",
+                            "\xa0\xa1",
+                            "\xe2\x28\xa1",
+                            "\xe2\x82\x28",
+                            "\xf0\x28\x8c\xbc",
+                            "\xf0\x90\x28\xbc",
+                            "\xf0\x28\x8c\x28",
+                            "\xf8\xa1\xa1\xa1\xa1",
+                            "\xfc\xa1\xa1\xa1\xa1\xa1",
+                            ""};
 
         for(size_t i = 0; badUTF8[i] != ""; ++i)
         {
@@ -299,7 +294,8 @@ main(int argc, char* argv[])
                 test(false);
             }
             catch(const IllegalConversionException&)
-            {}
+            {
+            }
         }
 
         // TODO: need test for bad UTF-32 strings
@@ -308,14 +304,12 @@ main(int argc, char* argv[])
         // Note: for an unknown reason, the conversion works without
         // the extra letter (x below) when using codecvt_utf8_utf16.
         wstring badWstring[] = {
-#   ifdef ICE_HAS_CODECVT_UTF8
+#    ifdef ICE_HAS_CODECVT_UTF8
             wstring(1, wchar_t(0xD800)) + L"x",
-#   else
+#    else
             wstring(1, wchar_t(0xD800)),
-#   endif
-            wstring(2, wchar_t(0xDB7F)),
-            L""
-        };
+#    endif
+            wstring(2, wchar_t(0xDB7F)), L""};
 
         for(size_t i = 0; badWstring[i] != L""; ++i)
         {
@@ -325,12 +319,12 @@ main(int argc, char* argv[])
                 test(false);
             }
             catch(const IllegalConversionException&)
-            {}
+            {
+            }
         }
 #endif
 
         cout << "ok" << endl;
-
     }
     return EXIT_SUCCESS;
 }

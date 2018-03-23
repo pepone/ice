@@ -27,17 +27,18 @@ using namespace std;
 using namespace Ice;
 using namespace IceInternal;
 
-IceUtil::Shared* IceInternal::upCast(ProxyFactory* p) { return p; }
+IceUtil::Shared* IceInternal::upCast(ProxyFactory* p)
+{
+    return p;
+}
 
-ObjectPrxPtr
-IceInternal::ProxyFactory::stringToProxy(const string& str) const
+ObjectPrxPtr IceInternal::ProxyFactory::stringToProxy(const string& str) const
 {
     ReferencePtr ref = _instance->referenceFactory()->create(str, "");
     return referenceToProxy(ref);
 }
 
-string
-IceInternal::ProxyFactory::proxyToString(const ObjectPrxPtr& proxy) const
+string IceInternal::ProxyFactory::proxyToString(const ObjectPrxPtr& proxy) const
 {
     if(proxy)
     {
@@ -49,16 +50,14 @@ IceInternal::ProxyFactory::proxyToString(const ObjectPrxPtr& proxy) const
     }
 }
 
-ObjectPrxPtr
-IceInternal::ProxyFactory::propertyToProxy(const string& prefix) const
+ObjectPrxPtr IceInternal::ProxyFactory::propertyToProxy(const string& prefix) const
 {
     string proxy = _instance->initializationData().properties->getProperty(prefix);
     ReferencePtr ref = _instance->referenceFactory()->create(proxy, prefix);
     return referenceToProxy(ref);
 }
 
-PropertyDict
-IceInternal::ProxyFactory::proxyToProperty(const ObjectPrxPtr& proxy, const string& prefix) const
+PropertyDict IceInternal::ProxyFactory::proxyToProperty(const ObjectPrxPtr& proxy, const string& prefix) const
 {
     if(proxy)
     {
@@ -70,8 +69,7 @@ IceInternal::ProxyFactory::proxyToProperty(const ObjectPrxPtr& proxy, const stri
     }
 }
 
-ObjectPrxPtr
-IceInternal::ProxyFactory::streamToProxy(InputStream* s) const
+ObjectPrxPtr IceInternal::ProxyFactory::streamToProxy(InputStream* s) const
 {
     Identity ident;
     s->read(ident);
@@ -80,8 +78,7 @@ IceInternal::ProxyFactory::streamToProxy(InputStream* s) const
     return referenceToProxy(ref);
 }
 
-ObjectPrxPtr
-IceInternal::ProxyFactory::referenceToProxy(const ReferencePtr& ref) const
+ObjectPrxPtr IceInternal::ProxyFactory::referenceToProxy(const ReferencePtr& ref) const
 {
     if(ref)
     {
@@ -99,8 +96,8 @@ IceInternal::ProxyFactory::referenceToProxy(const ReferencePtr& ref) const
     }
 }
 
-int
-IceInternal::ProxyFactory::checkRetryAfterException(const LocalException& ex, const ReferencePtr& ref, int& cnt) const
+int IceInternal::ProxyFactory::checkRetryAfterException(const LocalException& ex, const ReferencePtr& ref,
+                                                        int& cnt) const
 {
     TraceLevelsPtr traceLevels = _instance->traceLevels();
     LoggerPtr logger = _instance->initializationData().logger;
@@ -258,8 +255,7 @@ IceInternal::ProxyFactory::checkRetryAfterException(const LocalException& ex, co
     return interval;
 }
 
-IceInternal::ProxyFactory::ProxyFactory(const InstancePtr& instance) :
-    _instance(instance)
+IceInternal::ProxyFactory::ProxyFactory(const InstancePtr& instance) : _instance(instance)
 {
     StringSeq retryValues = _instance->initializationData().properties->getPropertyAsList("Ice.RetryIntervals");
     if(retryValues.size() == 0)

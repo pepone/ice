@@ -22,46 +22,73 @@
 
 namespace Glacier2
 {
+    class Instance : public IceUtil::Shared
+    {
+    public:
+        Instance(const Ice::CommunicatorPtr&, const Ice::ObjectAdapterPtr&, const Ice::ObjectAdapterPtr&);
+        ~Instance();
 
-class Instance : public IceUtil::Shared
-{
-public:
+        Ice::CommunicatorPtr communicator() const
+        {
+            return _communicator;
+        }
+        Ice::ObjectAdapterPtr clientObjectAdapter() const
+        {
+            return _clientAdapter;
+        }
+        Ice::ObjectAdapterPtr serverObjectAdapter() const
+        {
+            return _serverAdapter;
+        }
+        Ice::PropertiesPtr properties() const
+        {
+            return _properties;
+        }
+        Ice::LoggerPtr logger() const
+        {
+            return _logger;
+        }
 
-    Instance(const Ice::CommunicatorPtr&, const Ice::ObjectAdapterPtr&, const Ice::ObjectAdapterPtr&);
-    ~Instance();
+        RequestQueueThreadPtr clientRequestQueueThread() const
+        {
+            return _clientRequestQueueThread;
+        }
+        RequestQueueThreadPtr serverRequestQueueThread() const
+        {
+            return _serverRequestQueueThread;
+        }
+        ProxyVerifierPtr proxyVerifier() const
+        {
+            return _proxyVerifier;
+        }
+        SessionRouterIPtr sessionRouter() const
+        {
+            return _sessionRouter;
+        }
 
-    Ice::CommunicatorPtr communicator() const { return _communicator; }
-    Ice::ObjectAdapterPtr clientObjectAdapter() const { return _clientAdapter; }
-    Ice::ObjectAdapterPtr serverObjectAdapter() const { return _serverAdapter; }
-    Ice::PropertiesPtr properties() const { return _properties; }
-    Ice::LoggerPtr logger() const { return _logger; }
+        const Glacier2::Instrumentation::RouterObserverPtr& getObserver() const
+        {
+            return _observer;
+        }
 
-    RequestQueueThreadPtr clientRequestQueueThread() const { return _clientRequestQueueThread; }
-    RequestQueueThreadPtr serverRequestQueueThread() const { return _serverRequestQueueThread; }
-    ProxyVerifierPtr proxyVerifier() const { return _proxyVerifier; }
-    SessionRouterIPtr sessionRouter() const { return _sessionRouter; }
+        void destroy();
 
-    const Glacier2::Instrumentation::RouterObserverPtr& getObserver() const { return _observer; }
+    private:
+        friend class SessionRouterI;
+        void setSessionRouter(const SessionRouterIPtr&);
 
-    void destroy();
-
-private:
-
-    friend class SessionRouterI;
-    void setSessionRouter(const SessionRouterIPtr&);
-
-    const Ice::CommunicatorPtr _communicator;
-    const Ice::PropertiesPtr _properties;
-    const Ice::LoggerPtr _logger;
-    const Ice::ObjectAdapterPtr _clientAdapter;
-    const Ice::ObjectAdapterPtr _serverAdapter;
-    const RequestQueueThreadPtr _clientRequestQueueThread;
-    const RequestQueueThreadPtr _serverRequestQueueThread;
-    const ProxyVerifierPtr _proxyVerifier;
-    const SessionRouterIPtr _sessionRouter;
-    const Glacier2::Instrumentation::RouterObserverPtr _observer;
-};
-typedef IceUtil::Handle<Instance> InstancePtr;
+        const Ice::CommunicatorPtr _communicator;
+        const Ice::PropertiesPtr _properties;
+        const Ice::LoggerPtr _logger;
+        const Ice::ObjectAdapterPtr _clientAdapter;
+        const Ice::ObjectAdapterPtr _serverAdapter;
+        const RequestQueueThreadPtr _clientRequestQueueThread;
+        const RequestQueueThreadPtr _serverRequestQueueThread;
+        const ProxyVerifierPtr _proxyVerifier;
+        const SessionRouterIPtr _sessionRouter;
+        const Glacier2::Instrumentation::RouterObserverPtr _observer;
+    };
+    typedef IceUtil::Handle<Instance> InstancePtr;
 
 } // End namespace Glacier2
 

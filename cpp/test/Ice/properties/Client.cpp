@@ -15,29 +15,26 @@ using namespace std;
 
 namespace
 {
+    string configPath;
 
-string configPath;
-
-class Client : public Ice::Application
-{
-public:
-    virtual int
-    run(int, char*[])
+    class Client : public Ice::Application
     {
-        Ice::PropertiesPtr properties = communicator()->getProperties();
-        test(properties->getProperty("Ice.Trace.Network") == "1");
-        test(properties->getProperty("Ice.Trace.Protocol") == "1");
-        test(properties->getProperty("Config.Path") == configPath);
-        test(properties->getProperty("Ice.ProgramName") == "PropertiesClient");
-        test(appName() == properties->getProperty("Ice.ProgramName"));
-        return EXIT_SUCCESS;
+    public:
+        virtual int run(int, char* [])
+        {
+            Ice::PropertiesPtr properties = communicator()->getProperties();
+            test(properties->getProperty("Ice.Trace.Network") == "1");
+            test(properties->getProperty("Ice.Trace.Protocol") == "1");
+            test(properties->getProperty("Config.Path") == configPath);
+            test(properties->getProperty("Ice.ProgramName") == "PropertiesClient");
+            test(appName() == properties->getProperty("Ice.ProgramName"));
+            return EXIT_SUCCESS;
+        };
     };
-};
 
-}
+} // namespace
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
 #ifdef ICE_STATIC_LIBS
     Ice::registerIceSSL(false);
@@ -105,29 +102,49 @@ main(int argc, char* argv[])
         args.push_back("--Ice.Config=config/escapes.cfg");
         properties = Ice::createProperties(args);
 
-        string props[] = { "Foo\tBar", "3",
-                           "Foo\\tBar", "4",
-                           "Escape\\ Space", "2",
-                           "Prop1", "1",
-                           "Prop2", "2",
-                           "Prop3", "3",
-                           "My Prop1", "1",
-                           "My Prop2", "2",
-                           "My.Prop1", "a property",
-                           "My.Prop2", "a     property",
-                           "My.Prop3", "  a     property  ",
-                           "My.Prop4", "  a     property  ",
-                           "My.Prop5", "a \\ property",
-                           "foo=bar", "1",
-                           "foo#bar", "2",
-                           "foo bar", "3",
-                           "A", "1",
-                           "B", "2 3 4",
-                           "C", "5=#6",
-                           "AServer", "\\\\server\\dir",
-                           "BServer", "\\server\\dir",
-                           ""
-        } ;
+        string props[] = {"Foo\tBar",
+                          "3",
+                          "Foo\\tBar",
+                          "4",
+                          "Escape\\ Space",
+                          "2",
+                          "Prop1",
+                          "1",
+                          "Prop2",
+                          "2",
+                          "Prop3",
+                          "3",
+                          "My Prop1",
+                          "1",
+                          "My Prop2",
+                          "2",
+                          "My.Prop1",
+                          "a property",
+                          "My.Prop2",
+                          "a     property",
+                          "My.Prop3",
+                          "  a     property  ",
+                          "My.Prop4",
+                          "  a     property  ",
+                          "My.Prop5",
+                          "a \\ property",
+                          "foo=bar",
+                          "1",
+                          "foo#bar",
+                          "2",
+                          "foo bar",
+                          "3",
+                          "A",
+                          "1",
+                          "B",
+                          "2 3 4",
+                          "C",
+                          "5=#6",
+                          "AServer",
+                          "\\\\server\\dir",
+                          "BServer",
+                          "\\server\\dir",
+                          ""};
 
         for(size_t i = 0; props[i] != ""; i += 2)
         {

@@ -14,7 +14,8 @@ using namespace std;
 using namespace IceGrid;
 
 SessionManager::SessionManager(const Ice::CommunicatorPtr& communicator, const string& instanceName) :
-    _communicator(communicator), _instanceName(instanceName)
+    _communicator(communicator),
+    _instanceName(instanceName)
 {
     Ice::LocatorPrx prx = communicator->getDefaultLocator();
     if(prx)
@@ -30,8 +31,7 @@ SessionManager::~SessionManager()
 {
 }
 
-vector<QueryPrx>
-SessionManager::findAllQueryObjects(bool cached)
+vector<QueryPrx> SessionManager::findAllQueryObjects(bool cached)
 {
     vector<QueryPrx> queryObjects;
     Ice::LocatorPrx locator;
@@ -139,8 +139,7 @@ SessionManager::findAllQueryObjects(bool cached)
         {
             queryObjects.push_back(p->second);
         }
-    }
-    while(proxies.size() != previousSize);
+    } while(proxies.size() != previousSize);
 
     Lock sync(*this);
     _queryObjects.swap(queryObjects);

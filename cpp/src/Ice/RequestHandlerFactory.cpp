@@ -22,8 +22,8 @@ RequestHandlerFactory::RequestHandlerFactory(const InstancePtr& instance) : _ins
 {
 }
 
-RequestHandlerPtr
-IceInternal::RequestHandlerFactory::getRequestHandler(const RoutableReferencePtr& ref, const Ice::ObjectPrxPtr& proxy)
+RequestHandlerPtr IceInternal::RequestHandlerFactory::getRequestHandler(const RoutableReferencePtr& ref,
+                                                                        const Ice::ObjectPrxPtr& proxy)
 {
     if(ref->getCollocationOptimized())
     {
@@ -67,8 +67,7 @@ IceInternal::RequestHandlerFactory::getRequestHandler(const RoutableReferencePtr
     return proxy->_setRequestHandler(handler->connect(proxy));
 }
 
-void
-IceInternal::RequestHandlerFactory::removeRequestHandler(const ReferencePtr& ref, const RequestHandlerPtr& handler)
+void IceInternal::RequestHandlerFactory::removeRequestHandler(const ReferencePtr& ref, const RequestHandlerPtr& handler)
 {
     if(ref->getCacheConnection())
     {

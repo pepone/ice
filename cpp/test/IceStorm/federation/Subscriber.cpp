@@ -22,14 +22,11 @@ using namespace Test;
 class EventI : public Event
 {
 public:
-
-    EventI(const CommunicatorPtr& communicator) :
-        _communicator(communicator)
+    EventI(const CommunicatorPtr& communicator) : _communicator(communicator)
     {
     }
 
-    virtual void
-    pub(const string&, const Ice::Current&)
+    virtual void pub(const string&, const Ice::Current&)
     {
         IceUtilInternal::MutexPtrLock<IceUtil::Mutex> sync(_countMutex);
 
@@ -42,7 +39,6 @@ public:
     static IceUtil::Mutex* _countMutex;
 
 private:
-
     CommunicatorPtr _communicator;
 
     static int _count;
@@ -55,40 +51,34 @@ IceUtil::Mutex* EventI::_countMutex = 0;
 
 namespace
 {
-
-class Init
-{
-public:
-
-    Init()
+    class Init
     {
-        EventI::_countMutex = new IceUtil::Mutex;
-    }
+    public:
+        Init()
+        {
+            EventI::_countMutex = new IceUtil::Mutex;
+        }
 
-    ~Init()
-    {
-        delete EventI::_countMutex;
-        EventI::_countMutex = 0;
-    }
-};
+        ~Init()
+        {
+            delete EventI::_countMutex;
+            EventI::_countMutex = 0;
+        }
+    };
 
-Init init;
+    Init init;
 
-}
+} // namespace
 
-void
-usage(const char* appName)
+void usage(const char* appName)
 {
     cerr << "Usage: " << appName << " [options]\n";
-    cerr <<
-        "Options:\n"
-        "-h, --help           Show this message.\n"
-        "-b                   Use batch reliability.\n"
-        ;
+    cerr << "Options:\n"
+            "-h, --help           Show this message.\n"
+            "-b                   Use batch reliability.\n";
 }
 
-int
-run(int argc, char* argv[], const CommunicatorPtr& communicator)
+int run(int argc, char* argv[], const CommunicatorPtr& communicator)
 {
     bool batch = false;
 
@@ -99,7 +89,7 @@ run(int argc, char* argv[], const CommunicatorPtr& communicator)
         {
             batch = true;
 
-            for(int i = idx ; i + 1 < argc ; ++i)
+            for(int i = idx; i + 1 < argc; ++i)
             {
                 argv[i] = argv[i + 1];
             }
@@ -191,8 +181,7 @@ run(int argc, char* argv[], const CommunicatorPtr& communicator)
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
     int status;
     CommunicatorPtr communicator;

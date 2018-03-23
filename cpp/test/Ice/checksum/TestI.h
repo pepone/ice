@@ -15,7 +15,6 @@
 class ChecksumI : public Test::Checksum
 {
 public:
-
     ChecksumI();
 
     virtual Ice::SliceChecksumDict getSliceChecksums(const Ice::Current&) const;

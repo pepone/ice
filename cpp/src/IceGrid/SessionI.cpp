@@ -22,47 +22,39 @@ using namespace IceGrid;
 
 namespace IceGrid
 {
-
-template<class T>
-class AllocateObject : public ObjectAllocationRequest
-{
-    typedef IceUtil::Handle<T> TPtr;
-
-public:
-
-    AllocateObject(const SessionIPtr& session, const TPtr& cb) :
-        ObjectAllocationRequest(session), _cb(cb)
+    template<class T> class AllocateObject : public ObjectAllocationRequest
     {
+        typedef IceUtil::Handle<T> TPtr;
+
+    public:
+        AllocateObject(const SessionIPtr& session, const TPtr& cb) : ObjectAllocationRequest(session), _cb(cb)
+        {
+        }
+
+        virtual void response(const Ice::ObjectPrx& proxy)
+        {
+            assert(_cb);
+            _cb->ice_response(proxy);
+            _cb = 0;
+        }
+
+        virtual void exception(const Ice::UserException& ex)
+        {
+            assert(_cb);
+            _cb->ice_exception(ex);
+            _cb = 0;
+        }
+
+    private:
+        TPtr _cb;
+    };
+
+    template<class T> AllocateObject<T>* newAllocateObject(const SessionIPtr& session, const IceUtil::Handle<T>& cb)
+    {
+        return new AllocateObject<T>(session, cb);
     }
 
-    virtual void
-    response(const Ice::ObjectPrx& proxy)
-    {
-        assert(_cb);
-        _cb->ice_response(proxy);
-        _cb = 0;
-    }
-
-    virtual void
-    exception(const Ice::UserException& ex)
-    {
-        assert(_cb);
-        _cb->ice_exception(ex);
-        _cb = 0;
-    }
-
-private:
-
-    TPtr _cb;
-};
-
-template<class T> AllocateObject<T>*
-newAllocateObject(const SessionIPtr& session, const IceUtil::Handle<T>& cb)
-{
-    return new AllocateObject<T>(session, cb);
-}
-
-}
+} // namespace IceGrid
 
 BaseSessionI::BaseSessionI(const string& id, const string& prefix, const DatabasePtr& database) :
     _id(id),
@@ -83,8 +75,7 @@ BaseSessionI::~BaseSessionI()
 {
 }
 
-void
-BaseSessionI::keepAlive(const Ice::Current& current)
+void BaseSessionI::keepAlive(const Ice::Current& current)
 {
     Lock sync(*this);
     if(_destroyed)
@@ -101,8 +92,7 @@ BaseSessionI::keepAlive(const Ice::Current& current)
     }
 }
 
-void
-BaseSessionI::destroyImpl(bool /*shutdown*/)
+void BaseSessionI::destroyImpl(bool /*shutdown*/)
 {
     Lock sync(*this);
     if(_destroyed)
@@ -118,8 +108,7 @@ BaseSessionI::destroyImpl(bool /*shutdown*/)
     }
 }
 
-IceUtil::Time
-BaseSessionI::timestamp() const
+IceUtil::Time BaseSessionI::timestamp() const
 {
     Lock sync(*this);
     if(_destroyed)
@@ -129,21 +118,18 @@ BaseSessionI::timestamp() const
     return _timestamp;
 }
 
-void
-BaseSessionI::shutdown()
+void BaseSessionI::shutdown()
 {
     destroyImpl(true);
 }
 
-Glacier2::IdentitySetPrx
-BaseSessionI::getGlacier2IdentitySet()
+Glacier2::IdentitySetPrx BaseSessionI::getGlacier2IdentitySet()
 {
     assert(_servantManager);
     return _servantManager->getGlacier2IdentitySet(this);
 }
 
-Glacier2::StringSetPrx
-BaseSessionI::getGlacier2AdapterIdSet()
+Glacier2::StringSetPrx BaseSessionI::getGlacier2AdapterIdSet()
 {
     assert(_servantManager);
     return _servantManager->getGlacier2AdapterIdSet(this);
@@ -160,8 +146,7 @@ SessionI::~SessionI()
 {
 }
 
-Ice::ObjectPrx
-SessionI::_register(const SessionServantManagerPtr& servantManager, const Ice::ConnectionPtr& con)
+Ice::ObjectPrx SessionI::_register(const SessionServantManagerPtr& servantManager, const Ice::ConnectionPtr& con)
 {
     //
     // This is supposed to be called after creation only, no need to synchronize.
@@ -170,50 +155,41 @@ SessionI::_register(const SessionServantManagerPtr& servantManager, const Ice::C
     return _servantManager->addSession(this, con, "");
 }
 
-void
-SessionI::allocateObjectById_async(const AMD_Session_allocateObjectByIdPtr& cb,
-                                   const Ice::Identity& id,
-                                   const Ice::Current&)
+void SessionI::allocateObjectById_async(const AMD_Session_allocateObjectByIdPtr& cb, const Ice::Identity& id,
+                                        const Ice::Current&)
 {
     _database->getAllocatableObject(id)->allocate(newAllocateObject(this, cb));
 }
 
-void
-SessionI::allocateObjectByType_async(const AMD_Session_allocateObjectByTypePtr& cb,
-                                     const string& type,
-                                     const Ice::Current&)
+void SessionI::allocateObjectByType_async(const AMD_Session_allocateObjectByTypePtr& cb, const string& type,
+                                          const Ice::Current&)
 {
     _database->getAllocatableObjectCache().allocateByType(type, newAllocateObject(this, cb));
 }
 
-void
-SessionI::releaseObject(const Ice::Identity& id, const Ice::Current&)
+void SessionI::releaseObject(const Ice::Identity& id, const Ice::Current&)
 {
     _database->getAllocatableObject(id)->release(this);
 }
 
-void
-SessionI::setAllocationTimeout(int timeout, const Ice::Current&)
+void SessionI::setAllocationTimeout(int timeout, const Ice::Current&)
 {
     Lock sync(*this);
     _allocationTimeout = timeout;
 }
 
-void
-SessionI::destroy(const Ice::Current&)
+void SessionI::destroy(const Ice::Current&)
 {
     destroyImpl(false);
 }
 
-int
-SessionI::getAllocationTimeout() const
+int SessionI::getAllocationTimeout() const
 {
     Lock sync(*this);
     return _allocationTimeout;
 }
 
-bool
-SessionI::addAllocationRequest(const AllocationRequestPtr& request)
+bool SessionI::addAllocationRequest(const AllocationRequestPtr& request)
 {
     Lock sync(*this);
     if(_destroyed)
@@ -224,8 +200,7 @@ SessionI::addAllocationRequest(const AllocationRequestPtr& request)
     return true;
 }
 
-void
-SessionI::removeAllocationRequest(const AllocationRequestPtr& request)
+void SessionI::removeAllocationRequest(const AllocationRequestPtr& request)
 {
     Lock sync(*this);
     if(_destroyed)
@@ -235,8 +210,7 @@ SessionI::removeAllocationRequest(const AllocationRequestPtr& request)
     _requests.erase(request);
 }
 
-void
-SessionI::addAllocation(const AllocatablePtr& allocatable)
+void SessionI::addAllocation(const AllocatablePtr& allocatable)
 {
     Lock sync(*this);
     if(_destroyed)
@@ -246,8 +220,7 @@ SessionI::addAllocation(const AllocatablePtr& allocatable)
     _allocations.insert(allocatable);
 }
 
-void
-SessionI::removeAllocation(const AllocatablePtr& allocatable)
+void SessionI::removeAllocation(const AllocatablePtr& allocatable)
 {
     Lock sync(*this);
     if(_destroyed)
@@ -257,8 +230,7 @@ SessionI::removeAllocation(const AllocatablePtr& allocatable)
     _allocations.erase(allocatable);
 }
 
-void
-SessionI::destroyImpl(bool shutdown)
+void SessionI::destroyImpl(bool shutdown)
 {
     BaseSessionI::destroyImpl(shutdown);
 
@@ -289,10 +261,8 @@ SessionI::destroyImpl(bool shutdown)
     _allocations.clear();
 }
 
-ClientSessionFactory::ClientSessionFactory(const SessionServantManagerPtr& servantManager,
-                                           const DatabasePtr& database,
-                                           const IceUtil::TimerPtr& timer,
-                                           const ReapThreadPtr& reaper) :
+ClientSessionFactory::ClientSessionFactory(const SessionServantManagerPtr& servantManager, const DatabasePtr& database,
+                                           const IceUtil::TimerPtr& timer, const ReapThreadPtr& reaper) :
     _servantManager(servantManager),
     _database(database),
     _timer(timer),
@@ -306,8 +276,8 @@ ClientSessionFactory::ClientSessionFactory(const SessionServantManagerPtr& serva
     }
 }
 
-Glacier2::SessionPrx
-ClientSessionFactory::createGlacier2Session(const string& sessionId, const Glacier2::SessionControlPrx& ctl)
+Glacier2::SessionPrx ClientSessionFactory::createGlacier2Session(const string& sessionId,
+                                                                 const Glacier2::SessionControlPrx& ctl)
 {
     assert(_servantManager);
 
@@ -346,14 +316,12 @@ ClientSessionFactory::createGlacier2Session(const string& sessionId, const Glaci
     return Glacier2::SessionPrx::uncheckedCast(proxy);
 }
 
-SessionIPtr
-ClientSessionFactory::createSessionServant(const string& userId, const Glacier2::SessionControlPrx&)
+SessionIPtr ClientSessionFactory::createSessionServant(const string& userId, const Glacier2::SessionControlPrx&)
 {
     return new SessionI(userId, _database, _timer);
 }
 
-const TraceLevelsPtr&
-ClientSessionFactory::getTraceLevels() const
+const TraceLevelsPtr& ClientSessionFactory::getTraceLevels() const
 {
     return _database->getTraceLevels();
 }
@@ -362,8 +330,8 @@ ClientSessionManagerI::ClientSessionManagerI(const ClientSessionFactoryPtr& fact
 {
 }
 
-Glacier2::SessionPrx
-ClientSessionManagerI::create(const string& user, const Glacier2::SessionControlPrx& ctl, const Ice::Current&)
+Glacier2::SessionPrx ClientSessionManagerI::create(const string& user, const Glacier2::SessionControlPrx& ctl,
+                                                   const Ice::Current&)
 {
     return _factory->createGlacier2Session(user, ctl);
 }
@@ -372,10 +340,8 @@ ClientSSLSessionManagerI::ClientSSLSessionManagerI(const ClientSessionFactoryPtr
 {
 }
 
-Glacier2::SessionPrx
-ClientSSLSessionManagerI::create(const Glacier2::SSLInfo& info,
-                                 const Glacier2::SessionControlPrx& ctl,
-                                 const Ice::Current&)
+Glacier2::SessionPrx ClientSSLSessionManagerI::create(const Glacier2::SSLInfo& info,
+                                                      const Glacier2::SessionControlPrx& ctl, const Ice::Current&)
 {
     string userDN;
     if(!info.certs.empty()) // TODO: Require userDN?

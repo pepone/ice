@@ -12,75 +12,71 @@
 
 #ifdef ICE_CPP11_MAPPING // C++11 mapping
 
-#include <Ice/InputStream.h>
-#include <Ice/OutputStream.h>
+#    include <Ice/InputStream.h>
+#    include <Ice/OutputStream.h>
 
 namespace Ice
 {
-
-class LocalException;
-
-/**
- * Helper template for local exceptions.
- * \headerfile Ice/Ice.h
- */
-template<typename T, typename B> class LocalExceptionHelper : public IceUtil::ExceptionHelper<T, B>
-{
-public:
-
-    using IceUtil::ExceptionHelper<T, B>::ExceptionHelper;
+    class LocalException;
 
     /**
-     * Obtains the Slice type ID of this exception.
-     * @return The fully-scoped type ID.
+     * Helper template for local exceptions.
+     * \headerfile Ice/Ice.h
      */
-    virtual std::string ice_id() const override
+    template<typename T, typename B> class LocalExceptionHelper : public IceUtil::ExceptionHelper<T, B>
     {
-        return T::ice_staticId();
-    }
-};
+    public:
+        using IceUtil::ExceptionHelper<T, B>::ExceptionHelper;
 
-/**
- * Helper template for user exceptions.
- * \headerfile Ice/Ice.h
- */
-template<typename T, typename B> class UserExceptionHelper : public IceUtil::ExceptionHelper<T, B>
-{
-public:
-
-    using IceUtil::ExceptionHelper<T, B>::ExceptionHelper;
+        /**
+         * Obtains the Slice type ID of this exception.
+         * @return The fully-scoped type ID.
+         */
+        virtual std::string ice_id() const override
+        {
+            return T::ice_staticId();
+        }
+    };
 
     /**
-     * Obtains the Slice type ID of this exception.
-     * @return The fully-scoped type ID.
+     * Helper template for user exceptions.
+     * \headerfile Ice/Ice.h
      */
-    virtual std::string ice_id() const override
+    template<typename T, typename B> class UserExceptionHelper : public IceUtil::ExceptionHelper<T, B>
     {
-        return T::ice_staticId();
-    }
+    public:
+        using IceUtil::ExceptionHelper<T, B>::ExceptionHelper;
 
-protected:
+        /**
+         * Obtains the Slice type ID of this exception.
+         * @return The fully-scoped type ID.
+         */
+        virtual std::string ice_id() const override
+        {
+            return T::ice_staticId();
+        }
 
-    /// \cond STREAM
-    virtual void _writeImpl(Ice::OutputStream* os) const override
-    {
-        os->startSlice(T::ice_staticId(), -1, std::is_same<B, Ice::LocalException>::value ? true : false);
-        Ice::StreamWriter<T, Ice::OutputStream>::write(os, static_cast<const T&>(*this));
-        os->endSlice();
-        B::_writeImpl(os);
-    }
+    protected:
+        /// \cond STREAM
+        virtual void _writeImpl(Ice::OutputStream* os) const override
+        {
+            os->startSlice(T::ice_staticId(), -1, std::is_same<B, Ice::LocalException>::value ? true : false);
+            Ice::StreamWriter<T, Ice::OutputStream>::write(os, static_cast<const T&>(*this));
+            os->endSlice();
+            B::_writeImpl(os);
+        }
 
-    virtual void _readImpl(Ice::InputStream* is) override
-    {
-        is->startSlice();
-        Ice::StreamReader<T, ::Ice::InputStream>::read(is, static_cast<T&>(*this));
-        is->endSlice();
-        B::_readImpl(is);
-    }
-    /// \endcond
-};
+        virtual void _readImpl(Ice::InputStream* is) override
+        {
+            is->startSlice();
+            Ice::StreamReader<T, ::Ice::InputStream>::read(is, static_cast<T&>(*this));
+            is->endSlice();
+            B::_readImpl(is);
+        }
+        /// \endcond
+    };
 
-}
+} // namespace Ice
 
 #endif // C++11 mapping end
 

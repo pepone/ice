@@ -22,7 +22,6 @@ static const string createTestName("thread start");
 class StartTestThread : public Thread
 {
 public:
-
     StartTestThread()
     {
     }
@@ -34,13 +33,11 @@ public:
 
 typedef Handle<StartTestThread> StartTestThreadPtr;
 
-StartTest::StartTest() :
-    TestBase(createTestName)
+StartTest::StartTest() : TestBase(createTestName)
 {
 }
 
-void
-StartTest::run()
+void StartTest::run()
 {
     //
     // Check that calling start() more than once raises ThreadStartedException.

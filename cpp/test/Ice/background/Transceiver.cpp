@@ -8,21 +8,19 @@
 // **********************************************************************
 
 #ifndef TEST_API_EXPORTS
-#   define TEST_API_EXPORTS
+#    define TEST_API_EXPORTS
 #endif
 
 #include <Transceiver.h>
 
 using namespace std;
 
-IceInternal::NativeInfoPtr
-Transceiver::getNativeInfo()
+IceInternal::NativeInfoPtr Transceiver::getNativeInfo()
 {
     return _transceiver->getNativeInfo();
 }
 
-IceInternal::SocketOperation
-Transceiver::initialize(IceInternal::Buffer& readBuffer, IceInternal::Buffer& writeBuffer)
+IceInternal::SocketOperation Transceiver::initialize(IceInternal::Buffer& readBuffer, IceInternal::Buffer& writeBuffer)
 {
 #ifndef ICE_USE_IOCP
     IceInternal::SocketOperation status = _configuration->initializeSocketOperation();
@@ -62,20 +60,17 @@ Transceiver::initialize(IceInternal::Buffer& readBuffer, IceInternal::Buffer& wr
     return IceInternal::SocketOperationNone;
 }
 
-IceInternal::SocketOperation
-Transceiver::closing(bool initiator, const Ice::LocalException& ex)
+IceInternal::SocketOperation Transceiver::closing(bool initiator, const Ice::LocalException& ex)
 {
     return _transceiver->closing(initiator, ex);
 }
 
-void
-Transceiver::close()
+void Transceiver::close()
 {
     _transceiver->close();
 }
 
-IceInternal::SocketOperation
-Transceiver::write(IceInternal::Buffer& buf)
+IceInternal::SocketOperation Transceiver::write(IceInternal::Buffer& buf)
 {
     if(!_configuration->writeReady() && (!buf.b.empty() && buf.i < buf.b.end()))
     {
@@ -86,8 +81,7 @@ Transceiver::write(IceInternal::Buffer& buf)
     return _transceiver->write(buf);
 }
 
-IceInternal::SocketOperation
-Transceiver::read(IceInternal::Buffer& buf)
+IceInternal::SocketOperation Transceiver::read(IceInternal::Buffer& buf)
 {
     if(!_configuration->readReady() && (!buf.b.empty() && buf.i < buf.b.end()))
     {
@@ -136,22 +130,19 @@ Transceiver::read(IceInternal::Buffer& buf)
 }
 
 #ifdef ICE_USE_IOCP
-bool
-Transceiver::startWrite(IceInternal::Buffer& buf)
+bool Transceiver::startWrite(IceInternal::Buffer& buf)
 {
     _configuration->checkWriteException();
     return _transceiver->startWrite(buf);
 }
 
-void
-Transceiver::finishWrite(IceInternal::Buffer& buf)
+void Transceiver::finishWrite(IceInternal::Buffer& buf)
 {
     _configuration->checkWriteException();
     _transceiver->finishWrite(buf);
 }
 
-void
-Transceiver::startRead(IceInternal::Buffer& buf)
+void Transceiver::startRead(IceInternal::Buffer& buf)
 {
     _configuration->checkReadException();
     if(_buffered && _initialized)
@@ -188,8 +179,7 @@ Transceiver::startRead(IceInternal::Buffer& buf)
     }
 }
 
-void
-Transceiver::finishRead(IceInternal::Buffer& buf)
+void Transceiver::finishRead(IceInternal::Buffer& buf)
 {
     _configuration->checkReadException();
     if(_buffered && _initialized)
@@ -220,38 +210,32 @@ Transceiver::finishRead(IceInternal::Buffer& buf)
 }
 #endif
 
-string
-Transceiver::protocol() const
+string Transceiver::protocol() const
 {
     return "test-" + _transceiver->protocol();
 }
 
-string
-Transceiver::toString() const
+string Transceiver::toString() const
 {
     return _transceiver->toString();
 }
 
-string
-Transceiver::toDetailedString() const
+string Transceiver::toDetailedString() const
 {
     return _transceiver->toDetailedString();
 }
 
-Ice::ConnectionInfoPtr
-Transceiver::getInfo() const
+Ice::ConnectionInfoPtr Transceiver::getInfo() const
 {
     return _transceiver->getInfo();
 }
 
-void
-Transceiver::checkSendSize(const IceInternal::Buffer& buf)
+void Transceiver::checkSendSize(const IceInternal::Buffer& buf)
 {
     _transceiver->checkSendSize(buf);
 }
 
-void
-Transceiver::setBufferSize(int rcvSize, int sndSize)
+void Transceiver::setBufferSize(int rcvSize, int sndSize)
 {
     _transceiver->setBufferSize(rcvSize, sndSize);
 }

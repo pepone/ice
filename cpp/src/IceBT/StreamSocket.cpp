@@ -35,20 +35,17 @@ IceBT::StreamSocket::~StreamSocket()
     assert(_fd == INVALID_SOCKET);
 }
 
-size_t
-IceBT::StreamSocket::getSendPacketSize(size_t length)
+size_t IceBT::StreamSocket::getSendPacketSize(size_t length)
 {
     return length;
 }
 
-size_t
-IceBT::StreamSocket::getRecvPacketSize(size_t length)
+size_t IceBT::StreamSocket::getRecvPacketSize(size_t length)
 {
     return length;
 }
 
-void
-IceBT::StreamSocket::setBufferSize(SOCKET fd, int rcvSize, int sndSize)
+void IceBT::StreamSocket::setBufferSize(SOCKET fd, int rcvSize, int sndSize)
 {
     assert(fd != INVALID_SOCKET);
 
@@ -101,22 +98,19 @@ IceBT::StreamSocket::setBufferSize(SOCKET fd, int rcvSize, int sndSize)
     }
 }
 
-IceInternal::SocketOperation
-IceBT::StreamSocket::read(IceInternal::Buffer& buf)
+IceInternal::SocketOperation IceBT::StreamSocket::read(IceInternal::Buffer& buf)
 {
     buf.i += read(reinterpret_cast<char*>(&*buf.i), buf.b.end() - buf.i);
     return buf.i != buf.b.end() ? IceInternal::SocketOperationRead : IceInternal::SocketOperationNone;
 }
 
-IceInternal::SocketOperation
-IceBT::StreamSocket::write(IceInternal::Buffer& buf)
+IceInternal::SocketOperation IceBT::StreamSocket::write(IceInternal::Buffer& buf)
 {
     buf.i += write(reinterpret_cast<const char*>(&*buf.i), buf.b.end() - buf.i);
     return buf.i != buf.b.end() ? IceInternal::SocketOperationWrite : IceInternal::SocketOperationNone;
 }
 
-ssize_t
-IceBT::StreamSocket::read(char* buf, size_t length)
+ssize_t IceBT::StreamSocket::read(char* buf, size_t length)
 {
     assert(_fd != INVALID_SOCKET);
 
@@ -170,8 +164,7 @@ IceBT::StreamSocket::read(char* buf, size_t length)
     return read;
 }
 
-ssize_t
-IceBT::StreamSocket::write(const char* buf, size_t length)
+ssize_t IceBT::StreamSocket::write(const char* buf, size_t length)
 {
     assert(_fd != INVALID_SOCKET);
 
@@ -225,8 +218,7 @@ IceBT::StreamSocket::write(const char* buf, size_t length)
     return sent;
 }
 
-void
-IceBT::StreamSocket::close()
+void IceBT::StreamSocket::close()
 {
     if(_fd != INVALID_SOCKET)
     {
@@ -243,14 +235,12 @@ IceBT::StreamSocket::close()
     }
 }
 
-const string&
-IceBT::StreamSocket::toString() const
+const string& IceBT::StreamSocket::toString() const
 {
     return _desc;
 }
 
-void
-IceBT::StreamSocket::setFd(SOCKET fd)
+void IceBT::StreamSocket::setFd(SOCKET fd)
 {
     assert(fd != INVALID_SOCKET);
     init(fd);
@@ -258,8 +248,7 @@ IceBT::StreamSocket::setFd(SOCKET fd)
     _desc = fdToString(fd);
 }
 
-void
-IceBT::StreamSocket::init(SOCKET fd)
+void IceBT::StreamSocket::init(SOCKET fd)
 {
     IceInternal::setBlock(fd, false);
 

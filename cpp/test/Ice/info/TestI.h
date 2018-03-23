@@ -15,7 +15,6 @@
 class TestI : public Test::TestIntf
 {
 public:
-
     virtual void shutdown(const Ice::Current&);
 
     virtual Ice::Context getEndpointInfoAsContext(const Ice::Current&);

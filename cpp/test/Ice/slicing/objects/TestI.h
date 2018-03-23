@@ -16,7 +16,6 @@
 class TestI : public virtual Test::TestIntf
 {
 public:
-
     TestI();
     ~TestI();
 
@@ -59,8 +58,7 @@ public:
 
 #ifdef ICE_CPP11_MAPPING
     virtual void PBSUnknownAsPreservedWithGraphAsync(std::function<void(const std::shared_ptr<Test::Preserved>&)>,
-                                                      std::function<void(std::exception_ptr)>,
-                                                      const ::Ice::Current&);
+                                                     std::function<void(std::exception_ptr)>, const ::Ice::Current&);
 #else
     virtual void PBSUnknownAsPreservedWithGraph_async(const ::Test::AMD_TestIntf_PBSUnknownAsPreservedWithGraphPtr&,
                                                       const ::Ice::Current&);
@@ -69,8 +67,7 @@ public:
 
 #ifdef ICE_CPP11_MAPPING
     virtual void PBSUnknown2AsPreservedWithGraphAsync(std::function<void(const std::shared_ptr<Test::Preserved>&)>,
-                                                       std::function<void(std::exception_ptr)>,
-                                                       const ::Ice::Current&);
+                                                      std::function<void(std::exception_ptr)>, const ::Ice::Current&);
 #else
     virtual void PBSUnknown2AsPreservedWithGraph_async(const ::Test::AMD_TestIntf_PBSUnknown2AsPreservedWithGraphPtr&,
                                                        const ::Ice::Current&);
@@ -84,9 +81,8 @@ public:
     virtual void throwDerivedAsDerived(const ::Ice::Current&);
     virtual void throwUnknownDerivedAsBase(const ::Ice::Current&);
 #ifdef ICE_CPP11_MAPPING
-    virtual void throwPreservedExceptionAsync(std::function<void()>,
-                                               std::function<void(std::exception_ptr)>,
-                                               const ::Ice::Current&);
+    virtual void throwPreservedExceptionAsync(std::function<void()>, std::function<void(std::exception_ptr)>,
+                                              const ::Ice::Current&);
 #else
     virtual void throwPreservedException_async(const ::Test::AMD_TestIntf_throwPreservedExceptionPtr&,
                                                const ::Ice::Current&);
@@ -97,7 +93,6 @@ public:
     virtual void shutdown(const ::Ice::Current&);
 
 private:
-
 #ifdef ICE_CPP11_MAPPING
     std::vector<std::shared_ptr<Ice::Value>> _values;
 #endif

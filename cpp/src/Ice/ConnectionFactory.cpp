@@ -32,11 +32,10 @@
 #if TARGET_OS_IPHONE != 0
 namespace IceInternal
 {
+    bool registerForBackgroundNotification(const IceInternal::IncomingConnectionFactoryPtr&);
+    void unregisterForBackgroundNotification(const IceInternal::IncomingConnectionFactoryPtr&);
 
-bool registerForBackgroundNotification(const IceInternal::IncomingConnectionFactoryPtr&);
-void unregisterForBackgroundNotification(const IceInternal::IncomingConnectionFactoryPtr&);
-
-}
+} // namespace IceInternal
 #endif
 
 using namespace std;
@@ -44,118 +43,116 @@ using namespace Ice;
 using namespace Ice::Instrumentation;
 using namespace IceInternal;
 
-IceUtil::Shared* IceInternal::upCast(OutgoingConnectionFactory* p) { return p; }
+IceUtil::Shared* IceInternal::upCast(OutgoingConnectionFactory* p)
+{
+    return p;
+}
 
 #ifndef ICE_CPP11_MAPPING
-IceUtil::Shared* IceInternal::upCast(IncomingConnectionFactory* p) { return p; }
+IceUtil::Shared* IceInternal::upCast(IncomingConnectionFactory* p)
+{
+    return p;
+}
 #endif
 
 namespace
 {
-
-struct RandomNumberGenerator : public std::unary_function<ptrdiff_t, ptrdiff_t>
-{
-    ptrdiff_t operator()(ptrdiff_t d)
+    struct RandomNumberGenerator : public std::unary_function<ptrdiff_t, ptrdiff_t>
     {
-        return IceUtilInternal::random(static_cast<int>(d));
-    }
-};
+        ptrdiff_t operator()(ptrdiff_t d)
+        {
+            return IceUtilInternal::random(static_cast<int>(d));
+        }
+    };
 
 #ifdef ICE_CPP11_MAPPING
-template <typename Map> void
-remove(Map& m, const typename Map::key_type& k, const typename Map::mapped_type& v)
-{
-    auto pr = m.equal_range(k);
-    assert(pr.first != pr.second);
-    for(auto q = pr.first; q != pr.second; ++q)
+    template<typename Map> void remove(Map& m, const typename Map::key_type& k, const typename Map::mapped_type& v)
     {
-        if(q->second.get() == v.get())
+        auto pr = m.equal_range(k);
+        assert(pr.first != pr.second);
+        for(auto q = pr.first; q != pr.second; ++q)
         {
-            m.erase(q);
-            return;
+            if(q->second.get() == v.get())
+            {
+                m.erase(q);
+                return;
+            }
         }
+        assert(false); // Nothing was removed which is an error.
     }
-    assert(false); // Nothing was removed which is an error.
-}
 
-template<typename Map, typename Predicate> typename Map::mapped_type
-find(const Map& m, const typename Map::key_type& k, Predicate predicate)
-{
-    auto pr = m.equal_range(k);
-    for(auto q = pr.first; q != pr.second; ++q)
+    template<typename Map, typename Predicate>
+    typename Map::mapped_type find(const Map& m, const typename Map::key_type& k, Predicate predicate)
     {
-        if(predicate(q->second))
+        auto pr = m.equal_range(k);
+        for(auto q = pr.first; q != pr.second; ++q)
         {
-            return q->second;
+            if(predicate(q->second))
+            {
+                return q->second;
+            }
         }
+        return nullptr;
     }
-    return nullptr;
-}
 
 #else
-template <typename K, typename V> void
-remove(multimap<K, V>& m, K k, V v)
-{
-    pair<typename multimap<K, V>::iterator, typename multimap<K, V>::iterator> pr = m.equal_range(k);
-    assert(pr.first != pr.second);
-    for(typename multimap<K, V>::iterator q = pr.first; q != pr.second; ++q)
+    template<typename K, typename V> void remove(multimap<K, V>& m, K k, V v)
     {
-        if(q->second.get() == v.get())
+        pair<typename multimap<K, V>::iterator, typename multimap<K, V>::iterator> pr = m.equal_range(k);
+        assert(pr.first != pr.second);
+        for(typename multimap<K, V>::iterator q = pr.first; q != pr.second; ++q)
         {
-            m.erase(q);
-            return;
+            if(q->second.get() == v.get())
+            {
+                m.erase(q);
+                return;
+            }
         }
+        assert(false); // Nothing was removed which is an error.
     }
-    assert(false); // Nothing was removed which is an error.
-}
 
-template <typename K, typename V> ::IceInternal::Handle<V>
-find(const multimap<K,::IceInternal::Handle<V> >& m,
-     K k,
-     const ::IceUtilInternal::ConstMemFun<bool, V, ::IceInternal::Handle<V> >& predicate)
-{
-    pair<typename multimap<K, ::IceInternal::Handle<V> >::const_iterator,
-         typename multimap<K, ::IceInternal::Handle<V> >::const_iterator> pr = m.equal_range(k);
-    for(typename multimap<K, ::IceInternal::Handle<V> >::const_iterator q = pr.first; q != pr.second; ++q)
+    template<typename K, typename V>
+    ::IceInternal::Handle<V> find(const multimap<K, ::IceInternal::Handle<V>>& m, K k,
+                                  const ::IceUtilInternal::ConstMemFun<bool, V, ::IceInternal::Handle<V>>& predicate)
     {
-        if(predicate(q->second))
+        pair<typename multimap<K, ::IceInternal::Handle<V>>::const_iterator,
+             typename multimap<K, ::IceInternal::Handle<V>>::const_iterator>
+            pr = m.equal_range(k);
+        for(typename multimap<K, ::IceInternal::Handle<V>>::const_iterator q = pr.first; q != pr.second; ++q)
         {
-            return q->second;
+            if(predicate(q->second))
+            {
+                return q->second;
+            }
         }
+        return IceInternal::Handle<V>();
     }
-    return IceInternal::Handle<V>();
-}
 #endif
 
-class StartAcceptor : public IceUtil::TimerTask
-{
-public:
-
-    StartAcceptor(const IncomingConnectionFactoryPtr& factory) : _factory(factory)
+    class StartAcceptor : public IceUtil::TimerTask
     {
-    }
+    public:
+        StartAcceptor(const IncomingConnectionFactoryPtr& factory) : _factory(factory)
+        {
+        }
 
-    void
-    runTimerTask()
-    {
-        _factory->startAcceptor();
-    }
+        void runTimerTask()
+        {
+            _factory->startAcceptor();
+        }
 
-private:
+    private:
+        IncomingConnectionFactoryPtr _factory;
+    };
 
-    IncomingConnectionFactoryPtr _factory;
-};
+} // namespace
 
-}
-
-bool
-IceInternal::OutgoingConnectionFactory::ConnectorInfo::operator==(const ConnectorInfo& other) const
+bool IceInternal::OutgoingConnectionFactory::ConnectorInfo::operator==(const ConnectorInfo& other) const
 {
     return connector == other.connector;
 }
 
-void
-IceInternal::OutgoingConnectionFactory::destroy()
+void IceInternal::OutgoingConnectionFactory::destroy()
 {
     IceUtil::Monitor<IceUtil::Mutex>::Lock sync(*this);
 
@@ -165,8 +162,9 @@ IceInternal::OutgoingConnectionFactory::destroy()
     }
 
     for_each(_connections.begin(), _connections.end(),
-             bind2nd(Ice::secondVoidMemFun1<const ConnectorPtr, ConnectionI, ConnectionI::DestructionReason>
-                     (&ConnectionI::destroy), ConnectionI::CommunicatorDestroyed));
+             bind2nd(Ice::secondVoidMemFun1<const ConnectorPtr, ConnectionI, ConnectionI::DestructionReason>(
+                         &ConnectionI::destroy),
+                     ConnectionI::CommunicatorDestroyed));
 
     _destroyed = true;
     _communicator = 0;
@@ -174,16 +172,14 @@ IceInternal::OutgoingConnectionFactory::destroy()
     notifyAll();
 }
 
-void
-IceInternal::OutgoingConnectionFactory::updateConnectionObservers()
+void IceInternal::OutgoingConnectionFactory::updateConnectionObservers()
 {
     IceUtil::Monitor<IceUtil::Mutex>::Lock sync(*this);
     for_each(_connections.begin(), _connections.end(),
              Ice::secondVoidMemFun<const ConnectorPtr, ConnectionI>(&ConnectionI::updateObserver));
 }
 
-void
-IceInternal::OutgoingConnectionFactory::waitUntilFinished()
+void IceInternal::OutgoingConnectionFactory::waitUntilFinished()
 {
     multimap<ConnectorPtr, ConnectionIPtr> connections;
 
@@ -228,11 +224,9 @@ IceInternal::OutgoingConnectionFactory::waitUntilFinished()
     _monitor->destroy();
 }
 
-void
-IceInternal::OutgoingConnectionFactory::create(const vector<EndpointIPtr>& endpts,
-                                               bool hasMore,
-                                               Ice::EndpointSelectionType selType,
-                                               const CreateConnectionCallbackPtr& callback)
+void IceInternal::OutgoingConnectionFactory::create(const vector<EndpointIPtr>& endpts, bool hasMore,
+                                                    Ice::EndpointSelectionType selType,
+                                                    const CreateConnectionCallbackPtr& callback)
 {
     assert(!endpts.empty());
 
@@ -268,8 +262,7 @@ IceInternal::OutgoingConnectionFactory::create(const vector<EndpointIPtr>& endpt
     cb->getConnectors();
 }
 
-void
-IceInternal::OutgoingConnectionFactory::setRouterInfo(const RouterInfoPtr& routerInfo)
+void IceInternal::OutgoingConnectionFactory::setRouterInfo(const RouterInfoPtr& routerInfo)
 {
     assert(routerInfo);
     ObjectAdapterPtr adapter = routerInfo->getAdapter();
@@ -311,8 +304,8 @@ IceInternal::OutgoingConnectionFactory::setRouterInfo(const RouterInfoPtr& route
         //
         endpoint = endpoint->compress(false);
 
-        for(multimap<ConnectorPtr, ConnectionIPtr>::const_iterator q = _connections.begin();
-            q != _connections.end(); ++q)
+        for(multimap<ConnectorPtr, ConnectionIPtr>::const_iterator q = _connections.begin(); q != _connections.end();
+            ++q)
         {
             if(q->second->endpoint() == endpoint)
             {
@@ -322,8 +315,7 @@ IceInternal::OutgoingConnectionFactory::setRouterInfo(const RouterInfoPtr& route
     }
 }
 
-void
-IceInternal::OutgoingConnectionFactory::removeAdapter(const ObjectAdapterPtr& adapter)
+void IceInternal::OutgoingConnectionFactory::removeAdapter(const ObjectAdapterPtr& adapter)
 {
     IceUtil::Monitor<IceUtil::Mutex>::Lock sync(*this);
 
@@ -341,15 +333,14 @@ IceInternal::OutgoingConnectionFactory::removeAdapter(const ObjectAdapterPtr& ad
     }
 }
 
-void
-IceInternal::OutgoingConnectionFactory::flushAsyncBatchRequests(const CommunicatorFlushBatchAsyncPtr& outAsync,
-                                                                Ice::CompressBatch compress)
+void IceInternal::OutgoingConnectionFactory::flushAsyncBatchRequests(const CommunicatorFlushBatchAsyncPtr& outAsync,
+                                                                     Ice::CompressBatch compress)
 {
     list<ConnectionIPtr> c;
 
     {
         IceUtil::Monitor<IceUtil::Mutex>::Lock sync(*this);
-        for(multimap<ConnectorPtr,  ConnectionIPtr>::const_iterator p = _connections.begin(); p != _connections.end();
+        for(multimap<ConnectorPtr, ConnectionIPtr>::const_iterator p = _connections.begin(); p != _connections.end();
             ++p)
         {
             if(p->second->isActiveOrHolding())
@@ -391,8 +382,7 @@ IceInternal::OutgoingConnectionFactory::~OutgoingConnectionFactory()
     assert(_pendingConnectCount == 0);
 }
 
-vector<EndpointIPtr>
-IceInternal::OutgoingConnectionFactory::applyOverrides(const vector<EndpointIPtr>& endpts)
+vector<EndpointIPtr> IceInternal::OutgoingConnectionFactory::applyOverrides(const vector<EndpointIPtr>& endpts)
 {
     DefaultsAndOverridesPtr defaultsAndOverrides = _instance->defaultsAndOverrides();
     vector<EndpointIPtr> endpoints = endpts;
@@ -409,8 +399,8 @@ IceInternal::OutgoingConnectionFactory::applyOverrides(const vector<EndpointIPtr
     return endpoints;
 }
 
-ConnectionIPtr
-IceInternal::OutgoingConnectionFactory::findConnection(const vector<EndpointIPtr>& endpoints, bool& compress)
+ConnectionIPtr IceInternal::OutgoingConnectionFactory::findConnection(const vector<EndpointIPtr>& endpoints,
+                                                                      bool& compress)
 {
     IceUtil::Monitor<IceUtil::Mutex>::Lock sync(*this);
     if(_destroyed)
@@ -439,8 +429,8 @@ IceInternal::OutgoingConnectionFactory::findConnection(const vector<EndpointIPtr
     return 0;
 }
 
-ConnectionIPtr
-IceInternal::OutgoingConnectionFactory::findConnection(const vector<ConnectorInfo>& connectors, bool& compress)
+ConnectionIPtr IceInternal::OutgoingConnectionFactory::findConnection(const vector<ConnectorInfo>& connectors,
+                                                                      bool& compress)
 {
     // This must be called with the mutex locked.
 
@@ -461,7 +451,7 @@ IceInternal::OutgoingConnectionFactory::findConnection(const vector<ConnectorInf
             }
             else
             {
-                    compress = p->endpoint->compress();
+                compress = p->endpoint->compress();
             }
             return connection;
         }
@@ -470,8 +460,7 @@ IceInternal::OutgoingConnectionFactory::findConnection(const vector<ConnectorInf
     return 0;
 }
 
-void
-IceInternal::OutgoingConnectionFactory::incPendingConnectCount()
+void IceInternal::OutgoingConnectionFactory::incPendingConnectCount()
 {
     //
     // Keep track of the number of pending connects. The outgoing connection factory
@@ -489,8 +478,7 @@ IceInternal::OutgoingConnectionFactory::incPendingConnectCount()
     ++_pendingConnectCount;
 }
 
-void
-IceInternal::OutgoingConnectionFactory::decPendingConnectCount()
+void IceInternal::OutgoingConnectionFactory::decPendingConnectCount()
 {
     IceUtil::Monitor<IceUtil::Mutex>::Lock sync(*this);
     --_pendingConnectCount;
@@ -501,10 +489,8 @@ IceInternal::OutgoingConnectionFactory::decPendingConnectCount()
     }
 }
 
-ConnectionIPtr
-IceInternal::OutgoingConnectionFactory::getConnection(const vector<ConnectorInfo>& connectors,
-                                                      const ConnectCallbackPtr& cb,
-                                                      bool& compress)
+ConnectionIPtr IceInternal::OutgoingConnectionFactory::getConnection(const vector<ConnectorInfo>& connectors,
+                                                                     const ConnectCallbackPtr& cb, bool& compress)
 {
     {
         IceUtil::Monitor<IceUtil::Mutex>::Lock sync(*this);
@@ -593,8 +579,8 @@ IceInternal::OutgoingConnectionFactory::getConnection(const vector<ConnectorInfo
     return 0;
 }
 
-ConnectionIPtr
-IceInternal::OutgoingConnectionFactory::createConnection(const TransceiverPtr& transceiver, const ConnectorInfo& ci)
+ConnectionIPtr IceInternal::OutgoingConnectionFactory::createConnection(const TransceiverPtr& transceiver,
+                                                                        const ConnectorInfo& ci)
 {
     IceUtil::Monitor<IceUtil::Mutex>::Lock sync(*this);
     assert(_pending.find(ci.connector) != _pending.end() && transceiver);
@@ -630,16 +616,15 @@ IceInternal::OutgoingConnectionFactory::createConnection(const TransceiverPtr& t
 
     _connections.insert(pair<const ConnectorPtr, ConnectionIPtr>(ci.connector, connection));
     _connectionsByEndpoint.insert(pair<const EndpointIPtr, ConnectionIPtr>(connection->endpoint(), connection));
-    _connectionsByEndpoint.insert(pair<const EndpointIPtr, ConnectionIPtr>(connection->endpoint()->compress(true),
-                                                                           connection));
+    _connectionsByEndpoint.insert(
+        pair<const EndpointIPtr, ConnectionIPtr>(connection->endpoint()->compress(true), connection));
     return connection;
 }
 
-void
-IceInternal::OutgoingConnectionFactory::finishGetConnection(const vector<ConnectorInfo>& connectors,
-                                                            const ConnectorInfo& ci,
-                                                            const ConnectionIPtr& connection,
-                                                            const ConnectCallbackPtr& cb)
+void IceInternal::OutgoingConnectionFactory::finishGetConnection(const vector<ConnectorInfo>& connectors,
+                                                                 const ConnectorInfo& ci,
+                                                                 const ConnectionIPtr& connection,
+                                                                 const ConnectCallbackPtr& cb)
 {
     set<ConnectCallbackPtr> connectionCallbacks;
     if(cb)
@@ -652,7 +637,7 @@ IceInternal::OutgoingConnectionFactory::finishGetConnection(const vector<Connect
         IceUtil::Monitor<IceUtil::Mutex>::Lock sync(*this);
         for(vector<ConnectorInfo>::const_iterator p = connectors.begin(); p != connectors.end(); ++p)
         {
-            map<ConnectorPtr, set<ConnectCallbackPtr> >::iterator q = _pending.find(p->connector);
+            map<ConnectorPtr, set<ConnectCallbackPtr>>::iterator q = _pending.find(p->connector);
             if(q != _pending.end())
             {
                 for(set<ConnectCallbackPtr>::const_iterator r = q->second.begin(); r != q->second.end(); ++r)
@@ -703,10 +688,9 @@ IceInternal::OutgoingConnectionFactory::finishGetConnection(const vector<Connect
     }
 }
 
-void
-IceInternal::OutgoingConnectionFactory::finishGetConnection(const vector<ConnectorInfo>& connectors,
-                                                            const Ice::LocalException& ex,
-                                                            const ConnectCallbackPtr& cb)
+void IceInternal::OutgoingConnectionFactory::finishGetConnection(const vector<ConnectorInfo>& connectors,
+                                                                 const Ice::LocalException& ex,
+                                                                 const ConnectCallbackPtr& cb)
 {
     set<ConnectCallbackPtr> failedCallbacks;
     if(cb)
@@ -719,7 +703,7 @@ IceInternal::OutgoingConnectionFactory::finishGetConnection(const vector<Connect
         IceUtil::Monitor<IceUtil::Mutex>::Lock sync(*this);
         for(vector<ConnectorInfo>::const_iterator p = connectors.begin(); p != connectors.end(); ++p)
         {
-            map<ConnectorPtr, set<ConnectCallbackPtr> >::iterator q = _pending.find(p->connector);
+            map<ConnectorPtr, set<ConnectCallbackPtr>>::iterator q = _pending.find(p->connector);
             if(q != _pending.end())
             {
                 for(set<ConnectCallbackPtr>::const_iterator r = q->second.begin(); r != q->second.end(); ++r)
@@ -755,9 +739,8 @@ IceInternal::OutgoingConnectionFactory::finishGetConnection(const vector<Connect
     }
 }
 
-bool
-IceInternal::OutgoingConnectionFactory::addToPending(const ConnectCallbackPtr& cb,
-                                                     const vector<ConnectorInfo>& connectors)
+bool IceInternal::OutgoingConnectionFactory::addToPending(const ConnectCallbackPtr& cb,
+                                                          const vector<ConnectorInfo>& connectors)
 {
     //
     // Add the callback to each connector pending list.
@@ -765,7 +748,7 @@ IceInternal::OutgoingConnectionFactory::addToPending(const ConnectCallbackPtr& c
     bool found = false;
     for(vector<ConnectorInfo>::const_iterator p = connectors.begin(); p != connectors.end(); ++p)
     {
-        map<ConnectorPtr, set<ConnectCallbackPtr> >::iterator q = _pending.find(p->connector);
+        map<ConnectorPtr, set<ConnectCallbackPtr>>::iterator q = _pending.find(p->connector);
         if(q != _pending.end())
         {
             found = true;
@@ -790,19 +773,18 @@ IceInternal::OutgoingConnectionFactory::addToPending(const ConnectCallbackPtr& c
     {
         if(_pending.find(r->connector) == _pending.end())
         {
-            _pending.insert(pair<ConnectorPtr, set<ConnectCallbackPtr> >(r->connector, set<ConnectCallbackPtr>()));
+            _pending.insert(pair<ConnectorPtr, set<ConnectCallbackPtr>>(r->connector, set<ConnectCallbackPtr>()));
         }
     }
     return false;
 }
 
-void
-IceInternal::OutgoingConnectionFactory::removeFromPending(const ConnectCallbackPtr& cb,
-                                                          const vector<ConnectorInfo>& connectors)
+void IceInternal::OutgoingConnectionFactory::removeFromPending(const ConnectCallbackPtr& cb,
+                                                               const vector<ConnectorInfo>& connectors)
 {
     for(vector<ConnectorInfo>::const_iterator p = connectors.begin(); p != connectors.end(); ++p)
     {
-        map<ConnectorPtr, set<ConnectCallbackPtr> >::iterator q = _pending.find(p->connector);
+        map<ConnectorPtr, set<ConnectCallbackPtr>>::iterator q = _pending.find(p->connector);
         if(q != _pending.end())
         {
             q->second.erase(cb);
@@ -810,8 +792,7 @@ IceInternal::OutgoingConnectionFactory::removeFromPending(const ConnectCallbackP
     }
 }
 
-void
-IceInternal::OutgoingConnectionFactory::handleException(const LocalException& ex, bool hasMore)
+void IceInternal::OutgoingConnectionFactory::handleException(const LocalException& ex, bool hasMore)
 {
     TraceLevelsPtr traceLevels = _instance->traceLevels();
     if(traceLevels->network >= 2)
@@ -838,8 +819,7 @@ IceInternal::OutgoingConnectionFactory::handleException(const LocalException& ex
     }
 }
 
-void
-IceInternal::OutgoingConnectionFactory::handleConnectionException(const LocalException& ex, bool hasMore)
+void IceInternal::OutgoingConnectionFactory::handleConnectionException(const LocalException& ex, bool hasMore)
 {
     TraceLevelsPtr traceLevels = _instance->traceLevels();
     if(traceLevels->network >= 2)
@@ -866,12 +846,9 @@ IceInternal::OutgoingConnectionFactory::handleConnectionException(const LocalExc
     }
 }
 
-IceInternal::OutgoingConnectionFactory::ConnectCallback::ConnectCallback(const InstancePtr& instance,
-                                                                         const OutgoingConnectionFactoryPtr& factory,
-                                                                         const vector<EndpointIPtr>& endpoints,
-                                                                         bool hasMore,
-                                                                         const CreateConnectionCallbackPtr& cb,
-                                                                         Ice::EndpointSelectionType selType) :
+IceInternal::OutgoingConnectionFactory::ConnectCallback::ConnectCallback(
+    const InstancePtr& instance, const OutgoingConnectionFactoryPtr& factory, const vector<EndpointIPtr>& endpoints,
+    bool hasMore, const CreateConnectionCallbackPtr& cb, Ice::EndpointSelectionType selType) :
     _instance(instance),
     _factory(factory),
     _endpoints(endpoints),
@@ -885,8 +862,7 @@ IceInternal::OutgoingConnectionFactory::ConnectCallback::ConnectCallback(const I
 //
 // Methods from ConnectionI.StartCallback
 //
-void
-IceInternal::OutgoingConnectionFactory::ConnectCallback::connectionStartCompleted(const ConnectionIPtr& connection)
+void IceInternal::OutgoingConnectionFactory::ConnectCallback::connectionStartCompleted(const ConnectionIPtr& connection)
 {
     if(_observer)
     {
@@ -897,9 +873,8 @@ IceInternal::OutgoingConnectionFactory::ConnectCallback::connectionStartComplete
     _factory->finishGetConnection(_connectors, *_iter, connection, ICE_SHARED_FROM_THIS);
 }
 
-void
-IceInternal::OutgoingConnectionFactory::ConnectCallback::connectionStartFailed(const ConnectionIPtr& /*connection*/,
-                                                                               const LocalException& ex)
+void IceInternal::OutgoingConnectionFactory::ConnectCallback::connectionStartFailed(
+    const ConnectionIPtr& /*connection*/, const LocalException& ex)
 {
     assert(_iter != _connectors.end());
     if(connectionStartFailedImpl(ex))
@@ -911,8 +886,7 @@ IceInternal::OutgoingConnectionFactory::ConnectCallback::connectionStartFailed(c
 //
 // Methods from EndpointI_connectors
 //
-void
-IceInternal::OutgoingConnectionFactory::ConnectCallback::connectors(const vector<ConnectorPtr>& connectors)
+void IceInternal::OutgoingConnectionFactory::ConnectCallback::connectors(const vector<ConnectorPtr>& connectors)
 {
     for(vector<ConnectorPtr>::const_iterator p = connectors.begin(); p != connectors.end(); ++p)
     {
@@ -936,8 +910,7 @@ IceInternal::OutgoingConnectionFactory::ConnectCallback::connectors(const vector
     }
 }
 
-void
-IceInternal::OutgoingConnectionFactory::ConnectCallback::exception(const Ice::LocalException& ex)
+void IceInternal::OutgoingConnectionFactory::ConnectCallback::exception(const Ice::LocalException& ex)
 {
     _factory->handleException(ex, _hasMore || _endpointsIter != _endpoints.end() - 1);
     if(++_endpointsIter != _endpoints.end())
@@ -960,8 +933,7 @@ IceInternal::OutgoingConnectionFactory::ConnectCallback::exception(const Ice::Lo
     }
 }
 
-void
-IceInternal::OutgoingConnectionFactory::ConnectCallback::getConnectors()
+void IceInternal::OutgoingConnectionFactory::ConnectCallback::getConnectors()
 {
     try
     {
@@ -981,14 +953,12 @@ IceInternal::OutgoingConnectionFactory::ConnectCallback::getConnectors()
     nextEndpoint();
 }
 
-void
-IceInternal::OutgoingConnectionFactory::ConnectCallback::nextEndpoint()
+void IceInternal::OutgoingConnectionFactory::ConnectCallback::nextEndpoint()
 {
     try
     {
         assert(_endpointsIter != _endpoints.end());
         (*_endpointsIter)->connectors_async(_selType, ICE_SHARED_FROM_THIS);
-
     }
     catch(const Ice::LocalException& ex)
     {
@@ -996,8 +966,7 @@ IceInternal::OutgoingConnectionFactory::ConnectCallback::nextEndpoint()
     }
 }
 
-void
-IceInternal::OutgoingConnectionFactory::ConnectCallback::getConnection()
+void IceInternal::OutgoingConnectionFactory::ConnectCallback::getConnection()
 {
     try
     {
@@ -1028,8 +997,7 @@ IceInternal::OutgoingConnectionFactory::ConnectCallback::getConnection()
     }
 }
 
-void
-IceInternal::OutgoingConnectionFactory::ConnectCallback::nextConnector()
+void IceInternal::OutgoingConnectionFactory::ConnectCallback::nextConnector()
 {
     while(true)
     {
@@ -1062,7 +1030,8 @@ IceInternal::OutgoingConnectionFactory::ConnectCallback::nextConnector()
             {
                 Trace out(_instance->initializationData().logger, _instance->traceLevels()->networkCat);
                 out << "failed to establish " << _iter->endpoint->protocol() << " connection to "
-                    << _iter->connector->toString() << "\n" << ex;
+                    << _iter->connector->toString() << "\n"
+                    << ex;
             }
 
             if(connectionStartFailedImpl(ex))
@@ -1074,9 +1043,8 @@ IceInternal::OutgoingConnectionFactory::ConnectCallback::nextConnector()
     }
 }
 
-void
-IceInternal::OutgoingConnectionFactory::ConnectCallback::setConnection(const Ice::ConnectionIPtr& connection,
-                                                                       bool compress)
+void IceInternal::OutgoingConnectionFactory::ConnectCallback::setConnection(const Ice::ConnectionIPtr& connection,
+                                                                            bool compress)
 {
     //
     // Callback from the factory: the connection to one of the callback
@@ -1086,8 +1054,7 @@ IceInternal::OutgoingConnectionFactory::ConnectCallback::setConnection(const Ice
     _factory->decPendingConnectCount(); // Must be called last.
 }
 
-void
-IceInternal::OutgoingConnectionFactory::ConnectCallback::setException(const Ice::LocalException& ex)
+void IceInternal::OutgoingConnectionFactory::ConnectCallback::setException(const Ice::LocalException& ex)
 {
     //
     // Callback from the factory: connection establishment failed.
@@ -1096,14 +1063,12 @@ IceInternal::OutgoingConnectionFactory::ConnectCallback::setException(const Ice:
     _factory->decPendingConnectCount(); // Must be called last.
 }
 
-bool
-IceInternal::OutgoingConnectionFactory::ConnectCallback::hasConnector(const ConnectorInfo& ci)
+bool IceInternal::OutgoingConnectionFactory::ConnectCallback::hasConnector(const ConnectorInfo& ci)
 {
     return find(_connectors.begin(), _connectors.end(), ci) != _connectors.end();
 }
 
-bool
-IceInternal::OutgoingConnectionFactory::ConnectCallback::removeConnectors(const vector<ConnectorInfo>& connectors)
+bool IceInternal::OutgoingConnectionFactory::ConnectCallback::removeConnectors(const vector<ConnectorInfo>& connectors)
 {
     //
     // Callback from the factory: connecting to the given connectors
@@ -1117,20 +1082,17 @@ IceInternal::OutgoingConnectionFactory::ConnectCallback::removeConnectors(const 
     return _connectors.empty();
 }
 
-void
-IceInternal::OutgoingConnectionFactory::ConnectCallback::removeFromPending()
+void IceInternal::OutgoingConnectionFactory::ConnectCallback::removeFromPending()
 {
     _factory->removeFromPending(ICE_SHARED_FROM_THIS, _connectors);
 }
 
-bool
-IceInternal::OutgoingConnectionFactory::ConnectCallback::operator<(const ConnectCallback& rhs) const
+bool IceInternal::OutgoingConnectionFactory::ConnectCallback::operator<(const ConnectCallback& rhs) const
 {
     return this < &rhs;
 }
 
-bool
-IceInternal::OutgoingConnectionFactory::ConnectCallback::connectionStartFailedImpl(const Ice::LocalException& ex)
+bool IceInternal::OutgoingConnectionFactory::ConnectCallback::connectionStartFailedImpl(const Ice::LocalException& ex)
 {
     if(_observer)
     {
@@ -1154,36 +1116,31 @@ IceInternal::OutgoingConnectionFactory::ConnectCallback::connectionStartFailedIm
     return false;
 }
 
-void
-IceInternal::IncomingConnectionFactory::activate()
+void IceInternal::IncomingConnectionFactory::activate()
 {
     IceUtil::Monitor<IceUtil::Mutex>::Lock sync(*this);
     setState(StateActive);
 }
 
-void
-IceInternal::IncomingConnectionFactory::hold()
+void IceInternal::IncomingConnectionFactory::hold()
 {
     IceUtil::Monitor<IceUtil::Mutex>::Lock sync(*this);
     setState(StateHolding);
 }
 
-void
-IceInternal::IncomingConnectionFactory::destroy()
+void IceInternal::IncomingConnectionFactory::destroy()
 {
     IceUtil::Monitor<IceUtil::Mutex>::Lock sync(*this);
     setState(StateClosed);
 }
 
-void
-IceInternal::IncomingConnectionFactory::updateConnectionObservers()
+void IceInternal::IncomingConnectionFactory::updateConnectionObservers()
 {
     IceUtil::Monitor<IceUtil::Mutex>::Lock sync(*this);
     for_each(_connections.begin(), _connections.end(), Ice::voidMemFun(&ConnectionI::updateObserver));
 }
 
-void
-IceInternal::IncomingConnectionFactory::waitUntilHolding() const
+void IceInternal::IncomingConnectionFactory::waitUntilHolding() const
 {
     set<ConnectionIPtr> connections;
 
@@ -1212,8 +1169,7 @@ IceInternal::IncomingConnectionFactory::waitUntilHolding() const
     for_each(connections.begin(), connections.end(), Ice::constVoidMemFun(&ConnectionI::waitUntilHolding));
 }
 
-void
-IceInternal::IncomingConnectionFactory::waitUntilFinished()
+void IceInternal::IncomingConnectionFactory::waitUntilFinished()
 {
     set<ConnectionIPtr> connections;
     {
@@ -1265,8 +1221,7 @@ IceInternal::IncomingConnectionFactory::waitUntilFinished()
     _monitor->destroy();
 }
 
-bool
-IceInternal::IncomingConnectionFactory::isLocal(const EndpointIPtr& endpoint) const
+bool IceInternal::IncomingConnectionFactory::isLocal(const EndpointIPtr& endpoint) const
 {
     if(_publishedEndpoint && endpoint->equivalent(_publishedEndpoint))
     {
@@ -1276,8 +1231,7 @@ IceInternal::IncomingConnectionFactory::isLocal(const EndpointIPtr& endpoint) co
     return endpoint->equivalent(_endpoint);
 }
 
-EndpointIPtr
-IceInternal::IncomingConnectionFactory::endpoint() const
+EndpointIPtr IceInternal::IncomingConnectionFactory::endpoint() const
 {
     if(_publishedEndpoint)
     {
@@ -1287,8 +1241,7 @@ IceInternal::IncomingConnectionFactory::endpoint() const
     return _endpoint;
 }
 
-list<ConnectionIPtr>
-IceInternal::IncomingConnectionFactory::connections() const
+list<ConnectionIPtr> IceInternal::IncomingConnectionFactory::connections() const
 {
     IceUtil::Monitor<IceUtil::Mutex>::Lock sync(*this);
 
@@ -1303,9 +1256,8 @@ IceInternal::IncomingConnectionFactory::connections() const
     return result;
 }
 
-void
-IceInternal::IncomingConnectionFactory::flushAsyncBatchRequests(const CommunicatorFlushBatchAsyncPtr& outAsync,
-                                                                Ice::CompressBatch compress)
+void IceInternal::IncomingConnectionFactory::flushAsyncBatchRequests(const CommunicatorFlushBatchAsyncPtr& outAsync,
+                                                                     Ice::CompressBatch compress)
 {
     list<ConnectionIPtr> c = connections(); // connections() is synchronized, so no need to synchronize here.
 
@@ -1323,8 +1275,7 @@ IceInternal::IncomingConnectionFactory::flushAsyncBatchRequests(const Communicat
 }
 
 #if defined(ICE_USE_IOCP) || defined(ICE_OS_UWP)
-bool
-IceInternal::IncomingConnectionFactory::startAsync(SocketOperation)
+bool IceInternal::IncomingConnectionFactory::startAsync(SocketOperation)
 {
     assert(_acceptor);
     if(_state >= StateClosed)
@@ -1344,8 +1295,7 @@ IceInternal::IncomingConnectionFactory::startAsync(SocketOperation)
     return true;
 }
 
-bool
-IceInternal::IncomingConnectionFactory::finishAsync(SocketOperation)
+bool IceInternal::IncomingConnectionFactory::finishAsync(SocketOperation)
 {
     assert(_acceptor);
     try
@@ -1371,8 +1321,7 @@ IceInternal::IncomingConnectionFactory::finishAsync(SocketOperation)
 }
 #endif
 
-void
-IceInternal::IncomingConnectionFactory::message(ThreadPoolCurrent& current)
+void IceInternal::IncomingConnectionFactory::message(ThreadPoolCurrent& current)
 {
     ConnectionIPtr connection;
 
@@ -1487,8 +1436,7 @@ IceInternal::IncomingConnectionFactory::message(ThreadPoolCurrent& current)
     connection->start(ICE_SHARED_FROM_THIS);
 }
 
-void
-IceInternal::IncomingConnectionFactory::finished(ThreadPoolCurrent&, bool close)
+void IceInternal::IncomingConnectionFactory::finished(ThreadPoolCurrent&, bool close)
 {
     IceUtil::Monitor<IceUtil::Mutex>::Lock sync(*this);
     if(_state < StateClosed)
@@ -1514,8 +1462,7 @@ IceInternal::IncomingConnectionFactory::finished(ThreadPoolCurrent&, bool close)
 #endif
 }
 
-string
-IceInternal::IncomingConnectionFactory::toString() const
+string IceInternal::IncomingConnectionFactory::toString() const
 {
     IceUtil::Monitor<IceUtil::Mutex>::Lock sync(*this);
     if(_transceiver)
@@ -1532,8 +1479,7 @@ IceInternal::IncomingConnectionFactory::toString() const
     }
 }
 
-NativeInfoPtr
-IceInternal::IncomingConnectionFactory::getNativeInfo()
+NativeInfoPtr IceInternal::IncomingConnectionFactory::getNativeInfo()
 {
     if(_transceiver)
     {
@@ -1549,8 +1495,7 @@ IceInternal::IncomingConnectionFactory::getNativeInfo()
     }
 }
 
-void
-IceInternal::IncomingConnectionFactory::connectionStartCompleted(const Ice::ConnectionIPtr& connection)
+void IceInternal::IncomingConnectionFactory::connectionStartCompleted(const Ice::ConnectionIPtr& connection)
 {
     IceUtil::Monitor<IceUtil::Mutex>::Lock sync(*this);
 
@@ -1564,9 +1509,8 @@ IceInternal::IncomingConnectionFactory::connectionStartCompleted(const Ice::Conn
     }
 }
 
-void
-IceInternal::IncomingConnectionFactory::connectionStartFailed(const Ice::ConnectionIPtr& /*connection*/,
-                                                              const Ice::LocalException& ex)
+void IceInternal::IncomingConnectionFactory::connectionStartFailed(const Ice::ConnectionIPtr& /*connection*/,
+                                                                   const Ice::LocalException& ex)
 {
     IceUtil::Monitor<IceUtil::Mutex>::Lock sync(*this);
     if(_state >= StateClosed)
@@ -1600,8 +1544,7 @@ IceInternal::IncomingConnectionFactory::IncomingConnectionFactory(const Instance
 {
 }
 
-void
-IceInternal::IncomingConnectionFactory::startAcceptor()
+void IceInternal::IncomingConnectionFactory::startAcceptor()
 {
     IceUtil::Monitor<IceUtil::Mutex>::Lock sync(*this);
     if(_state >= StateClosed || _acceptorStarted)
@@ -1623,8 +1566,7 @@ IceInternal::IncomingConnectionFactory::startAcceptor()
     }
 }
 
-void
-IceInternal::IncomingConnectionFactory::stopAcceptor()
+void IceInternal::IncomingConnectionFactory::stopAcceptor()
 {
     IceUtil::Monitor<IceUtil::Mutex>::Lock sync(*this);
     if(_state >= StateClosed || !_acceptorStarted)
@@ -1640,8 +1582,7 @@ IceInternal::IncomingConnectionFactory::stopAcceptor()
     }
 }
 
-void
-IceInternal::IncomingConnectionFactory::initialize()
+void IceInternal::IncomingConnectionFactory::initialize()
 {
     if(_instance->defaultsAndOverrides()->overrideTimeout)
     {
@@ -1663,8 +1604,8 @@ IceInternal::IncomingConnectionFactory::initialize()
                 out << "attempting to bind to " << _endpoint->protocol() << " socket\n" << _transceiver->toString();
             }
             const_cast<EndpointIPtr&>(_endpoint) = _transceiver->bind();
-            ConnectionIPtr connection(ConnectionI::create(_adapter->getCommunicator(), _instance, 0, _transceiver, 0,
-                                                          _endpoint, _adapter));
+            ConnectionIPtr connection(
+                ConnectionI::create(_adapter->getCommunicator(), _instance, 0, _transceiver, 0, _endpoint, _adapter));
             connection->start(0);
             _connections.insert(connection);
         }
@@ -1708,8 +1649,7 @@ IceInternal::IncomingConnectionFactory::~IncomingConnectionFactory()
     assert(_connections.empty());
 }
 
-void
-IceInternal::IncomingConnectionFactory::setState(State state)
+void IceInternal::IncomingConnectionFactory::setState(State state)
 {
     if(_state == state) // Don't switch twice.
     {
@@ -1793,8 +1733,7 @@ IceInternal::IncomingConnectionFactory::setState(State state)
     notifyAll();
 }
 
-void
-IceInternal::IncomingConnectionFactory::createAcceptor()
+void IceInternal::IncomingConnectionFactory::createAcceptor()
 {
     try
     {
@@ -1832,8 +1771,7 @@ IceInternal::IncomingConnectionFactory::createAcceptor()
     }
 }
 
-void
-IceInternal::IncomingConnectionFactory::closeAcceptor()
+void IceInternal::IncomingConnectionFactory::closeAcceptor()
 {
     assert(_acceptor);
 

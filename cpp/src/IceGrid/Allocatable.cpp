@@ -17,8 +17,7 @@ AllocationRequest::~AllocationRequest()
 {
 }
 
-bool
-AllocationRequest::pending()
+bool AllocationRequest::pending()
 {
     Lock sync(*this);
     assert(_state == Initial);
@@ -51,26 +50,25 @@ AllocationRequest::pending()
     return true;
 }
 
-bool
-AllocationRequest::allocate(const AllocatablePtr& /*allocatable*/, const SessionIPtr& session)
+bool AllocationRequest::allocate(const AllocatablePtr& /*allocatable*/, const SessionIPtr& session)
 {
     Lock sync(*this);
     switch(_state)
     {
-    case Initial:
-        break;
-    case Canceled:
-        return false;
-    case Pending:
-        if(_timeout > 0)
-        {
-            _session->getTimer()->cancel(this);
-        }
-        _session->removeAllocationRequest(this);
-        break;
-    case Allocated:
-        assert(false);
-        break;
+        case Initial:
+            break;
+        case Canceled:
+            return false;
+        case Pending:
+            if(_timeout > 0)
+            {
+                _session->getTimer()->cancel(this);
+            }
+            _session->removeAllocationRequest(this);
+            break;
+        case Allocated:
+            assert(false);
+            break;
     }
 
     //
@@ -89,59 +87,55 @@ AllocationRequest::allocate(const AllocatablePtr& /*allocatable*/, const Session
     }
 }
 
-void
-AllocationRequest::cancel(const Ice::UserException& ex)
+void AllocationRequest::cancel(const Ice::UserException& ex)
 {
     Lock sync(*this);
     switch(_state)
     {
-    case Initial:
-        break;
-    case Canceled:
-    case Allocated:
-        return;
-    case Pending:
-        if(_timeout > 0)
-        {
-            _session->getTimer()->cancel(this);
-        }
-        _session->removeAllocationRequest(this);
-        break;
+        case Initial:
+            break;
+        case Canceled:
+        case Allocated:
+            return;
+        case Pending:
+            if(_timeout > 0)
+            {
+                _session->getTimer()->cancel(this);
+            }
+            _session->removeAllocationRequest(this);
+            break;
     }
 
     _state = Canceled;
     canceled(ex);
 }
 
-void
-AllocationRequest::runTimerTask() // TimerTask::runTimerTask() method implementation
+void AllocationRequest::runTimerTask() // TimerTask::runTimerTask() method implementation
 {
     Lock sync(*this);
     switch(_state)
     {
-    case Initial:
-        assert(false);
-    case Canceled:
-    case Allocated:
-        return;
-    case Pending:
-        _session->removeAllocationRequest(this);
-        break;
+        case Initial:
+            assert(false);
+        case Canceled:
+        case Allocated:
+            return;
+        case Pending:
+            _session->removeAllocationRequest(this);
+            break;
     }
 
     _state = Canceled;
     canceled(AllocationTimeoutException());
 }
 
-bool
-AllocationRequest::isCanceled() const
+bool AllocationRequest::isCanceled() const
 {
     Lock sync(*this);
     return _state == Canceled;
 }
 
-bool
-AllocationRequest::operator<(const AllocationRequest& r) const
+bool AllocationRequest::operator<(const AllocationRequest& r) const
 {
     return this < &r;
 }
@@ -177,8 +171,7 @@ Allocatable::~Allocatable()
 {
 }
 
-void
-Allocatable::checkAllocatable()
+void Allocatable::checkAllocatable()
 {
     if(!isAllocatable())
     {
@@ -186,8 +179,7 @@ Allocatable::checkAllocatable()
     }
 }
 
-bool
-Allocatable::allocate(const AllocationRequestPtr& request, bool fromRelease)
+bool Allocatable::allocate(const AllocationRequestPtr& request, bool fromRelease)
 {
     try
     {
@@ -199,8 +191,7 @@ Allocatable::allocate(const AllocationRequestPtr& request, bool fromRelease)
     }
 }
 
-bool
-Allocatable::tryAllocate(const AllocationRequestPtr& request, bool fromRelease)
+bool Allocatable::tryAllocate(const AllocationRequestPtr& request, bool fromRelease)
 {
     try
     {
@@ -212,8 +203,7 @@ Allocatable::tryAllocate(const AllocationRequestPtr& request, bool fromRelease)
     }
 }
 
-void
-Allocatable::release(const SessionIPtr& session, bool fromRelease)
+void Allocatable::release(const SessionIPtr& session, bool fromRelease)
 {
     bool isReleased = false;
     bool hasRequests = false;
@@ -301,7 +291,7 @@ Allocatable::release(const SessionIPtr& session, bool fromRelease)
                                 // Check if there's other requests from the session
                                 // waiting to allocate this allocatable.
                                 //
-                                list<pair<AllocatablePtr, AllocationRequestPtr> >::iterator p = _requests.begin();
+                                list<pair<AllocatablePtr, AllocationRequestPtr>>::iterator p = _requests.begin();
                                 while(p != _requests.end())
                                 {
                                     if(p->second && p->second->getSession() == _session)
@@ -346,23 +336,19 @@ Allocatable::release(const SessionIPtr& session, bool fromRelease)
     }
 }
 
-SessionIPtr
-Allocatable::getSession() const
+SessionIPtr Allocatable::getSession() const
 {
     Lock sync(*this);
     return _session;
 }
 
-bool
-Allocatable::operator<(const Allocatable& r) const
+bool Allocatable::operator<(const Allocatable& r) const
 {
     return this < &r;
 }
 
-void
-Allocatable::queueAllocationAttempt(const AllocatablePtr& allocatable,
-                                    const AllocationRequestPtr& request,
-                                    bool tryAllocate)
+void Allocatable::queueAllocationAttempt(const AllocatablePtr& allocatable, const AllocationRequestPtr& request,
+                                         bool tryAllocate)
 {
     assert(!_parent);
     if(!tryAllocate)
@@ -378,8 +364,7 @@ Allocatable::queueAllocationAttempt(const AllocatablePtr& allocatable,
     }
 }
 
-void
-Allocatable::queueAllocationAttemptFromChild(const AllocatablePtr& allocatable)
+void Allocatable::queueAllocationAttemptFromChild(const AllocatablePtr& allocatable)
 {
     if(_parent)
     {
@@ -391,8 +376,7 @@ Allocatable::queueAllocationAttemptFromChild(const AllocatablePtr& allocatable)
     _requests.push_back(make_pair(allocatable, AllocationRequestPtr()));
 }
 
-AllocatablePtr
-Allocatable::dequeueAllocationAttempt(AllocationRequestPtr& request)
+AllocatablePtr Allocatable::dequeueAllocationAttempt(AllocationRequestPtr& request)
 {
     if(_requests.empty())
     {
@@ -408,8 +392,7 @@ Allocatable::dequeueAllocationAttempt(AllocationRequestPtr& request)
     return alloc.first;
 }
 
-bool
-Allocatable::allocate(const AllocationRequestPtr& request, bool tryAllocate, bool fromRelease)
+bool Allocatable::allocate(const AllocationRequestPtr& request, bool tryAllocate, bool fromRelease)
 {
     if(_parent && !_parent->allocateFromChild(request, this, tryAllocate, fromRelease))
     {
@@ -489,11 +472,8 @@ Allocatable::allocate(const AllocationRequestPtr& request, bool tryAllocate, boo
     return allocationCount > 0;
 }
 
-bool
-Allocatable::allocateFromChild(const AllocationRequestPtr& request,
-                               const AllocatablePtr& child,
-                               bool tryAllocate,
-                               bool fromRelease)
+bool Allocatable::allocateFromChild(const AllocationRequestPtr& request, const AllocatablePtr& child, bool tryAllocate,
+                                    bool fromRelease)
 {
     if(_parent && !_parent->allocateFromChild(request, child, tryAllocate, fromRelease))
     {

@@ -16,12 +16,10 @@ using namespace std;
 class Server : public Ice::Application
 {
 public:
-
     virtual int run(int argc, char* argv[]);
 };
 
-int
-Server::run(int argc, char* argv[])
+int Server::run(int argc, char* argv[])
 {
     Ice::PropertiesPtr properties = communicator()->getProperties();
 
@@ -56,8 +54,7 @@ Server::run(int argc, char* argv[])
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
     Server app;
     int rc = app.main(argc, argv);

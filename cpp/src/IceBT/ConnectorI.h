@@ -19,32 +19,29 @@
 
 namespace IceBT
 {
+    class ConnectorI : public IceInternal::Connector
+    {
+    public:
+        virtual IceInternal::TransceiverPtr connect();
 
-class ConnectorI : public IceInternal::Connector
-{
-public:
+        virtual Ice::Short type() const;
+        virtual std::string toString() const;
 
-    virtual IceInternal::TransceiverPtr connect();
+        virtual bool operator==(const IceInternal::Connector&) const;
+        virtual bool operator!=(const IceInternal::Connector&) const;
+        virtual bool operator<(const IceInternal::Connector&) const;
 
-    virtual Ice::Short type() const;
-    virtual std::string toString() const;
+    private:
+        ConnectorI(const InstancePtr&, const std::string&, const std::string&, Ice::Int, const std::string&);
+        friend class EndpointI;
 
-    virtual bool operator==(const IceInternal::Connector&) const;
-    virtual bool operator!=(const IceInternal::Connector&) const;
-    virtual bool operator<(const IceInternal::Connector&) const;
+        const InstancePtr _instance;
+        const std::string _addr;
+        const std::string _uuid;
+        const Ice::Int _timeout;
+        const std::string _connectionId;
+    };
 
-private:
-
-    ConnectorI(const InstancePtr&, const std::string&, const std::string&, Ice::Int, const std::string&);
-    friend class EndpointI;
-
-    const InstancePtr _instance;
-    const std::string _addr;
-    const std::string _uuid;
-    const Ice::Int _timeout;
-    const std::string _connectionId;
-};
-
-}
+} // namespace IceBT
 
 #endif

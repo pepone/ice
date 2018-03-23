@@ -16,11 +16,10 @@
 
 namespace IceInternal
 {
+    class Connector;
+    ICE_API IceUtil::Shared* upCast(Connector*);
+    typedef Handle<Connector> ConnectorPtr;
 
-class Connector;
-ICE_API IceUtil::Shared* upCast(Connector*);
-typedef Handle<Connector> ConnectorPtr;
-
-}
+} // namespace IceInternal
 
 #endif

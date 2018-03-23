@@ -14,8 +14,7 @@
 using namespace std;
 using namespace Test;
 
-void
-allTests(const Ice::CommunicatorPtr& communicator)
+void allTests(const Ice::CommunicatorPtr& communicator)
 {
     Ice::ObjectAdapterPtr oa = communicator->createObjectAdapterWithEndpoints("MyOA", "tcp -h localhost");
     oa->activate();
@@ -41,7 +40,7 @@ allTests(const Ice::CommunicatorPtr& communicator)
     Ice::Identity identity;
     identity.category = "foo";
 
-    string names[] = { "foo", "bar", "x", "y", "abcdefg" };
+    string names[] = {"foo", "bar", "x", "y", "abcdefg"};
 
     int idx;
 

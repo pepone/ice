@@ -24,94 +24,88 @@ using namespace Test;
 
 namespace
 {
-
-class CallbackReceiverI : public Test::CallbackReceiver
-{
-public:
-
-    CallbackReceiverI() : _received(false)
+    class CallbackReceiverI : public Test::CallbackReceiver
     {
-    }
-
-    virtual void callback(const Ice::Current&)
-    {
-        IceUtil::Monitor<IceUtil::Mutex>::Lock lock(_monitor);
-        _received = true;
-        _monitor.notify();
-    }
-
-    void waitForCallback()
-    {
-        IceUtil::Monitor<IceUtil::Mutex>::Lock lock(_monitor);
-        while(!_received)
+    public:
+        CallbackReceiverI() : _received(false)
         {
-            _monitor.wait();
         }
-        _received = false;
-    }
 
-    IceUtil::Monitor<IceUtil::Mutex> _monitor;
-    bool _received;
-};
-ICE_DEFINE_PTR(CallbackReceiverIPtr, CallbackReceiverI);
-
-class Application : public Glacier2::Application
-{
-public:
-
-    Application() : _restart(0), _destroyed(false), _receiver(ICE_MAKE_SHARED(CallbackReceiverI))
-    {
-    }
-
-    virtual Glacier2::SessionPrxPtr
-    createSession()
-    {
-        return ICE_UNCHECKED_CAST(Glacier2::SessionPrx, router()->createSession("userid", "abc123"));
-    }
-
-    virtual int
-    runWithSession(int, char*[])
-    {
-        test(router());
-        test(!categoryForClient().empty());
-        test(objectAdapter());
-
-        if(_restart == 0)
+        virtual void callback(const Ice::Current&)
         {
-            cout << "testing Glacier2::Application restart... " << flush;
+            IceUtil::Monitor<IceUtil::Mutex>::Lock lock(_monitor);
+            _received = true;
+            _monitor.notify();
         }
-        Ice::ObjectPrxPtr base = communicator()->stringToProxy("callback:" + getTestEndpoint(communicator(), 0));
-        CallbackPrxPtr callback = ICE_UNCHECKED_CAST(CallbackPrx, base);
-        if(++_restart < 5)
+
+        void waitForCallback()
         {
-            CallbackReceiverPrxPtr receiver = ICE_UNCHECKED_CAST(CallbackReceiverPrx, addWithUUID(_receiver));
-            callback->initiateCallback(receiver);
-            _receiver->waitForCallback();
-            restart();
+            IceUtil::Monitor<IceUtil::Mutex>::Lock lock(_monitor);
+            while(!_received)
+            {
+                _monitor.wait();
+            }
+            _received = false;
         }
-        cout << "ok" << endl;
 
-        cout << "testing server shutdown... " << flush;
-        callback->shutdown();
-        cout << "ok" << endl;
+        IceUtil::Monitor<IceUtil::Mutex> _monitor;
+        bool _received;
+    };
+    ICE_DEFINE_PTR(CallbackReceiverIPtr, CallbackReceiverI);
 
-        return 0;
-    }
-
-    virtual void sessionDestroyed()
+    class Application : public Glacier2::Application
     {
-        _destroyed = true;
-    }
+    public:
+        Application() : _restart(0), _destroyed(false), _receiver(ICE_MAKE_SHARED(CallbackReceiverI))
+        {
+        }
 
-    int _restart;
-    bool _destroyed;
-    CallbackReceiverIPtr _receiver;
-};
+        virtual Glacier2::SessionPrxPtr createSession()
+        {
+            return ICE_UNCHECKED_CAST(Glacier2::SessionPrx, router()->createSession("userid", "abc123"));
+        }
 
-} // anonymous namespace end
+        virtual int runWithSession(int, char* [])
+        {
+            test(router());
+            test(!categoryForClient().empty());
+            test(objectAdapter());
 
-int
-main(int argc, char* argv[])
+            if(_restart == 0)
+            {
+                cout << "testing Glacier2::Application restart... " << flush;
+            }
+            Ice::ObjectPrxPtr base = communicator()->stringToProxy("callback:" + getTestEndpoint(communicator(), 0));
+            CallbackPrxPtr callback = ICE_UNCHECKED_CAST(CallbackPrx, base);
+            if(++_restart < 5)
+            {
+                CallbackReceiverPrxPtr receiver = ICE_UNCHECKED_CAST(CallbackReceiverPrx, addWithUUID(_receiver));
+                callback->initiateCallback(receiver);
+                _receiver->waitForCallback();
+                restart();
+            }
+            cout << "ok" << endl;
+
+            cout << "testing server shutdown... " << flush;
+            callback->shutdown();
+            cout << "ok" << endl;
+
+            return 0;
+        }
+
+        virtual void sessionDestroyed()
+        {
+            _destroyed = true;
+        }
+
+        int _restart;
+        bool _destroyed;
+        CallbackReceiverIPtr _receiver;
+    };
+
+} // namespace
+
+int main(int argc, char* argv[])
 {
 #ifdef ICE_STATIC_LIBS
     Ice::registerIceSSL(false);
@@ -120,14 +114,16 @@ main(int argc, char* argv[])
     Application app;
     Ice::InitializationData initData = getTestInitData(argc, argv);
     initData.properties->setProperty("Ice.Warn.Connections", "0");
-    initData.properties->setProperty("Ice.Default.Router", "Glacier2/router:" + getTestEndpoint(initData.properties, 50));
+    initData.properties->setProperty("Ice.Default.Router",
+                                     "Glacier2/router:" + getTestEndpoint(initData.properties, 50));
     int status = app.main(argc, argv, initData);
 
     initData.properties->setProperty("Ice.Default.Router", "");
     Ice::CommunicatorPtr communicator = Ice::initialize(initData);
 
     cout << "testing stringToProxy for process object... " << flush;
-    Ice::ObjectPrxPtr processBase = communicator->stringToProxy("Glacier2/admin -f Process:" + getTestEndpoint(communicator, 51));
+    Ice::ObjectPrxPtr processBase =
+        communicator->stringToProxy("Glacier2/admin -f Process:" + getTestEndpoint(communicator, 51));
     cout << "ok" << endl;
 
     cout << "testing checked cast for admin object... " << flush;

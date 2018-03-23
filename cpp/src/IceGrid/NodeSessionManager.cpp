@@ -15,10 +15,11 @@
 using namespace std;
 using namespace IceGrid;
 
-NodeSessionKeepAliveThread::NodeSessionKeepAliveThread(const InternalRegistryPrx& registry,
-                                                       const NodeIPtr& node,
+NodeSessionKeepAliveThread::NodeSessionKeepAliveThread(const InternalRegistryPrx& registry, const NodeIPtr& node,
                                                        NodeSessionManager& manager) :
-    SessionKeepAliveThread<NodeSessionPrx>(registry, node->getTraceLevels()->logger), _node(node), _manager(manager)
+    SessionKeepAliveThread<NodeSessionPrx>(registry, node->getTraceLevels()->logger),
+    _node(node),
+    _manager(manager)
 {
     assert(registry && node);
     string name = registry->ice_getIdentity().name;
@@ -31,8 +32,7 @@ NodeSessionKeepAliveThread::NodeSessionKeepAliveThread(const InternalRegistryPrx
     const_cast<string&>(_name) = name;
 }
 
-NodeSessionPrx
-NodeSessionKeepAliveThread::createSession(InternalRegistryPrx& registry, IceUtil::Time& timeout)
+NodeSessionPrx NodeSessionKeepAliveThread::createSession(InternalRegistryPrx& registry, IceUtil::Time& timeout)
 {
     NodeSessionPrx session;
     IceInternal::UniquePtr<Ice::Exception> exception;
@@ -149,8 +149,8 @@ NodeSessionKeepAliveThread::createSession(InternalRegistryPrx& registry, IceUtil
     return session;
 }
 
-NodeSessionPrx
-NodeSessionKeepAliveThread::createSessionImpl(const InternalRegistryPrx& registry, IceUtil::Time& timeout)
+NodeSessionPrx NodeSessionKeepAliveThread::createSessionImpl(const InternalRegistryPrx& registry,
+                                                             IceUtil::Time& timeout)
 {
     NodeSessionPrx session;
     try
@@ -171,8 +171,7 @@ NodeSessionKeepAliveThread::createSessionImpl(const InternalRegistryPrx& registr
     }
 }
 
-void
-NodeSessionKeepAliveThread::destroySession(const NodeSessionPrx& session)
+void NodeSessionKeepAliveThread::destroySession(const NodeSessionPrx& session)
 {
     _node->removeObserver(session);
 
@@ -199,8 +198,7 @@ NodeSessionKeepAliveThread::destroySession(const NodeSessionPrx& session)
     }
 }
 
-bool
-NodeSessionKeepAliveThread::keepAlive(const NodeSessionPrx& session)
+bool NodeSessionKeepAliveThread::keepAlive(const NodeSessionPrx& session)
 {
     if(_node->getTraceLevels() && _node->getTraceLevels()->replica > 2)
     {
@@ -232,8 +230,7 @@ NodeSessionManager::NodeSessionManager(const Ice::CommunicatorPtr& communicator,
 {
 }
 
-void
-NodeSessionManager::create(const NodeIPtr& node)
+void NodeSessionManager::create(const NodeIPtr& node)
 {
     {
         Lock sync(*this);
@@ -253,8 +250,7 @@ NodeSessionManager::create(const NodeIPtr& node)
     _thread->waitTryCreateSession(IceUtil::Time::seconds(3));
 }
 
-void
-NodeSessionManager::create(const InternalRegistryPrx& replica)
+void NodeSessionManager::create(const InternalRegistryPrx& replica)
 {
     assert(_thread);
     NodeSessionKeepAliveThreadPtr thread;
@@ -276,8 +272,7 @@ NodeSessionManager::create(const InternalRegistryPrx& replica)
     }
 }
 
-void
-NodeSessionManager::activate()
+void NodeSessionManager::activate()
 {
     {
         Lock sync(*this);
@@ -305,22 +300,19 @@ NodeSessionManager::activate()
     }
 }
 
-bool
-NodeSessionManager::waitForCreate()
+bool NodeSessionManager::waitForCreate()
 {
     assert(_thread);
     return _thread->waitForCreate();
 }
 
-void
-NodeSessionManager::terminate()
+void NodeSessionManager::terminate()
 {
     assert(_thread);
     _thread->terminate();
 }
 
-void
-NodeSessionManager::destroy()
+void NodeSessionManager::destroy()
 {
     NodeSessionMap sessions;
     {
@@ -354,8 +346,7 @@ NodeSessionManager::destroy()
     }
 }
 
-void
-NodeSessionManager::replicaInit(const InternalRegistryPrxSeq& replicas)
+void NodeSessionManager::replicaInit(const InternalRegistryPrxSeq& replicas)
 {
     Lock sync(*this);
     if(_destroyed)
@@ -374,8 +365,7 @@ NodeSessionManager::replicaInit(const InternalRegistryPrxSeq& replicas)
     }
 }
 
-void
-NodeSessionManager::replicaAdded(const InternalRegistryPrx& replica)
+void NodeSessionManager::replicaAdded(const InternalRegistryPrx& replica)
 {
     Lock sync(*this);
     if(_destroyed)
@@ -386,8 +376,7 @@ NodeSessionManager::replicaAdded(const InternalRegistryPrx& replica)
     addReplicaSession(replica)->tryCreateSession();
 }
 
-void
-NodeSessionManager::replicaRemoved(const InternalRegistryPrx& replica)
+void NodeSessionManager::replicaRemoved(const InternalRegistryPrx& replica)
 {
     {
         Lock sync(*this);
@@ -404,8 +393,7 @@ NodeSessionManager::replicaRemoved(const InternalRegistryPrx& replica)
     //
 }
 
-NodeSessionKeepAliveThreadPtr
-NodeSessionManager::addReplicaSession(const InternalRegistryPrx& replica)
+NodeSessionKeepAliveThreadPtr NodeSessionManager::addReplicaSession(const InternalRegistryPrx& replica)
 {
     assert(!_destroyed);
     NodeSessionMap::const_iterator p = _sessions.find(replica->ice_getIdentity());
@@ -424,8 +412,7 @@ NodeSessionManager::addReplicaSession(const InternalRegistryPrx& replica)
     return thread;
 }
 
-void
-NodeSessionManager::reapReplicas()
+void NodeSessionManager::reapReplicas()
 {
     vector<NodeSessionKeepAliveThreadPtr> reap;
     {
@@ -457,8 +444,7 @@ NodeSessionManager::reapReplicas()
     }
 }
 
-void
-NodeSessionManager::syncServers(const NodeSessionPrx& session)
+void NodeSessionManager::syncServers(const NodeSessionPrx& session)
 {
     //
     // Ask the session to load the servers on the node. Once this is
@@ -476,8 +462,7 @@ NodeSessionManager::syncServers(const NodeSessionPrx& session)
     session->loadServers();
 }
 
-void
-NodeSessionManager::createdSession(const NodeSessionPrx& session)
+void NodeSessionManager::createdSession(const NodeSessionPrx& session)
 {
     bool activated;
     {

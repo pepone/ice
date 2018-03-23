@@ -24,61 +24,58 @@ using namespace IceGrid;
 
 namespace IceGrid
 {
+    class DescriptorHandler : public IceXML::Handler
+    {
+    public:
+        DescriptorHandler(const string&, const Ice::CommunicatorPtr&);
 
-class DescriptorHandler : public IceXML::Handler
-{
-public:
+        void setAdmin(const IceGrid::AdminPrx&);
+        void setVariables(const map<string, string>&, const vector<string>&);
 
-    DescriptorHandler(const string&, const Ice::CommunicatorPtr&);
+        virtual void startElement(const string&, const IceXML::Attributes&, int, int);
+        virtual void endElement(const string&, int, int);
+        virtual void characters(const string&, int, int);
+        virtual void error(const string&, int, int);
 
-    void setAdmin(const IceGrid::AdminPrx&);
-    void setVariables(const map<string, string>&, const vector<string>&);
+        const ApplicationDescriptor& getApplicationDescriptor() const;
 
-    virtual void startElement(const string&, const IceXML::Attributes&, int, int);
-    virtual void endElement(const string&, int, int);
-    virtual void characters(const string&, int, int);
-    virtual void error(const string&, int, int);
+    private:
+        bool isCurrentTargetDeployable() const;
+        string elementValue();
+        vector<string> getTargets(const string&) const;
+        void error(const string&) const;
+        bool isTargetDeployable(const string&) const;
 
-    const ApplicationDescriptor& getApplicationDescriptor() const;
+        const Ice::CommunicatorPtr _communicator;
+        IceGrid::AdminPrx _admin;
+        string _filename;
+        map<string, string> _overrides;
+        vector<string> _targets;
+        string _data;
+        string _previousElementName;
+        int _targetCounter;
+        bool _isCurrentTargetDeployable;
+        int _line;
+        int _column;
 
-private:
+        IceInternal::UniquePtr<ApplicationDescriptorBuilder> _currentApplication;
+        IceInternal::UniquePtr<NodeDescriptorBuilder> _currentNode;
+        IceInternal::UniquePtr<TemplateDescriptorBuilder> _currentTemplate;
+        IceInternal::UniquePtr<ServerInstanceDescriptorBuilder> _currentServerInstance;
+        IceInternal::UniquePtr<ServiceInstanceDescriptorBuilder> _currentServiceInstance;
+        IceInternal::UniquePtr<ServerDescriptorBuilder> _currentServer;
+        IceInternal::UniquePtr<ServiceDescriptorBuilder> _currentService;
+        CommunicatorDescriptorBuilder* _currentCommunicator;
+        IceInternal::UniquePtr<PropertySetDescriptorBuilder> _currentPropertySet;
 
-    bool isCurrentTargetDeployable() const;
-    string elementValue();
-    vector<string> getTargets(const string&) const;
-    void error(const string&) const;
-    bool isTargetDeployable(const string&) const;
+        bool _isTopLevel;
+        bool _inAdapter;
+        bool _inReplicaGroup;
+        bool _inDbEnv;
+        bool _inDistrib;
+    };
 
-    const Ice::CommunicatorPtr _communicator;
-    IceGrid::AdminPrx _admin;
-    string _filename;
-    map<string, string> _overrides;
-    vector<string> _targets;
-    string _data;
-    string _previousElementName;
-    int _targetCounter;
-    bool _isCurrentTargetDeployable;
-    int _line;
-    int _column;
-
-    IceInternal::UniquePtr<ApplicationDescriptorBuilder> _currentApplication;
-    IceInternal::UniquePtr<NodeDescriptorBuilder> _currentNode;
-    IceInternal::UniquePtr<TemplateDescriptorBuilder> _currentTemplate;
-    IceInternal::UniquePtr<ServerInstanceDescriptorBuilder> _currentServerInstance;
-    IceInternal::UniquePtr<ServiceInstanceDescriptorBuilder> _currentServiceInstance;
-    IceInternal::UniquePtr<ServerDescriptorBuilder> _currentServer;
-    IceInternal::UniquePtr<ServiceDescriptorBuilder> _currentService;
-    CommunicatorDescriptorBuilder* _currentCommunicator;
-    IceInternal::UniquePtr<PropertySetDescriptorBuilder> _currentPropertySet;
-
-    bool _isTopLevel;
-    bool _inAdapter;
-    bool _inReplicaGroup;
-    bool _inDbEnv;
-    bool _inDistrib;
-};
-
-}
+} // namespace IceGrid
 
 DescriptorHandler::DescriptorHandler(const string& filename, const Ice::CommunicatorPtr& communicator) :
     _communicator(communicator),
@@ -92,21 +89,18 @@ DescriptorHandler::DescriptorHandler(const string& filename, const Ice::Communic
 {
 }
 
-void
-DescriptorHandler::setAdmin(const AdminPrx& admin)
+void DescriptorHandler::setAdmin(const AdminPrx& admin)
 {
     _admin = admin;
 }
 
-void
-DescriptorHandler::setVariables(const map<string, string>& variables, const vector<string>& targets)
+void DescriptorHandler::setVariables(const map<string, string>& variables, const vector<string>& targets)
 {
     _overrides = variables;
     _targets = targets;
 }
 
-void
-DescriptorHandler::startElement(const string& name, const IceXML::Attributes& attrs, int line, int column)
+void DescriptorHandler::startElement(const string& name, const IceXML::Attributes& attrs, int line, int column)
 {
     _line = line;
     _column = column;
@@ -189,8 +183,8 @@ DescriptorHandler::startElement(const string& name, const IceXML::Attributes& at
                 try
                 {
                     ApplicationDescriptor application = _admin->getDefaultApplicationDescriptor();
-                    _currentApplication.reset(new ApplicationDescriptorBuilder(_communicator, application,
-                                                                               attributes, _overrides));
+                    _currentApplication.reset(
+                        new ApplicationDescriptorBuilder(_communicator, application, attributes, _overrides));
                 }
                 catch(const DeploymentException& ex)
                 {
@@ -485,8 +479,7 @@ DescriptorHandler::startElement(const string& name, const IceXML::Attributes& at
     _previousElementName = name;
 }
 
-void
-DescriptorHandler::endElement(const string& name, int line, int column)
+void DescriptorHandler::endElement(const string& name, int line, int column)
 {
     _line = line;
     _column = column;
@@ -590,8 +583,7 @@ DescriptorHandler::endElement(const string& name, int line, int column)
                 }
                 else if(_currentNode.get())
                 {
-                    _currentNode->addPropertySet(_currentPropertySet->getId(),
-                                                 _currentPropertySet->getDescriptor());
+                    _currentNode->addPropertySet(_currentPropertySet->getId(), _currentPropertySet->getDescriptor());
                 }
                 else if(_currentApplication.get())
                 {
@@ -702,8 +694,7 @@ DescriptorHandler::endElement(const string& name, int line, int column)
     }
 }
 
-void
-DescriptorHandler::characters(const string& chars, int, int)
+void DescriptorHandler::characters(const string& chars, int, int)
 {
     if(isCurrentTargetDeployable())
     {
@@ -711,16 +702,14 @@ DescriptorHandler::characters(const string& chars, int, int)
     }
 }
 
-void
-DescriptorHandler::error(const string& msg, int line, int column)
+void DescriptorHandler::error(const string& msg, int line, int column)
 {
     ostringstream os;
     os << "error in <" << _filename << "> descriptor, line " << line << ", column " << column << ":\n" << msg;
     throw IceXML::ParserException(__FILE__, __LINE__, os.str());
 }
 
-const ApplicationDescriptor&
-DescriptorHandler::getApplicationDescriptor() const
+const ApplicationDescriptor& DescriptorHandler::getApplicationDescriptor() const
 {
     if(!_currentApplication.get())
     {
@@ -729,14 +718,12 @@ DescriptorHandler::getApplicationDescriptor() const
     return _currentApplication->getDescriptor();
 }
 
-bool
-DescriptorHandler::isCurrentTargetDeployable() const
+bool DescriptorHandler::isCurrentTargetDeployable() const
 {
     return _isCurrentTargetDeployable;
 }
 
-vector<string>
-DescriptorHandler::getTargets(const string& targets) const
+vector<string> DescriptorHandler::getTargets(const string& targets) const
 {
     vector<string> result;
 
@@ -756,8 +743,7 @@ DescriptorHandler::getTargets(const string& targets) const
 
             result.push_back(targets.substr(beg, end - beg));
             beg = ++end;
-        }
-        while(end < targets.size());
+        } while(end < targets.size());
     }
 
     copy(_targets.begin(), _targets.end(), back_inserter(result));
@@ -765,16 +751,14 @@ DescriptorHandler::getTargets(const string& targets) const
     return result;
 }
 
-void
-DescriptorHandler::error(const string& msg) const
+void DescriptorHandler::error(const string& msg) const
 {
     ostringstream os;
     os << "error in <" << _filename << "> descriptor, line " << _line << ", column " << _column << ":\n" << msg;
     throw IceXML::ParserException(__FILE__, __LINE__, os.str());
 }
 
-string
-DescriptorHandler::elementValue()
+string DescriptorHandler::elementValue()
 {
     string tmp;
     tmp = _data;
@@ -782,8 +766,7 @@ DescriptorHandler::elementValue()
     return tmp;
 }
 
-bool
-DescriptorHandler::isTargetDeployable(const string& target) const
+bool DescriptorHandler::isTargetDeployable(const string& target) const
 {
     string application = _currentApplication.get() ? _currentApplication->getDescriptor().name : string("");
     string node = _currentNode.get() ? _currentNode->getName() : string("");
@@ -855,12 +838,10 @@ DescriptorHandler::isTargetDeployable(const string& target) const
     return false;
 }
 
-ApplicationDescriptor
-DescriptorParser::parseDescriptor(const string& descriptor,
-                                  const Ice::StringSeq& targets,
-                                  const map<string, string>& variables,
-                                  const Ice::CommunicatorPtr& communicator,
-                                  const IceGrid::AdminPrx& admin)
+ApplicationDescriptor DescriptorParser::parseDescriptor(const string& descriptor, const Ice::StringSeq& targets,
+                                                        const map<string, string>& variables,
+                                                        const Ice::CommunicatorPtr& communicator,
+                                                        const IceGrid::AdminPrx& admin)
 {
     string filename = IcePatch2Internal::simplify(descriptor);
     DescriptorHandler handler(filename, communicator);
@@ -870,8 +851,8 @@ DescriptorParser::parseDescriptor(const string& descriptor,
     return handler.getApplicationDescriptor();
 }
 
-ApplicationDescriptor
-DescriptorParser::parseDescriptor(const string& descriptor, const Ice::CommunicatorPtr& communicator)
+ApplicationDescriptor DescriptorParser::parseDescriptor(const string& descriptor,
+                                                        const Ice::CommunicatorPtr& communicator)
 {
     string filename = IcePatch2Internal::simplify(descriptor);
     DescriptorHandler handler(filename, communicator);

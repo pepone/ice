@@ -17,8 +17,7 @@ DEFINE_TEST("client")
 using namespace std;
 using namespace Test;
 
-int
-run(int, char**, const Ice::CommunicatorPtr& communicator, const Ice::CommunicatorPtr& communicator2)
+int run(int, char**, const Ice::CommunicatorPtr& communicator, const Ice::CommunicatorPtr& communicator2)
 {
     RetryPrxPtr allTests(const Ice::CommunicatorPtr&, const Ice::CommunicatorPtr&, const string&);
     RetryPrxPtr retry = allTests(communicator, communicator2, "retry:" + getTestEndpoint(communicator, 0));
@@ -26,8 +25,7 @@ run(int, char**, const Ice::CommunicatorPtr& communicator, const Ice::Communicat
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
 #ifdef ICE_STATIC_LIBS
     Ice::registerIceSSL(false);

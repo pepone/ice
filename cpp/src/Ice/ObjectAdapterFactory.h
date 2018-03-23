@@ -18,41 +18,38 @@
 
 namespace IceInternal
 {
-
-class ObjectAdapterFactory : public ::IceUtil::Monitor< ::IceUtil::RecMutex>,
+    class ObjectAdapterFactory : public ::IceUtil::Monitor<::IceUtil::RecMutex>,
 #ifdef ICE_CPP11_MAPPING
-                             public std::enable_shared_from_this<ObjectAdapterFactory>
+                                 public std::enable_shared_from_this<ObjectAdapterFactory>
 #else
-                             public virtual IceUtil::Shared
+                                 public virtual IceUtil::Shared
 #endif
-{
-public:
+    {
+    public:
+        void shutdown();
+        void waitForShutdown();
+        bool isShutdown() const;
+        void destroy();
 
-    void shutdown();
-    void waitForShutdown();
-    bool isShutdown() const;
-    void destroy();
+        void updateObservers(void (Ice::ObjectAdapterI::*)());
 
-    void updateObservers(void (Ice::ObjectAdapterI::*)());
+        ::Ice::ObjectAdapterPtr createObjectAdapter(const std::string&, const Ice::RouterPrxPtr&);
+        ::Ice::ObjectAdapterPtr findObjectAdapter(const ::Ice::ObjectPrxPtr&);
+        void removeObjectAdapter(const ::Ice::ObjectAdapterPtr&);
+        void flushAsyncBatchRequests(const CommunicatorFlushBatchAsyncPtr&, ::Ice::CompressBatch) const;
 
-    ::Ice::ObjectAdapterPtr createObjectAdapter(const std::string&, const Ice::RouterPrxPtr&);
-    ::Ice::ObjectAdapterPtr findObjectAdapter(const ::Ice::ObjectPrxPtr&);
-    void removeObjectAdapter(const ::Ice::ObjectAdapterPtr&);
-    void flushAsyncBatchRequests(const CommunicatorFlushBatchAsyncPtr&, ::Ice::CompressBatch) const;
+        ObjectAdapterFactory(const InstancePtr&, const ::Ice::CommunicatorPtr&);
+        virtual ~ObjectAdapterFactory();
 
-    ObjectAdapterFactory(const InstancePtr&, const ::Ice::CommunicatorPtr&);
-    virtual ~ObjectAdapterFactory();
+    private:
+        friend class Instance;
 
-private:
+        InstancePtr _instance;
+        ::Ice::CommunicatorPtr _communicator;
+        std::set<std::string> _adapterNamesInUse;
+        std::list<Ice::ObjectAdapterIPtr> _adapters;
+    };
 
-    friend class Instance;
-
-    InstancePtr _instance;
-    ::Ice::CommunicatorPtr _communicator;
-    std::set<std::string> _adapterNamesInUse;
-    std::list<Ice::ObjectAdapterIPtr> _adapters;
-};
-
-}
+} // namespace IceInternal
 
 #endif

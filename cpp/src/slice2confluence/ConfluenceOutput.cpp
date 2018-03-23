@@ -18,9 +18,7 @@ using namespace IceUtilInternal;
 
 namespace Confluence
 {
-
     EndElement ee;
-
 }
 
 // ----------------------------------------------------------------------
@@ -60,8 +58,7 @@ Confluence::ConfluenceOutput::ConfluenceOutput(const char* s) :
 {
 }
 
-void
-Confluence::ConfluenceOutput::print(const string& s)
+void Confluence::ConfluenceOutput::print(const string& s)
 {
     if(_se)
     {
@@ -80,10 +77,9 @@ Confluence::ConfluenceOutput::print(const string& s)
     }
 }
 
-string
-Confluence::ConfluenceOutput::escapeComment(string comment)
+string Confluence::ConfluenceOutput::escapeComment(string comment)
 {
-    list< pair<unsigned int,unsigned int> > escaperLimits = getMarkerLimits(comment);
+    list<pair<unsigned int, unsigned int>> escaperLimits = getMarkerLimits(comment);
     string escapeChars = "\\{}-_+*|[]";
 
     // For each escape character
@@ -138,10 +134,10 @@ Confluence::ConfluenceOutput::escapeComment(string comment)
         // For each position of a found escape character
         while(pos != string::npos)
         {
-            pair<unsigned int,unsigned int> *region = ICE_NULLPTR;
+            pair<unsigned int, unsigned int>* region = ICE_NULLPTR;
 
             // Is this pos in an escaped section?
-            for(list<pair<unsigned int,unsigned int> >::iterator i = escaperLimits.begin(); i != escaperLimits.end();
+            for(list<pair<unsigned int, unsigned int>>::iterator i = escaperLimits.begin(); i != escaperLimits.end();
                 ++i)
             {
                 if(pos >= i->first && pos <= i->second)
@@ -167,8 +163,7 @@ Confluence::ConfluenceOutput::escapeComment(string comment)
     return comment;
 }
 
-string
-Confluence::ConfluenceOutput::convertCommentHTML(string comment)
+string Confluence::ConfluenceOutput::convertCommentHTML(string comment)
 {
     comment = escapeComment(comment);
 
@@ -188,7 +183,7 @@ Confluence::ConfluenceOutput::convertCommentHTML(string comment)
         }
 
         size_t spacepos = tag.find(" ");
-        list<pair<string,string> > attributes;
+        list<pair<string, string>> attributes;
 
         string rest;
         if(spacepos != string::npos)
@@ -211,7 +206,8 @@ Confluence::ConfluenceOutput::convertCommentHTML(string comment)
                 {
                     setting = rest.substr(lastSpace);
                 }
-                else {
+                else
+                {
                     setting = rest.substr(lastSpace, nextSpace - lastSpace);
                 }
 
@@ -228,7 +224,7 @@ Confluence::ConfluenceOutput::convertCommentHTML(string comment)
                         qPos = aVal.find("\"");
                     }
 
-                    pair<string,string> p = make_pair(aName, aVal);
+                    pair<string, string> p = make_pair(aName, aVal);
                     attributes.push_back(p);
                 }
                 else
@@ -252,7 +248,7 @@ Confluence::ConfluenceOutput::convertCommentHTML(string comment)
         else if(tag == "p")
         {
             // Special case: Some classes add markup
-            for(list<pair<string,string> >::iterator i = attributes.begin(); i != attributes.end(); ++i)
+            for(list<pair<string, string>>::iterator i = attributes.begin(); i != attributes.end(); ++i)
             {
                 if(i->first == "class" && i->second == "Note")
                 {
@@ -299,7 +295,6 @@ Confluence::ConfluenceOutput::convertCommentHTML(string comment)
                     replacement = "\n";
                 }
                 _commentListMarkers.append("#");
-
             }
             else
             {
@@ -426,13 +421,11 @@ Confluence::ConfluenceOutput::convertCommentHTML(string comment)
                 italics = false;
             }
         }
-
     }
     return comment;
 }
 
-void
-Confluence::ConfluenceOutput::newline()
+void Confluence::ConfluenceOutput::newline()
 {
     if(_se)
     {
@@ -441,8 +434,7 @@ Confluence::ConfluenceOutput::newline()
     OutputBase::newline();
 }
 
-void
-Confluence::ConfluenceOutput::startElement(const string& element)
+void Confluence::ConfluenceOutput::startElement(const string& element)
 {
     string escaped;
     if(_escape)
@@ -584,8 +576,7 @@ Confluence::ConfluenceOutput::startElement(const string& element)
     _separator = false;
 }
 
-void
-Confluence::ConfluenceOutput::endElement()
+void Confluence::ConfluenceOutput::endElement()
 {
     string element = _elementStack.top();
     _elementStack.pop();
@@ -719,13 +710,13 @@ Confluence::ConfluenceOutput::endElement()
     _text = false;
 }
 
-string
-Confluence::ConfluenceOutput::getLinkMarkup(const std::string& url, const std::string& text, const std::string& anchor,
-                                            const std::string& tip)
+string Confluence::ConfluenceOutput::getLinkMarkup(const std::string& url, const std::string& text,
+                                                   const std::string& anchor, const std::string& tip)
 {
     ostringstream oss;
     oss << "[";
-    if(!text.empty()) {
+    if(!text.empty())
+    {
         oss << text << "|";
     }
     oss << url;
@@ -741,8 +732,7 @@ Confluence::ConfluenceOutput::getLinkMarkup(const std::string& url, const std::s
     return oss.str();
 }
 
-string
-Confluence::ConfluenceOutput::getImageMarkup(const string& url, const string& title)
+string Confluence::ConfluenceOutput::getImageMarkup(const string& url, const string& title)
 {
     ostringstream oss;
     oss << "!" << url;
@@ -754,8 +744,7 @@ Confluence::ConfluenceOutput::getImageMarkup(const string& url, const string& ti
     return oss.str();
 }
 
-string
-Confluence::ConfluenceOutput::getAnchorMarkup(const std::string& anchor, const std::string& text)
+string Confluence::ConfluenceOutput::getAnchorMarkup(const std::string& anchor, const std::string& text)
 {
     ostringstream oss;
     oss << "{anchor:" << anchor << "}";
@@ -766,8 +755,7 @@ Confluence::ConfluenceOutput::getAnchorMarkup(const std::string& anchor, const s
     return oss.str();
 }
 
-string
-Confluence::ConfluenceOutput::getNavMarkup(const std::string& prevLink, const std::string& nextLink)
+string Confluence::ConfluenceOutput::getNavMarkup(const std::string& prevLink, const std::string& nextLink)
 {
     ostringstream oss;
     oss << "{znav:";
@@ -784,10 +772,9 @@ Confluence::ConfluenceOutput::getNavMarkup(const std::string& prevLink, const st
     return oss.str();
 }
 
-list< pair<unsigned int,unsigned int> >
-Confluence::ConfluenceOutput::getMarkerLimits(const string& str)
+list<pair<unsigned int, unsigned int>> Confluence::ConfluenceOutput::getMarkerLimits(const string& str)
 {
-    list< pair<unsigned int,unsigned int> > pairs;
+    list<pair<unsigned int, unsigned int>> pairs;
 
     size_t start = str.find(TEMP_ESCAPER_START);
     size_t end;
@@ -797,14 +784,14 @@ Confluence::ConfluenceOutput::getMarkerLimits(const string& str)
         if(end != string::npos)
         {
             pair<unsigned int, unsigned int> p =
-                make_pair(static_cast<unsigned int>(start), static_cast<unsigned int>(end+TEMP_ESCAPER_END.size()));
+                make_pair(static_cast<unsigned int>(start), static_cast<unsigned int>(end + TEMP_ESCAPER_END.size()));
             pairs.push_back(p);
-            start = str.find(TEMP_ESCAPER_START, end+TEMP_ESCAPER_END.size());
+            start = str.find(TEMP_ESCAPER_START, end + TEMP_ESCAPER_END.size());
         }
         else
         {
-            consoleErr << "getMarkerLimits FOUND START OF ESCAPE MARKER WITH NO MATCHING END IN STRING:"
-                       << endl << str.substr(start) << endl;
+            consoleErr << "getMarkerLimits FOUND START OF ESCAPE MARKER WITH NO MATCHING END IN STRING:" << endl
+                       << str.substr(start) << endl;
             break;
         }
     }
@@ -812,8 +799,7 @@ Confluence::ConfluenceOutput::getMarkerLimits(const string& str)
     return pairs;
 }
 
-string
-Confluence::ConfluenceOutput::removeMarkers(string str)
+string Confluence::ConfluenceOutput::removeMarkers(string str)
 {
     // Remove starts
     size_t start = str.find(TEMP_ESCAPER_START);
@@ -833,8 +819,7 @@ Confluence::ConfluenceOutput::removeMarkers(string str)
     return str;
 }
 
-void
-Confluence::ConfluenceOutput::attr(const string& name, const string& value)
+void Confluence::ConfluenceOutput::attr(const string& name, const string& value)
 {
     //
     // Precondition: Attributes can only be attached to elements.
@@ -843,20 +828,17 @@ Confluence::ConfluenceOutput::attr(const string& name, const string& value)
     _out << " " << name << "=\"" << escape(value) << "\"";
 }
 
-void
-Confluence::ConfluenceOutput::startEscapes()
+void Confluence::ConfluenceOutput::startEscapes()
 {
     _escape = true;
 }
 
-void
-Confluence::ConfluenceOutput::endEscapes()
+void Confluence::ConfluenceOutput::endEscapes()
 {
     _escape = false;
 }
 
-string
-Confluence::ConfluenceOutput::currentElement() const
+string Confluence::ConfluenceOutput::currentElement() const
 {
     if(_elementStack.size() > 0)
     {
@@ -868,8 +850,7 @@ Confluence::ConfluenceOutput::currentElement() const
     }
 }
 
-string
-Confluence::ConfluenceOutput::escape(const string& input) const
+string Confluence::ConfluenceOutput::escape(const string& input) const
 {
     string v = input;
 
@@ -936,8 +917,7 @@ Confluence::ConfluenceOutput::escape(const string& input) const
     return v;
 }
 
-Confluence::ConfluenceOutput&
-Confluence::operator<<(ConfluenceOutput& out, ios_base& (*val)(ios_base&))
+Confluence::ConfluenceOutput& Confluence::operator<<(ConfluenceOutput& out, ios_base& (*val)(ios_base&))
 {
     ostringstream s;
     s << val;
@@ -945,31 +925,25 @@ Confluence::operator<<(ConfluenceOutput& out, ios_base& (*val)(ios_base&))
     return out;
 }
 
-Confluence::StartElement::StartElement(const string& name) :
-_name(name)
+Confluence::StartElement::StartElement(const string& name) : _name(name)
 {
 }
 
-const string&
-Confluence::StartElement::getName() const
+const string& Confluence::StartElement::getName() const
 {
     return _name;
 }
 
-Confluence::Attribute::Attribute(const string& name, const string& value) :
-    _name(name),
-    _value(value)
+Confluence::Attribute::Attribute(const string& name, const string& value) : _name(name), _value(value)
 {
 }
 
-const string&
-Confluence::Attribute::getName() const
+const string& Confluence::Attribute::getName() const
 {
     return _name;
 }
 
-const string&
-Confluence::Attribute::getValue() const
+const string& Confluence::Attribute::getValue() const
 {
     return _value;
 }

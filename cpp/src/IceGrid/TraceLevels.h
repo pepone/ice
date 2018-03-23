@@ -16,54 +16,52 @@
 
 namespace IceGrid
 {
+    class TraceLevels : public ::IceUtil::Shared
+    {
+    public:
+        TraceLevels(const Ice::CommunicatorPtr&, const std::string&);
+        virtual ~TraceLevels();
 
-class TraceLevels : public ::IceUtil::Shared
-{
-public:
+        const int admin;
+        const char* adminCat;
 
-    TraceLevels(const Ice::CommunicatorPtr&, const std::string&);
-    virtual ~TraceLevels();
+        const int application;
+        const char* applicationCat;
 
-    const int admin;
-    const char* adminCat;
+        const int node;
+        const char* nodeCat;
 
-    const int application;
-    const char* applicationCat;
+        const int replica;
+        const char* replicaCat;
 
-    const int node;
-    const char* nodeCat;
+        const int server;
+        const char* serverCat;
 
-    const int replica;
-    const char* replicaCat;
+        const int adapter;
+        const char* adapterCat;
 
-    const int server;
-    const char* serverCat;
+        const int object;
+        const char* objectCat;
 
-    const int adapter;
-    const char* adapterCat;
+        const int activator;
+        const char* activatorCat;
 
-    const int object;
-    const char* objectCat;
+        const int patch;
+        const char* patchCat;
 
-    const int activator;
-    const char* activatorCat;
+        const int locator;
+        const char* locatorCat;
 
-    const int patch;
-    const char* patchCat;
+        const int session;
+        const char* sessionCat;
 
-    const int locator;
-    const char* locatorCat;
+        const int discovery;
+        const char* discoveryCat;
 
-    const int session;
-    const char* sessionCat;
+        const Ice::LoggerPtr logger;
+    };
 
-    const int discovery;
-    const char* discoveryCat;
-
-    const Ice::LoggerPtr logger;
-};
-
-typedef IceUtil::Handle<TraceLevels> TraceLevelsPtr;
+    typedef IceUtil::Handle<TraceLevels> TraceLevelsPtr;
 
 } // End namespace IceGrid
 

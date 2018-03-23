@@ -15,43 +15,96 @@
 using namespace std;
 using namespace Slice;
 
-static string
-lowerCase(const string& s)
+static string lowerCase(const string& s)
 {
     string result(s);
     transform(result.begin(), result.end(), result.begin(), ::tolower);
     return result;
 }
 
-static string
-lookupKwd(const string& name)
+static string lookupKwd(const string& name)
 {
     string lower = lowerCase(name); // PHP is case insensitive.
 
     //
     // Keyword list. *Must* be kept in alphabetical order.
     //
-    static const string keywordList[] =
-    {
-        "_halt_compiler", "abstract", "and", "array", "as", "break", "callable", "case", "catch", "class", "clone",
-        "const", "continue", "declare", "default", "die", "do", "echo", "else", "elseif", "empty", "enddeclare",
-        "endfor", "endforeach", "endif", "endswitch", "endwhile", "eval", "exit", "extends", "final", "finally",
-        "for", "foreach", "function", "global", "goto", "if", "implements", "include", "include_once", "instanceof",
-        "insteadof", "interface", "isset", "list", "namespace", "new", "or", "print", "private", "protected", "public",
-        "require", "require_once", "return", "static", "switch", "this", "throw", "trait", "try", "unset", "use", "var",
-        "while", "xor", "yield"
-    };
-    bool found =  binary_search(&keywordList[0],
-                                &keywordList[sizeof(keywordList) / sizeof(*keywordList)],
-                                lower);
+    static const string keywordList[] = {"_halt_compiler",
+                                         "abstract",
+                                         "and",
+                                         "array",
+                                         "as",
+                                         "break",
+                                         "callable",
+                                         "case",
+                                         "catch",
+                                         "class",
+                                         "clone",
+                                         "const",
+                                         "continue",
+                                         "declare",
+                                         "default",
+                                         "die",
+                                         "do",
+                                         "echo",
+                                         "else",
+                                         "elseif",
+                                         "empty",
+                                         "enddeclare",
+                                         "endfor",
+                                         "endforeach",
+                                         "endif",
+                                         "endswitch",
+                                         "endwhile",
+                                         "eval",
+                                         "exit",
+                                         "extends",
+                                         "final",
+                                         "finally",
+                                         "for",
+                                         "foreach",
+                                         "function",
+                                         "global",
+                                         "goto",
+                                         "if",
+                                         "implements",
+                                         "include",
+                                         "include_once",
+                                         "instanceof",
+                                         "insteadof",
+                                         "interface",
+                                         "isset",
+                                         "list",
+                                         "namespace",
+                                         "new",
+                                         "or",
+                                         "print",
+                                         "private",
+                                         "protected",
+                                         "public",
+                                         "require",
+                                         "require_once",
+                                         "return",
+                                         "static",
+                                         "switch",
+                                         "this",
+                                         "throw",
+                                         "trait",
+                                         "try",
+                                         "unset",
+                                         "use",
+                                         "var",
+                                         "while",
+                                         "xor",
+                                         "yield"};
+    bool found = binary_search(&keywordList[0], &keywordList[sizeof(keywordList) / sizeof(*keywordList)], lower);
     return found ? "_" + name : name;
 }
 
 //
 // Split a scoped name into its components and return the components as a list of (unscoped) identifiers.
 //
-static vector<string>
-splitScopedName(const string& scoped)
+static vector<string> splitScopedName(const string& scoped)
 {
     assert(scoped[0] == ':');
     vector<string> ids;
@@ -82,8 +135,7 @@ splitScopedName(const string& scoped)
     return ids;
 }
 
-string
-Slice::PHP::scopedToName(const string& scoped, bool ns)
+string Slice::PHP::scopedToName(const string& scoped, bool ns)
 {
     string result;
     if(ns)
@@ -120,8 +172,7 @@ Slice::PHP::scopedToName(const string& scoped, bool ns)
     return result;
 }
 
-string
-Slice::PHP::fixIdent(const string& ident)
+string Slice::PHP::fixIdent(const string& ident)
 {
     if(ident[0] != ':')
     {
@@ -137,8 +188,7 @@ Slice::PHP::fixIdent(const string& ident)
     return result.str();
 }
 
-string
-Slice::PHP::escapeName(const string& name)
+string Slice::PHP::escapeName(const string& name)
 {
     string result = name;
 

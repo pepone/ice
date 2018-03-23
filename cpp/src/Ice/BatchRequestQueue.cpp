@@ -16,55 +16,54 @@ using namespace std;
 using namespace Ice;
 using namespace IceInternal;
 
-IceUtil::Shared* IceInternal::upCast(BatchRequestQueue* p) { return p; }
+IceUtil::Shared* IceInternal::upCast(BatchRequestQueue* p)
+{
+    return p;
+}
 
 namespace
 {
+    const int udpOverhead = 20 + 8;
 
-const int udpOverhead = 20 + 8;
-
-class BatchRequestI : public Ice::BatchRequest
-{
-public:
-
-    BatchRequestI(BatchRequestQueue& queue, const Ice::ObjectPrxPtr& proxy, const string& operation, int size) :
-        _queue(queue), _proxy(proxy), _operation(operation), _size(size)
+    class BatchRequestI : public Ice::BatchRequest
     {
-    }
+    public:
+        BatchRequestI(BatchRequestQueue& queue, const Ice::ObjectPrxPtr& proxy, const string& operation, int size) :
+            _queue(queue),
+            _proxy(proxy),
+            _operation(operation),
+            _size(size)
+        {
+        }
 
-    virtual void
-    enqueue() const
-    {
-        _queue.enqueueBatchRequest(_proxy);
-    }
+        virtual void enqueue() const
+        {
+            _queue.enqueueBatchRequest(_proxy);
+        }
 
-    virtual int
-    getSize() const
-    {
-        return _size;
-    }
+        virtual int getSize() const
+        {
+            return _size;
+        }
 
-    virtual const std::string&
-    getOperation() const
-    {
-        return _operation;
-    }
+        virtual const std::string& getOperation() const
+        {
+            return _operation;
+        }
 
-    virtual const Ice::ObjectPrxPtr&
-    getProxy() const
-    {
-        return _proxy;
-    }
+        virtual const Ice::ObjectPrxPtr& getProxy() const
+        {
+            return _proxy;
+        }
 
-private:
+    private:
+        BatchRequestQueue& _queue;
+        const Ice::ObjectPrxPtr& _proxy;
+        const std::string& _operation;
+        const int _size;
+    };
 
-    BatchRequestQueue& _queue;
-    const Ice::ObjectPrxPtr& _proxy;
-    const std::string& _operation;
-    const int _size;
-};
-
-}
+} // namespace
 
 BatchRequestQueue::BatchRequestQueue(const InstancePtr& instance, bool datagram) :
     _interceptor(instance->initializationData().batchRequestInterceptor),
@@ -89,8 +88,7 @@ BatchRequestQueue::BatchRequestQueue(const InstancePtr& instance, bool datagram)
     }
 }
 
-void
-BatchRequestQueue::prepareBatchRequest(OutputStream* os)
+void BatchRequestQueue::prepareBatchRequest(OutputStream* os)
 {
     Lock sync(*this);
     if(_exception)
@@ -102,10 +100,8 @@ BatchRequestQueue::prepareBatchRequest(OutputStream* os)
     _batchStream.swap(*os);
 }
 
-void
-BatchRequestQueue::finishBatchRequest(OutputStream* os,
-                                      const Ice::ObjectPrxPtr& proxy,
-                                      const std::string& operation)
+void BatchRequestQueue::finishBatchRequest(OutputStream* os, const Ice::ObjectPrxPtr& proxy,
+                                           const std::string& operation)
 {
     //
     // No need for synchronization, no other threads are supposed
@@ -165,8 +161,7 @@ BatchRequestQueue::finishBatchRequest(OutputStream* os,
     }
 }
 
-void
-BatchRequestQueue::abortBatchRequest(OutputStream* os)
+void BatchRequestQueue::abortBatchRequest(OutputStream* os)
 {
     Lock sync(*this);
     if(_batchStreamInUse)
@@ -178,8 +173,7 @@ BatchRequestQueue::abortBatchRequest(OutputStream* os)
     }
 }
 
-int
-BatchRequestQueue::swap(OutputStream* os, bool& compress)
+int BatchRequestQueue::swap(OutputStream* os, bool& compress)
 {
     Lock sync(*this);
     if(_batchRequestNum == 0)
@@ -214,8 +208,7 @@ BatchRequestQueue::swap(OutputStream* os, bool& compress)
     return requestNum;
 }
 
-void
-BatchRequestQueue::destroy(const Ice::LocalException& ex)
+void BatchRequestQueue::destroy(const Ice::LocalException& ex)
 {
     Lock sync(*this);
 #ifdef ICE_CPP11_MAPPING
@@ -225,15 +218,13 @@ BatchRequestQueue::destroy(const Ice::LocalException& ex)
 #endif
 }
 
-bool
-BatchRequestQueue::isEmpty()
+bool BatchRequestQueue::isEmpty()
 {
     Lock sync(*this);
     return _batchStream.b.size() == sizeof(requestBatchHdr);
 }
 
-void
-BatchRequestQueue::waitStreamInUse(bool flush)
+void BatchRequestQueue::waitStreamInUse(bool flush)
 {
     while(_batchStreamInUse && !(flush && _batchStreamCanFlush))
     {
@@ -241,8 +232,7 @@ BatchRequestQueue::waitStreamInUse(bool flush)
     }
 }
 
-void
-BatchRequestQueue::enqueueBatchRequest(const Ice::ObjectPrxPtr& proxy)
+void BatchRequestQueue::enqueueBatchRequest(const Ice::ObjectPrxPtr& proxy)
 {
     assert(_batchMarker < _batchStream.b.size());
     bool compress;

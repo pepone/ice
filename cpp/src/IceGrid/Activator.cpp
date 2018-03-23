@@ -25,20 +25,20 @@
 #include <climits>
 
 #ifndef _WIN32
-#   include <sys/wait.h>
-#   include <signal.h>
-#   include <pwd.h> // for getpwuid
+#    include <sys/wait.h>
+#    include <signal.h>
+#    include <pwd.h> // for getpwuid
 #else
-#ifndef SIGKILL
-#   define SIGKILL 9
-#endif
-#ifndef SIGTERM
-#   define SIGTERM 15
-#endif
+#    ifndef SIGKILL
+#        define SIGKILL 9
+#    endif
+#    ifndef SIGTERM
+#        define SIGTERM 15
+#    endif
 #endif
 
 #if defined(__linux) || defined(__sun) || defined(_AIX) || defined(__GLIBC__)
-#   include <grp.h> // for setgroups
+#    include <grp.h> // for setgroups
 #endif
 
 using namespace std;
@@ -50,243 +50,233 @@ using namespace IceGrid;
 
 namespace IceGrid
 {
-
-class TerminationListenerThread : public IceUtil::Thread
-{
-public:
-
-    TerminationListenerThread(Activator& activator) :
-        IceUtil::Thread("IceGrid termination listener thread"),
-        _activator(activator)
+    class TerminationListenerThread : public IceUtil::Thread
     {
-    }
+    public:
+        TerminationListenerThread(Activator& activator) :
+            IceUtil::Thread("IceGrid termination listener thread"),
+            _activator(activator)
+        {
+        }
 
-    virtual
-    void run()
-    {
-        _activator.runTerminationListener();
-    }
+        virtual void run()
+        {
+            _activator.runTerminationListener();
+        }
 
-private:
-
-    Activator& _activator;
-};
+    private:
+        Activator& _activator;
+    };
 
 #ifndef _WIN32
-//
-// Helper function for async-signal safe error reporting
-//
-void
-reportChildError(int err, int fd, const char* cannot, const char* name, const TraceLevelsPtr& traceLevels)
-{
     //
-    // Send any errors to the parent process, using the write
-    // end of the pipe.
+    // Helper function for async-signal safe error reporting
     //
-    char msg[500];
-    strcpy(msg, cannot);
-    strcat(msg, " `");
-    strcat(msg, name);
-    strcat(msg, "'");
-    if(err)
+    void reportChildError(int err, int fd, const char* cannot, const char* name, const TraceLevelsPtr& traceLevels)
     {
-        strcat(msg, ": ");
-        strcat(msg, strerror(err));
-    }
-    ssize_t sz = write(fd, msg, strlen(msg));
-    if(sz == -1)
-    {
-        Ice::Warning out(traceLevels->logger);
-        out << "error rerporting child error msg: `" << msg << "'";
-    }
-    close(fd);
+        //
+        // Send any errors to the parent process, using the write
+        // end of the pipe.
+        //
+        char msg[500];
+        strcpy(msg, cannot);
+        strcat(msg, " `");
+        strcat(msg, name);
+        strcat(msg, "'");
+        if(err)
+        {
+            strcat(msg, ": ");
+            strcat(msg, strerror(err));
+        }
+        ssize_t sz = write(fd, msg, strlen(msg));
+        if(sz == -1)
+        {
+            Ice::Warning out(traceLevels->logger);
+            out << "error rerporting child error msg: `" << msg << "'";
+        }
+        close(fd);
 
-    //
-    // _exit instead of exit to avoid interferences with the parent
-    // process.
-    //
-    _exit(EXIT_FAILURE);
-}
+        //
+        // _exit instead of exit to avoid interferences with the parent
+        // process.
+        //
+        _exit(EXIT_FAILURE);
+    }
 
 #endif
 
-string
-signalToString(int signal)
-{
-    switch(signal)
+    string signalToString(int signal)
     {
+        switch(signal)
+        {
 #ifndef _WIN32
-        case SIGHUP:
-        {
-            return ICE_STRING(SIGHUP);
-        }
-        case SIGINT:
-        {
-            return ICE_STRING(SIGINT);
-        }
-        case SIGQUIT:
-        {
-            return ICE_STRING(SIGQUIT);
-        }
-        case SIGILL:
-        {
-            return ICE_STRING(SIGILL);
-        }
-        case SIGTRAP:
-        {
-            return ICE_STRING(SIGTRAP);
-        }
-        case SIGABRT:
-        {
-            return ICE_STRING(SIGABRT);
-        }
-        case SIGBUS:
-        {
-            return ICE_STRING(SIGBUS);
-        }
-        case SIGFPE:
-        {
-            return ICE_STRING(SIGFPE);
-        }
-        case SIGUSR1:
-        {
-            return ICE_STRING(SIGUSR1);
-        }
-        case SIGSEGV:
-        {
-            return ICE_STRING(SIGSEGV);
-        }
-        case SIGPIPE:
-        {
-            return ICE_STRING(SIGPIPE);
-        }
-        case SIGALRM:
-        {
-            return ICE_STRING(SIGALRM);
-        }
-#endif
-        case SIGKILL:
-        {
-            return ICE_STRING(SIGKILL);
-        }
-        case SIGTERM:
-        {
-            return ICE_STRING(SIGTERM);
-        }
-        default:
-        {
-            ostringstream os;
-            os << "signal " << signal;
-            return os.str();
-        }
-    }
-}
-
-int
-stringToSignal(const string& str)
-{
-#ifndef _WIN32
-    if(str == ICE_STRING(SIGHUP))
-    {
-        return SIGHUP;
-    }
-    else if(str ==  ICE_STRING(SIGINT))
-    {
-        return SIGINT;
-    }
-    else if(str == ICE_STRING(SIGQUIT))
-    {
-        return SIGQUIT;
-    }
-    else if(str == ICE_STRING(SIGILL))
-    {
-        return SIGILL;
-    }
-    else if(str == ICE_STRING(SIGTRAP))
-    {
-        return SIGTRAP;
-    }
-    else if(str == ICE_STRING(SIGABRT))
-    {
-        return SIGABRT;
-    }
-    else if(str == ICE_STRING(SIGBUS))
-    {
-        return SIGBUS;
-    }
-    else if(str == ICE_STRING(SIGFPE))
-    {
-        return SIGFPE;
-    }
-    else if(str == ICE_STRING(SIGUSR1))
-    {
-        return SIGUSR1;
-    }
-    else if(str == ICE_STRING(SIGSEGV))
-    {
-        return SIGSEGV;
-    }
-    else if(str == ICE_STRING(SIGUSR2))
-    {
-        return SIGUSR2;
-    }
-    else if(str == ICE_STRING(SIGPIPE))
-    {
-        return SIGPIPE;
-    }
-    else if(str == ICE_STRING(SIGALRM))
-    {
-        return SIGALRM;
-    }
-    else
-#endif
-        if(str == ICE_STRING(SIGKILL))
-    {
-        return SIGKILL;
-    }
-    else if(str == ICE_STRING(SIGTERM))
-    {
-        return SIGTERM;
-    }
-    else
-    {
-        if(str != "")
-        {
-            char* end;
-            long int signal = strtol(str.c_str(), &end, 10);
-            if(*end == '\0' && signal > 0 && signal < 64)
+            case SIGHUP:
             {
-#ifdef _WIN32
-                if(signal == SIGKILL || signal == SIGTERM)
-                {
-                    return static_cast<int>(signal);
-                }
-#else
-                return static_cast<int>(signal);
+                return ICE_STRING(SIGHUP);
+            }
+            case SIGINT:
+            {
+                return ICE_STRING(SIGINT);
+            }
+            case SIGQUIT:
+            {
+                return ICE_STRING(SIGQUIT);
+            }
+            case SIGILL:
+            {
+                return ICE_STRING(SIGILL);
+            }
+            case SIGTRAP:
+            {
+                return ICE_STRING(SIGTRAP);
+            }
+            case SIGABRT:
+            {
+                return ICE_STRING(SIGABRT);
+            }
+            case SIGBUS:
+            {
+                return ICE_STRING(SIGBUS);
+            }
+            case SIGFPE:
+            {
+                return ICE_STRING(SIGFPE);
+            }
+            case SIGUSR1:
+            {
+                return ICE_STRING(SIGUSR1);
+            }
+            case SIGSEGV:
+            {
+                return ICE_STRING(SIGSEGV);
+            }
+            case SIGPIPE:
+            {
+                return ICE_STRING(SIGPIPE);
+            }
+            case SIGALRM:
+            {
+                return ICE_STRING(SIGALRM);
+            }
 #endif
+            case SIGKILL:
+            {
+                return ICE_STRING(SIGKILL);
+            }
+            case SIGTERM:
+            {
+                return ICE_STRING(SIGTERM);
+            }
+            default:
+            {
+                ostringstream os;
+                os << "signal " << signal;
+                return os.str();
             }
         }
-        throw BadSignalException("unknown signal `" + str + "'");
-        return SIGTERM; // Keep the compiler happy.
     }
-}
+
+    int stringToSignal(const string& str)
+    {
+#ifndef _WIN32
+        if(str == ICE_STRING(SIGHUP))
+        {
+            return SIGHUP;
+        }
+        else if(str == ICE_STRING(SIGINT))
+        {
+            return SIGINT;
+        }
+        else if(str == ICE_STRING(SIGQUIT))
+        {
+            return SIGQUIT;
+        }
+        else if(str == ICE_STRING(SIGILL))
+        {
+            return SIGILL;
+        }
+        else if(str == ICE_STRING(SIGTRAP))
+        {
+            return SIGTRAP;
+        }
+        else if(str == ICE_STRING(SIGABRT))
+        {
+            return SIGABRT;
+        }
+        else if(str == ICE_STRING(SIGBUS))
+        {
+            return SIGBUS;
+        }
+        else if(str == ICE_STRING(SIGFPE))
+        {
+            return SIGFPE;
+        }
+        else if(str == ICE_STRING(SIGUSR1))
+        {
+            return SIGUSR1;
+        }
+        else if(str == ICE_STRING(SIGSEGV))
+        {
+            return SIGSEGV;
+        }
+        else if(str == ICE_STRING(SIGUSR2))
+        {
+            return SIGUSR2;
+        }
+        else if(str == ICE_STRING(SIGPIPE))
+        {
+            return SIGPIPE;
+        }
+        else if(str == ICE_STRING(SIGALRM))
+        {
+            return SIGALRM;
+        }
+        else
+#endif
+            if(str == ICE_STRING(SIGKILL))
+        {
+            return SIGKILL;
+        }
+        else if(str == ICE_STRING(SIGTERM))
+        {
+            return SIGTERM;
+        }
+        else
+        {
+            if(str != "")
+            {
+                char* end;
+                long int signal = strtol(str.c_str(), &end, 10);
+                if(*end == '\0' && signal > 0 && signal < 64)
+                {
+#ifdef _WIN32
+                    if(signal == SIGKILL || signal == SIGTERM)
+                    {
+                        return static_cast<int>(signal);
+                    }
+#else
+                    return static_cast<int>(signal);
+#endif
+                }
+            }
+            throw BadSignalException("unknown signal `" + str + "'");
+            return SIGTERM; // Keep the compiler happy.
+        }
+    }
 
 #ifdef _WIN32
-struct UnicodeStringLess
-{
-
-bool
-operator()(const wstring& lhs, const wstring& rhs) const
-{
-    int r = CompareStringW(LOCALE_INVARIANT, NORM_IGNORECASE, lhs.c_str(), -1, rhs.c_str(), -1);
-    assert(r > 0);
-    return r == CSTR_LESS_THAN;
-}
-
-};
+    struct UnicodeStringLess
+    {
+        bool operator()(const wstring& lhs, const wstring& rhs) const
+        {
+            int r = CompareStringW(LOCALE_INVARIANT, NORM_IGNORECASE, lhs.c_str(), -1, rhs.c_str(), -1);
+            assert(r > 0);
+            return r == CSTR_LESS_THAN;
+        }
+    };
 #endif
 
-}
+} // namespace IceGrid
 
 #ifdef _WIN32
 extern "C" void CALLBACK activatorWaitCallback(PVOID data, BOOLEAN)
@@ -296,22 +286,18 @@ extern "C" void CALLBACK activatorWaitCallback(PVOID data, BOOLEAN)
 }
 #endif
 
-Activator::Activator(const TraceLevelsPtr& traceLevels) :
-    _traceLevels(traceLevels),
-    _deactivating(false)
+Activator::Activator(const TraceLevelsPtr& traceLevels) : _traceLevels(traceLevels), _deactivating(false)
 {
 #ifdef _WIN32
-    _hIntr = CreateEvent(
-        ICE_NULLPTR,  // Security attributes
-        TRUE,  // Manual reset
-        FALSE, // Initial state is nonsignaled
-        ICE_NULLPTR   // Unnamed
+    _hIntr = CreateEvent(ICE_NULLPTR, // Security attributes
+                         TRUE,        // Manual reset
+                         FALSE,       // Initial state is nonsignaled
+                         ICE_NULLPTR  // Unnamed
     );
 
     if(_hIntr == ICE_NULLPTR)
     {
         throw SyscallException(__FILE__, __LINE__, getSystemErrno());
-
     }
 #else
     int fds[2];
@@ -325,7 +311,6 @@ Activator::Activator(const TraceLevelsPtr& traceLevels) :
     flags |= O_NONBLOCK;
     fcntl(_fdIntrRead, F_SETFL, flags);
 #endif
-
 }
 
 Activator::~Activator()
@@ -343,19 +328,13 @@ Activator::~Activator()
 #endif
 }
 
-int
-Activator::activate(const string& name,
-                    const string& exePath,
-                    const string& pwdPath,
+int Activator::activate(const string& name, const string& exePath, const string& pwdPath,
 #ifndef _WIN32
-                    uid_t uid,
-                    gid_t gid,
+                        uid_t uid, gid_t gid,
 #endif
-                    const Ice::StringSeq& options,
-                    const Ice::StringSeq& envs,
-                    const ServerIPtr& server)
+                        const Ice::StringSeq& options, const Ice::StringSeq& envs, const ServerIPtr& server)
 {
-    IceUtil::Monitor< IceUtil::Mutex>::Lock sync(*this);
+    IceUtil::Monitor<IceUtil::Mutex>::Lock sync(*this);
 
     if(_deactivating)
     {
@@ -419,7 +398,8 @@ Activator::activate(const string& name,
                 Trace out(_traceLevels->logger, _traceLevels->activatorCat);
                 out << "cannot convert `" << pwd << "' into an absolute path";
             }
-            throw runtime_error("The server working directory path `" + pwd + "' can't be converted into an absolute path.");
+            throw runtime_error("The server working directory path `" + pwd +
+                                "' can't be converted into an absolute path.");
         }
         pwd = wstringToString(absbuf);
     }
@@ -577,17 +557,16 @@ Activator::activate(const string& name,
 
     PROCESS_INFORMATION pi;
     ZeroMemory(&pi, sizeof(pi));
-    BOOL b = CreateProcessW(
-        ICE_NULLPTR,                     // Executable
-        cmdbuf,                   // Command line
-        ICE_NULLPTR,                     // Process attributes
-        ICE_NULLPTR,                     // Thread attributes
-        FALSE,                    // Do NOT inherit handles
-        CREATE_NEW_PROCESS_GROUP | CREATE_UNICODE_ENVIRONMENT, // Process creation flags
-        (LPVOID)env,              // Process environment
-        dir,                      // Current directory
-        &si,                      // Startup info
-        &pi                       // Process info
+    BOOL b = CreateProcessW(ICE_NULLPTR,                                           // Executable
+                            cmdbuf,                                                // Command line
+                            ICE_NULLPTR,                                           // Process attributes
+                            ICE_NULLPTR,                                           // Thread attributes
+                            FALSE,                                                 // Do NOT inherit handles
+                            CREATE_NEW_PROCESS_GROUP | CREATE_UNICODE_ENVIRONMENT, // Process creation flags
+                            (LPVOID)env,                                           // Process environment
+                            dir,                                                   // Current directory
+                            &si,                                                   // Startup info
+                            &pi                                                    // Process info
     );
 
     free(cmdbuf);
@@ -619,17 +598,17 @@ Activator::activate(const string& name,
     // Don't print the following trace, this might interfer with the
     // output of the started process if it fails with an error message.
     //
-//     if(_traceLevels->activator > 0)
-//     {
-//         Ice::Trace out(_traceLevels->logger, _traceLevels->activatorCat);
-//         out << "activated server `" << name << "' (pid = " << pi.dwProcessId << ")";
-//     }
+    //     if(_traceLevels->activator > 0)
+    //     {
+    //         Ice::Trace out(_traceLevels->logger, _traceLevels->activatorCat);
+    //         out << "activated server `" << name << "' (pid = " << pi.dwProcessId << ")";
+    //     }
 
     return static_cast<Ice::Int>(process.pid);
 #else
     struct passwd pwbuf;
     vector<char> buffer(4096); // 4KB initial buffer size
-    struct passwd *pw;
+    struct passwd* pw;
     int err = getpwuid_r(uid, &pwbuf, &buffer[0], buffer.size(), &pw);
     while(err == ERANGE && buffer.size() < 1024 * 1024) // Limit buffer to 1MB
     {
@@ -649,18 +628,18 @@ Activator::activate(const string& name,
     vector<gid_t> groups;
     groups.resize(20);
     int ngroups = static_cast<int>(groups.size());
-#if defined(__APPLE__)
+#    if defined(__APPLE__)
     if(getgrouplist(pw->pw_name, gid, reinterpret_cast<int*>(&groups[0]), &ngroups) < 0)
-#else
+#    else
     if(getgrouplist(pw->pw_name, gid, &groups[0], &ngroups) < 0)
-#endif
+#    endif
     {
         groups.resize(ngroups);
-#if defined(__APPLE__)
+#    if defined(__APPLE__)
         getgrouplist(pw->pw_name, gid, reinterpret_cast<int*>(&groups[0]), &ngroups);
-#else
+#    else
         getgrouplist(pw->pw_name, gid, &groups[0], &ngroups);
-#endif
+#    endif
     }
 
     int fds[2];
@@ -727,7 +706,7 @@ Activator::activate(const string& name,
             ostringstream os;
             os << pw->pw_name;
             reportChildError(getSystemErrno(), errorFds[1], "cannot set process supplementary groups", os.str().c_str(),
-                                                             _traceLevels);
+                             _traceLevels);
         }
 
         if(setuid(uid) == -1)
@@ -764,8 +743,7 @@ Activator::activate(const string& name,
             //
             if(putenv(strdup(env.argv[i])) != 0)
             {
-                reportChildError(errno, errorFds[1], "cannot set environment variable",  env.argv[i],
-                                 _traceLevels);
+                reportChildError(errno, errorFds[1], "cannot set environment variable", env.argv[i], _traceLevels);
             }
         }
 
@@ -776,8 +754,7 @@ Activator::activate(const string& name,
         {
             if(chdir(pwdCStr) == -1)
             {
-                reportChildError(errno, errorFds[1], "cannot change working directory to",  pwdCStr,
-                                 _traceLevels);
+                reportChildError(errno, errorFds[1], "cannot change working directory to", pwdCStr, _traceLevels);
             }
         }
 
@@ -796,11 +773,11 @@ Activator::activate(const string& name,
         {
             if(errorFds[1] != -1)
             {
-                reportChildError(errno, errorFds[1], "cannot execute",  av.argv[0], _traceLevels);
+                reportChildError(errno, errorFds[1], "cannot execute", av.argv[0], _traceLevels);
             }
             else
             {
-                reportChildError(errno, fds[1], "cannot execute",  av.argv[0], _traceLevels);
+                reportChildError(errno, fds[1], "cannot execute", av.argv[0], _traceLevels);
             }
         }
     }
@@ -849,15 +826,15 @@ Activator::activate(const string& name,
 
         setInterrupt();
 
-    //
-    // Don't print the following trace, this might interfere with the
-    // output of the started process if it fails with an error message.
-    //
-//      if(_traceLevels->activator > 0)
-//      {
-//          Ice::Trace out(_traceLevels->logger, _traceLevels->activatorCat);
-//          out << "activated server `" << name << "' (pid = " << pid << ")";
-//      }
+        //
+        // Don't print the following trace, this might interfere with the
+        // output of the started process if it fails with an error message.
+        //
+        //      if(_traceLevels->activator > 0)
+        //      {
+        //          Ice::Trace out(_traceLevels->logger, _traceLevels->activatorCat);
+        //          out << "activated server `" << name << "' (pid = " << pid << ")";
+        //      }
     }
 
     return pid;
@@ -866,40 +843,36 @@ Activator::activate(const string& name,
 
 namespace
 {
-
-class ShutdownCallback : public IceUtil::Shared
-{
-public:
-
-    ShutdownCallback(const ActivatorPtr& activator, const string& name, const TraceLevelsPtr& traceLevels) :
-        _activator(activator), _name(name), _traceLevels(traceLevels)
+    class ShutdownCallback : public IceUtil::Shared
     {
+    public:
+        ShutdownCallback(const ActivatorPtr& activator, const string& name, const TraceLevelsPtr& traceLevels) :
+            _activator(activator),
+            _name(name),
+            _traceLevels(traceLevels)
+        {
+        }
 
-    }
+        virtual void exception(const Ice::Exception& ex)
+        {
+            Ice::Warning out(_traceLevels->logger);
+            out << "exception occurred while deactivating `" << _name << "' using process proxy:\n" << ex;
 
-    virtual void
-    exception(const Ice::Exception& ex)
-    {
-        Ice::Warning out(_traceLevels->logger);
-        out << "exception occurred while deactivating `" << _name << "' using process proxy:\n" << ex;
+            //
+            // Send a SIGTERM to the process.
+            //
+            _activator->sendSignal(_name, SIGTERM);
+        }
 
-        //
-        // Send a SIGTERM to the process.
-        //
-        _activator->sendSignal(_name, SIGTERM);
-    }
+    private:
+        const ActivatorPtr _activator;
+        const string _name;
+        const TraceLevelsPtr _traceLevels;
+    };
 
-private:
+} // namespace
 
-    const ActivatorPtr _activator;
-    const string _name;
-    const TraceLevelsPtr _traceLevels;
-};
-
-}
-
-void
-Activator::deactivate(const string& name, const Ice::ProcessPrx& process)
+void Activator::deactivate(const string& name, const Ice::ProcessPrx& process)
 {
 #ifdef _WIN32
     Ice::Int pid = getServerPid(name);
@@ -939,20 +912,17 @@ Activator::deactivate(const string& name, const Ice::ProcessPrx& process)
     sendSignal(name, SIGTERM);
 }
 
-void
-Activator::kill(const string& name)
+void Activator::kill(const string& name)
 {
     sendSignal(name, SIGKILL);
 }
 
-void
-Activator::sendSignal(const string& name, const string& signal)
+void Activator::sendSignal(const string& name, const string& signal)
 {
     sendSignal(name, stringToSignal(signal));
 }
 
-void
-Activator::sendSignal(const string& name, int signal)
+void Activator::sendSignal(const string& name, int signal)
 {
     Ice::Int pid = getServerPid(name);
     if(pid == 0)
@@ -1019,10 +989,9 @@ Activator::sendSignal(const string& name, int signal)
 #endif
 }
 
-Ice::Int
-Activator::getServerPid(const string& name)
+Ice::Int Activator::getServerPid(const string& name)
 {
-    IceUtil::Monitor< IceUtil::Mutex>::Lock sync(*this);
+    IceUtil::Monitor<IceUtil::Mutex>::Lock sync(*this);
 
     map<string, Process>::const_iterator p = _processes.find(name);
     if(p == _processes.end())
@@ -1033,8 +1002,7 @@ Activator::getServerPid(const string& name)
     return static_cast<Ice::Int>(p->second.pid);
 }
 
-void
-Activator::start()
+void Activator::start()
 {
     //
     // Create and start the termination listener thread.
@@ -1043,20 +1011,18 @@ Activator::start()
     _thread->start();
 }
 
-void
-Activator::waitForShutdown()
+void Activator::waitForShutdown()
 {
-    IceUtil::Monitor< IceUtil::Mutex>::Lock sync(*this);
+    IceUtil::Monitor<IceUtil::Mutex>::Lock sync(*this);
     while(!_deactivating)
     {
         wait();
     }
 }
 
-void
-Activator::shutdown()
+void Activator::shutdown()
 {
-    IceUtil::Monitor< IceUtil::Mutex>::Lock sync(*this);
+    IceUtil::Monitor<IceUtil::Mutex>::Lock sync(*this);
     if(_deactivating)
     {
         return;
@@ -1073,12 +1039,11 @@ Activator::shutdown()
     notifyAll();
 }
 
-void
-Activator::destroy()
+void Activator::destroy()
 {
     map<string, Process> processes;
     {
-        IceUtil::Monitor< IceUtil::Mutex>::Lock sync(*this);
+        IceUtil::Monitor<IceUtil::Mutex>::Lock sync(*this);
         assert(_deactivating);
         processes = _processes;
     }
@@ -1127,15 +1092,13 @@ Activator::destroy()
     assert(_processes.empty());
 }
 
-bool
-Activator::isActive()
+bool Activator::isActive()
 {
-    IceUtil::Monitor< IceUtil::Mutex>::Lock sync(*this);
+    IceUtil::Monitor<IceUtil::Mutex>::Lock sync(*this);
     return !_deactivating;
 }
 
-void
-Activator::runTerminationListener()
+void Activator::runTerminationListener()
 {
     while(true)
     {
@@ -1157,8 +1120,7 @@ Activator::runTerminationListener()
     }
 }
 
-void
-Activator::terminationListener()
+void Activator::terminationListener()
 {
 #ifdef _WIN32
     while(true)
@@ -1179,7 +1141,7 @@ Activator::terminationListener()
         vector<Process> terminated;
         bool deactivated = false;
         {
-            IceUtil::Monitor< IceUtil::Mutex>::Lock sync(*this);
+            IceUtil::Monitor<IceUtil::Mutex>::Lock sync(*this);
             for(vector<Process*>::const_iterator q = _terminated.begin(); q != _terminated.end(); ++q)
             {
                 for(map<string, Process>::iterator p = _processes.begin(); p != _processes.end(); ++p)
@@ -1241,7 +1203,7 @@ Activator::terminationListener()
         FD_SET(_fdIntrRead, &fdSet);
 
         {
-            IceUtil::Monitor< IceUtil::Mutex>::Lock sync(*this);
+            IceUtil::Monitor<IceUtil::Mutex>::Lock sync(*this);
 
             for(map<string, Process>::iterator p = _processes.begin(); p != _processes.end(); ++p)
             {
@@ -1260,17 +1222,17 @@ Activator::terminationListener()
 
         if(ret == -1)
         {
-#ifdef EPROTO
+#    ifdef EPROTO
             if(errno == EINTR || errno == EPROTO)
             {
                 goto repeatSelect;
             }
-#else
+#    else
             if(errno == EINTR)
             {
                 goto repeatSelect;
             }
-#endif
+#    endif
 
             throw SyscallException(__FILE__, __LINE__, getSystemErrno());
         }
@@ -1278,7 +1240,7 @@ Activator::terminationListener()
         vector<Process> terminated;
         bool deactivated = false;
         {
-            IceUtil::Monitor< IceUtil::Mutex>::Lock sync(*this);
+            IceUtil::Monitor<IceUtil::Mutex>::Lock sync(*this);
 
             if(FD_ISSET(_fdIntrRead, &fdSet))
             {
@@ -1388,8 +1350,7 @@ Activator::terminationListener()
 #endif
 }
 
-void
-Activator::clearInterrupt()
+void Activator::clearInterrupt()
 {
 #ifdef _WIN32
     ResetEvent(_hIntr);
@@ -1400,8 +1361,7 @@ Activator::clearInterrupt()
 #endif
 }
 
-void
-Activator::setInterrupt()
+void Activator::setInterrupt()
 {
 #ifdef _WIN32
     SetEvent(_hIntr);
@@ -1416,13 +1376,12 @@ Activator::setInterrupt()
 }
 
 #ifndef _WIN32
-int
-Activator::waitPid(pid_t processPid)
+int Activator::waitPid(pid_t processPid)
 {
     try
     {
         int status;
-#if defined(__linux)
+#    if defined(__linux)
         int nRetry = 0;
         while(true) // The while loop is necessary for the linux workaround.
         {
@@ -1447,14 +1406,14 @@ Activator::waitPid(pid_t processPid)
             assert(pid == processPid);
             break;
         }
-#else
+#    else
         pid_t pid = waitpid(processPid, &status, 0);
         if(pid < 0)
         {
             throw SyscallException(__FILE__, __LINE__, getSystemErrno());
         }
         assert(pid == processPid);
-#endif
+#    endif
         return status;
     }
     catch(const Ice::LocalException& ex)
@@ -1465,10 +1424,9 @@ Activator::waitPid(pid_t processPid)
     }
 }
 #else
-void
-Activator::processTerminated(Activator::Process* process)
+void Activator::processTerminated(Activator::Process* process)
 {
-    IceUtil::Monitor< IceUtil::Mutex>::Lock sync(*this);
+    IceUtil::Monitor<IceUtil::Mutex>::Lock sync(*this);
     setInterrupt();
     _terminated.push_back(process);
 }

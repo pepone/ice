@@ -14,24 +14,22 @@ using namespace std;
 
 namespace
 {
-
-class Client : public Ice::Application
-{
-public:
-    virtual int
-    run(int, char*[])
+    class Client : public Ice::Application
     {
-        int count = communicator()->getProperties()->getPropertyAsInt("Client.Iterations");
-        const string message = communicator()->getProperties()->getProperty("Client.Message");
-        for(int i = 0; i < count; ++i)
+    public:
+        virtual int run(int, char* [])
         {
-            communicator()->getLogger()->print(message);
-        }
-        return EXIT_SUCCESS;
+            int count = communicator()->getProperties()->getPropertyAsInt("Client.Iterations");
+            const string message = communicator()->getProperties()->getProperty("Client.Message");
+            for(int i = 0; i < count; ++i)
+            {
+                communicator()->getLogger()->print(message);
+            }
+            return EXIT_SUCCESS;
+        };
     };
-};
 
-}
+} // namespace
 
 //
 // We use messages with different sizes to compensate the different line end used in Windows
@@ -47,8 +45,7 @@ const string message = "Lorem ipsum dolor sit amet, consectetur adipiscing elit.
                        "Fusce dictum turpis ante, sit amet finibus eros commodo vel. Sed amet.";
 #endif
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
 #ifdef ICE_STATIC_LIBS
     Ice::registerIceSSL(false);

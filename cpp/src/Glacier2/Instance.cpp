@@ -17,13 +17,12 @@ using namespace Glacier2;
 
 namespace
 {
+    const string serverSleepTime = "Glacier2.Server.SleepTime";
+    const string clientSleepTime = "Glacier2.Client.SleepTime";
+    const string serverBuffered = "Glacier2.Server.Buffered";
+    const string clientBuffered = "Glacier2.Client.Buffered";
 
-const string serverSleepTime = "Glacier2.Server.SleepTime";
-const string clientSleepTime = "Glacier2.Client.SleepTime";
-const string serverBuffered = "Glacier2.Server.Buffered";
-const string clientBuffered = "Glacier2.Client.Buffered";
-
-}
+} // namespace
 
 Glacier2::Instance::Instance(const Ice::CommunicatorPtr& communicator, const Ice::ObjectAdapterPtr& clientAdapter,
                              const Ice::ObjectAdapterPtr& serverAdapter) :
@@ -73,9 +72,8 @@ Glacier2::Instance::Instance(const Ice::CommunicatorPtr& communicator, const Ice
         IceInternal::CommunicatorObserverIPtr::dynamicCast(communicator->getObserver());
     if(o)
     {
-        const_cast<Glacier2::Instrumentation::RouterObserverPtr&>(_observer) =
-            new RouterObserverI(o->getFacet(),
-                                _properties->getPropertyWithDefault("Glacier2.InstanceName", "Glacier2"));
+        const_cast<Glacier2::Instrumentation::RouterObserverPtr&>(_observer) = new RouterObserverI(
+            o->getFacet(), _properties->getPropertyWithDefault("Glacier2.InstanceName", "Glacier2"));
     }
 }
 
@@ -83,8 +81,7 @@ Glacier2::Instance::~Instance()
 {
 }
 
-void
-Glacier2::Instance::destroy()
+void Glacier2::Instance::destroy()
 {
     if(_clientRequestQueueThread)
     {
@@ -99,8 +96,7 @@ Glacier2::Instance::destroy()
     const_cast<SessionRouterIPtr&>(_sessionRouter) = 0;
 }
 
-void
-Glacier2::Instance::setSessionRouter(const SessionRouterIPtr& sessionRouter)
+void Glacier2::Instance::setSessionRouter(const SessionRouterIPtr& sessionRouter)
 {
     const_cast<SessionRouterIPtr&>(_sessionRouter) = sessionRouter;
 }

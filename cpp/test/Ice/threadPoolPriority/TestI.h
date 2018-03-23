@@ -15,14 +15,12 @@
 class PriorityI : public Test::Priority
 {
 public:
-
     PriorityI(const Ice::ObjectAdapterPtr&);
 
     virtual void shutdown(const Ice::Current&);
     virtual int getPriority(const Ice::Current&);
 
 private:
-
     Ice::ObjectAdapterPtr _adapter;
 };
 

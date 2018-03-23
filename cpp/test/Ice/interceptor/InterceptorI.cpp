@@ -13,14 +13,11 @@
 
 using namespace std;
 
-InterceptorI::InterceptorI(const Ice::ObjectPtr& servant) :
-    _servant(servant),
-    _lastStatus(false)
+InterceptorI::InterceptorI(const Ice::ObjectPtr& servant) : _servant(servant), _lastStatus(false)
 {
 }
 
-bool
-InterceptorI::dispatch(Ice::Request& request)
+bool InterceptorI::dispatch(Ice::Request& request)
 {
     Ice::Current& current = const_cast<Ice::Current&>(request.getCurrent());
     _lastOperation = current.operation;
@@ -48,20 +45,17 @@ InterceptorI::dispatch(Ice::Request& request)
     return _lastStatus;
 }
 
-bool
-InterceptorI::getLastStatus() const
+bool InterceptorI::getLastStatus() const
 {
     return _lastStatus;
 }
 
-const std::string&
-InterceptorI::getLastOperation() const
+const std::string& InterceptorI::getLastOperation() const
 {
     return _lastOperation;
 }
 
-void
-InterceptorI::clear()
+void InterceptorI::clear()
 {
     _lastStatus = false;
     _lastOperation = "";

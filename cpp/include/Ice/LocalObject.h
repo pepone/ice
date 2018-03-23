@@ -16,25 +16,23 @@
 // with the C++11 mapping
 //
 
-#include <IceUtil/Shared.h>
-#include <Ice/LocalObjectF.h>
+#    include <IceUtil/Shared.h>
+#    include <Ice/LocalObjectF.h>
 
 namespace Ice
 {
+    /**
+     * Base class for local Slice classes and interfaces.
+     * \headerfile Ice/Ice.h
+     */
+    class ICE_API LocalObject : public virtual ::IceUtil::Shared
+    {
+    public:
+        virtual bool operator==(const LocalObject&) const;
+        virtual bool operator<(const LocalObject&) const;
+    };
 
-/**
- * Base class for local Slice classes and interfaces.
- * \headerfile Ice/Ice.h
- */
-class ICE_API LocalObject : public virtual ::IceUtil::Shared
-{
-public:
-
-    virtual bool operator==(const LocalObject&) const;
-    virtual bool operator<(const LocalObject&) const;
-};
-
-}
+} // namespace Ice
 
 #endif
 #endif

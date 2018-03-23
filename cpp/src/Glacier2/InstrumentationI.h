@@ -17,38 +17,35 @@
 
 namespace Glacier2
 {
+    class SessionObserverI : public Glacier2::Instrumentation::SessionObserver,
+                             public IceMX::ObserverT<IceMX::SessionMetrics>
+    {
+    public:
+        virtual void forwarded(bool);
+        virtual void queued(bool);
+        virtual void overridden(bool);
+        virtual void routingTableSize(int);
+    };
 
-class SessionObserverI : public Glacier2::Instrumentation::SessionObserver,
-                         public IceMX::ObserverT<IceMX::SessionMetrics>
-{
-public:
+    class RouterObserverI : public Glacier2::Instrumentation::RouterObserver
+    {
+    public:
+        RouterObserverI(const IceInternal::MetricsAdminIPtr&, const std::string&);
 
-    virtual void forwarded(bool);
-    virtual void queued(bool);
-    virtual void overridden(bool);
-    virtual void routingTableSize(int);
-};
+        virtual void setObserverUpdater(const Glacier2::Instrumentation::ObserverUpdaterPtr&);
 
-class RouterObserverI : public Glacier2::Instrumentation::RouterObserver
-{
-public:
+        virtual Glacier2::Instrumentation::SessionObserverPtr
+        getSessionObserver(const std::string&, const Ice::ConnectionPtr&, int,
+                           const Glacier2::Instrumentation::SessionObserverPtr&);
 
-    RouterObserverI(const IceInternal::MetricsAdminIPtr&, const std::string&);
+    private:
+        const IceInternal::MetricsAdminIPtr _metrics;
+        const std::string _instanceName;
 
-    virtual void setObserverUpdater(const Glacier2::Instrumentation::ObserverUpdaterPtr&);
+        IceMX::ObserverFactoryT<SessionObserverI> _sessions;
+    };
+    typedef IceUtil::Handle<RouterObserverI> RouterObserverIPtr;
 
-    virtual Glacier2::Instrumentation::SessionObserverPtr getSessionObserver(
-        const std::string&, const Ice::ConnectionPtr&, int, const Glacier2::Instrumentation::SessionObserverPtr&);
-
-private:
-
-    const IceInternal::MetricsAdminIPtr _metrics;
-    const std::string _instanceName;
-
-    IceMX::ObserverFactoryT<SessionObserverI> _sessions;
-};
-typedef IceUtil::Handle<RouterObserverI> RouterObserverIPtr;
-
-};
+}; // namespace Glacier2
 
 #endif

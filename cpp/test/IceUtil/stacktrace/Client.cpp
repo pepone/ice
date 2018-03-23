@@ -17,84 +17,81 @@ using namespace std;
 
 namespace IceUtilInternal
 {
-extern bool ICE_API printStackTraces;
+    extern bool ICE_API printStackTraces;
 }
 
 namespace
 {
-class Thrower : public IceUtil::Shared
-{
-public:
-
-    Thrower() : _idx(0)
+    class Thrower : public IceUtil::Shared
     {
-    }
-
-    void first()
-    {
-        _idx++;
-        second();
-    }
-
-    void second()
-    {
-        _idx++;
-        third();
-    }
-
-    void third()
-    {
-        _idx++;
-        forth();
-    }
-
-    void forth()
-    {
-        _idx++;
-        fifth();
-    }
-
-    void fifth()
-    {
-        _idx++;
-        throw IceUtil::NullHandleException(__FILE__, __LINE__);
-    }
-
-private:
-
-    int _idx;
-};
-typedef IceUtil::Handle<Thrower> ThrowerPtr;
-
-vector<string>
-splitLines(const string& str)
-{
-    vector<string> result;
-    istringstream is(str);
-    string line;
-    while(std::getline(is, line))
-    {
-#ifdef __APPLE__
-        //
-        // Remove patch number from stack trace
-        //
-        string v1 = ICE_STRING_VERSION;
-        size_t pos = line.find(v1);
-        if(pos != string::npos)
+    public:
+        Thrower() : _idx(0)
         {
-            vector<string> split;
-            IceUtilInternal::splitString(v1, ".", split);
-            string v2(split[0] + split[1]);
-            line.replace(pos, v1.length(), v2);
         }
+
+        void first()
+        {
+            _idx++;
+            second();
+        }
+
+        void second()
+        {
+            _idx++;
+            third();
+        }
+
+        void third()
+        {
+            _idx++;
+            forth();
+        }
+
+        void forth()
+        {
+            _idx++;
+            fifth();
+        }
+
+        void fifth()
+        {
+            _idx++;
+            throw IceUtil::NullHandleException(__FILE__, __LINE__);
+        }
+
+    private:
+        int _idx;
+    };
+    typedef IceUtil::Handle<Thrower> ThrowerPtr;
+
+    vector<string> splitLines(const string& str)
+    {
+        vector<string> result;
+        istringstream is(str);
+        string line;
+        while(std::getline(is, line))
+        {
+#ifdef __APPLE__
+            //
+            // Remove patch number from stack trace
+            //
+            string v1 = ICE_STRING_VERSION;
+            size_t pos = line.find(v1);
+            if(pos != string::npos)
+            {
+                vector<string> split;
+                IceUtilInternal::splitString(v1, ".", split);
+                string v2(split[0] + split[1]);
+                line.replace(pos, v1.length(), v2);
+            }
 #endif
 
-        result.push_back(line);
+            result.push_back(line);
+        }
+        return result;
     }
-    return result;
-}
 
-}
+} // namespace
 
 int main(int argc, char* argv[])
 {
@@ -119,15 +116,15 @@ int main(int argc, char* argv[])
     {
         filename += "release";
 #if defined(_MSC_VER)
-#   if(_MSC_VER == 1700)
+#    if(_MSC_VER == 1700)
         filename += "-vc110";
-#   elif(_MSC_VER == 1800)
+#    elif(_MSC_VER == 1800)
         filename += "-vc120";
-#   elif(_MSC_VER == 1900)
+#    elif(_MSC_VER == 1900)
         filename += "-vc140";
 #    elif(_MSC_VER >= 1910)
         filename += "-vc141";
-#   endif
+#    endif
 #endif
     }
     else
@@ -136,7 +133,7 @@ int main(int argc, char* argv[])
     }
 
 #if defined(_WIN64)
-     filename += ".Win64";
+    filename += ".Win64";
 #elif defined(_WIN32)
     filename += ".Win32";
 #elif defined(__APPLE__)
@@ -147,11 +144,11 @@ int main(int argc, char* argv[])
     if(!optimized && IceUtilInternal::stackTraceImpl() == IceUtilInternal::STLibbacktracePlus)
     {
         // Libbacktrace with GCC 4.8 and pie return a smaller backtrace
-#   if defined(__pie__) && defined(__GNUC__) && (__GNUC__ * 100 + __GNUC_MINOR__ == 408)
+#    if defined(__pie__) && defined(__GNUC__) && (__GNUC__ * 100 + __GNUC_MINOR__ == 408)
         filename += ".libbacktrace+48pie";
-#   else
+#    else
         filename += ".libbacktrace+";
-#   endif
+#    endif
     }
 
 #endif

@@ -22,29 +22,25 @@ using namespace IceGrid;
 
 namespace IceGrid
 {
+    class RegistryService : public Service
+    {
+    public:
+        RegistryService();
+        ~RegistryService();
 
-class RegistryService : public Service
-{
-public:
+        virtual bool shutdown();
 
-    RegistryService();
-    ~RegistryService();
+    protected:
+        virtual bool start(int, char* [], int&);
+        virtual void waitForShutdown();
+        virtual bool stop();
+        virtual CommunicatorPtr initializeCommunicator(int&, char* [], const InitializationData&, int);
 
-    virtual bool shutdown();
+    private:
+        void usage(const std::string&);
 
-protected:
-
-    virtual bool start(int, char*[], int&);
-    virtual void waitForShutdown();
-    virtual bool stop();
-    virtual CommunicatorPtr initializeCommunicator(int&, char*[], const InitializationData&, int);
-
-private:
-
-    void usage(const std::string&);
-
-    RegistryIPtr _registry;
-};
+        RegistryIPtr _registry;
+    };
 
 } // End of namespace IceGrid
 
@@ -56,16 +52,14 @@ RegistryService::~RegistryService()
 {
 }
 
-bool
-RegistryService::shutdown()
+bool RegistryService::shutdown()
 {
     assert(_registry);
     _registry->shutdown();
     return true;
 }
 
-bool
-RegistryService::start(int argc, char* argv[], int& status)
+bool RegistryService::start(int argc, char* argv[], int& status)
 {
     bool nowarn;
     bool readonly;
@@ -139,8 +133,7 @@ RegistryService::start(int argc, char* argv[], int& status)
     return true;
 }
 
-void
-RegistryService::waitForShutdown()
+void RegistryService::waitForShutdown()
 {
     //
     // Wait for the activator shutdown. Once the run method returns
@@ -151,17 +144,14 @@ RegistryService::waitForShutdown()
     disableInterrupt();
 }
 
-bool
-RegistryService::stop()
+bool RegistryService::stop()
 {
     _registry->stop();
     return true;
 }
 
-CommunicatorPtr
-RegistryService::initializeCommunicator(int& argc, char* argv[],
-                                        const InitializationData& initializationData,
-                                        int version)
+CommunicatorPtr RegistryService::initializeCommunicator(int& argc, char* argv[],
+                                                        const InitializationData& initializationData, int version)
 {
     InitializationData initData = initializationData;
     initData.properties = createProperties(argc, argv, initData.properties);
@@ -187,8 +177,8 @@ RegistryService::initializeCommunicator(int& argc, char* argv[],
                 initData.properties->setProperty("Ice.Plugin.Glacier2CryptPermissionsVerifier",
                                                  "Glacier2CryptPermissionsVerifier:createCryptPermissionsVerifier");
 
-                initData.properties->setProperty("Glacier2CryptPermissionsVerifier.IceGrid.Registry." + *p +
-                                                 "PermissionsVerifier", cryptPasswords);
+                initData.properties->setProperty(
+                    "Glacier2CryptPermissionsVerifier.IceGrid.Registry." + *p + "PermissionsVerifier", cryptPasswords);
             }
         }
     }
@@ -219,39 +209,33 @@ RegistryService::initializeCommunicator(int& argc, char* argv[],
     return Service::initializeCommunicator(argc, argv, initData, version);
 }
 
-void
-RegistryService::usage(const string& appName)
+void RegistryService::usage(const string& appName)
 {
-    string options =
-        "Options:\n"
-        "-h, --help           Show this message.\n"
-        "-v, --version        Display the Ice version.\n"
-        "--nowarn             Don't print any security warnings.\n"
-        "--readonly           Start the master registry in read-only mode.\n"
-        "--initdb-from-replica <replica>\n"
-        "                     Initialize the database from the given replica.";
+    string options = "Options:\n"
+                     "-h, --help           Show this message.\n"
+                     "-v, --version        Display the Ice version.\n"
+                     "--nowarn             Don't print any security warnings.\n"
+                     "--readonly           Start the master registry in read-only mode.\n"
+                     "--initdb-from-replica <replica>\n"
+                     "                     Initialize the database from the given replica.";
 #ifndef _WIN32
-    options.append(
-        "\n"
-        "\n"
-        "--daemon             Run as a daemon.\n"
-        "--pidfile FILE       Write process ID into FILE.\n"
-        "--noclose            Do not close open file descriptors.\n"
-        "--nochdir            Do not change the current working directory.\n"
-    );
+    options.append("\n"
+                   "\n"
+                   "--daemon             Run as a daemon.\n"
+                   "--pidfile FILE       Write process ID into FILE.\n"
+                   "--noclose            Do not close open file descriptors.\n"
+                   "--nochdir            Do not change the current working directory.\n");
 #endif
     print("Usage: " + appName + " [options]\n" + options);
 }
 
 #ifdef _WIN32
 
-int
-wmain(int argc, wchar_t* argv[])
+int wmain(int argc, wchar_t* argv[])
 
 #else
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 
 #endif
 {

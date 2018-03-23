@@ -15,8 +15,7 @@ using namespace std;
 using namespace Ice;
 using namespace Test;
 
-void
-allTests(const CommunicatorPtr& communicator, int num)
+void allTests(const CommunicatorPtr& communicator, int num)
 {
     vector<ControllerPrxPtr> proxies;
     vector<ControllerPrxPtr> indirectProxies;
@@ -170,7 +169,8 @@ allTests(const CommunicatorPtr& communicator, int num)
             adapterIds.insert("oa1");
             adapterIds.insert("oa2");
             adapterIds.insert("oa3");
-            intf = ICE_UNCHECKED_CAST(TestIntfPrx, communicator->stringToProxy("object @ rg"))->ice_connectionCached(false);
+            intf = ICE_UNCHECKED_CAST(TestIntfPrx, communicator->stringToProxy("object @ rg"))
+                       ->ice_connectionCached(false);
             int nRetry = 100;
             while(!adapterIds.empty() && --nRetry > 0)
             {
@@ -210,7 +210,6 @@ allTests(const CommunicatorPtr& communicator, int num)
         }
 
         {
-
             Ice::InitializationData initData;
             initData.properties = communicator->getProperties()->clone();
             initData.properties->setProperty("IceDiscovery.Lookup", "udp -h " + multicast + " --interface unknown");
@@ -235,9 +234,8 @@ allTests(const CommunicatorPtr& communicator, int num)
                 intf = " --interface \"" + intf + "\"";
             }
             string port = initData.properties->getProperty("IceDiscovery.Port");
-            initData.properties->setProperty("IceDiscovery.Lookup",
-                                             "udp -h " + multicast + " --interface unknown:" +
-                                             "udp -h " + multicast + " -p " + port + intf);
+            initData.properties->setProperty("IceDiscovery.Lookup", "udp -h " + multicast + " --interface unknown:" +
+                                                                        "udp -h " + multicast + " -p " + port + intf);
             Ice::CommunicatorPtr com = Ice::initialize(initData);
             test(com->getDefaultLocator());
             com->stringToProxy("controller0@control0")->ice_ping();

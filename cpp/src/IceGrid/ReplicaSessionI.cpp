@@ -19,20 +19,15 @@ using namespace IceGrid;
 
 namespace IceGrid
 {
+    static bool operator==(const ObjectInfo& info, const Ice::Identity& id)
+    {
+        return info.proxy->ice_getIdentity() == id;
+    }
 
-static bool
-operator==(const ObjectInfo& info, const Ice::Identity& id)
-{
-    return info.proxy->ice_getIdentity() == id;
-}
+} // namespace IceGrid
 
-}
-
-ReplicaSessionI::ReplicaSessionI(const DatabasePtr& database,
-                                 const WellKnownObjectsManagerPtr& wellKnownObjects,
-                                 const InternalReplicaInfoPtr& info,
-                                 const InternalRegistryPrx& proxy,
-                                 int timeout) :
+ReplicaSessionI::ReplicaSessionI(const DatabasePtr& database, const WellKnownObjectsManagerPtr& wellKnownObjects,
+                                 const InternalReplicaInfoPtr& info, const InternalRegistryPrx& proxy, int timeout) :
     _database(database),
     _wellKnownObjects(wellKnownObjects),
     _traceLevels(database->getTraceLevels()),
@@ -70,8 +65,7 @@ ReplicaSessionI::ReplicaSessionI(const DatabasePtr& database,
     __setNoDelete(false);
 }
 
-void
-ReplicaSessionI::keepAlive(const Ice::Current&)
+void ReplicaSessionI::keepAlive(const Ice::Current&)
 {
     Lock sync(*this);
     if(_destroy)
@@ -88,16 +82,13 @@ ReplicaSessionI::keepAlive(const Ice::Current&)
     }
 }
 
-int
-ReplicaSessionI::getTimeout(const Ice::Current&) const
+int ReplicaSessionI::getTimeout(const Ice::Current&) const
 {
     return _timeout;
 }
 
-void
-ReplicaSessionI::setDatabaseObserver(const DatabaseObserverPrx& observer,
-                                     const IceUtil::Optional<StringLongDict>& slaveSerials,
-                                     const Ice::Current&)
+void ReplicaSessionI::setDatabaseObserver(const DatabaseObserverPrx& observer,
+                                          const IceUtil::Optional<StringLongDict>& slaveSerials, const Ice::Current&)
 {
     //
     // If it's a read only master, we don't setup the observer to not
@@ -173,8 +164,7 @@ ReplicaSessionI::setDatabaseObserver(const DatabaseObserverPrx& observer,
     objectObserver->waitForSyncedSubscribers(serialObjectObserver, _info->name);
 }
 
-void
-ReplicaSessionI::setEndpoints(const StringObjectProxyDict& endpoints, const Ice::Current&)
+void ReplicaSessionI::setEndpoints(const StringObjectProxyDict& endpoints, const Ice::Current&)
 {
     {
         Lock sync(*this);
@@ -187,8 +177,7 @@ ReplicaSessionI::setEndpoints(const StringObjectProxyDict& endpoints, const Ice:
     _wellKnownObjects->updateReplicatedWellKnownObjects();
 }
 
-void
-ReplicaSessionI::registerWellKnownObjects(const ObjectInfoSeq& objects, const Ice::Current&)
+void ReplicaSessionI::registerWellKnownObjects(const ObjectInfoSeq& objects, const Ice::Current&)
 {
     int serial;
     {
@@ -210,11 +199,8 @@ ReplicaSessionI::registerWellKnownObjects(const ObjectInfoSeq& objects, const Ic
     _database->getObserverTopic(ObjectObserverTopicName)->waitForSyncedSubscribers(serial, _info->name);
 }
 
-void
-ReplicaSessionI::setAdapterDirectProxy(const string& adapterId,
-                                       const string& replicaGroupId,
-                                       const Ice::ObjectPrx& proxy,
-                                       const Ice::Current&)
+void ReplicaSessionI::setAdapterDirectProxy(const string& adapterId, const string& replicaGroupId,
+                                            const Ice::ObjectPrx& proxy, const Ice::Current&)
 {
     if(_database->getCommunicator()->getProperties()->getPropertyAsInt("IceGrid.Registry.DynamicRegistration") <= 0)
     {
@@ -223,8 +209,7 @@ ReplicaSessionI::setAdapterDirectProxy(const string& adapterId,
     _database->setAdapterDirectProxy(adapterId, replicaGroupId, proxy);
 }
 
-void
-ReplicaSessionI::receivedUpdate(TopicName topicName, int serial, const string& failure, const Ice::Current&)
+void ReplicaSessionI::receivedUpdate(TopicName topicName, int serial, const string& failure, const Ice::Current&)
 {
     ObserverTopicPtr topic = _database->getObserverTopic(topicName);
     if(topic)
@@ -233,14 +218,12 @@ ReplicaSessionI::receivedUpdate(TopicName topicName, int serial, const string& f
     }
 }
 
-void
-ReplicaSessionI::destroy(const Ice::Current&)
+void ReplicaSessionI::destroy(const Ice::Current&)
 {
     destroyImpl(false);
 }
 
-IceUtil::Time
-ReplicaSessionI::timestamp() const
+IceUtil::Time ReplicaSessionI::timestamp() const
 {
     Lock sync(*this);
     if(_destroy)
@@ -250,32 +233,27 @@ ReplicaSessionI::timestamp() const
     return _timestamp;
 }
 
-void
-ReplicaSessionI::shutdown()
+void ReplicaSessionI::shutdown()
 {
     destroyImpl(true);
 }
 
-const InternalRegistryPrx&
-ReplicaSessionI::getInternalRegistry() const
+const InternalRegistryPrx& ReplicaSessionI::getInternalRegistry() const
 {
     return _internalRegistry;
 }
 
-const InternalReplicaInfoPtr&
-ReplicaSessionI::getInfo() const
+const InternalReplicaInfoPtr& ReplicaSessionI::getInfo() const
 {
     return _info;
 }
 
-ReplicaSessionPrx
-ReplicaSessionI::getProxy() const
+ReplicaSessionPrx ReplicaSessionI::getProxy() const
 {
     return _proxy;
 }
 
-Ice::ObjectPrx
-ReplicaSessionI::getEndpoint(const std::string& name)
+Ice::ObjectPrx ReplicaSessionI::getEndpoint(const std::string& name)
 {
     Lock sync(*this);
     if(_destroy)
@@ -285,15 +263,13 @@ ReplicaSessionI::getEndpoint(const std::string& name)
     return _replicaEndpoints[name];
 }
 
-bool
-ReplicaSessionI::isDestroyed() const
+bool ReplicaSessionI::isDestroyed() const
 {
     Lock sync(*this);
     return _destroy;
 }
 
-void
-ReplicaSessionI::destroyImpl(bool shutdown)
+void ReplicaSessionI::destroyImpl(bool shutdown)
 {
     {
         Lock sync(*this);

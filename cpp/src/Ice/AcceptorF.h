@@ -16,15 +16,14 @@
 
 namespace IceInternal
 {
+    class Acceptor;
+    ICE_API IceUtil::Shared* upCast(Acceptor*);
+    typedef Handle<Acceptor> AcceptorPtr;
 
-class Acceptor;
-ICE_API IceUtil::Shared* upCast(Acceptor*);
-typedef Handle<Acceptor> AcceptorPtr;
+    class TcpAcceptor;
+    ICE_API IceUtil::Shared* upCast(TcpAcceptor*);
+    typedef Handle<TcpAcceptor> TcpAcceptorPtr;
 
-class TcpAcceptor;
-ICE_API IceUtil::Shared* upCast(TcpAcceptor*);
-typedef Handle<TcpAcceptor> TcpAcceptorPtr;
-
-}
+} // namespace IceInternal
 
 #endif

@@ -29,25 +29,22 @@ using namespace IceSSL;
 //
 // Map a certificate OID to its alias
 //
-const CertificateOID IceSSL::certificateOIDS[] =
-{
-    {"2.5.4.3", "CN"},
-    {"2.5.4.4", "SN"},
-    {"2.5.4.5", "DeviceSerialNumber"},
-    {"2.5.4.6", "C"},
-    {"2.5.4.7", "L"},
-    {"2.5.4.8", "ST"},
-    {"2.5.4.9", "STREET"},
-    {"2.5.4.10", "O"},
-    {"2.5.4.11", "OU"},
-    {"2.5.4.12", "T"},
-    {"2.5.4.42", "G"},
-    {"2.5.4.43", "I"},
-    {"1.2.840.113549.1.9.8", "unstructuredAddress"},
-    {"1.2.840.113549.1.9.2", "unstructuredName"},
-    {"1.2.840.113549.1.9.1", "emailAddress"},
-    {"0.9.2342.19200300.100.1.25", "DC"}
-};
+const CertificateOID IceSSL::certificateOIDS[] = {{"2.5.4.3", "CN"},
+                                                  {"2.5.4.4", "SN"},
+                                                  {"2.5.4.5", "DeviceSerialNumber"},
+                                                  {"2.5.4.6", "C"},
+                                                  {"2.5.4.7", "L"},
+                                                  {"2.5.4.8", "ST"},
+                                                  {"2.5.4.9", "STREET"},
+                                                  {"2.5.4.10", "O"},
+                                                  {"2.5.4.11", "OU"},
+                                                  {"2.5.4.12", "T"},
+                                                  {"2.5.4.42", "G"},
+                                                  {"2.5.4.43", "I"},
+                                                  {"1.2.840.113549.1.9.8", "unstructuredAddress"},
+                                                  {"1.2.840.113549.1.9.2", "unstructuredName"},
+                                                  {"1.2.840.113549.1.9.1", "emailAddress"},
+                                                  {"0.9.2342.19200300.100.1.25", "DC"}};
 const int IceSSL::certificateOIDSSize = sizeof(IceSSL::certificateOIDS) / sizeof(CertificateOID);
 
 CertificateReadException::CertificateReadException(const char* file, int line, const string& r) :
@@ -62,15 +59,13 @@ CertificateReadException::~CertificateReadException() throw()
 }
 #endif
 
-string
-CertificateReadException::ice_id() const
+string CertificateReadException::ice_id() const
 {
     return "::IceSSL::CertificateReadException";
 }
 
 #ifndef ICE_CPP11_MAPPING
-CertificateReadException*
-CertificateReadException::ice_clone() const
+CertificateReadException* CertificateReadException::ice_clone() const
 {
     return new CertificateReadException(*this);
 }
@@ -88,15 +83,13 @@ CertificateEncodingException::~CertificateEncodingException() throw()
 }
 #endif
 
-string
-CertificateEncodingException::ice_id() const
+string CertificateEncodingException::ice_id() const
 {
     return "::IceSSL::CertificateEncodingException";
 }
 
 #ifndef ICE_CPP11_MAPPING
-CertificateEncodingException*
-CertificateEncodingException::ice_clone() const
+CertificateEncodingException* CertificateEncodingException::ice_clone() const
 {
     return new CertificateEncodingException(*this);
 }
@@ -114,15 +107,13 @@ ParseException::~ParseException() throw()
 }
 #endif
 
-string
-ParseException::ice_id() const
+string ParseException::ice_id() const
 {
     return "::IceSSL::ParseException";
 }
 
 #ifndef ICE_CPP11_MAPPING
-ParseException*
-ParseException::ice_clone() const
+ParseException* ParseException::ice_clone() const
 {
     return new ParseException(*this);
 }
@@ -133,35 +124,31 @@ DistinguishedName::DistinguishedName(const string& dn) : _rdns(RFC2253::parseStr
     unescape();
 }
 
-DistinguishedName::DistinguishedName(const list<pair<string, string> >& rdns) : _rdns(rdns)
+DistinguishedName::DistinguishedName(const list<pair<string, string>>& rdns) : _rdns(rdns)
 {
     unescape();
 }
 
 namespace IceSSL
 {
+    bool operator==(const DistinguishedName& lhs, const DistinguishedName& rhs)
+    {
+        return lhs._unescaped == rhs._unescaped;
+    }
 
-bool
-operator==(const DistinguishedName& lhs, const DistinguishedName& rhs)
+    bool operator<(const DistinguishedName& lhs, const DistinguishedName& rhs)
+    {
+        return lhs._unescaped < rhs._unescaped;
+    }
+
+} // namespace IceSSL
+
+bool DistinguishedName::match(const DistinguishedName& other) const
 {
-    return lhs._unescaped == rhs._unescaped;
-}
-
-bool
-operator<(const DistinguishedName& lhs, const DistinguishedName& rhs)
-{
-    return lhs._unescaped < rhs._unescaped;
-}
-
-}
-
-bool
-DistinguishedName::match(const DistinguishedName& other) const
-{
-    for(list< pair<string, string> >::const_iterator p = other._unescaped.begin(); p != other._unescaped.end(); ++p)
+    for(list<pair<string, string>>::const_iterator p = other._unescaped.begin(); p != other._unescaped.end(); ++p)
     {
         bool found = false;
-        for(list< pair<string, string> >::const_iterator q = _unescaped.begin(); q != _unescaped.end(); ++q)
+        for(list<pair<string, string>>::const_iterator q = _unescaped.begin(); q != _unescaped.end(); ++q)
         {
             if(p->first == q->first)
             {
@@ -180,8 +167,7 @@ DistinguishedName::match(const DistinguishedName& other) const
     return true;
 }
 
-bool
-DistinguishedName::match(const string& other) const
+bool DistinguishedName::match(const string& other) const
 {
     return match(DistinguishedName(other));
 }
@@ -194,7 +180,7 @@ DistinguishedName::operator string() const
 {
     ostringstream os;
     bool first = true;
-    for(list< pair<string, string> >::const_iterator p = _rdns.begin(); p != _rdns.end(); ++p)
+    for(list<pair<string, string>>::const_iterator p = _rdns.begin(); p != _rdns.end(); ++p)
     {
         if(!first)
         {
@@ -206,10 +192,9 @@ DistinguishedName::operator string() const
     return os.str();
 }
 
-void
-DistinguishedName::unescape()
+void DistinguishedName::unescape()
 {
-    for(list< pair<string, string> >::const_iterator q = _rdns.begin(); q != _rdns.end(); ++q)
+    for(list<pair<string, string>>::const_iterator q = _rdns.begin(); q != _rdns.end(); ++q)
     {
         pair<string, string> rdn = *q;
         rdn.second = RFC2253::unescape(rdn.second);
@@ -217,21 +202,18 @@ DistinguishedName::unescape()
     }
 }
 
-bool
-CertificateI::operator!=(const IceSSL::Certificate& other) const
+bool CertificateI::operator!=(const IceSSL::Certificate& other) const
 {
     return !operator==(other);
 }
 
-vector<X509ExtensionPtr>
-CertificateI::getX509Extensions() const
+vector<X509ExtensionPtr> CertificateI::getX509Extensions() const
 {
     loadX509Extensions(); // Lazzy initialize the extensions
     return _extensions;
 }
 
-X509ExtensionPtr
-CertificateI::getX509Extension(const string& oid) const
+X509ExtensionPtr CertificateI::getX509Extension(const string& oid) const
 {
     loadX509Extensions(); // Lazzy initialize the extensions
     X509ExtensionPtr ext;
@@ -246,35 +228,32 @@ CertificateI::getX509Extension(const string& oid) const
     return ext;
 }
 
-void
-CertificateI::loadX509Extensions() const
+void CertificateI::loadX509Extensions() const
 {
     throw FeatureNotSupportedException(__FILE__, __LINE__);
 }
 
-bool
-CertificateI::checkValidity() const
+bool CertificateI::checkValidity() const
 {
-#  ifdef ICE_CPP11_MAPPING
+#ifdef ICE_CPP11_MAPPING
     auto now = chrono::system_clock::now();
-#  else
+#else
     IceUtil::Time now = IceUtil::Time::now();
-#  endif
+#endif
     return now > getNotBefore() && now <= getNotAfter();
 }
 
 bool
-#  ifdef ICE_CPP11_MAPPING
+#ifdef ICE_CPP11_MAPPING
 CertificateI::checkValidity(const chrono::system_clock::time_point& now) const
-#  else
+#else
 CertificateI::checkValidity(const IceUtil::Time& now) const
-#  endif
+#endif
 {
     return now > getNotBefore() && now <= getNotAfter();
 }
 
-string
-CertificateI::toString() const
+string CertificateI::toString() const
 {
     ostringstream os;
     os << "serial: " << getSerialNumber() << "\n";

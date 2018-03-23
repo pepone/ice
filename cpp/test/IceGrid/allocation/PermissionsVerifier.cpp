@@ -15,9 +15,7 @@ using namespace std;
 class PermissionsVerifierI : public Glacier2::PermissionsVerifier
 {
 public:
-
-    virtual bool
-    checkPermissions(const string&, const string&, string&, const Ice::Current&) const
+    virtual bool checkPermissions(const string&, const string&, string&, const Ice::Current&) const
     {
         return true;
     }
@@ -26,8 +24,7 @@ public:
 class PermissionsVerifierServer : public Ice::Application
 {
 public:
-
-    virtual int run(int, char*[])
+    virtual int run(int, char* [])
     {
         Ice::ObjectAdapterPtr adapter = communicator()->createObjectAdapter("PermissionsVerifier");
         adapter->add(new PermissionsVerifierI, Ice::stringToIdentity("PermissionsVerifier"));
@@ -37,8 +34,7 @@ public:
     }
 };
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
     PermissionsVerifierServer app;
     return app.main(argc, argv);

@@ -11,8 +11,8 @@
 
 #ifndef ICE_CPP11_MAPPING
 
-#include <set>
-#include <stack>
+#    include <set>
+#    include <stack>
 
 using namespace std;
 using namespace IceUtil;
@@ -20,105 +20,92 @@ using namespace IceInternal;
 
 namespace
 {
+    typedef ::map<GCObject*, int> GCCountMap;
+    Mutex* gcMutex = 0;
 
-typedef ::map<GCObject*, int> GCCountMap;
-Mutex* gcMutex = 0;
-
-class Init
-{
-public:
-
-    Init()
-    {
-        gcMutex = new Mutex();
-    }
-
-    ~Init()
-    {
-        delete gcMutex;
-        gcMutex = 0;
-    }
-};
-
-Init init;
-
-class ClearMembers : public GCVisitor
-{
-public:
-
-    virtual bool visit(GCObject*);
-};
-ClearMembers clearMembers;
-
-class DecreaseRefCounts : public GCVisitor
-{
-public:
-
-    DecreaseRefCounts(GCCountMap&);
-
-    virtual bool visit(GCObject*);
-
-private:
-
-    GCCountMap& _counts;
-};
-
-class RestoreRefCountsIfReachable : public GCVisitor
-{
-public:
-
-    RestoreRefCountsIfReachable(GCCountMap&);
-
-    virtual bool visit(GCObject*);
-
-private:
-
-    GCCountMap& _counts;
-    bool _reachable;
-};
-
-class MarkCollectable : public GCVisitor
-{
-public:
-
-    MarkCollectable();
-
-    virtual bool visit(GCObject*);
-
-    void visitNeighbor(GCObject*);
-
-private:
-
-    int _counter;
-    map<GCObject*, int> _numbers;
-    stack<GCObject*> _p;
-    stack<GCObject*> _s;
-
-    class VisitNeighbors : public IceInternal::GCVisitor
+    class Init
     {
     public:
+        Init()
+        {
+            gcMutex = new Mutex();
+        }
 
-        void setVisitor(MarkCollectable*);
+        ~Init()
+        {
+            delete gcMutex;
+            gcMutex = 0;
+        }
+    };
+
+    Init init;
+
+    class ClearMembers : public GCVisitor
+    {
+    public:
+        virtual bool visit(GCObject*);
+    };
+    ClearMembers clearMembers;
+
+    class DecreaseRefCounts : public GCVisitor
+    {
+    public:
+        DecreaseRefCounts(GCCountMap&);
+
         virtual bool visit(GCObject*);
 
     private:
-
-        MarkCollectable* _visitor;
+        GCCountMap& _counts;
     };
-    VisitNeighbors _neighborsVisitor;
-};
 
-class ClearCollectable : public GCVisitor
-{
-public:
+    class RestoreRefCountsIfReachable : public GCVisitor
+    {
+    public:
+        RestoreRefCountsIfReachable(GCCountMap&);
 
-    virtual bool visit(GCObject*);
-};
+        virtual bool visit(GCObject*);
 
-}
+    private:
+        GCCountMap& _counts;
+        bool _reachable;
+    };
 
-bool
-ClearMembers::visit(GCObject* obj)
+    class MarkCollectable : public GCVisitor
+    {
+    public:
+        MarkCollectable();
+
+        virtual bool visit(GCObject*);
+
+        void visitNeighbor(GCObject*);
+
+    private:
+        int _counter;
+        map<GCObject*, int> _numbers;
+        stack<GCObject*> _p;
+        stack<GCObject*> _s;
+
+        class VisitNeighbors : public IceInternal::GCVisitor
+        {
+        public:
+            void setVisitor(MarkCollectable*);
+            virtual bool visit(GCObject*);
+
+        private:
+            MarkCollectable* _visitor;
+        };
+        VisitNeighbors _neighborsVisitor;
+    };
+
+    class ClearCollectable : public GCVisitor
+    {
+    public:
+        virtual bool visit(GCObject*);
+    };
+
+} // namespace
+
+bool ClearMembers::visit(GCObject* obj)
 {
     return true;
 }
@@ -127,8 +114,7 @@ DecreaseRefCounts::DecreaseRefCounts(GCCountMap& counts) : _counts(counts)
 {
 }
 
-bool
-DecreaseRefCounts::visit(GCObject* obj)
+bool DecreaseRefCounts::visit(GCObject* obj)
 {
     //
     // Visit the object only once when the object is inserted for
@@ -159,8 +145,7 @@ RestoreRefCountsIfReachable::RestoreRefCountsIfReachable(GCCountMap& counts) : _
 {
 }
 
-bool
-RestoreRefCountsIfReachable::visit(GCObject* obj)
+bool RestoreRefCountsIfReachable::visit(GCObject* obj)
 {
     GCCountMap::iterator p = _counts.find(obj);
     if(p == _counts.end())
@@ -212,8 +197,7 @@ MarkCollectable::MarkCollectable() : _counter(0)
     _neighborsVisitor.setVisitor(this);
 }
 
-bool
-MarkCollectable::visit(GCObject* obj)
+bool MarkCollectable::visit(GCObject* obj)
 {
     //
     // Set the collectable flag on the object graph. While setting the
@@ -244,15 +228,13 @@ MarkCollectable::visit(GCObject* obj)
             o = _s.top();
             _s.pop();
             o->__setFlag(GCObject::CycleMember);
-        }
-        while(o != obj);
+        } while(o != obj);
         _p.pop();
     }
     return false;
 }
 
-void
-MarkCollectable::visitNeighbor(GCObject* obj)
+void MarkCollectable::visitNeighbor(GCObject* obj)
 {
     map<GCObject*, int>::const_iterator p = _numbers.find(obj);
     if(p == _numbers.end())
@@ -268,21 +250,18 @@ MarkCollectable::visitNeighbor(GCObject* obj)
     }
 }
 
-void
-MarkCollectable::VisitNeighbors::setVisitor(MarkCollectable* visitor)
+void MarkCollectable::VisitNeighbors::setVisitor(MarkCollectable* visitor)
 {
     _visitor = visitor;
 }
 
-bool
-MarkCollectable::VisitNeighbors::visit(GCObject* obj)
+bool MarkCollectable::VisitNeighbors::visit(GCObject* obj)
 {
     _visitor->visitNeighbor(obj);
     return false;
 }
 
-bool
-ClearCollectable::visit(GCObject* obj)
+bool ClearCollectable::visit(GCObject* obj)
 {
     //
     // Clear the collectable flag on the object graph.
@@ -305,15 +284,13 @@ const unsigned char GCObject::Visiting = 8;
 //
 // GCObject
 //
-void
-IceInternal::GCObject::__incRef()
+void IceInternal::GCObject::__incRef()
 {
     IceUtilInternal::MutexPtrLock<IceUtil::Mutex> lock(gcMutex);
     ++_ref;
 }
 
-void
-IceInternal::GCObject::__decRef()
+void IceInternal::GCObject::__decRef()
 {
     IceUtilInternal::MutexPtrLock<IceUtil::Mutex> lock(gcMutex);
     bool doDelete = false;
@@ -341,28 +318,24 @@ IceInternal::GCObject::__decRef()
     }
 }
 
-int
-IceInternal::GCObject::__getRef() const
+int IceInternal::GCObject::__getRef() const
 {
     IceUtilInternal::MutexPtrLock<IceUtil::Mutex> lock(gcMutex);
     return _ref;
 }
 
-void
-IceInternal::GCObject::__setNoDelete(bool b)
+void IceInternal::GCObject::__setNoDelete(bool b)
 {
     IceUtilInternal::MutexPtrLock<IceUtil::Mutex> lock(gcMutex);
     IceUtil::Shared::__setNoDelete(b);
 }
 
-bool
-GCObject::_iceGcVisit(GCVisitor& v)
+bool GCObject::_iceGcVisit(GCVisitor& v)
 {
     return v.visit(this);
 }
 
-void
-GCObject::ice_collectable(bool enable)
+void GCObject::ice_collectable(bool enable)
 {
     IceUtilInternal::MutexPtrLock<IceUtil::Mutex> lock(gcMutex);
     if(enable)
@@ -376,8 +349,7 @@ GCObject::ice_collectable(bool enable)
     }
 }
 
-bool
-GCObject::collect(IceUtilInternal::MutexPtrLock<IceUtil::Mutex>& lock)
+bool GCObject::collect(IceUtilInternal::MutexPtrLock<IceUtil::Mutex>& lock)
 {
     GCCountMap counts;
 

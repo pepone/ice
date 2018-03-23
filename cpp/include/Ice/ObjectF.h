@@ -15,21 +15,20 @@
 
 namespace Ice
 {
-
-class Object;
+    class Object;
 #ifdef ICE_CPP11_MAPPING
-/// \cond INTERNAL
-using ObjectPtr = ::std::shared_ptr<Object>;
+    /// \cond INTERNAL
+    using ObjectPtr = ::std::shared_ptr<Object>;
 /// \endcond
 #else
-ICE_API Object* upCast(Object*);
-typedef IceInternal::Handle<Object> ObjectPtr;
-typedef ObjectPtr ValuePtr;
-/// \cond INTERNAL
-ICE_API void _icePatchObjectPtr(ObjectPtr&, const ObjectPtr&);
+    ICE_API Object* upCast(Object*);
+    typedef IceInternal::Handle<Object> ObjectPtr;
+    typedef ObjectPtr ValuePtr;
+    /// \cond INTERNAL
+    ICE_API void _icePatchObjectPtr(ObjectPtr&, const ObjectPtr&);
 /// \endcond
 #endif
 
-}
+} // namespace Ice
 
 #endif

@@ -16,16 +16,14 @@ using namespace Test;
 
 DEFINE_TEST("client")
 
-int
-run(int, char**, const Ice::CommunicatorPtr& communicator, const Ice::InitializationData&)
+int run(int, char**, const Ice::CommunicatorPtr& communicator, const Ice::InitializationData&)
 {
     void allTests(const Ice::CommunicatorPtr&);
     allTests(communicator);
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
 #ifdef ICE_STATIC_LIBS
     Ice::registerIceSSL(false);

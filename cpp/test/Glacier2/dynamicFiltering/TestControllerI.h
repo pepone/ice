@@ -23,15 +23,17 @@ struct SessionTuple
     Glacier2::SessionControlPrx sessionControl;
     bool configured;
 
-    SessionTuple() {}
-    SessionTuple(Glacier2::SessionPrx s, Glacier2::SessionControlPrx control):
+    SessionTuple()
+    {
+    }
+    SessionTuple(Glacier2::SessionPrx s, Glacier2::SessionControlPrx control) :
         session(s),
         sessionControl(control),
         configured(false)
-    {}
+    {
+    }
 
-    SessionTuple&
-    operator=(const SessionTuple& rhs)
+    SessionTuple& operator=(const SessionTuple& rhs)
     {
         if(this == &rhs)
         {
@@ -54,7 +56,9 @@ struct TestCase
     std::string proxy;
     bool expectedResult;
 
-    TestCase(const std::string& s, const bool b) : proxy(s), expectedResult(b) {}
+    TestCase(const std::string& s, const bool b) : proxy(s), expectedResult(b)
+    {
+    }
 };
 
 struct TestConfiguration
@@ -93,7 +97,6 @@ public:
 private:
     std::vector<SessionTuple> _sessions;
     std::vector<TestConfiguration> _configurations;
-
 };
 
 typedef IceUtil::Handle<TestControllerI> TestControllerIPtr;

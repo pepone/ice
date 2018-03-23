@@ -23,33 +23,29 @@ pointer_to_unary_function<int, unsigned int> ObjectCache::_rand(IceUtilInternal:
 
 namespace IceGrid
 {
-
-struct ObjectEntryCI : binary_function<ObjectEntryPtr&, ObjectEntryPtr&, bool>
-{
-
-    bool
-    operator()(const ObjectEntryPtr& lhs, const ObjectEntryPtr& rhs)
+    struct ObjectEntryCI : binary_function<ObjectEntryPtr&, ObjectEntryPtr&, bool>
     {
-        return ::Ice::proxyIdentityLess(lhs->getProxy(), rhs->getProxy());
-    }
-};
+        bool operator()(const ObjectEntryPtr& lhs, const ObjectEntryPtr& rhs)
+        {
+            return ::Ice::proxyIdentityLess(lhs->getProxy(), rhs->getProxy());
+        }
+    };
 
-struct ObjectLoadCI : binary_function<pair<Ice::ObjectPrx, float>&, pair<Ice::ObjectPrx, float>&, bool>
-{
-    bool operator()(const pair<Ice::ObjectPrx, float>& lhs, const pair<Ice::ObjectPrx, float>& rhs)
+    struct ObjectLoadCI : binary_function<pair<Ice::ObjectPrx, float>&, pair<Ice::ObjectPrx, float>&, bool>
     {
-        return lhs.second < rhs.second;
-    }
-};
+        bool operator()(const pair<Ice::ObjectPrx, float>& lhs, const pair<Ice::ObjectPrx, float>& rhs)
+        {
+            return lhs.second < rhs.second;
+        }
+    };
 
-};
+}; // namespace IceGrid
 
 ObjectCache::TypeEntry::TypeEntry()
 {
 }
 
-void
-ObjectCache::TypeEntry::add(const ObjectEntryPtr& obj)
+void ObjectCache::TypeEntry::add(const ObjectEntryPtr& obj)
 {
     //
     // No mutex protection here, this is called with the cache locked.
@@ -57,8 +53,7 @@ ObjectCache::TypeEntry::add(const ObjectEntryPtr& obj)
     _objects.insert(lower_bound(_objects.begin(), _objects.end(), obj, ObjectEntryCI()), obj);
 }
 
-bool
-ObjectCache::TypeEntry::remove(const ObjectEntryPtr& obj)
+bool ObjectCache::TypeEntry::remove(const ObjectEntryPtr& obj)
 {
     //
     // No mutex protection here, this is called with the cache locked.
@@ -73,8 +68,7 @@ ObjectCache::ObjectCache(const Ice::CommunicatorPtr& communicator) : _communicat
 {
 }
 
-void
-ObjectCache::add(const ObjectInfo& info, const string& application, const string& server)
+void ObjectCache::add(const ObjectInfo& info, const string& application, const string& server)
 {
     const Ice::Identity& id = info.proxy->ice_getIdentity();
 
@@ -103,8 +97,7 @@ ObjectCache::add(const ObjectInfo& info, const string& application, const string
     }
 }
 
-ObjectEntryPtr
-ObjectCache::get(const Ice::Identity& id) const
+ObjectEntryPtr ObjectCache::get(const Ice::Identity& id) const
 {
     Lock sync(*this);
     ObjectEntryPtr entry = getImpl(id);
@@ -115,8 +108,7 @@ ObjectCache::get(const Ice::Identity& id) const
     return entry;
 }
 
-void
-ObjectCache::remove(const Ice::Identity& id)
+void ObjectCache::remove(const Ice::Identity& id)
 {
     Lock sync(*this);
     ObjectEntryPtr entry = getImpl(id);
@@ -142,8 +134,7 @@ ObjectCache::remove(const Ice::Identity& id)
     }
 }
 
-vector<ObjectEntryPtr>
-ObjectCache::getObjectsByType(const string& type)
+vector<ObjectEntryPtr> ObjectCache::getObjectsByType(const string& type)
 {
     Lock sync(*this);
     map<string, TypeEntry>::const_iterator p = _types.find(type);
@@ -154,8 +145,7 @@ ObjectCache::getObjectsByType(const string& type)
     return p->second.getObjects();
 }
 
-ObjectInfoSeq
-ObjectCache::getAll(const string& expression)
+ObjectInfoSeq ObjectCache::getAll(const string& expression)
 {
     Lock sync(*this);
     ObjectInfoSeq infos;
@@ -169,8 +159,7 @@ ObjectCache::getAll(const string& expression)
     return infos;
 }
 
-ObjectInfoSeq
-ObjectCache::getAllByType(const string& type)
+ObjectInfoSeq ObjectCache::getAllByType(const string& type)
 {
     Lock sync(*this);
     ObjectInfoSeq infos;
@@ -195,38 +184,32 @@ ObjectEntry::ObjectEntry(const ObjectInfo& info, const string& application, cons
 {
 }
 
-Ice::ObjectPrx
-ObjectEntry::getProxy() const
+Ice::ObjectPrx ObjectEntry::getProxy() const
 {
     return _info.proxy;
 }
 
-string
-ObjectEntry::getType() const
+string ObjectEntry::getType() const
 {
     return _info.type;
 }
 
-string
-ObjectEntry::getApplication() const
+string ObjectEntry::getApplication() const
 {
     return _application;
 }
 
-string
-ObjectEntry::getServer() const
+string ObjectEntry::getServer() const
 {
     return _server;
 }
 
-const ObjectInfo&
-ObjectEntry::getObjectInfo() const
+const ObjectInfo& ObjectEntry::getObjectInfo() const
 {
     return _info;
 }
 
-bool
-ObjectEntry::canRemove()
+bool ObjectEntry::canRemove()
 {
     return true;
 }

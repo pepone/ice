@@ -19,7 +19,6 @@ ICE_DEFINE_PTR(TestIntfControllerIPtr, TestIntfControllerI);
 class TestIntfI : public virtual Test::TestIntf
 {
 public:
-
     virtual void op(const Ice::Current&);
     virtual void sleep(Ice::Int, const Ice::Current&);
 #ifdef ICE_CPP11_MAPPING
@@ -33,14 +32,12 @@ public:
 class TestIntfControllerI : public Test::TestIntfController, IceUtil::Monitor<IceUtil::Mutex>
 {
 public:
-
     virtual void holdAdapter(const Ice::Current&);
     virtual void resumeAdapter(const Ice::Current&);
 
     TestIntfControllerI(const Ice::ObjectAdapterPtr&);
 
 private:
-
     Ice::ObjectAdapterPtr _adapter;
 };
 

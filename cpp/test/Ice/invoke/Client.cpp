@@ -15,10 +15,7 @@ DEFINE_TEST("client")
 
 using namespace std;
 
-int
-run(int, char**,
-    const Ice::CommunicatorPtr& communicator,
-    const Ice::InitializationData&)
+int run(int, char**, const Ice::CommunicatorPtr& communicator, const Ice::InitializationData&)
 {
     Test::MyClassPrxPtr allTests(const Ice::CommunicatorPtr&);
     Test::MyClassPrxPtr myClass = allTests(communicator);
@@ -28,8 +25,7 @@ run(int, char**,
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
 #ifdef ICE_STATIC_LIBS
     Ice::registerIceSSL(false);

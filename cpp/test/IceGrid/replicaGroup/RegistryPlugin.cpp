@@ -17,161 +17,150 @@ using namespace IceGrid;
 
 namespace
 {
-
-class RegistryPluginI : public Ice::Plugin
-{
-public:
-
-    RegistryPluginI(const Ice::CommunicatorPtr&);
-
-    virtual void initialize();
-    virtual void destroy();
-
-private:
-
-    const Ice::CommunicatorPtr _communicator;
-};
-
-class ReplicaGroupFilterI : public IceGrid::ReplicaGroupFilter
-{
-public:
-
-    ReplicaGroupFilterI(const RegistryPluginFacadePtr& facade) : _facade(facade), _testFacade(true)
+    class RegistryPluginI : public Ice::Plugin
     {
-    }
+    public:
+        RegistryPluginI(const Ice::CommunicatorPtr&);
 
-    virtual Ice::StringSeq
-    filter(const string& id, const Ice::StringSeq& adpts, const Ice::ConnectionPtr&, const Ice::Context& ctx)
+        virtual void initialize();
+        virtual void destroy();
+
+    private:
+        const Ice::CommunicatorPtr _communicator;
+    };
+
+    class ReplicaGroupFilterI : public IceGrid::ReplicaGroupFilter
     {
-        if(_testFacade)
+    public:
+        ReplicaGroupFilterI(const RegistryPluginFacadePtr& facade) : _facade(facade), _testFacade(true)
         {
-            _testFacade = false; // Only test once.
+        }
+
+        virtual Ice::StringSeq filter(const string& id, const Ice::StringSeq& adpts, const Ice::ConnectionPtr&,
+                                      const Ice::Context& ctx)
+        {
+            if(_testFacade)
+            {
+                _testFacade = false; // Only test once.
+                for(Ice::StringSeq::const_iterator p = adpts.begin(); p != adpts.end(); ++p)
+                {
+                    try
+                    {
+                        test(_facade->getApplicationInfo(_facade->getAdapterApplication(*p)).descriptor.name == "Test");
+                        test(_facade->getServerInfo(_facade->getAdapterServer(*p)).application == "Test");
+                        test(_facade->getNodeInfo(_facade->getAdapterNode(*p)).name == "localnode");
+#ifndef _AIX
+                        // On AIX, icegridnode needs read permissions on /dev/kmem
+                        test(_facade->getNodeLoad(_facade->getAdapterNode(*p)).avg1 >= 0.0);
+#endif
+                        test(_facade->getAdapterInfo(*p)[0].replicaGroupId == id);
+                        test(_facade->getPropertyForAdapter(*p, "Identity") == id);
+                    }
+                    catch(const Ice::Exception& ex)
+                    {
+                        cerr << ex << endl;
+                        test(false);
+                    }
+                }
+            }
+
+            Ice::Context::const_iterator p = ctx.find("server");
+            if(p == ctx.end())
+            {
+                return adpts;
+            }
+
+            string server = p->second;
+            Ice::StringSeq filteredAdapters;
             for(Ice::StringSeq::const_iterator p = adpts.begin(); p != adpts.end(); ++p)
             {
-                try
+                if(_facade->getAdapterServer(*p) == server)
                 {
-                    test(_facade->getApplicationInfo(_facade->getAdapterApplication(*p)).descriptor.name == "Test");
-                    test(_facade->getServerInfo(_facade->getAdapterServer(*p)).application == "Test");
-                    test(_facade->getNodeInfo(_facade->getAdapterNode(*p)).name == "localnode");
-#ifndef _AIX
-                    // On AIX, icegridnode needs read permissions on /dev/kmem
-                    test(_facade->getNodeLoad(_facade->getAdapterNode(*p)).avg1 >= 0.0);
-#endif
-                    test(_facade->getAdapterInfo(*p)[0].replicaGroupId == id);
-                    test(_facade->getPropertyForAdapter(*p, "Identity") == id);
-                }
-                catch(const Ice::Exception& ex)
-                {
-                    cerr << ex << endl;
-                    test(false);
+                    filteredAdapters.push_back(*p);
                 }
             }
+            return filteredAdapters;
         }
 
-        Ice::Context::const_iterator p = ctx.find("server");
-        if(p == ctx.end())
+    private:
+        RegistryPluginFacadePtr _facade;
+        bool _testFacade;
+    };
+
+    class TypeFilterI : public IceGrid::TypeFilter
+    {
+    public:
+        TypeFilterI(const RegistryPluginFacadePtr& facade) : _facade(facade)
         {
-            return adpts;
         }
 
-        string server = p->second;
-        Ice::StringSeq filteredAdapters;
-        for(Ice::StringSeq::const_iterator p = adpts.begin(); p != adpts.end(); ++p)
+        virtual Ice::ObjectProxySeq filter(const string& type, const Ice::ObjectProxySeq& objects,
+                                           const Ice::ConnectionPtr&, const Ice::Context& ctx)
         {
-            if(_facade->getAdapterServer(*p) == server)
+            Ice::Context::const_iterator p = ctx.find("server");
+            if(p == ctx.end())
             {
-                filteredAdapters.push_back(*p);
+                return objects;
             }
-        }
-        return filteredAdapters;
-    }
 
-private:
-
-    RegistryPluginFacadePtr _facade;
-    bool _testFacade;
-};
-
-class TypeFilterI : public IceGrid::TypeFilter
-{
-public:
-
-    TypeFilterI(const RegistryPluginFacadePtr& facade) : _facade(facade)
-    {
-    }
-
-    virtual Ice::ObjectProxySeq
-    filter(const string& type, const Ice::ObjectProxySeq& objects, const Ice::ConnectionPtr&, const Ice::Context& ctx)
-    {
-        Ice::Context::const_iterator p = ctx.find("server");
-        if(p == ctx.end())
-        {
-            return objects;
-        }
-
-        string server = p->second;
-        Ice::ObjectProxySeq filteredObjects;
-        for(Ice::ObjectProxySeq::const_iterator p = objects.begin(); p != objects.end(); ++p)
-        {
-            if(_facade->getAdapterServer((*p)->ice_getAdapterId()) == server)
+            string server = p->second;
+            Ice::ObjectProxySeq filteredObjects;
+            for(Ice::ObjectProxySeq::const_iterator p = objects.begin(); p != objects.end(); ++p)
             {
-                filteredObjects.push_back(*p);
+                if(_facade->getAdapterServer((*p)->ice_getAdapterId()) == server)
+                {
+                    filteredObjects.push_back(*p);
+                }
             }
+            return filteredObjects;
         }
-        return filteredObjects;
-    }
 
-private:
+    private:
+        RegistryPluginFacadePtr _facade;
+    };
 
-    RegistryPluginFacadePtr _facade;
-};
-
-class ExcludeReplicaGroupFilterI : public IceGrid::ReplicaGroupFilter
-{
-public:
-
-    ExcludeReplicaGroupFilterI(const RegistryPluginFacadePtr& facade, const string& exclude) :
-        _facade(facade), _exclude(exclude)
+    class ExcludeReplicaGroupFilterI : public IceGrid::ReplicaGroupFilter
     {
-    }
-
-    virtual Ice::StringSeq
-    filter(const string& id, const Ice::StringSeq& adapters, const Ice::ConnectionPtr& con, const Ice::Context& ctx)
-    {
-        Ice::Context::const_iterator p = ctx.find("server");
-        if(p == ctx.end() || p->second == _exclude)
+    public:
+        ExcludeReplicaGroupFilterI(const RegistryPluginFacadePtr& facade, const string& exclude) :
+            _facade(facade),
+            _exclude(exclude)
         {
-            return Ice::StringSeq();
         }
-        return adapters;
-    }
 
-private:
+        virtual Ice::StringSeq filter(const string& id, const Ice::StringSeq& adapters, const Ice::ConnectionPtr& con,
+                                      const Ice::Context& ctx)
+        {
+            Ice::Context::const_iterator p = ctx.find("server");
+            if(p == ctx.end() || p->second == _exclude)
+            {
+                return Ice::StringSeq();
+            }
+            return adapters;
+        }
 
-    const RegistryPluginFacadePtr _facade;
-    const string _exclude;
-};
+    private:
+        const RegistryPluginFacadePtr _facade;
+        const string _exclude;
+    };
 
-}
+} // namespace
 
 //
 extern "C"
 {
-
-ICE_DECLSPEC_EXPORT Ice::Plugin*
-createRegistryPlugin(const Ice::CommunicatorPtr& communicator, const string&, const Ice::StringSeq&)
-{
-    return new RegistryPluginI(communicator);
-}
-
+    ICE_DECLSPEC_EXPORT Ice::Plugin* createRegistryPlugin(const Ice::CommunicatorPtr& communicator, const string&,
+                                                          const Ice::StringSeq&)
+    {
+        return new RegistryPluginI(communicator);
+    }
 }
 
 RegistryPluginI::RegistryPluginI(const Ice::CommunicatorPtr& communicator) : _communicator(communicator)
 {
 }
 
-void
-RegistryPluginI::initialize()
+void RegistryPluginI::initialize()
 {
     IceGrid::RegistryPluginFacadePtr facade = IceGrid::getRegistryPluginFacade();
     assert(facade);
@@ -188,7 +177,6 @@ RegistryPluginI::initialize()
     facade->addTypeFilter("::Test::TestIntf2", new TypeFilterI(facade));
 }
 
-void
-RegistryPluginI::destroy()
+void RegistryPluginI::destroy()
 {
 }

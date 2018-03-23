@@ -13,5 +13,8 @@ using namespace std;
 using namespace IceInternal;
 
 #ifndef ICE_CPP11_MAPPING
-IceUtil::Shared* IceInternal::upCast(ResponseHandler* obj) { return obj; }
+IceUtil::Shared* IceInternal::upCast(ResponseHandler* obj)
+{
+    return obj;
+}
 #endif

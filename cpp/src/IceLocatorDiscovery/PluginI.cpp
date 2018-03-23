@@ -20,278 +20,250 @@ using namespace IceLocatorDiscovery;
 
 namespace
 {
-
-class LocatorI; // Forward declaration
+    class LocatorI; // Forward declaration
 
 #ifdef ICE_CPP11_MAPPING
-typedef std::pair<function<void(bool, const pair<const Ice::Byte*, const Ice::Byte*>&)>,
-                  function<void(exception_ptr)>> AMDCallback;
+    typedef std::pair<function<void(bool, const pair<const Ice::Byte*, const Ice::Byte*>&)>,
+                      function<void(exception_ptr)>>
+        AMDCallback;
 #else
-typedef Ice::AMD_Object_ice_invokePtr AMDCallback;
+    typedef Ice::AMD_Object_ice_invokePtr AMDCallback;
 #endif
 
-class Request :
+    class Request :
 #ifdef ICE_CPP11_MAPPING
         public std::enable_shared_from_this<Request>
 #else
         public virtual IceUtil::Shared
 #endif
-{
-public:
-
-    Request(LocatorI* locator,
-            const string& operation,
-            Ice::OperationMode mode,
-            const pair<const Ice::Byte*, const Ice::Byte*>& inParams,
-            const Ice::Context& ctx,
-            const AMDCallback& amdCB) :
-        _locator(locator),
-        _operation(operation),
-        _mode(mode),
-        _context(ctx),
-        _inParams(inParams.first, inParams.second),
-        _amdCB(amdCB)
     {
-    }
+    public:
+        Request(LocatorI* locator, const string& operation, Ice::OperationMode mode,
+                const pair<const Ice::Byte*, const Ice::Byte*>& inParams, const Ice::Context& ctx,
+                const AMDCallback& amdCB) :
+            _locator(locator),
+            _operation(operation),
+            _mode(mode),
+            _context(ctx),
+            _inParams(inParams.first, inParams.second),
+            _amdCB(amdCB)
+        {
+        }
 
-    void invoke(const Ice::LocatorPrxPtr&);
-    void response(bool, const pair<const Ice::Byte*, const Ice::Byte*>&);
-    void exception(const Ice::Exception&);
+        void invoke(const Ice::LocatorPrxPtr&);
+        void response(bool, const pair<const Ice::Byte*, const Ice::Byte*>&);
+        void exception(const Ice::Exception&);
 
-protected:
-
-    LocatorI* _locator;
-    const string _operation;
-    const Ice::OperationMode _mode;
-    const Ice::Context _context;
-    const Ice::ByteSeq _inParams;
-    AMDCallback _amdCB;
+    protected:
+        LocatorI* _locator;
+        const string _operation;
+        const Ice::OperationMode _mode;
+        const Ice::Context _context;
+        const Ice::ByteSeq _inParams;
+        AMDCallback _amdCB;
 #ifdef ICE_CPP11_MAPPING
-    exception_ptr _exception;
+        exception_ptr _exception;
 #else
-    IceInternal::UniquePtr<Ice::Exception> _exception;
+        IceInternal::UniquePtr<Ice::Exception> _exception;
 #endif
 
-    Ice::LocatorPrxPtr _locatorPrx;
-};
-ICE_DEFINE_PTR(RequestPtr, Request);
+        Ice::LocatorPrxPtr _locatorPrx;
+    };
+    ICE_DEFINE_PTR(RequestPtr, Request);
 
-class LocatorI : public Ice::BlobjectArrayAsync,
-                 public IceUtil::TimerTask,
-                 private IceUtil::Monitor<IceUtil::Mutex>
+    class LocatorI : public Ice::BlobjectArrayAsync,
+                     public IceUtil::TimerTask,
+                     private IceUtil::Monitor<IceUtil::Mutex>
 #ifdef ICE_CPP11_MAPPING
-               , public std::enable_shared_from_this<LocatorI>
+        ,
+                     public std::enable_shared_from_this<LocatorI>
 #endif
-{
-public:
-
-    LocatorI(const string&, const LookupPrxPtr&, const Ice::PropertiesPtr&, const string&, const Ice::LocatorPrxPtr&);
-    void setLookupReply(const LookupReplyPrxPtr&);
+    {
+    public:
+        LocatorI(const string&, const LookupPrxPtr&, const Ice::PropertiesPtr&, const string&,
+                 const Ice::LocatorPrxPtr&);
+        void setLookupReply(const LookupReplyPrxPtr&);
 
 #ifdef ICE_CPP11_MAPPING
-    virtual void ice_invokeAsync(pair<const Ice::Byte*, const Ice::Byte*>,
-                                 function<void(bool, const pair<const Ice::Byte*, const Ice::Byte*>&)>,
-                                 function<void(exception_ptr)>,
-                                 const Ice::Current&);
+        virtual void ice_invokeAsync(pair<const Ice::Byte*, const Ice::Byte*>,
+                                     function<void(bool, const pair<const Ice::Byte*, const Ice::Byte*>&)>,
+                                     function<void(exception_ptr)>, const Ice::Current&);
 #else
-    virtual void ice_invoke_async(const Ice::AMD_Object_ice_invokePtr&, const pair<const Ice::Byte*, const Ice::Byte*>&,
-                                  const Ice::Current&);
+        virtual void ice_invoke_async(const Ice::AMD_Object_ice_invokePtr&,
+                                      const pair<const Ice::Byte*, const Ice::Byte*>&, const Ice::Current&);
 #endif
 
-    void foundLocator(const Ice::LocatorPrxPtr&);
-    void invoke(const Ice::LocatorPrxPtr&, const RequestPtr&);
+        void foundLocator(const Ice::LocatorPrxPtr&);
+        void invoke(const Ice::LocatorPrxPtr&, const RequestPtr&);
 
-    vector<Ice::LocatorPrxPtr> getLocators(const string&, const IceUtil::Time&);
+        vector<Ice::LocatorPrxPtr> getLocators(const string&, const IceUtil::Time&);
 
-    void exception(const Ice::LocalException&);
+        void exception(const Ice::LocalException&);
 
-private:
+    private:
+        virtual void runTimerTask();
 
-    virtual void runTimerTask();
+        LookupPrxPtr _lookup;
+        vector<pair<LookupPrxPtr, LookupReplyPrxPtr>> _lookups;
+        const IceUtil::Time _timeout;
+        const int _retryCount;
+        const IceUtil::Time _retryDelay;
+        const IceUtil::TimerPtr _timer;
+        const int _traceLevel;
 
-    LookupPrxPtr _lookup;
-    vector<pair<LookupPrxPtr, LookupReplyPrxPtr> > _lookups;
-    const IceUtil::Time _timeout;
-    const int _retryCount;
-    const IceUtil::Time _retryDelay;
-    const IceUtil::TimerPtr _timer;
-    const int _traceLevel;
+        string _instanceName;
+        bool _warned;
+        Ice::LocatorPrxPtr _locator;
+        map<string, Ice::LocatorPrxPtr> _locators;
+        Ice::LocatorPrxPtr _voidLocator;
 
-    string _instanceName;
-    bool _warned;
-    Ice::LocatorPrxPtr _locator;
-    map<string, Ice::LocatorPrxPtr> _locators;
-    Ice::LocatorPrxPtr _voidLocator;
+        IceUtil::Time _nextRetry;
+        int _pendingRetryCount;
+        size_t _failureCount;
+        bool _warnOnce;
+        vector<RequestPtr> _pendingRequests;
+    };
+    ICE_DEFINE_PTR(LocatorIPtr, LocatorI);
 
-    IceUtil::Time _nextRetry;
-    int _pendingRetryCount;
-    size_t _failureCount;
-    bool _warnOnce;
-    vector<RequestPtr> _pendingRequests;
-};
-ICE_DEFINE_PTR(LocatorIPtr, LocatorI);
-
-class LookupReplyI : public LookupReply
-{
-public:
-
-    LookupReplyI(const LocatorIPtr& locator) : _locator(locator)
+    class LookupReplyI : public LookupReply
     {
-    }
+    public:
+        LookupReplyI(const LocatorIPtr& locator) : _locator(locator)
+        {
+        }
 
-    virtual void foundLocator(ICE_IN(Ice::LocatorPrxPtr), const Ice::Current&);
+        virtual void foundLocator(ICE_IN(Ice::LocatorPrxPtr), const Ice::Current&);
 
-private:
+    private:
+        const LocatorIPtr _locator;
+    };
 
-    const LocatorIPtr _locator;
-};
-
-//
-// The void locator implementation below is used when no locator is found.
-//
-class VoidLocatorI : public Ice::Locator
-{
-public:
-
+    //
+    // The void locator implementation below is used when no locator is found.
+    //
+    class VoidLocatorI : public Ice::Locator
+    {
+    public:
 #ifdef ICE_CPP11_MAPPING
-    virtual void
-    findObjectByIdAsync(::Ice::Identity,
-                        function<void(const shared_ptr<::Ice::ObjectPrx>&)> response,
-                        function<void(exception_ptr)>,
-                        const Ice::Current&) const
-    {
-        response(nullptr);
-    }
+        virtual void findObjectByIdAsync(::Ice::Identity, function<void(const shared_ptr<::Ice::ObjectPrx>&)> response,
+                                         function<void(exception_ptr)>, const Ice::Current&) const
+        {
+            response(nullptr);
+        }
 
-    virtual void
-    findAdapterByIdAsync(string,
-                         function<void(const shared_ptr<::Ice::ObjectPrx>&)> response,
-                         function<void(exception_ptr)>,
-                         const Ice::Current&) const
-    {
-        response(nullptr);
-    }
+        virtual void findAdapterByIdAsync(string, function<void(const shared_ptr<::Ice::ObjectPrx>&)> response,
+                                          function<void(exception_ptr)>, const Ice::Current&) const
+        {
+            response(nullptr);
+        }
 #else
-    virtual void
-    findObjectById_async(const Ice::AMD_Locator_findObjectByIdPtr& amdCB,
-                         const Ice::Identity&,
-                         const Ice::Current&) const
-    {
-        amdCB->ice_response(0);
-    }
+        virtual void findObjectById_async(const Ice::AMD_Locator_findObjectByIdPtr& amdCB, const Ice::Identity&,
+                                          const Ice::Current&) const
+        {
+            amdCB->ice_response(0);
+        }
 
-    virtual void
-    findAdapterById_async(const Ice::AMD_Locator_findAdapterByIdPtr& amdCB,
-                          const string&,
-                          const Ice::Current&) const
-    {
-        amdCB->ice_response(0);
-    }
+        virtual void findAdapterById_async(const Ice::AMD_Locator_findAdapterByIdPtr& amdCB, const string&,
+                                           const Ice::Current&) const
+        {
+            amdCB->ice_response(0);
+        }
 #endif
 
-    virtual Ice::LocatorRegistryPrxPtr
-    getRegistry(const Ice::Current&) const
+        virtual Ice::LocatorRegistryPrxPtr getRegistry(const Ice::Current&) const
+        {
+            return ICE_NULLPTR;
+        }
+    };
+
+    class PluginI : public Plugin
     {
-        return ICE_NULLPTR;
-    }
-};
+    public:
+        PluginI(const std::string&, const Ice::CommunicatorPtr&);
 
-class PluginI : public Plugin
-{
-public:
+        virtual void initialize();
+        virtual void destroy();
+        virtual vector<Ice::LocatorPrxPtr> getLocators(const string&, const IceUtil::Time&) const;
 
-    PluginI(const std::string&, const Ice::CommunicatorPtr&);
-
-    virtual void initialize();
-    virtual void destroy();
-    virtual vector<Ice::LocatorPrxPtr> getLocators(const string&, const IceUtil::Time&) const;
-
-private:
-
-    const string _name;
-    const Ice::CommunicatorPtr _communicator;
-    Ice::ObjectAdapterPtr _locatorAdapter;
-    Ice::ObjectAdapterPtr _replyAdapter;
-    LocatorIPtr _locator;
-    Ice::LocatorPrxPtr _locatorPrx;
-    Ice::LocatorPrxPtr _defaultLocator;
-};
+    private:
+        const string _name;
+        const Ice::CommunicatorPtr _communicator;
+        Ice::ObjectAdapterPtr _locatorAdapter;
+        Ice::ObjectAdapterPtr _replyAdapter;
+        LocatorIPtr _locator;
+        Ice::LocatorPrxPtr _locatorPrx;
+        Ice::LocatorPrxPtr _defaultLocator;
+    };
 
 #ifndef ICE_CPP11_MAPPING
 
-class CallbackI : public IceUtil::Shared
-{
-public:
-
-    CallbackI(const LocatorIPtr& locator) : _locator(locator)
+    class CallbackI : public IceUtil::Shared
     {
-    }
-
-    void
-    completed(const Ice::AsyncResultPtr& result)
-    {
-        try
+    public:
+        CallbackI(const LocatorIPtr& locator) : _locator(locator)
         {
-            result->throwLocalException();
         }
-        catch(const Ice::LocalException& ex)
+
+        void completed(const Ice::AsyncResultPtr& result)
         {
-            _locator->exception(ex);
+            try
+            {
+                result->throwLocalException();
+            }
+            catch(const Ice::LocalException& ex)
+            {
+                _locator->exception(ex);
+            }
         }
-    }
 
-private:
-
-    LocatorIPtr _locator;
-};
+    private:
+        LocatorIPtr _locator;
+    };
 
 #endif
 
-}
+} // namespace
 
 //
 // Plugin factory function.
 //
-extern "C" ICE_LOCATOR_DISCOVERY_API Ice::Plugin*
-createIceLocatorDiscovery(const Ice::CommunicatorPtr& communicator, const string& name, const Ice::StringSeq&)
+extern "C" ICE_LOCATOR_DISCOVERY_API Ice::Plugin* createIceLocatorDiscovery(const Ice::CommunicatorPtr& communicator,
+                                                                            const string& name, const Ice::StringSeq&)
 {
     return new PluginI(name, communicator);
 }
 
 namespace Ice
 {
-
-ICE_LOCATOR_DISCOVERY_API void
-registerIceLocatorDiscovery(bool loadOnInitialize)
-{
-    Ice::registerPluginFactory("IceLocatorDiscovery", createIceLocatorDiscovery, loadOnInitialize);
+    ICE_LOCATOR_DISCOVERY_API void registerIceLocatorDiscovery(bool loadOnInitialize)
+    {
+        Ice::registerPluginFactory("IceLocatorDiscovery", createIceLocatorDiscovery, loadOnInitialize);
 
 #ifdef ICE_STATIC_LIBS
-    //
-    // Also register the UDP plugin with static builds to ensure the UDP transport is loaded.
-    //
-    registerIceUDP(true);
+        //
+        // Also register the UDP plugin with static builds to ensure the UDP transport is loaded.
+        //
+        registerIceUDP(true);
 #endif
-}
+    }
 
-}
+} // namespace Ice
 
 //
 // Objective-C function to allow Objective-C programs to register plugin.
 //
-extern "C" ICE_LOCATOR_DISCOVERY_API void
-ICEregisterIceLocatorDiscovery(bool loadOnInitialize)
+extern "C" ICE_LOCATOR_DISCOVERY_API void ICEregisterIceLocatorDiscovery(bool loadOnInitialize)
 {
     Ice::registerIceLocatorDiscovery(loadOnInitialize);
 }
 
 PluginI::PluginI(const string& name, const Ice::CommunicatorPtr& communicator) :
-    _name(name), _communicator(communicator)
+    _name(name),
+    _communicator(communicator)
 {
 }
 
-void
-PluginI::initialize()
+void PluginI::initialize()
 {
     Ice::PropertiesPtr properties = _communicator->getProperties();
 
@@ -351,8 +323,8 @@ PluginI::initialize()
     // No collocation optimization for the multicast proxy!
     lookupPrx = lookupPrx->ice_collocationOptimized(false)->ice_router(ICE_NULLPTR);
 
-    Ice::LocatorPrxPtr voidLocator = ICE_UNCHECKED_CAST(Ice::LocatorPrx,
-                                                        _locatorAdapter->addWithUUID(ICE_MAKE_SHARED(VoidLocatorI)));
+    Ice::LocatorPrxPtr voidLocator =
+        ICE_UNCHECKED_CAST(Ice::LocatorPrx, _locatorAdapter->addWithUUID(ICE_MAKE_SHARED(VoidLocatorI)));
 
     string instanceName = properties->getProperty(_name + ".InstanceName");
     Ice::Identity id;
@@ -371,14 +343,12 @@ PluginI::initialize()
     _locatorAdapter->activate();
 }
 
-vector<Ice::LocatorPrxPtr>
-PluginI::getLocators(const string& instanceName, const IceUtil::Time& waitTime) const
+vector<Ice::LocatorPrxPtr> PluginI::getLocators(const string& instanceName, const IceUtil::Time& waitTime) const
 {
     return _locator->getLocators(instanceName, waitTime);
 }
 
-void
-PluginI::destroy()
+void PluginI::destroy()
 {
     if(_replyAdapter)
     {
@@ -395,8 +365,7 @@ PluginI::destroy()
     }
 }
 
-void
-Request::invoke(const Ice::LocatorPrxPtr& l)
+void Request::invoke(const Ice::LocatorPrxPtr& l)
 {
 #ifdef ICE_CPP11_MAPPING
     if(l != _locatorPrx)
@@ -406,8 +375,7 @@ Request::invoke(const Ice::LocatorPrxPtr& l)
         {
             auto self = shared_from_this();
             l->ice_invokeAsync(_operation, _mode, _inParams,
-                               [self](bool ok, vector<Ice::Byte> outParams)
-                               {
+                               [self](bool ok, vector<Ice::Byte> outParams) {
                                    pair<const Ice::Byte*, const Ice::Byte*> outPair;
                                    if(outParams.empty())
                                    {
@@ -420,8 +388,7 @@ Request::invoke(const Ice::LocatorPrxPtr& l)
                                    }
                                    self->response(ok, outPair);
                                },
-                               [self](exception_ptr e)
-                               {
+                               [self](exception_ptr e) {
                                    try
                                    {
                                        rethrow_exception(e);
@@ -431,8 +398,7 @@ Request::invoke(const Ice::LocatorPrxPtr& l)
                                        self->exception(ex);
                                    }
                                },
-                               nullptr,
-                               _context);
+                               nullptr, _context);
         }
         catch(const Ice::LocalException& ex)
         {
@@ -467,8 +433,7 @@ Request::invoke(const Ice::LocatorPrxPtr& l)
 #endif
 }
 
-void
-Request::response(bool ok, const pair<const Ice::Byte*, const Ice::Byte*>& outParams)
+void Request::response(bool ok, const pair<const Ice::Byte*, const Ice::Byte*>& outParams)
 {
 #ifdef ICE_CPP11_MAPPING
     _amdCB.first(ok, outParams);
@@ -477,8 +442,7 @@ Request::response(bool ok, const pair<const Ice::Byte*, const Ice::Byte*>& outPa
 #endif
 }
 
-void
-Request::exception(const Ice::Exception& ex)
+void Request::exception(const Ice::Exception& ex)
 {
 #ifdef ICE_CPP11_MAPPING
     try
@@ -564,11 +528,8 @@ Request::exception(const Ice::Exception& ex)
 #endif
 }
 
-LocatorI::LocatorI(const string& name,
-                   const LookupPrxPtr& lookup,
-                   const Ice::PropertiesPtr& p,
-                   const string& instanceName,
-                   const Ice::LocatorPrxPtr& voidLocator) :
+LocatorI::LocatorI(const string& name, const LookupPrxPtr& lookup, const Ice::PropertiesPtr& p,
+                   const string& instanceName, const Ice::LocatorPrxPtr& voidLocator) :
     _lookup(lookup),
     _timeout(IceUtil::Time::milliSeconds(p->getPropertyAsIntWithDefault(name + ".Timeout", 300))),
     _retryCount(p->getPropertyAsIntWithDefault(name + ".RetryCount", 3)),
@@ -597,15 +558,15 @@ LocatorI::LocatorI(const string& name,
     assert(!_lookups.empty());
 }
 
-void
-LocatorI::setLookupReply(const LookupReplyPrxPtr& lookupReply)
+void LocatorI::setLookupReply(const LookupReplyPrxPtr& lookupReply)
 {
     //
     // Use a lookup reply proxy whose adress matches the interface used to send multicast datagrams.
     //
-    for(vector<pair<LookupPrxPtr, LookupReplyPrxPtr> >::iterator p = _lookups.begin(); p != _lookups.end(); ++p)
+    for(vector<pair<LookupPrxPtr, LookupReplyPrxPtr>>::iterator p = _lookups.begin(); p != _lookups.end(); ++p)
     {
-        Ice::UDPEndpointInfoPtr info = ICE_DYNAMIC_CAST(Ice::UDPEndpointInfo, p->first->ice_getEndpoints()[0]->getInfo());
+        Ice::UDPEndpointInfoPtr info =
+            ICE_DYNAMIC_CAST(Ice::UDPEndpointInfo, p->first->ice_getEndpoints()[0]->getInfo());
         if(info && !info->mcastInterface.empty())
         {
             Ice::EndpointSeq endpts = lookupReply->ice_getEndpoints();
@@ -629,27 +590,22 @@ LocatorI::setLookupReply(const LookupReplyPrxPtr& lookupReply)
 }
 
 #ifdef ICE_CPP11_MAPPING
-void
-LocatorI::ice_invokeAsync(pair<const Ice::Byte*, const Ice::Byte*> inParams,
-                          function<void(bool, const pair<const Ice::Byte*, const Ice::Byte*>&)> responseCB,
-                          function<void(exception_ptr)> exceptionCB,
-                          const Ice::Current& current)
+void LocatorI::ice_invokeAsync(pair<const Ice::Byte*, const Ice::Byte*> inParams,
+                               function<void(bool, const pair<const Ice::Byte*, const Ice::Byte*>&)> responseCB,
+                               function<void(exception_ptr)> exceptionCB, const Ice::Current& current)
 {
     invoke(nullptr, make_shared<Request>(this, current.operation, current.mode, inParams, current.ctx,
                                          make_pair(move(responseCB), move(exceptionCB))));
 }
 #else
-void
-LocatorI::ice_invoke_async(const Ice::AMD_Object_ice_invokePtr& amdCB,
-                           const pair<const Ice::Byte*, const Ice::Byte*>& inParams,
-                           const Ice::Current& current)
+void LocatorI::ice_invoke_async(const Ice::AMD_Object_ice_invokePtr& amdCB,
+                                const pair<const Ice::Byte*, const Ice::Byte*>& inParams, const Ice::Current& current)
 {
     invoke(0, new Request(this, current.operation, current.mode, inParams, current.ctx, amdCB));
 }
 #endif
 
-vector<Ice::LocatorPrxPtr>
-LocatorI::getLocators(const string& instanceName, const IceUtil::Time& waitTime)
+vector<Ice::LocatorPrxPtr> LocatorI::getLocators(const string& instanceName, const IceUtil::Time& waitTime)
 {
     //
     // Clear locators from previous search
@@ -692,8 +648,7 @@ LocatorI::getLocators(const string& instanceName, const IceUtil::Time& waitTime)
     return locators;
 }
 
-void
-LocatorI::foundLocator(const Ice::LocatorPrxPtr& locator)
+void LocatorI::foundLocator(const Ice::LocatorPrxPtr& locator)
 {
     Lock sync(*this);
     if(!locator || (!_instanceName.empty() && locator->ice_getIdentity().category != _instanceName))
@@ -712,8 +667,8 @@ LocatorI::foundLocator(const Ice::LocatorPrxPtr& locator)
     // If we already have a locator assigned, ensure the given locator
     // has the same identity, otherwise ignore it.
     //
-    if(!_pendingRequests.empty() &&
-       _locator && locator->ice_getIdentity().category != _locator->ice_getIdentity().category)
+    if(!_pendingRequests.empty() && _locator &&
+       locator->ice_getIdentity().category != _locator->ice_getIdentity().category)
     {
         if(!_warned)
         {
@@ -805,8 +760,7 @@ LocatorI::foundLocator(const Ice::LocatorPrxPtr& locator)
     }
 }
 
-void
-LocatorI::invoke(const Ice::LocatorPrxPtr& locator, const RequestPtr& request)
+void LocatorI::invoke(const Ice::LocatorPrxPtr& locator, const RequestPtr& request)
 {
     Lock sync(*this);
     if(request && _locator && _locator != locator)
@@ -841,13 +795,12 @@ LocatorI::invoke(const Ice::LocatorPrxPtr& locator, const RequestPtr& request)
                         out << "\ninstance name = " << _instanceName;
                     }
                 }
-                for(vector<pair<LookupPrxPtr, LookupReplyPrxPtr> >::const_iterator l = _lookups.begin();
+                for(vector<pair<LookupPrxPtr, LookupReplyPrxPtr>>::const_iterator l = _lookups.begin();
                     l != _lookups.end(); ++l)
                 {
 #ifdef ICE_CPP11_MAPPING
                     auto self = shared_from_this();
-                    l->first->findLocatorAsync(_instanceName, l->second, nullptr, [self](exception_ptr ex)
-                    {
+                    l->first->findLocatorAsync(_instanceName, l->second, nullptr, [self](exception_ptr ex) {
                         try
                         {
                             rethrow_exception(ex);
@@ -858,8 +811,8 @@ LocatorI::invoke(const Ice::LocatorPrxPtr& locator, const RequestPtr& request)
                         }
                     });
 #else
-                    l->first->begin_findLocator(_instanceName, l->second, Ice::newCallback(new CallbackI(this),
-                                                                                           &CallbackI::completed));
+                    l->first->begin_findLocator(_instanceName, l->second,
+                                                Ice::newCallback(new CallbackI(this), &CallbackI::completed));
 #endif
                 }
                 _timer->schedule(ICE_SHARED_FROM_THIS, _timeout);
@@ -888,8 +841,7 @@ LocatorI::invoke(const Ice::LocatorPrxPtr& locator, const RequestPtr& request)
     }
 }
 
-void
-LocatorI::exception(const Ice::LocalException& ex)
+void LocatorI::exception(const Ice::LocalException& ex)
 {
     Lock sync(*this);
     if(++_failureCount == _lookups.size() && _pendingRetryCount > 0)
@@ -928,13 +880,12 @@ LocatorI::exception(const Ice::LocalException& ex)
             {
                 (*p)->invoke(_voidLocator);
             }
-           _pendingRequests.clear();
+            _pendingRequests.clear();
         }
     }
 }
 
-void
-LocatorI::runTimerTask()
+void LocatorI::runTimerTask()
 {
     Lock sync(*this);
     if(--_pendingRetryCount > 0)
@@ -951,25 +902,24 @@ LocatorI::runTimerTask()
                 }
             }
             _failureCount = 0;
-            for(vector<pair<LookupPrxPtr, LookupReplyPrxPtr> >::const_iterator l = _lookups.begin();
-                l != _lookups.end(); ++l)
+            for(vector<pair<LookupPrxPtr, LookupReplyPrxPtr>>::const_iterator l = _lookups.begin(); l != _lookups.end();
+                ++l)
             {
 #ifdef ICE_CPP11_MAPPING
-                    auto self = shared_from_this();
-                    l->first->findLocatorAsync(_instanceName, l->second, nullptr, [self](exception_ptr ex)
+                auto self = shared_from_this();
+                l->first->findLocatorAsync(_instanceName, l->second, nullptr, [self](exception_ptr ex) {
+                    try
                     {
-                        try
-                        {
-                            rethrow_exception(ex);
-                        }
-                        catch(const Ice::LocalException& e)
-                        {
-                            self->exception(e);
-                        }
-                    });
+                        rethrow_exception(ex);
+                    }
+                    catch(const Ice::LocalException& e)
+                    {
+                        self->exception(e);
+                    }
+                });
 #else
-                    l->first->begin_findLocator(_instanceName, l->second, Ice::newCallback(new CallbackI(this),
-                                                                                           &CallbackI::completed));
+                l->first->begin_findLocator(_instanceName, l->second,
+                                            Ice::newCallback(new CallbackI(this), &CallbackI::completed));
 #endif
             }
             _timer->schedule(ICE_SHARED_FROM_THIS, _timeout);
@@ -1001,13 +951,12 @@ LocatorI::runTimerTask()
         {
             (*p)->invoke(_voidLocator); // Send pending requests on void locator.
         }
-       _pendingRequests.clear();
+        _pendingRequests.clear();
     }
     _nextRetry = IceUtil::Time::now() + _retryDelay; // Only retry when the retry delay expires
 }
 
-void
-LookupReplyI::foundLocator(ICE_IN(Ice::LocatorPrxPtr) locator, const Ice::Current&)
+void LookupReplyI::foundLocator(ICE_IN(Ice::LocatorPrxPtr) locator, const Ice::Current&)
 {
     _locator->foundLocator(locator);
 }

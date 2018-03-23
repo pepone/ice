@@ -17,23 +17,21 @@ using namespace IceUtilInternal;
 
 namespace IceUtilInternal
 {
+    NextLine nl;
+    StartBlock sb;
+    EndBlock eb;
+    StartPar spar;
+    EndPar epar;
+    StartAbrk sabrk;
+    EndAbrk eabrk;
+    Separator sp;
+    EndElement ee;
+    StartEscapes startEscapes;
+    EndEscapes endEscapes;
 
-NextLine nl;
-StartBlock sb;
-EndBlock eb;
-StartPar spar;
-EndPar epar;
-StartAbrk sabrk;
-EndAbrk eabrk;
-Separator sp;
-EndElement ee;
-StartEscapes startEscapes;
-EndEscapes endEscapes;
+} // namespace IceUtilInternal
 
-}
-
-string
-IceUtilInternal::int64ToString(Int64 val)
+string IceUtilInternal::int64ToString(Int64 val)
 {
     char buf[64];
 
@@ -86,8 +84,7 @@ IceUtilInternal::OutputBase::~OutputBase()
 {
 }
 
-void
-IceUtilInternal::OutputBase::open(const string& s)
+void IceUtilInternal::OutputBase::open(const string& s)
 {
     //
     // Remove any existing file first. This prevents file name
@@ -97,8 +94,7 @@ IceUtilInternal::OutputBase::open(const string& s)
     _fout.open(IceUtilInternal::streamFilename(s).c_str());
 }
 
-void
-IceUtilInternal::OutputBase::close()
+void IceUtilInternal::OutputBase::close()
 {
     if(_fout.is_open())
     {
@@ -106,14 +102,12 @@ IceUtilInternal::OutputBase::close()
     }
 }
 
-bool
-IceUtilInternal::OutputBase::isOpen()
+bool IceUtilInternal::OutputBase::isOpen()
 {
     return _fout.is_open();
 }
 
-void
-IceUtilInternal::OutputBase::print(const string& s)
+void IceUtilInternal::OutputBase::print(const string& s)
 {
     size_t len = s.size();
     for(unsigned int i = 0; i < len; ++i)
@@ -130,61 +124,52 @@ IceUtilInternal::OutputBase::print(const string& s)
     _out << s;
 }
 
-void
-IceUtilInternal::OutputBase::inc()
+void IceUtilInternal::OutputBase::inc()
 {
     _indent += _indentSize;
 }
 
-void
-IceUtilInternal::OutputBase::dec()
+void IceUtilInternal::OutputBase::dec()
 {
     assert(_indent >= _indentSize);
     _indent -= _indentSize;
 }
 
-void
-IceUtilInternal::OutputBase::useCurrentPosAsIndent()
+void IceUtilInternal::OutputBase::useCurrentPosAsIndent()
 {
     _indentSave.push(_indent);
     _indent = _pos;
 }
 
-void
-IceUtilInternal::OutputBase::zeroIndent()
+void IceUtilInternal::OutputBase::zeroIndent()
 {
     _indentSave.push(_indent);
     _indent = 0;
 }
 
-void
-IceUtilInternal::OutputBase::restoreIndent()
+void IceUtilInternal::OutputBase::restoreIndent()
 {
     assert(!_indentSave.empty());
     _indent = _indentSave.top();
     _indentSave.pop();
 }
 
-int
-IceUtilInternal::OutputBase::currIndent()
+int IceUtilInternal::OutputBase::currIndent()
 {
     return _indent;
 }
 
-void
-IceUtilInternal::OutputBase::setIndent(int indentSize)
+void IceUtilInternal::OutputBase::setIndent(int indentSize)
 {
     _indentSize = indentSize;
 }
 
-void
-IceUtilInternal::OutputBase::setUseTab(bool useTab)
+void IceUtilInternal::OutputBase::setUseTab(bool useTab)
 {
     _useTab = useTab;
 }
 
-void
-IceUtilInternal::OutputBase::newline()
+void IceUtilInternal::OutputBase::newline()
 {
     _out << '\n';
     _pos = 0;
@@ -221,8 +206,7 @@ IceUtilInternal::OutputBase::newline()
     _out.flush();
 }
 
-void
-IceUtilInternal::OutputBase::separator()
+void IceUtilInternal::OutputBase::separator()
 {
     if(_separator)
     {
@@ -230,8 +214,7 @@ IceUtilInternal::OutputBase::separator()
     }
 }
 
-bool
-IceUtilInternal::OutputBase::operator!() const
+bool IceUtilInternal::OutputBase::operator!() const
 {
     return !_out;
 }
@@ -240,32 +223,19 @@ IceUtilInternal::OutputBase::operator!() const
 // Output
 // ----------------------------------------------------------------------
 
-IceUtilInternal::Output::Output() :
-    OutputBase(),
-    _blockStart("{"),
-    _blockEnd("}"),
-    _par(-1)
+IceUtilInternal::Output::Output() : OutputBase(), _blockStart("{"), _blockEnd("}"), _par(-1)
 {
 }
 
-IceUtilInternal::Output::Output(ostream& os) :
-    OutputBase(os),
-    _blockStart("{"),
-    _blockEnd("}"),
-    _par(-1)
+IceUtilInternal::Output::Output(ostream& os) : OutputBase(os), _blockStart("{"), _blockEnd("}"), _par(-1)
 {
 }
 
-IceUtilInternal::Output::Output(const char* s) :
-    OutputBase(s),
-    _blockStart("{"),
-    _blockEnd("}"),
-    _par(-1)
+IceUtilInternal::Output::Output(const char* s) : OutputBase(s), _blockStart("{"), _blockEnd("}"), _par(-1)
 {
 }
 
-void
-IceUtilInternal::Output::print(const string& s)
+void IceUtilInternal::Output::print(const string& s)
 {
     if(_par >= 0)
     {
@@ -277,8 +247,7 @@ IceUtilInternal::Output::print(const string& s)
     OutputBase::print(s);
 }
 
-void
-IceUtilInternal::Output::sb()
+void IceUtilInternal::Output::sb()
 {
     if(_blockStart.length())
     {
@@ -290,8 +259,7 @@ IceUtilInternal::Output::sb()
     _separator = false;
 }
 
-void
-IceUtilInternal::Output::eb()
+void IceUtilInternal::Output::eb()
 {
     dec();
     if(_blockEnd.length())
@@ -302,22 +270,19 @@ IceUtilInternal::Output::eb()
     --_pos;
 }
 
-void
-IceUtilInternal::Output::spar(char c)
+void IceUtilInternal::Output::spar(char c)
 {
     _out << c;
     _par = 0;
 }
 
-void
-IceUtilInternal::Output::epar(char c)
+void IceUtilInternal::Output::epar(char c)
 {
     _par = -1;
     _out << c;
 }
 
-Output&
-IceUtilInternal::operator<<(Output& out, ios_base& (*val)(ios_base&))
+Output& IceUtilInternal::operator<<(Output& out, ios_base& (*val)(ios_base&))
 {
     ostringstream s;
     s << val;
@@ -329,32 +294,19 @@ IceUtilInternal::operator<<(Output& out, ios_base& (*val)(ios_base&))
 // XMLOutput
 // ----------------------------------------------------------------------
 
-IceUtilInternal::XMLOutput::XMLOutput() :
-    OutputBase(),
-    _se(false),
-    _text(false),
-    _escape(false)
+IceUtilInternal::XMLOutput::XMLOutput() : OutputBase(), _se(false), _text(false), _escape(false)
 {
 }
 
-IceUtilInternal::XMLOutput::XMLOutput(ostream& os) :
-    OutputBase(os),
-    _se(false),
-    _text(false),
-    _escape(false)
+IceUtilInternal::XMLOutput::XMLOutput(ostream& os) : OutputBase(os), _se(false), _text(false), _escape(false)
 {
 }
 
-IceUtilInternal::XMLOutput::XMLOutput(const char* s) :
-    OutputBase(s),
-    _se(false),
-    _text(false),
-    _escape(false)
+IceUtilInternal::XMLOutput::XMLOutput(const char* s) : OutputBase(s), _se(false), _text(false), _escape(false)
 {
 }
 
-void
-IceUtilInternal::XMLOutput::print(const string& s)
+void IceUtilInternal::XMLOutput::print(const string& s)
 {
     if(_se)
     {
@@ -373,8 +325,7 @@ IceUtilInternal::XMLOutput::print(const string& s)
     }
 }
 
-void
-IceUtilInternal::XMLOutput::newline()
+void IceUtilInternal::XMLOutput::newline()
 {
     if(_se)
     {
@@ -384,8 +335,7 @@ IceUtilInternal::XMLOutput::newline()
     OutputBase::newline();
 }
 
-void
-IceUtilInternal::XMLOutput::startElement(const string& element)
+void IceUtilInternal::XMLOutput::startElement(const string& element)
 {
     newline();
 
@@ -420,8 +370,7 @@ IceUtilInternal::XMLOutput::startElement(const string& element)
     _separator = false;
 }
 
-void
-IceUtilInternal::XMLOutput::endElement()
+void IceUtilInternal::XMLOutput::endElement()
 {
     string element = _elementStack.top();
     _elementStack.pop();
@@ -445,8 +394,7 @@ IceUtilInternal::XMLOutput::endElement()
     _text = false;
 }
 
-void
-IceUtilInternal::XMLOutput::attr(const string& name, const string& value)
+void IceUtilInternal::XMLOutput::attr(const string& name, const string& value)
 {
     //
     // Precondition: Attributes can only be attached to elements.
@@ -455,20 +403,17 @@ IceUtilInternal::XMLOutput::attr(const string& name, const string& value)
     _out << " " << name << "=\"" << escape(value) << '"';
 }
 
-void
-IceUtilInternal::XMLOutput::startEscapes()
+void IceUtilInternal::XMLOutput::startEscapes()
 {
     _escape = true;
 }
 
-void
-IceUtilInternal::XMLOutput::endEscapes()
+void IceUtilInternal::XMLOutput::endEscapes()
 {
     _escape = false;
 }
 
-string
-IceUtilInternal::XMLOutput::currentElement() const
+string IceUtilInternal::XMLOutput::currentElement() const
 {
     if(_elementStack.size() > 0)
     {
@@ -480,8 +425,7 @@ IceUtilInternal::XMLOutput::currentElement() const
     }
 }
 
-string
-IceUtilInternal::XMLOutput::escape(const string& input) const
+string IceUtilInternal::XMLOutput::escape(const string& input) const
 {
     string v = input;
 
@@ -498,7 +442,7 @@ IceUtilInternal::XMLOutput::escape(const string& input) const
         size_t pos = 0;
         while((pos = v.find_first_of('&', pos)) != string::npos)
         {
-            v.insert(pos+1, "amp;");
+            v.insert(pos + 1, "amp;");
             pos += 4;
         }
 
@@ -512,24 +456,24 @@ IceUtilInternal::XMLOutput::escape(const string& input) const
             string replace;
             switch(v[pos])
             {
-            case '>':
-                replace = "&gt;";
-                break;
+                case '>':
+                    replace = "&gt;";
+                    break;
 
-            case '<':
-                replace = "&lt;";
-                break;
+                case '<':
+                    replace = "&lt;";
+                    break;
 
-            case '\'':
-                replace = "&apos;";
-                break;
+                case '\'':
+                    replace = "&apos;";
+                    break;
 
-            case '"':
-                replace = "&quot;";
-                break;
+                case '"':
+                    replace = "&quot;";
+                    break;
 
-            default:
-                assert(false);
+                default:
+                    assert(false);
             }
 
             v.erase(pos, 1);
@@ -540,8 +484,7 @@ IceUtilInternal::XMLOutput::escape(const string& input) const
     return v;
 }
 
-XMLOutput&
-IceUtilInternal::operator<<(XMLOutput& out, ios_base& (*val)(ios_base&))
+XMLOutput& IceUtilInternal::operator<<(XMLOutput& out, ios_base& (*val)(ios_base&))
 {
     ostringstream s;
     s << val;
@@ -549,31 +492,25 @@ IceUtilInternal::operator<<(XMLOutput& out, ios_base& (*val)(ios_base&))
     return out;
 }
 
-IceUtilInternal::StartElement::StartElement(const string& name) :
-    _name(name)
+IceUtilInternal::StartElement::StartElement(const string& name) : _name(name)
 {
 }
 
-const string&
-IceUtilInternal::StartElement::getName() const
+const string& IceUtilInternal::StartElement::getName() const
 {
     return _name;
 }
 
-IceUtilInternal::Attribute::Attribute(const string& name, const string& value) :
-    _name(name),
-    _value(value)
+IceUtilInternal::Attribute::Attribute(const string& name, const string& value) : _name(name), _value(value)
 {
 }
 
-const string&
-IceUtilInternal::Attribute::getName() const
+const string& IceUtilInternal::Attribute::getName() const
 {
     return _name;
 }
 
-const string&
-IceUtilInternal::Attribute::getValue() const
+const string& IceUtilInternal::Attribute::getValue() const
 {
     return _value;
 }

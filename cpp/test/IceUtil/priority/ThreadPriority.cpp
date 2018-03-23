@@ -18,9 +18,7 @@ using namespace IceUtil;
 class PriorityTestThread : public Thread
 {
 public:
-
-    PriorityTestThread() :
-        _priority(-1024) //Initialize to some strange value, so by default is not a valid priority
+    PriorityTestThread() : _priority(-1024) // Initialize to some strange value, so by default is not a valid priority
     {
     }
 
@@ -43,7 +41,6 @@ public:
     }
 
 private:
-
     int _priority;
 };
 
@@ -51,8 +48,7 @@ typedef Handle<PriorityTestThread> PriorityTestThreadPtr;
 
 static const string priorityTestName("priority");
 
-ThreadPriorityTest::ThreadPriorityTest() :
-    TestBase(priorityTestName)
+ThreadPriorityTest::ThreadPriorityTest() : TestBase(priorityTestName)
 {
 #ifdef _WIN32
     ThreadControl c;
@@ -109,7 +105,7 @@ ThreadPriorityTest::ThreadPriorityTest() :
     }
     catch(const ThreadSyscallException&)
     {
-        //Expected
+        // Expected
     }
     catch(...)
     {
@@ -127,7 +123,7 @@ ThreadPriorityTest::ThreadPriorityTest() :
     }
     catch(const ThreadSyscallException&)
     {
-        //Expected
+        // Expected
     }
     catch(...)
     {
@@ -165,7 +161,7 @@ ThreadPriorityTest::ThreadPriorityTest() :
         }
         catch(const ThreadSyscallException& e)
         {
-            //Expected
+            // Expected
         }
         catch(...)
         {
@@ -186,7 +182,7 @@ ThreadPriorityTest::ThreadPriorityTest() :
         }
         catch(const ThreadSyscallException& e)
         {
-            //Expected
+            // Expected
         }
         catch(...)
         {
@@ -197,7 +193,6 @@ ThreadPriorityTest::ThreadPriorityTest() :
 #endif
 }
 
-void
-ThreadPriorityTest::run()
+void ThreadPriorityTest::run()
 {
 }

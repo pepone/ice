@@ -18,87 +18,84 @@ using namespace std;
 
 namespace
 {
-
-class CheckTask : public IceUtil::TimerTask
-{
-    const NodeIPtr _node;
-
-public:
-
-    CheckTask(const NodeIPtr& node) : _node(node) { }
-    virtual void runTimerTask()
+    class CheckTask : public IceUtil::TimerTask
     {
-        _node->check();
-    }
-};
+        const NodeIPtr _node;
 
-class MergeTask : public IceUtil::TimerTask
-{
-    const NodeIPtr _node;
-    const set<int> _s;
+    public:
+        CheckTask(const NodeIPtr& node) : _node(node)
+        {
+        }
+        virtual void runTimerTask()
+        {
+            _node->check();
+        }
+    };
 
-public:
-
-    MergeTask(const NodeIPtr& node, const set<int>& s) : _node(node), _s(s) { }
-    virtual void runTimerTask()
+    class MergeTask : public IceUtil::TimerTask
     {
-        _node->merge(_s);
-    }
-};
+        const NodeIPtr _node;
+        const set<int> _s;
 
-class MergeContinueTask : public IceUtil::TimerTask
-{
-    const NodeIPtr _node;
+    public:
+        MergeTask(const NodeIPtr& node, const set<int>& s) : _node(node), _s(s)
+        {
+        }
+        virtual void runTimerTask()
+        {
+            _node->merge(_s);
+        }
+    };
 
-public:
-
-    MergeContinueTask(const NodeIPtr& node) : _node(node) { }
-    virtual void runTimerTask()
+    class MergeContinueTask : public IceUtil::TimerTask
     {
-        _node->mergeContinue();
-    }
-};
+        const NodeIPtr _node;
 
-class TimeoutTask: public IceUtil::TimerTask
-{
-    const NodeIPtr _node;
+    public:
+        MergeContinueTask(const NodeIPtr& node) : _node(node)
+        {
+        }
+        virtual void runTimerTask()
+        {
+            _node->mergeContinue();
+        }
+    };
 
-public:
-
-    TimeoutTask(const NodeIPtr& node) : _node(node) { }
-    virtual void runTimerTask()
+    class TimeoutTask : public IceUtil::TimerTask
     {
-        _node->timeout();
-    }
-};
+        const NodeIPtr _node;
 
-}
+    public:
+        TimeoutTask(const NodeIPtr& node) : _node(node)
+        {
+        }
+        virtual void runTimerTask()
+        {
+            _node->timeout();
+        }
+    };
+
+} // namespace
 
 namespace
 {
-
-LogUpdate emptyLU = {0, 0};
-
+    LogUpdate emptyLU = {0, 0};
 }
 
-GroupNodeInfo::GroupNodeInfo(int i) :
-    id(i), llu(emptyLU)
+GroupNodeInfo::GroupNodeInfo(int i) : id(i), llu(emptyLU)
 {
 }
 
-GroupNodeInfo::GroupNodeInfo(int i, LogUpdate l, const Ice::ObjectPrx& o) :
-    id(i), llu(l), observer(o)
+GroupNodeInfo::GroupNodeInfo(int i, LogUpdate l, const Ice::ObjectPrx& o) : id(i), llu(l), observer(o)
 {
 }
 
-bool
-GroupNodeInfo::operator<(const GroupNodeInfo& rhs) const
+bool GroupNodeInfo::operator<(const GroupNodeInfo& rhs) const
 {
     return id < rhs.id;
 }
 
-bool
-GroupNodeInfo::operator==(const GroupNodeInfo& rhs) const
+bool GroupNodeInfo::operator==(const GroupNodeInfo& rhs) const
 {
     return id == rhs.id;
 }
@@ -107,8 +104,7 @@ GroupNodeInfo::operator==(const GroupNodeInfo& rhs) const
 // COMPILER FIX: Clang using libc++ requires to define operator=
 //
 #if defined(__clang__) && defined(_LIBCPP_VERSION)
-GroupNodeInfo&
-GroupNodeInfo::operator=(const GroupNodeInfo& other)
+GroupNodeInfo& GroupNodeInfo::operator=(const GroupNodeInfo& other)
 
 {
     const_cast<int&>(this->id) = other.id;
@@ -120,42 +116,39 @@ GroupNodeInfo::operator=(const GroupNodeInfo& other)
 
 namespace
 {
-static IceUtil::Time
-getTimeout(const string& key, int def, const Ice::PropertiesPtr& properties, const TraceLevelsPtr& traceLevels)
-{
-    int t = properties->getPropertyAsIntWithDefault(key, def);
-    if(t < 0)
+    static IceUtil::Time getTimeout(const string& key, int def, const Ice::PropertiesPtr& properties,
+                                    const TraceLevelsPtr& traceLevels)
     {
-        Ice::Warning out(traceLevels->logger);
-        out << traceLevels->electionCat << ": " << key << " < 0; Adjusted to 1";
-        t = 1;
-    }
-    return IceUtil::Time::seconds(t);
-}
-
-static string
-toString(const set<int>& s)
-{
-    ostringstream os;
-    os << "(";
-    for(set<int>::const_iterator p = s.begin(); p != s.end(); ++p)
-    {
-        if(p != s.begin())
+        int t = properties->getPropertyAsIntWithDefault(key, def);
+        if(t < 0)
         {
-            os << ",";
+            Ice::Warning out(traceLevels->logger);
+            out << traceLevels->electionCat << ": " << key << " < 0; Adjusted to 1";
+            t = 1;
         }
-        os << *p;
+        return IceUtil::Time::seconds(t);
     }
-    os << ")";
-    return os.str();
-}
 
-}
+    static string toString(const set<int>& s)
+    {
+        ostringstream os;
+        os << "(";
+        for(set<int>::const_iterator p = s.begin(); p != s.end(); ++p)
+        {
+            if(p != s.begin())
+            {
+                os << ",";
+            }
+            os << *p;
+        }
+        os << ")";
+        return os.str();
+    }
 
-NodeI::NodeI(const InstancePtr& instance,
-             const ReplicaPtr& replica,
-             const Ice::ObjectPrx& replicaProxy,
-             int id, const map<int, NodePrx>& nodes) :
+} // namespace
+
+NodeI::NodeI(const InstancePtr& instance, const ReplicaPtr& replica, const Ice::ObjectPrx& replicaProxy, int id,
+             const map<int, NodePrx>& nodes) :
     _timer(instance->timer()),
     _traceLevels(instance->traceLevels()),
     _observers(instance->observers()),
@@ -174,19 +167,18 @@ NodeI::NodeI(const InstancePtr& instance,
     {
         oneway[p->first] = NodePrx::uncheckedCast(p->second->ice_oneway());
     }
-    const_cast<map<int, NodePrx>& >(_nodesOneway) = oneway;
+    const_cast<map<int, NodePrx>&>(_nodesOneway) = oneway;
 
     Ice::PropertiesPtr properties = instance->communicator()->getProperties();
-    const_cast<IceUtil::Time&>(_masterTimeout) = getTimeout(
-        instance->serviceName() + ".Election.MasterTimeout", 10, properties, _traceLevels);
-    const_cast<IceUtil::Time&>(_electionTimeout) = getTimeout(
-        instance->serviceName() + ".Election.ElectionTimeout", 10, properties, _traceLevels);
-    const_cast<IceUtil::Time&>(_mergeTimeout) = getTimeout(
-        instance->serviceName() + ".Election.ResponseTimeout", 10, properties, _traceLevels);
+    const_cast<IceUtil::Time&>(_masterTimeout) =
+        getTimeout(instance->serviceName() + ".Election.MasterTimeout", 10, properties, _traceLevels);
+    const_cast<IceUtil::Time&>(_electionTimeout) =
+        getTimeout(instance->serviceName() + ".Election.ElectionTimeout", 10, properties, _traceLevels);
+    const_cast<IceUtil::Time&>(_mergeTimeout) =
+        getTimeout(instance->serviceName() + ".Election.ResponseTimeout", 10, properties, _traceLevels);
 }
 
-void
-NodeI::start()
+void NodeI::start()
 {
     // As an optimization we want the initial election to occur as
     // soon as possible.
@@ -216,8 +208,7 @@ NodeI::start()
     recovery();
 }
 
-void
-NodeI::check()
+void NodeI::check()
 {
     {
         Lock sync(*this);
@@ -256,7 +247,7 @@ NodeI::check()
 
             // If we no longer have the majority of the nodes under our
             // care then we need to stop our replica.
-            if(_up.size() < _nodes.size()/2)
+            if(_up.size() < _nodes.size() / 2)
             {
                 if(_traceLevels->election > 0)
                 {
@@ -341,8 +332,7 @@ NodeI::check()
         if(_traceLevels->election > 0)
         {
             Ice::Trace out(_traceLevels->logger, _traceLevels->electionCat);
-            out << "node " << _id << ": scheduling merge in " << delay.toDuration()
-                << " seconds";
+            out << "node " << _id << ": scheduling merge in " << delay.toDuration() << " seconds";
         }
     }
 
@@ -352,8 +342,7 @@ NodeI::check()
 }
 
 // Called if the node has not heard from the coordinator in some time.
-void
-NodeI::timeout()
+void NodeI::timeout()
 {
     int myCoord;
     string myGroup;
@@ -400,8 +389,7 @@ NodeI::timeout()
     }
 }
 
-void
-NodeI::merge(const set<int>& coordinatorSet)
+void NodeI::merge(const set<int>& coordinatorSet)
 {
     set<int> invited;
     string gp;
@@ -502,7 +490,7 @@ NodeI::merge(const set<int>& coordinatorSet)
         // invitations, if so then we want to schedule the
         // mergeContinue immediately.
         IceUtil::Time timeout = _mergeTimeout;
-        if(_up.size() == _nodes.size()-1 || _invitesIssued == _invitesAccepted)
+        if(_up.size() == _nodes.size() - 1 || _invitesIssued == _invitesAccepted)
         {
             timeout = IceUtil::Time::seconds(0);
         }
@@ -510,8 +498,7 @@ NodeI::merge(const set<int>& coordinatorSet)
     }
 }
 
-void
-NodeI::mergeContinue()
+void NodeI::mergeContinue()
 {
     string gp;
     set<GroupNodeInfo> tmpSet;
@@ -536,7 +523,7 @@ NodeI::mergeContinue()
         if(_traceLevels->election > 0)
         {
             Ice::Trace out(_traceLevels->logger, _traceLevels->electionCat);
-            out << "node " << _id << ": coordinator for " << (tmpSet.size() +1) << " nodes (including myself)";
+            out << "node " << _id << ": coordinator for " << (tmpSet.size() + 1) << " nodes (including myself)";
         }
 
         // Now we need to decide whether we can start serving content. If
@@ -545,13 +532,13 @@ NodeI::mergeContinue()
         // need a majority of the nodes to be active in order to start
         // running.
         unsigned int ingroup = static_cast<unsigned int>(tmpSet.size());
-        if((_max != _nodes.size() && ingroup != _nodes.size() -1) || ingroup < _nodes.size()/2)
+        if((_max != _nodes.size() && ingroup != _nodes.size() - 1) || ingroup < _nodes.size() / 2)
         {
             if(_traceLevels->election > 0)
             {
                 Ice::Trace out(_traceLevels->logger, _traceLevels->electionCat);
-                out << "node " << _id << ": not enough nodes " << (ingroup+1) << "/" << _nodes.size()
-                     << " for replication to commence";
+                out << "node " << _id << ": not enough nodes " << (ingroup + 1) << "/" << _nodes.size()
+                    << " for replication to commence";
                 if(_max != _nodes.size())
                 {
                     out << " (require full participation for startup)";
@@ -565,7 +552,7 @@ NodeI::mergeContinue()
     // Find out who has the highest available set of database
     // updates.
     int maxid = -1;
-    LogUpdate maxllu = { -1, 0 };
+    LogUpdate maxllu = {-1, 0};
     for(set<GroupNodeInfo>::const_iterator p = tmpSet.begin(); p != tmpSet.end(); ++p)
     {
         if(_traceLevels->election > 0)
@@ -590,7 +577,7 @@ NodeI::mergeContinue()
 
     // If its not us then we have to get the latest database data from
     // the replica with the latest set.
-    //if(maxllu > _replica->getLastLogUpdate())
+    // if(maxllu > _replica->getLastLogUpdate())
     if(maxllu > myLlu)
     {
         if(_traceLevels->election > 0)
@@ -609,8 +596,7 @@ NodeI::mergeContinue()
             if(_traceLevels->election > 0)
             {
                 Ice::Trace out(_traceLevels->logger, _traceLevels->electionCat);
-                out << "node " << _id << ": syncing database state with node "
-                     << maxid << " failed: " << ex;
+                out << "node " << _id << ": syncing database state with node " << maxid << " failed: " << ex;
             }
             recovery();
             return;
@@ -689,7 +675,7 @@ NodeI::mergeContinue()
         {
             Ice::Trace out(_traceLevels->logger, _traceLevels->electionCat);
             out << "node " << _id << ": reporting for duty in group " << _group << " as coordinator. ";
-            out << "replication commencing with " << _up.size()+1 << "/" << _nodes.size()
+            out << "replication commencing with " << _up.size() + 1 << "/" << _nodes.size()
                 << " nodes with llu generation: " << maxllu.generation;
         }
         setState(NodeStateNormal);
@@ -703,8 +689,7 @@ NodeI::mergeContinue()
     }
 }
 
-void
-NodeI::invitation(int j, const string& gn, const Ice::Current&)
+void NodeI::invitation(int j, const string& gn, const Ice::Current&)
 {
     if(_traceLevels->election > 0)
     {
@@ -831,9 +816,8 @@ NodeI::invitation(int j, const string& gn, const Ice::Current&)
     }
 }
 
-void
-NodeI::ready(int j, const string& gn, const Ice::ObjectPrx& coordinator, int max, Ice::Long generation,
-             const Ice::Current&)
+void NodeI::ready(int j, const string& gn, const Ice::ObjectPrx& coordinator, int max, Ice::Long generation,
+                  const Ice::Current&)
 {
     Lock sync(*this);
     if(!_destroy && _state == NodeStateReorganization && _group == gn)
@@ -874,9 +858,8 @@ NodeI::ready(int j, const string& gn, const Ice::ObjectPrx& coordinator, int max
     }
 }
 
-void
-NodeI::accept(int j, const string& gn, const Ice::IntSeq& forwardedInvites, const Ice::ObjectPrx& observer,
-              const LogUpdate& llu, int max, const Ice::Current&)
+void NodeI::accept(int j, const string& gn, const Ice::IntSeq& forwardedInvites, const Ice::ObjectPrx& observer,
+                   const LogUpdate& llu, int max, const Ice::Current&)
 {
     // Verify that j exists in our node set.
     if(_nodes.find(j) == _nodes.end())
@@ -908,9 +891,8 @@ NodeI::accept(int j, const string& gn, const Ice::IntSeq& forwardedInvites, cons
                 }
                 out << *p;
             }
-            out << ") with llu "
-                << llu.generation << "/" << llu.iteration << " into group " << gn
-                << " group size " << (_up.size() + 1);
+            out << ") with llu " << llu.generation << "/" << llu.iteration << " into group " << gn << " group size "
+                << (_up.size() + 1);
         }
 
         // Add each of the forwarded invites to the list of issued
@@ -931,36 +913,32 @@ NodeI::accept(int j, const string& gn, const Ice::IntSeq& forwardedInvites, cons
         // merge task has already been scheduled then reschedule the
         // merge continue immediately. Otherwise, we let the existing
         // merge() schedule continue.
-        if((_up.size() == _nodes.size()-1 || _invitesIssued == _invitesAccepted) &&
-           _mergeContinueTask && _timer->cancel(_mergeContinueTask))
+        if((_up.size() == _nodes.size() - 1 || _invitesIssued == _invitesAccepted) && _mergeContinueTask &&
+           _timer->cancel(_mergeContinueTask))
         {
             _timer->schedule(_mergeContinueTask, IceUtil::Time::seconds(0));
         }
     }
 }
 
-bool
-NodeI::areYouCoordinator(const Ice::Current&) const
+bool NodeI::areYouCoordinator(const Ice::Current&) const
 {
     Lock sync(*this);
     return _state != NodeStateElection && _state != NodeStateReorganization && _coord == _id;
 }
 
-bool
-NodeI::areYouThere(const string& gn, int j, const Ice::Current&) const
+bool NodeI::areYouThere(const string& gn, int j, const Ice::Current&) const
 {
     Lock sync(*this);
     return _group == gn && _coord == _id && _up.find(GroupNodeInfo(j)) != _up.end();
 }
 
-Ice::ObjectPrx
-NodeI::sync(const Ice::Current&) const
+Ice::ObjectPrx NodeI::sync(const Ice::Current&) const
 {
     return _replica->getSync();
 }
 
-NodeInfoSeq
-NodeI::nodes(const Ice::Current&) const
+NodeInfoSeq NodeI::nodes(const Ice::Current&) const
 {
     NodeInfoSeq seq;
     for(map<int, NodePrx>::const_iterator q = _nodes.begin(); q != _nodes.end(); ++q)
@@ -974,8 +952,7 @@ NodeI::nodes(const Ice::Current&) const
     return seq;
 }
 
-QueryInfo
-NodeI::query(const Ice::Current&) const
+QueryInfo NodeI::query(const Ice::Current&) const
 {
     Lock sync(*this);
     QueryInfo info;
@@ -997,8 +974,7 @@ NodeI::query(const Ice::Current&) const
     return info;
 }
 
-void
-NodeI::recovery(Ice::Long generation)
+void NodeI::recovery(Ice::Long generation)
 {
     Lock sync(*this);
 
@@ -1051,8 +1027,7 @@ NodeI::recovery(Ice::Long generation)
     }
 }
 
-void
-NodeI::destroy()
+void NodeI::destroy()
 {
     Lock sync(*this);
     assert(!_destroy);
@@ -1086,8 +1061,7 @@ NodeI::destroy()
 
 // A node should only receive an observer init call if the node is
 // reorganizing and its not the coordinator.
-void
-NodeI::checkObserverInit(Ice::Long /*generation*/)
+void NodeI::checkObserverInit(Ice::Long /*generation*/)
 {
     Lock sync(*this);
     if(_state != NodeStateReorganization)
@@ -1101,8 +1075,7 @@ NodeI::checkObserverInit(Ice::Long /*generation*/)
 }
 
 // Notify the node that we're about to start an update.
-Ice::ObjectPrx
-NodeI::startUpdate(Ice::Long& generation, const char* file, int line)
+Ice::ObjectPrx NodeI::startUpdate(Ice::Long& generation, const char* file, int line)
 {
     bool majority = _observers->check();
 
@@ -1130,8 +1103,7 @@ NodeI::startUpdate(Ice::Long& generation, const char* file, int line)
     return _coordinatorProxy;
 }
 
-bool
-NodeI::updateMaster(const char* /*file*/, int /*line*/)
+bool NodeI::updateMaster(const char* /*file*/, int /*line*/)
 {
     bool majority = _observers->check();
 
@@ -1161,8 +1133,7 @@ NodeI::updateMaster(const char* /*file*/, int /*line*/)
     return true;
 }
 
-Ice::ObjectPrx
-NodeI::startCachedRead(Ice::Long& generation, const char* file, int line)
+Ice::ObjectPrx NodeI::startCachedRead(Ice::Long& generation, const char* file, int line)
 {
     Lock sync(*this);
     while(!_destroy && _state != NodeStateNormal)
@@ -1178,8 +1149,7 @@ NodeI::startCachedRead(Ice::Long& generation, const char* file, int line)
     return _coordinatorProxy;
 }
 
-void
-NodeI::startObserverUpdate(Ice::Long generation, const char* file, int line)
+void NodeI::startObserverUpdate(Ice::Long generation, const char* file, int line)
 {
     Lock sync(*this);
     if(_destroy)
@@ -1201,8 +1171,7 @@ NodeI::startObserverUpdate(Ice::Long generation, const char* file, int line)
     ++_updateCounter;
 }
 
-void
-NodeI::finishUpdate()
+void NodeI::finishUpdate()
 {
     Lock sync(*this);
     assert(!_destroy);
@@ -1216,34 +1185,31 @@ NodeI::finishUpdate()
 
 namespace
 {
-static string
-stateToString(NodeState s)
-{
-    switch(s)
+    static string stateToString(NodeState s)
     {
-    case NodeStateInactive:
-        return "inactive";
-    case NodeStateElection:
-        return "election";
-    case NodeStateReorganization:
-        return "reorganization";
-    case NodeStateNormal:
-        return "normal";
+        switch(s)
+        {
+            case NodeStateInactive:
+                return "inactive";
+            case NodeStateElection:
+                return "election";
+            case NodeStateReorganization:
+                return "reorganization";
+            case NodeStateNormal:
+                return "normal";
+        }
+        return "unknown";
     }
-    return "unknown";
-}
-}
+} // namespace
 
-void
-NodeI::setState(NodeState s)
+void NodeI::setState(NodeState s)
 {
     if(s != _state)
     {
         if(_traceLevels->election > 0)
         {
             Ice::Trace out(_traceLevels->logger, _traceLevels->electionCat);
-            out << "node " << _id << ": transition from " << stateToString(_state) << " to "
-                << stateToString(s);
+            out << "node " << _id << ": transition from " << stateToString(_state) << " to " << stateToString(s);
         }
         _state = s;
         if(_state == NodeStateNormal)

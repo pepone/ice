@@ -22,31 +22,26 @@ using namespace IcePatch2Internal;
 
 namespace IcePatch2
 {
+    class PatcherService : public Service
+    {
+    public:
+        PatcherService();
 
-class PatcherService : public Service
-{
-public:
+    protected:
+        virtual bool start(int, char* [], int&);
+        virtual bool stop();
 
-    PatcherService();
+    private:
+        void usage(const std::string&);
+    };
 
-protected:
-
-    virtual bool start(int, char*[], int&);
-    virtual bool stop();
-
-private:
-
-    void usage(const std::string&);
-};
-
-};
+}; // namespace IcePatch2
 
 IcePatch2::PatcherService::PatcherService()
 {
 }
 
-bool
-IcePatch2::PatcherService::start(int argc, char* argv[], int& status)
+bool IcePatch2::PatcherService::start(int argc, char* argv[], int& status)
 {
     PropertiesPtr properties = communicator()->getProperties();
 
@@ -143,28 +138,24 @@ IcePatch2::PatcherService::start(int argc, char* argv[], int& status)
     return true;
 }
 
-bool
-IcePatch2::PatcherService::stop()
+bool IcePatch2::PatcherService::stop()
 {
     return true;
 }
 
-void
-IcePatch2::PatcherService::usage(const string& appName)
+void IcePatch2::PatcherService::usage(const string& appName)
 {
-    string options =
-        "Options:\n"
-        "-h, --help           Show this message.\n"
-        "-v, --version        Display the Ice version.";
+    string options = "Options:\n"
+                     "-h, --help           Show this message.\n"
+                     "-v, --version        Display the Ice version.";
 #ifndef _WIN32
-    options.append(
-        "\n"
-        "\n"
-        "--daemon             Run as a daemon.\n"
-        "--pidfile FILE       Write process ID into FILE.\n"
-        "--noclose            Do not close open file descriptors."
+    options.append("\n"
+                   "\n"
+                   "--daemon             Run as a daemon.\n"
+                   "--pidfile FILE       Write process ID into FILE.\n"
+                   "--noclose            Do not close open file descriptors."
 
-        // --nochdir is intentionally not shown here. (See the comment in main().)
+                   // --nochdir is intentionally not shown here. (See the comment in main().)
     );
 #endif
     print("Usage: " + appName + " [options] [DIR]\n" + options);
@@ -172,8 +163,7 @@ IcePatch2::PatcherService::usage(const string& appName)
 
 #ifdef _WIN32
 
-int
-wmain(int argc, wchar_t* argv[])
+int wmain(int argc, wchar_t* argv[])
 {
     IcePatch2::PatcherService svc;
     int status = EXIT_FAILURE;
@@ -183,8 +173,7 @@ wmain(int argc, wchar_t* argv[])
 
 #else
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
     IcePatch2::PatcherService svc;
     int status = EXIT_FAILURE;

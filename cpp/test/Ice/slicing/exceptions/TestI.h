@@ -16,7 +16,6 @@
 class TestI : public virtual Test::TestIntf
 {
 public:
-
     TestI();
     virtual void baseAsBase(const ::Ice::Current&);
     virtual void unknownDerivedAsBase(const ::Ice::Current&);

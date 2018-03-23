@@ -13,19 +13,16 @@
 using namespace Test;
 using namespace std;
 
-PriorityI::PriorityI(const Ice::ObjectAdapterPtr& adapter) :
-    _adapter(adapter)
+PriorityI::PriorityI(const Ice::ObjectAdapterPtr& adapter) : _adapter(adapter)
 {
 }
 
-void
-PriorityI::shutdown(const Ice::Current&)
+void PriorityI::shutdown(const Ice::Current&)
 {
     _adapter->getCommunicator()->shutdown();
 }
 
-int
-PriorityI::getPriority(const Ice::Current&)
+int PriorityI::getPriority(const Ice::Current&)
 {
 #ifdef _WIN32
     return GetThreadPriority(GetCurrentThread());

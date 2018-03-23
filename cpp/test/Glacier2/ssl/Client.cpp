@@ -13,17 +13,15 @@
 
 using namespace std;
 using namespace Ice;
-//using namespace Test;
+// using namespace Test;
 
 class CallbackClient : public Application
 {
 public:
-
-    virtual int run(int, char*[]);
+    virtual int run(int, char* []);
 };
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
     //
     // We must disable connection warnings, because we attempt to ping
@@ -36,8 +34,7 @@ main(int argc, char* argv[])
     return app.main(argc, argv, initData);
 }
 
-int
-CallbackClient::run(int, char**)
+int CallbackClient::run(int, char**)
 {
     Glacier2::RouterPrx router = Glacier2::RouterPrx::uncheckedCast(
         communicator()->stringToProxy("Glacier2/router:" + getTestEndpoint(communicator(), 0, "tcp")));

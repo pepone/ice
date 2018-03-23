@@ -28,193 +28,187 @@
 
 namespace Ice
 {
-
-/**
- * Base class for marshaled result structures, which are generated for operations having the
- * marshaled-result metadata tag.
- * \headerfile Ice/Ice.h
- */
-class ICE_API MarshaledResult
-{
-public:
-
     /**
-     * The constructor requires the Current object that was passed to the servant.
+     * Base class for marshaled result structures, which are generated for operations having the
+     * marshaled-result metadata tag.
+     * \headerfile Ice/Ice.h
      */
-    MarshaledResult(const Current& current);
-
-    /**
-     * Obtains the output stream that is used to marshal the results.
-     * @return The output stream.
-     */
-    std::shared_ptr<OutputStream> getOutputStream() const
+    class ICE_API MarshaledResult
     {
-        return ostr;
-    }
+    public:
+        /**
+         * The constructor requires the Current object that was passed to the servant.
+         */
+        MarshaledResult(const Current& current);
 
-protected:
+        /**
+         * Obtains the output stream that is used to marshal the results.
+         * @return The output stream.
+         */
+        std::shared_ptr<OutputStream> getOutputStream() const
+        {
+            return ostr;
+        }
 
-    /** The output stream used to marshal the results. */
-    std::shared_ptr<OutputStream> ostr;
-};
+    protected:
+        /** The output stream used to marshal the results. */
+        std::shared_ptr<OutputStream> ostr;
+    };
 
-}
+} // namespace Ice
 
 #endif
 
 namespace IceInternal
 {
-
-class ICE_API IncomingBase : private IceUtil::noncopyable
-{
-public:
-
-    Ice::OutputStream* startWriteParams();
-    void endWriteParams();
-    void writeEmptyParams();
-    void writeParamEncaps(const Ice::Byte*, Ice::Int, bool);
+    class ICE_API IncomingBase : private IceUtil::noncopyable
+    {
+    public:
+        Ice::OutputStream* startWriteParams();
+        void endWriteParams();
+        void writeEmptyParams();
+        void writeParamEncaps(const Ice::Byte*, Ice::Int, bool);
 
 #ifdef ICE_CPP11_MAPPING
-    void setMarshaledResult(const Ice::MarshaledResult&);
+        void setMarshaledResult(const Ice::MarshaledResult&);
 #endif
 
-    void response(bool);
-    void exception(const std::exception&, bool);
-    void exception(const std::string&, bool);
+        void response(bool);
+        void exception(const std::exception&, bool);
+        void exception(const std::string&, bool);
 #if defined(_MSC_VER) && (_MSC_VER == 1500)
-    //
-    // COMPILERFIX VC90 get confused with overloads above
-    // when passing a const char* as first argument.
-    //
-    void exception(const char* msg, bool amd)
-    {
-        exception(std::string(msg), amd);
-    }
+        //
+        // COMPILERFIX VC90 get confused with overloads above
+        // when passing a const char* as first argument.
+        //
+        void exception(const char* msg, bool amd)
+        {
+            exception(std::string(msg), amd);
+        }
 #endif
 
-protected:
+    protected:
+        IncomingBase(Instance*, ResponseHandler*, Ice::Connection*, const Ice::ObjectAdapterPtr&, bool, Ice::Byte,
+                     Ice::Int);
+        IncomingBase(IncomingBase&);
 
-    IncomingBase(Instance*, ResponseHandler*, Ice::Connection*, const Ice::ObjectAdapterPtr&, bool, Ice::Byte, Ice::Int);
-    IncomingBase(IncomingBase&);
+        void warning(const Ice::Exception&) const;
+        void warning(const std::string&) const;
 
-    void warning(const Ice::Exception&) const;
-    void warning(const std::string&) const;
+        bool servantLocatorFinished(bool);
 
-    bool servantLocatorFinished(bool);
-
-    void handleException(const std::exception&, bool);
-    void handleException(const std::string&, bool);
+        void handleException(const std::exception&, bool);
+        void handleException(const std::string&, bool);
 
 #if defined(_MSC_VER) && (_MSC_VER == 1500)
-    //
-    // COMPILERFIX VC90 get confused with overloads above
-    // when passing a const char* as first argument.
-    //
-    void handleException(const char* msg, bool amd)
-    {
-        handleException(std::string(msg), amd);
-    }
-#endif
-
-    Ice::Current _current;
-    Ice::ObjectPtr _servant;
-    Ice::ServantLocatorPtr _locator;
-#ifdef ICE_CPP11_MAPPING
-    ::std::shared_ptr<void> _cookie;
-#else
-    Ice::LocalObjectPtr _cookie;
-#endif
-    DispatchObserver _observer;
-    bool _response;
-    Ice::Byte _compress;
-    Ice::FormatType _format;
-    Ice::OutputStream _os;
-
-    //
-    // Optimization. The request handler may not be deleted while a
-    // stack-allocated Incoming still holds it.
-    //
-    ResponseHandler* _responseHandler;
-
-#ifdef ICE_CPP11_MAPPING
-    using DispatchInterceptorCallbacks = std::deque<std::pair<std::function<bool()>,
-                                                              std::function<bool(std::exception_ptr)>>>;
-#else
-    typedef std::deque<Ice::DispatchInterceptorAsyncCallbackPtr> DispatchInterceptorCallbacks;
-#endif
-    DispatchInterceptorCallbacks _interceptorCBs;
-};
-
-class ICE_API Incoming : public IncomingBase
-{
-public:
-
-    Incoming(Instance*, ResponseHandler*, Ice::Connection*, const Ice::ObjectAdapterPtr&, bool, Ice::Byte, Ice::Int);
-
-    const Ice::Current& getCurrent()
-    {
-        return _current;
-    }
-
-#ifdef ICE_CPP11_MAPPING
-    void push(std::function<bool()>, std::function<bool(std::exception_ptr)>);
-#else
-    void push(const Ice::DispatchInterceptorAsyncCallbackPtr&);
-#endif
-    void pop();
-
-    void setAsync(const IncomingAsyncPtr& in)
-    {
-        assert(!_inAsync);
-        _inAsync = in;
-    }
-
-    void startOver();
-
-    void setFormat(Ice::FormatType format)
-    {
-        _format = format;
-    }
-
-    void invoke(const ServantManagerPtr&, Ice::InputStream*);
-
-    // Inlined for speed optimization.
-    void skipReadParams()
-    {
-        _current.encoding = _is->skipEncapsulation();
-    }
-    Ice::InputStream* startReadParams()
-    {
         //
-        // Remember the encoding used by the input parameters, we'll
-        // encode the response parameters with the same encoding.
+        // COMPILERFIX VC90 get confused with overloads above
+        // when passing a const char* as first argument.
         //
-        _current.encoding = _is->startEncapsulation();
-        return _is;
-    }
-    void endReadParams() const
+        void handleException(const char* msg, bool amd)
+        {
+            handleException(std::string(msg), amd);
+        }
+#endif
+
+        Ice::Current _current;
+        Ice::ObjectPtr _servant;
+        Ice::ServantLocatorPtr _locator;
+#ifdef ICE_CPP11_MAPPING
+        ::std::shared_ptr<void> _cookie;
+#else
+        Ice::LocalObjectPtr _cookie;
+#endif
+        DispatchObserver _observer;
+        bool _response;
+        Ice::Byte _compress;
+        Ice::FormatType _format;
+        Ice::OutputStream _os;
+
+        //
+        // Optimization. The request handler may not be deleted while a
+        // stack-allocated Incoming still holds it.
+        //
+        ResponseHandler* _responseHandler;
+
+#ifdef ICE_CPP11_MAPPING
+        using DispatchInterceptorCallbacks =
+            std::deque<std::pair<std::function<bool()>, std::function<bool(std::exception_ptr)>>>;
+#else
+        typedef std::deque<Ice::DispatchInterceptorAsyncCallbackPtr> DispatchInterceptorCallbacks;
+#endif
+        DispatchInterceptorCallbacks _interceptorCBs;
+    };
+
+    class ICE_API Incoming : public IncomingBase
     {
-        _is->endEncapsulation();
-    }
-    void readEmptyParams()
-    {
-        _current.encoding = _is->skipEmptyEncapsulation();
-    }
-    void readParamEncaps(const Ice::Byte*& v, Ice::Int& sz)
-    {
-        _current.encoding = _is->readEncapsulation(v, sz);
-    }
+    public:
+        Incoming(Instance*, ResponseHandler*, Ice::Connection*, const Ice::ObjectAdapterPtr&, bool, Ice::Byte,
+                 Ice::Int);
 
-private:
+        const Ice::Current& getCurrent()
+        {
+            return _current;
+        }
 
-    friend class IncomingAsync;
+#ifdef ICE_CPP11_MAPPING
+        void push(std::function<bool()>, std::function<bool(std::exception_ptr)>);
+#else
+        void push(const Ice::DispatchInterceptorAsyncCallbackPtr&);
+#endif
+        void pop();
 
-    Ice::InputStream* _is;
-    Ice::Byte* _inParamPos;
+        void setAsync(const IncomingAsyncPtr& in)
+        {
+            assert(!_inAsync);
+            _inAsync = in;
+        }
 
-    IncomingAsyncPtr _inAsync;
-};
+        void startOver();
 
-}
+        void setFormat(Ice::FormatType format)
+        {
+            _format = format;
+        }
+
+        void invoke(const ServantManagerPtr&, Ice::InputStream*);
+
+        // Inlined for speed optimization.
+        void skipReadParams()
+        {
+            _current.encoding = _is->skipEncapsulation();
+        }
+        Ice::InputStream* startReadParams()
+        {
+            //
+            // Remember the encoding used by the input parameters, we'll
+            // encode the response parameters with the same encoding.
+            //
+            _current.encoding = _is->startEncapsulation();
+            return _is;
+        }
+        void endReadParams() const
+        {
+            _is->endEncapsulation();
+        }
+        void readEmptyParams()
+        {
+            _current.encoding = _is->skipEmptyEncapsulation();
+        }
+        void readParamEncaps(const Ice::Byte*& v, Ice::Int& sz)
+        {
+            _current.encoding = _is->readEncapsulation(v, sz);
+        }
+
+    private:
+        friend class IncomingAsync;
+
+        Ice::InputStream* _is;
+        Ice::Byte* _inParamPos;
+
+        IncomingAsyncPtr _inAsync;
+    };
+
+} // namespace IceInternal
 
 #endif

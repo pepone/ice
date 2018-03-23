@@ -15,7 +15,6 @@
 class MyDerivedClassI : public Test::MyDerivedClass
 {
 public:
-
     MyDerivedClassI();
 #ifdef ICE_CPP11_MAPPING
     virtual std::shared_ptr<Ice::ObjectPrx> echo(std::shared_ptr<Ice::ObjectPrx>, const Ice::Current&);
@@ -28,7 +27,6 @@ public:
     virtual Ice::Context getContext(const Ice::Current&);
 
 private:
-
     mutable Ice::Context _ctx;
 };
 

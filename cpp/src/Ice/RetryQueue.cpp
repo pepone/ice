@@ -18,10 +18,12 @@ using namespace std;
 using namespace Ice;
 using namespace IceInternal;
 
-IceUtil::Shared* IceInternal::upCast(RetryQueue* p) { return p; }
+IceUtil::Shared* IceInternal::upCast(RetryQueue* p)
+{
+    return p;
+}
 
-IceInternal::RetryTask::RetryTask(const InstancePtr& instance,
-                                  const RetryQueuePtr& queue,
+IceInternal::RetryTask::RetryTask(const InstancePtr& instance, const RetryQueuePtr& queue,
                                   const ProxyOutgoingAsyncBasePtr& outAsync) :
     _instance(instance),
     _queue(queue),
@@ -29,8 +31,7 @@ IceInternal::RetryTask::RetryTask(const InstancePtr& instance,
 {
 }
 
-void
-IceInternal::RetryTask::runTimerTask()
+void IceInternal::RetryTask::runTimerTask()
 {
     _outAsync->retry(); // Retry again the invocation.
 
@@ -43,8 +44,7 @@ IceInternal::RetryTask::runTimerTask()
     _queue->remove(ICE_SHARED_FROM_THIS);
 }
 
-void
-IceInternal::RetryTask::asyncRequestCanceled(const OutgoingAsyncBasePtr& outAsync, const Ice::LocalException& ex)
+void IceInternal::RetryTask::asyncRequestCanceled(const OutgoingAsyncBasePtr& outAsync, const Ice::LocalException& ex)
 {
     if(_queue->cancel(ICE_SHARED_FROM_THIS))
     {
@@ -60,8 +60,7 @@ IceInternal::RetryTask::asyncRequestCanceled(const OutgoingAsyncBasePtr& outAsyn
     }
 }
 
-void
-IceInternal::RetryTask::destroy()
+void IceInternal::RetryTask::destroy()
 {
     try
     {
@@ -73,8 +72,7 @@ IceInternal::RetryTask::destroy()
     }
 }
 
-bool
-IceInternal::RetryTask::operator<(const RetryTask& rhs) const
+bool IceInternal::RetryTask::operator<(const RetryTask& rhs) const
 {
     return this < &rhs;
 }
@@ -83,8 +81,7 @@ IceInternal::RetryQueue::RetryQueue(const InstancePtr& instance) : _instance(ins
 {
 }
 
-void
-IceInternal::RetryQueue::add(const ProxyOutgoingAsyncBasePtr& out, int interval)
+void IceInternal::RetryQueue::add(const ProxyOutgoingAsyncBasePtr& out, int interval)
 {
     Lock sync(*this);
     if(!_instance)
@@ -104,8 +101,7 @@ IceInternal::RetryQueue::add(const ProxyOutgoingAsyncBasePtr& out, int interval)
     _requests.insert(task);
 }
 
-void
-IceInternal::RetryQueue::destroy()
+void IceInternal::RetryQueue::destroy()
 {
     Lock sync(*this);
     assert(_instance);
@@ -131,8 +127,7 @@ IceInternal::RetryQueue::destroy()
     }
 }
 
-void
-IceInternal::RetryQueue::remove(const RetryTaskPtr& task)
+void IceInternal::RetryQueue::remove(const RetryTaskPtr& task)
 {
     Lock sync(*this);
     assert(_requests.find(task) != _requests.end());
@@ -143,8 +138,7 @@ IceInternal::RetryQueue::remove(const RetryTaskPtr& task)
     }
 }
 
-bool
-IceInternal::RetryQueue::cancel(const RetryTaskPtr& task)
+bool IceInternal::RetryQueue::cancel(const RetryTaskPtr& task)
 {
     Lock sync(*this);
     if(_requests.erase(task) > 0)

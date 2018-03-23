@@ -21,37 +21,35 @@
 
 namespace IceInternal
 {
+    class DefaultsAndOverrides : public ::IceUtil::Shared
+    {
+    public:
+        DefaultsAndOverrides(const ::Ice::PropertiesPtr&, const ::Ice::LoggerPtr&);
 
-class DefaultsAndOverrides : public ::IceUtil::Shared
-{
-public:
+        std::string defaultHost;
+        Address defaultSourceAddress;
+        std::string defaultProtocol;
+        bool defaultCollocationOptimization;
+        Ice::EndpointSelectionType defaultEndpointSelection;
+        int defaultTimeout;
+        int defaultInvocationTimeout;
+        int defaultLocatorCacheTimeout;
+        bool defaultPreferSecure;
+        Ice::EncodingVersion defaultEncoding;
+        Ice::FormatType defaultFormat;
 
-    DefaultsAndOverrides(const ::Ice::PropertiesPtr&, const ::Ice::LoggerPtr&);
+        bool overrideTimeout;
+        Ice::Int overrideTimeoutValue;
+        bool overrideConnectTimeout;
+        Ice::Int overrideConnectTimeoutValue;
+        bool overrideCloseTimeout;
+        Ice::Int overrideCloseTimeoutValue;
+        bool overrideCompress;
+        bool overrideCompressValue;
+        bool overrideSecure;
+        bool overrideSecureValue;
+    };
 
-    std::string defaultHost;
-    Address defaultSourceAddress;
-    std::string defaultProtocol;
-    bool defaultCollocationOptimization;
-    Ice::EndpointSelectionType defaultEndpointSelection;
-    int defaultTimeout;
-    int defaultInvocationTimeout;
-    int defaultLocatorCacheTimeout;
-    bool defaultPreferSecure;
-    Ice::EncodingVersion defaultEncoding;
-    Ice::FormatType defaultFormat;
-
-    bool overrideTimeout;
-    Ice::Int overrideTimeoutValue;
-    bool overrideConnectTimeout;
-    Ice::Int overrideConnectTimeoutValue;
-    bool overrideCloseTimeout;
-    Ice::Int overrideCloseTimeoutValue;
-    bool overrideCompress;
-    bool overrideCompressValue;
-    bool overrideSecure;
-    bool overrideSecureValue;
-};
-
-}
+} // namespace IceInternal
 
 #endif

@@ -15,7 +15,6 @@
 class BackendI : public Test::Backend
 {
 public:
-
     virtual void shutdown(const Ice::Current&);
 };
 

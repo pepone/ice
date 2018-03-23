@@ -15,24 +15,22 @@ DEFINE_TEST("client")
 
 using namespace std;
 
-int
-run(int, char**, const Ice::CommunicatorPtr& communicator)
+int run(int, char**, const Ice::CommunicatorPtr& communicator)
 {
     void allTests(const Ice::CommunicatorPtr&);
     allTests(communicator);
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
 #ifdef ICE_STATIC_LIBS
     Ice::registerIceSSL(false);
     Ice::registerIceWS(true);
     Ice::registerIceUDP(true);
-#   if defined(__linux)
+#    if defined(__linux)
     Ice::registerIceBT(false);
-#   endif
+#    endif
 #endif
 
     try

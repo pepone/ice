@@ -18,7 +18,7 @@
 #include <cstring>
 
 #ifndef _MSC_VER
-#  include <unistd.h> // For readlink()
+#    include <unistd.h> // For readlink()
 #endif
 
 using namespace std;
@@ -27,68 +27,65 @@ using namespace IceUtilInternal;
 
 namespace
 {
+    string normalizePath(const string& path)
+    {
+        string result = path;
 
-string
-normalizePath(const string& path)
-{
-    string result = path;
+        replace(result.begin(), result.end(), '\\', '/');
 
-    replace(result.begin(), result.end(), '\\', '/');
-
-    string::size_type startReplace = 0;
+        string::size_type startReplace = 0;
 #ifdef _WIN32
-    //
-    // For UNC paths we need to ensure they are in the format that is
-    // returned by MCPP. IE. "//MACHINE/PATH"
-    //
-    if(result.find("//") == 0)
-    {
-        startReplace = 2;
-    }
+        //
+        // For UNC paths we need to ensure they are in the format that is
+        // returned by MCPP. IE. "//MACHINE/PATH"
+        //
+        if(result.find("//") == 0)
+        {
+            startReplace = 2;
+        }
 #endif
-    string::size_type pos;
-    while((pos = result.find("//", startReplace)) != string::npos)
-    {
-        result.replace(pos, 2, "/");
-    }
-    pos = 0;
-    while((pos = result.find("/./", pos)) != string::npos)
-    {
-        result.erase(pos, 2);
-    }
-    pos = 0;
-    while((pos = result.find("/..", pos)) != string::npos)
-    {
-        string::size_type last = result.find_last_of("/", pos - 1);
-        if(last != string::npos && result.substr(last, 4) != "/../")
+        string::size_type pos;
+        while((pos = result.find("//", startReplace)) != string::npos)
         {
-            result.erase(last, pos - last + 3);
-            pos = last;
+            result.replace(pos, 2, "/");
         }
-        else
+        pos = 0;
+        while((pos = result.find("/./", pos)) != string::npos)
         {
-            ++pos;
+            result.erase(pos, 2);
         }
+        pos = 0;
+        while((pos = result.find("/..", pos)) != string::npos)
+        {
+            string::size_type last = result.find_last_of("/", pos - 1);
+            if(last != string::npos && result.substr(last, 4) != "/../")
+            {
+                result.erase(last, pos - last + 3);
+                pos = last;
+            }
+            else
+            {
+                ++pos;
+            }
+        }
+
+        if(result.size() > 1) // Remove trailing "/" or "/."
+        {
+            if(result[result.size() - 1] == '/')
+            {
+                result.erase(result.size() - 1);
+            }
+            else if(result[result.size() - 2] == '/' && result[result.size() - 1] == '.')
+            {
+                result.erase(result.size() - (result.size() == 2 ? 1 : 2));
+            }
+        }
+        return result;
     }
 
-    if(result.size() > 1) // Remove trailing "/" or "/."
-    {
-        if(result[result.size() - 1] == '/')
-        {
-            result.erase(result.size() - 1);
-        }
-        else if(result[result.size() - 2] == '/' && result[result.size() - 1] == '.')
-        {
-            result.erase(result.size() - (result.size() == 2 ? 1 : 2));
-        }
-    }
-    return result;
-}
+} // namespace
 
-}
-
-string
-Slice::fullPath(const string& path)
+string Slice::fullPath(const string& path)
 {
     //
     // This function returns the canonicalized absolute pathname of
@@ -153,14 +150,12 @@ Slice::fullPath(const string& path)
         {
             beg = next;
         }
-    }
-    while(next != string::npos);
+    } while(next != string::npos);
     return result;
 #endif
 }
 
-string
-Slice::changeInclude(const string& p, const vector<string>& includePaths)
+string Slice::changeInclude(const string& p, const vector<string>& includePaths)
 {
     string path = normalizePath(p);
     //
@@ -215,8 +210,7 @@ Slice::changeInclude(const string& p, const vector<string>& includePaths)
     return result;
 }
 
-void
-Slice::emitError(const string& file, int line, const string& message)
+void Slice::emitError(const string& file, int line, const string& message)
 {
     if(!file.empty())
     {
@@ -230,8 +224,7 @@ Slice::emitError(const string& file, int line, const string& message)
     consoleErr << message << endl;
 }
 
-void
-Slice::emitWarning(const string& file, int line, const string& message)
+void Slice::emitWarning(const string& file, int line, const string& message)
 {
     if(!file.empty())
     {
@@ -245,8 +238,7 @@ Slice::emitWarning(const string& file, int line, const string& message)
     consoleErr << "warning: " << message << endl;
 }
 
-void
-Slice::emitError(const string& file, const std::string& line, const string& message)
+void Slice::emitError(const string& file, const std::string& line, const string& message)
 {
     if(!file.empty())
     {
@@ -260,8 +252,7 @@ Slice::emitError(const string& file, const std::string& line, const string& mess
     consoleErr << message << endl;
 }
 
-void
-Slice::emitWarning(const string& file, const std::string& line, const string& message)
+void Slice::emitWarning(const string& file, const std::string& line, const string& message)
 {
     if(!file.empty())
     {
@@ -275,21 +266,14 @@ Slice::emitWarning(const string& file, const std::string& line, const string& me
     consoleErr << "warning: " << message << endl;
 }
 
-void
-Slice::emitRaw(const char* message)
+void Slice::emitRaw(const char* message)
 {
     consoleErr << message << flush;
 }
 
-vector<string>
-Slice::filterMcppWarnings(const string& message)
+vector<string> Slice::filterMcppWarnings(const string& message)
 {
-    static const char* messages[] =
-    {
-        "Converted [CR+LF] to [LF]",
-        "no newline, supplemented newline",
-        0
-    };
+    static const char* messages[] = {"Converted [CR+LF] to [LF]", "no newline, supplemented newline", 0};
 
     static const string warningPrefix = "warning:";
     static const string fromPrefix = "from";
@@ -361,8 +345,7 @@ Slice::filterMcppWarnings(const string& message)
     return out;
 }
 
-void
-Slice::printGeneratedHeader(IceUtilInternal::Output& out, const string& path, const string& comment)
+void Slice::printGeneratedHeader(IceUtilInternal::Output& out, const string& path, const string& comment)
 {
     //
     // Get only the file name part of the given path.
@@ -376,16 +359,17 @@ Slice::printGeneratedHeader(IceUtilInternal::Output& out, const string& path, co
 
     out << comment << " <auto-generated>\n";
     out << comment << "\n";
-    out << comment << " Generated from file `" << file << "'" << "\n";
+    out << comment << " Generated from file `" << file << "'"
+        << "\n";
     out << comment << "\n";
-    out << comment << " Warning: do not edit this file." << "\n";
+    out << comment << " Warning: do not edit this file."
+        << "\n";
     out << comment << "\n";
     out << comment << " </auto-generated>\n";
     out << comment << "\n";
 }
 
-void
-Slice::writeDependencies(const string& dependencies, const string& dependFile)
+void Slice::writeDependencies(const string& dependencies, const string& dependFile)
 {
     if(dependFile.empty())
     {
@@ -406,8 +390,7 @@ Slice::writeDependencies(const string& dependencies, const string& dependFile)
 }
 
 #ifdef _WIN32
-vector<string>
-Slice::argvToArgs(int argc, wchar_t* argv[])
+vector<string> Slice::argvToArgs(int argc, wchar_t* argv[])
 {
     vector<string> args;
     for(int i = 0; i < argc; i++)
@@ -417,8 +400,7 @@ Slice::argvToArgs(int argc, wchar_t* argv[])
     return args;
 }
 #else
-vector<string>
-Slice::argvToArgs(int argc, char* argv[])
+vector<string> Slice::argvToArgs(int argc, char* argv[])
 {
     vector<string> args;
     for(int i = 0; i < argc; i++)

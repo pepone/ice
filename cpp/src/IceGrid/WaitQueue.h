@@ -17,46 +17,41 @@
 
 namespace IceGrid
 {
+    class WaitItem : public virtual IceUtil::Shared
+    {
+    public:
+        WaitItem();
+        virtual ~WaitItem();
 
-class WaitItem : public virtual IceUtil::Shared
-{
-public:
+        virtual void expired(bool) = 0;
 
-    WaitItem();
-    virtual ~WaitItem();
+        const IceUtil::Time& getExpirationTime();
+        void setExpirationTime(const IceUtil::Time&);
 
-    virtual void expired(bool) = 0;
+    private:
+        IceUtil::Time _expiration;
+    };
 
-    const IceUtil::Time& getExpirationTime();
-    void setExpirationTime(const IceUtil::Time&);
+    typedef IceUtil::Handle<WaitItem> WaitItemPtr;
 
-private:
+    class WaitQueue : public IceUtil::Thread, public IceUtil::Monitor<IceUtil::Mutex>
+    {
+    public:
+        WaitQueue();
 
-    IceUtil::Time _expiration;
-};
+        virtual void run();
+        void destroy();
 
-typedef IceUtil::Handle<WaitItem> WaitItemPtr;
+        void add(const WaitItemPtr&, const IceUtil::Time&);
+        bool remove(const WaitItemPtr&);
 
-class WaitQueue : public IceUtil::Thread, public IceUtil::Monitor< IceUtil::Mutex>
-{
-public:
+    private:
+        std::list<WaitItemPtr> _waitQueue;
+        bool _destroyed;
+    };
 
-    WaitQueue();
+    typedef IceUtil::Handle<WaitQueue> WaitQueuePtr;
 
-    virtual void run();
-    void destroy();
-
-    void add(const WaitItemPtr&, const IceUtil::Time&);
-    bool remove(const WaitItemPtr&);
-
-private:
-
-    std::list<WaitItemPtr> _waitQueue;
-    bool _destroyed;
-};
-
-typedef IceUtil::Handle<WaitQueue> WaitQueuePtr;
-
-}
+} // namespace IceGrid
 
 #endif

@@ -19,142 +19,141 @@
 
 namespace IceGrid
 {
+    class Database;
+    typedef IceUtil::Handle<Database> DatabasePtr;
 
-class Database;
-typedef IceUtil::Handle<Database> DatabasePtr;
+    class TraceLevels;
+    typedef IceUtil::Handle<TraceLevels> TraceLevelsPtr;
 
-class TraceLevels;
-typedef IceUtil::Handle<TraceLevels> TraceLevelsPtr;
+    class AllocationRequest;
+    typedef IceUtil::Handle<AllocationRequest> AllocationRequestPtr;
 
-class AllocationRequest;
-typedef IceUtil::Handle<AllocationRequest> AllocationRequestPtr;
+    class Allocatable;
+    typedef IceUtil::Handle<Allocatable> AllocatablePtr;
 
-class Allocatable;
-typedef IceUtil::Handle<Allocatable> AllocatablePtr;
+    class SessionI;
+    typedef IceUtil::Handle<SessionI> SessionIPtr;
 
-class SessionI;
-typedef IceUtil::Handle<SessionI> SessionIPtr;
+    class BaseSessionI : public virtual Ice::Object, public IceUtil::Mutex
+    {
+    public:
+        virtual ~BaseSessionI();
 
-class BaseSessionI : public virtual Ice::Object, public IceUtil::Mutex
-{
-public:
+        virtual void keepAlive(const Ice::Current&);
 
-    virtual ~BaseSessionI();
+        IceUtil::Time timestamp() const;
+        void shutdown();
+        Glacier2::IdentitySetPrx getGlacier2IdentitySet();
+        Glacier2::StringSetPrx getGlacier2AdapterIdSet();
 
-    virtual void keepAlive(const Ice::Current&);
+        const std::string& getId() const
+        {
+            return _id;
+        }
+        virtual void destroyImpl(bool);
 
-    IceUtil::Time timestamp() const;
-    void shutdown();
-    Glacier2::IdentitySetPrx getGlacier2IdentitySet();
-    Glacier2::StringSetPrx getGlacier2AdapterIdSet();
+    protected:
+        BaseSessionI(const std::string&, const std::string&, const DatabasePtr&);
 
-    const std::string& getId() const { return _id; }
-    virtual void destroyImpl(bool);
+        const std::string _id;
+        const std::string _prefix;
+        const TraceLevelsPtr _traceLevels;
+        const DatabasePtr _database;
+        SessionServantManagerPtr _servantManager;
+        bool _destroyed;
+        IceUtil::Time _timestamp;
+    };
+    typedef IceUtil::Handle<BaseSessionI> BaseSessionIPtr;
 
-protected:
+    class SessionDestroyedException
+    {
+    };
 
-    BaseSessionI(const std::string&, const std::string&, const DatabasePtr&);
+    class SessionI : public BaseSessionI, public Session
+    {
+    public:
+        SessionI(const std::string&, const DatabasePtr&, const IceUtil::TimerPtr&);
+        virtual ~SessionI();
 
-    const std::string _id;
-    const std::string _prefix;
-    const TraceLevelsPtr _traceLevels;
-    const DatabasePtr _database;
-    SessionServantManagerPtr _servantManager;
-    bool _destroyed;
-    IceUtil::Time _timestamp;
-};
-typedef IceUtil::Handle<BaseSessionI> BaseSessionIPtr;
+        Ice::ObjectPrx _register(const SessionServantManagerPtr&, const Ice::ConnectionPtr&);
 
-class SessionDestroyedException
-{
-};
+        virtual void keepAlive(const Ice::Current& current)
+        {
+            BaseSessionI::keepAlive(current);
+        }
 
-class SessionI : public BaseSessionI, public Session
-{
-public:
+        virtual void allocateObjectById_async(const AMD_Session_allocateObjectByIdPtr&, const Ice::Identity&,
+                                              const Ice::Current&);
+        virtual void allocateObjectByType_async(const AMD_Session_allocateObjectByTypePtr&, const std::string&,
+                                                const Ice::Current&);
+        virtual void releaseObject(const Ice::Identity&, const Ice::Current&);
+        virtual void setAllocationTimeout(int, const Ice::Current&);
+        virtual void destroy(const Ice::Current&);
 
-    SessionI(const std::string&, const DatabasePtr&, const IceUtil::TimerPtr&);
-    virtual ~SessionI();
+        int getAllocationTimeout() const;
+        const IceUtil::TimerPtr& getTimer() const
+        {
+            return _timer;
+        }
 
-    Ice::ObjectPrx _register(const SessionServantManagerPtr&, const Ice::ConnectionPtr&);
+        bool addAllocationRequest(const AllocationRequestPtr&);
+        void removeAllocationRequest(const AllocationRequestPtr&);
+        void addAllocation(const AllocatablePtr&);
+        void removeAllocation(const AllocatablePtr&);
 
-    virtual void keepAlive(const Ice::Current& current) { BaseSessionI::keepAlive(current); }
+    protected:
+        virtual void destroyImpl(bool);
 
-    virtual void allocateObjectById_async(const AMD_Session_allocateObjectByIdPtr&, const Ice::Identity&,
-                                          const Ice::Current&);
-    virtual void allocateObjectByType_async(const AMD_Session_allocateObjectByTypePtr&, const std::string&,
+        const IceUtil::TimerPtr _timer;
+        int _allocationTimeout;
+        std::set<AllocationRequestPtr> _requests;
+        std::set<AllocatablePtr> _allocations;
+    };
+
+    class ClientSessionFactory : public virtual IceUtil::Shared
+    {
+    public:
+        ClientSessionFactory(const SessionServantManagerPtr&, const DatabasePtr&, const IceUtil::TimerPtr&,
+                             const ReapThreadPtr&);
+
+        Glacier2::SessionPrx createGlacier2Session(const std::string&, const Glacier2::SessionControlPrx&);
+        SessionIPtr createSessionServant(const std::string&, const Glacier2::SessionControlPrx&);
+
+        const TraceLevelsPtr& getTraceLevels() const;
+
+    private:
+        const SessionServantManagerPtr _servantManager;
+        const DatabasePtr _database;
+        const IceUtil::TimerPtr _timer;
+        const ReapThreadPtr _reaper;
+        const bool _filters;
+    };
+    typedef IceUtil::Handle<ClientSessionFactory> ClientSessionFactoryPtr;
+
+    class ClientSessionManagerI : public virtual Glacier2::SessionManager
+    {
+    public:
+        ClientSessionManagerI(const ClientSessionFactoryPtr&);
+
+        virtual Glacier2::SessionPrx create(const std::string&, const Glacier2::SessionControlPrx&,
                                             const Ice::Current&);
-    virtual void releaseObject(const Ice::Identity&, const Ice::Current&);
-    virtual void setAllocationTimeout(int, const Ice::Current&);
-    virtual void destroy(const Ice::Current&);
 
-    int getAllocationTimeout() const;
-    const IceUtil::TimerPtr& getTimer() const { return _timer; }
+    private:
+        const ClientSessionFactoryPtr _factory;
+    };
 
-    bool addAllocationRequest(const AllocationRequestPtr&);
-    void removeAllocationRequest(const AllocationRequestPtr&);
-    void addAllocation(const AllocatablePtr&);
-    void removeAllocation(const AllocatablePtr&);
+    class ClientSSLSessionManagerI : public virtual Glacier2::SSLSessionManager
+    {
+    public:
+        ClientSSLSessionManagerI(const ClientSessionFactoryPtr&);
 
-protected:
+        virtual Glacier2::SessionPrx create(const Glacier2::SSLInfo&, const Glacier2::SessionControlPrx&,
+                                            const Ice::Current&);
 
-    virtual void destroyImpl(bool);
+    private:
+        const ClientSessionFactoryPtr _factory;
+    };
 
-    const IceUtil::TimerPtr _timer;
-    int _allocationTimeout;
-    std::set<AllocationRequestPtr> _requests;
-    std::set<AllocatablePtr> _allocations;
-};
-
-class ClientSessionFactory : public virtual IceUtil::Shared
-{
-public:
-
-    ClientSessionFactory(const SessionServantManagerPtr&, const DatabasePtr&, const IceUtil::TimerPtr&,
-                         const ReapThreadPtr&);
-
-    Glacier2::SessionPrx createGlacier2Session(const std::string&, const Glacier2::SessionControlPrx&);
-    SessionIPtr createSessionServant(const std::string&, const Glacier2::SessionControlPrx&);
-
-    const TraceLevelsPtr& getTraceLevels() const;
-
-private:
-
-    const SessionServantManagerPtr _servantManager;
-    const DatabasePtr _database;
-    const IceUtil::TimerPtr _timer;
-    const ReapThreadPtr _reaper;
-    const bool _filters;
-};
-typedef IceUtil::Handle<ClientSessionFactory> ClientSessionFactoryPtr;
-
-class ClientSessionManagerI : public virtual Glacier2::SessionManager
-{
-public:
-
-    ClientSessionManagerI(const ClientSessionFactoryPtr&);
-
-    virtual Glacier2::SessionPrx create(const std::string&, const Glacier2::SessionControlPrx&, const Ice::Current&);
-
-private:
-
-    const ClientSessionFactoryPtr _factory;
-};
-
-class ClientSSLSessionManagerI : public virtual Glacier2::SSLSessionManager
-{
-public:
-
-    ClientSSLSessionManagerI(const  ClientSessionFactoryPtr&);
-
-    virtual Glacier2::SessionPrx create(const Glacier2::SSLInfo&, const Glacier2::SessionControlPrx&,
-                                        const Ice::Current&);
-
-private:
-
-    const ClientSessionFactoryPtr _factory;
-};
-
-};
+}; // namespace IceGrid
 
 #endif

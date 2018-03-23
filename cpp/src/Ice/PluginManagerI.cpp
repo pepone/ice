@@ -20,33 +20,30 @@ using namespace std;
 using namespace Ice;
 using namespace IceInternal;
 
-const char * const Ice::PluginManagerI::_kindOfObject = "plugin";
+const char* const Ice::PluginManagerI::_kindOfObject = "plugin";
 
 namespace
 {
+    map<string, PluginFactory>* factories = 0;
+    vector<string>* loadOnInitialization = 0;
 
-map<string, PluginFactory>* factories = 0;
-vector<string>* loadOnInitialization = 0;
-
-class PluginFactoryDestroy
-{
-public:
-
-    ~PluginFactoryDestroy()
+    class PluginFactoryDestroy
     {
-        delete factories;
-        factories = 0;
+    public:
+        ~PluginFactoryDestroy()
+        {
+            delete factories;
+            factories = 0;
 
-        delete loadOnInitialization;
-        loadOnInitialization = 0;
-    }
-};
-PluginFactoryDestroy destroy;
+            delete loadOnInitialization;
+            loadOnInitialization = 0;
+        }
+    };
+    PluginFactoryDestroy destroy;
 
-}
+} // namespace
 
-void
-Ice::PluginManagerI::registerPluginFactory(const std::string& name, PluginFactory factory, bool loadOnInit)
+void Ice::PluginManagerI::registerPluginFactory(const std::string& name, PluginFactory factory, bool loadOnInit)
 {
     if(factories == 0)
     {
@@ -68,8 +65,7 @@ Ice::PluginManagerI::registerPluginFactory(const std::string& name, PluginFactor
     }
 }
 
-void
-Ice::PluginManagerI::initializePlugins()
+void Ice::PluginManagerI::initializePlugins()
 {
     if(_initialized)
     {
@@ -130,8 +126,7 @@ Ice::PluginManagerI::initializePlugins()
     _initialized = true;
 }
 
-StringSeq
-Ice::PluginManagerI::getPlugins() ICE_NOEXCEPT
+StringSeq Ice::PluginManagerI::getPlugins() ICE_NOEXCEPT
 {
     IceUtil::Mutex::Lock sync(*this);
 
@@ -143,8 +138,7 @@ Ice::PluginManagerI::getPlugins() ICE_NOEXCEPT
     return names;
 }
 
-PluginPtr
-Ice::PluginManagerI::getPlugin(const string& name)
+PluginPtr Ice::PluginManagerI::getPlugin(const string& name)
 {
     IceUtil::Mutex::Lock sync(*this);
 
@@ -162,8 +156,7 @@ Ice::PluginManagerI::getPlugin(const string& name)
     throw NotRegisteredException(__FILE__, __LINE__, _kindOfObject, name);
 }
 
-void
-Ice::PluginManagerI::addPlugin(const string& name, const PluginPtr& plugin)
+void Ice::PluginManagerI::addPlugin(const string& name, const PluginPtr& plugin)
 {
     IceUtil::Mutex::Lock sync(*this);
 
@@ -183,8 +176,7 @@ Ice::PluginManagerI::addPlugin(const string& name, const PluginPtr& plugin)
     _plugins.push_back(info);
 }
 
-void
-Ice::PluginManagerI::destroy() ICE_NOEXCEPT
+void Ice::PluginManagerI::destroy() ICE_NOEXCEPT
 {
     IceUtil::Mutex::Lock sync(*this);
 
@@ -192,7 +184,6 @@ Ice::PluginManagerI::destroy() ICE_NOEXCEPT
     {
         if(_initialized)
         {
-
             //
             // Destroy the plug-ins that have been successfully initialized, in the
             // reverse order.
@@ -240,8 +231,7 @@ Ice::PluginManagerI::PluginManagerI(const CommunicatorPtr& communicator, const D
 {
 }
 
-void
-Ice::PluginManagerI::loadPlugins(int& argc, const char* argv[])
+void Ice::PluginManagerI::loadPlugins(int& argc, const char* argv[])
 {
     assert(_communicator);
 
@@ -386,8 +376,7 @@ Ice::PluginManagerI::loadPlugins(int& argc, const char* argv[])
     stringSeqToArgs(cmdArgs, argc, argv);
 }
 
-void
-Ice::PluginManagerI::loadPlugin(const string& name, const string& pluginSpec, StringSeq& cmdArgs)
+void Ice::PluginManagerI::loadPlugin(const string& name, const string& pluginSpec, StringSeq& cmdArgs)
 {
     assert(_communicator);
 
@@ -405,8 +394,8 @@ Ice::PluginManagerI::loadPlugin(const string& name, const string& pluginSpec, St
         }
         catch(const IceUtilInternal::BadOptException& ex)
         {
-            throw PluginInitializationException(__FILE__, __LINE__, "invalid arguments for plug-in `" + name + "':\n" +
-                                                ex.reason);
+            throw PluginInitializationException(__FILE__, __LINE__,
+                                                "invalid arguments for plug-in `" + name + "':\n" + ex.reason);
         }
 
         assert(!args.empty());
@@ -466,8 +455,8 @@ Ice::PluginManagerI::loadPlugin(const string& name, const string& pluginSpec, St
         }
 
 #ifdef __IBMCPP__
-    // xlC warns when casting a void* to function pointer
-#   pragma report(disable, "1540-0216")
+        // xlC warns when casting a void* to function pointer
+#    pragma report(disable, "1540-0216")
 #endif
 
         factory = reinterpret_cast<PluginFactory>(sym);
@@ -494,8 +483,7 @@ Ice::PluginManagerI::loadPlugin(const string& name, const string& pluginSpec, St
     }
 }
 
-Ice::PluginPtr
-Ice::PluginManagerI::findPlugin(const string& name) const
+Ice::PluginPtr Ice::PluginManagerI::findPlugin(const string& name) const
 {
     for(PluginInfoList::const_iterator p = _plugins.begin(); p != _plugins.end(); ++p)
     {

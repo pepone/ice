@@ -31,7 +31,7 @@ int yyparse();
 // YYSTYPE, since YYSTYPE is a C++ type, with constructor, destructor,
 // assignment operator, etc.
 //
-#define YYMAXDEPTH  10000
+#define YYMAXDEPTH 10000
 #define YYINITDEPTH YYMAXDEPTH // Initial depth is set to max depth, for the reasons described above.
 
 //
@@ -42,75 +42,72 @@ int yyparse();
 
 namespace IceStorm
 {
-
-//
-// Forward declaration.
-//
-class Parser;
-typedef ::IceUtil::Handle<Parser> ParserPtr;
-
-class Parser : public ::IceUtil::SimpleShared
-{
-public:
-
-    static ParserPtr createParser(const Ice::CommunicatorPtr&, const TopicManagerPrx&,
-                                  const std::map<Ice::Identity, TopicManagerPrx>&);
-
-    void usage();
-
-    void create(const std::list<std::string>&);
-    void destroy(const std::list<std::string>&);
-    void link(const std::list<std::string>&);
-    void unlink(const std::list<std::string>&);
-    void links(const std::list<std::string>&);
-    void topics(const std::list<std::string>&);
-    void replica(const std::list<std::string>&);
-    void subscribers(const std::list<std::string>&);
-    void current(const std::list<std::string>&);
-
-    void showBanner();
-
     //
-    // With older flex version <= 2.5.35 YY_INPUT second
-    // paramenter is of type int&, in newer versions it
-    // changes to size_t&
+    // Forward declaration.
     //
-    void getInput(char*, int&, size_t);
-    void getInput(char*, size_t&, size_t);
+    class Parser;
+    typedef ::IceUtil::Handle<Parser> ParserPtr;
 
-    void continueLine();
-    const char* getPrompt();
+    class Parser : public ::IceUtil::SimpleShared
+    {
+    public:
+        static ParserPtr createParser(const Ice::CommunicatorPtr&, const TopicManagerPrx&,
+                                      const std::map<Ice::Identity, TopicManagerPrx>&);
 
-    void error(const char*);
-    void error(const std::string&);
+        void usage();
 
-    void warning(const char*);
-    void warning(const std::string&);
+        void create(const std::list<std::string>&);
+        void destroy(const std::list<std::string>&);
+        void link(const std::list<std::string>&);
+        void unlink(const std::list<std::string>&);
+        void links(const std::list<std::string>&);
+        void topics(const std::list<std::string>&);
+        void replica(const std::list<std::string>&);
+        void subscribers(const std::list<std::string>&);
+        void current(const std::list<std::string>&);
 
-    void invalidCommand(const std::string&);
+        void showBanner();
 
-    int parse(FILE*, bool);
-    int parse(const std::string&, bool);
+        //
+        // With older flex version <= 2.5.35 YY_INPUT second
+        // paramenter is of type int&, in newer versions it
+        // changes to size_t&
+        //
+        void getInput(char*, int&, size_t);
+        void getInput(char*, size_t&, size_t);
 
-private:
+        void continueLine();
+        const char* getPrompt();
 
-    TopicManagerPrx findManagerById(const std::string&, std::string&) const;
-    TopicManagerPrx findManagerByCategory(const std::string&) const;
-    TopicPrx findTopic(const std::string&) const;
+        void error(const char*);
+        void error(const std::string&);
 
-    Parser(const Ice::CommunicatorPtr&, const TopicManagerPrx&, const std::map<Ice::Identity, TopicManagerPrx>&);
+        void warning(const char*);
+        void warning(const std::string&);
 
-    void exception(const Ice::Exception&, bool = false);
+        void invalidCommand(const std::string&);
 
-    const Ice::CommunicatorPtr _communicator;
-    TopicManagerPrx _defaultManager;
-    const std::map<Ice::Identity, TopicManagerPrx> _managers;
-    std::string _commands;
-    bool _continue;
-    int _errors;
-};
+        int parse(FILE*, bool);
+        int parse(const std::string&, bool);
 
-extern Parser* parser; // The current parser for bison/flex
+    private:
+        TopicManagerPrx findManagerById(const std::string&, std::string&) const;
+        TopicManagerPrx findManagerByCategory(const std::string&) const;
+        TopicPrx findTopic(const std::string&) const;
+
+        Parser(const Ice::CommunicatorPtr&, const TopicManagerPrx&, const std::map<Ice::Identity, TopicManagerPrx>&);
+
+        void exception(const Ice::Exception&, bool = false);
+
+        const Ice::CommunicatorPtr _communicator;
+        TopicManagerPrx _defaultManager;
+        const std::map<Ice::Identity, TopicManagerPrx> _managers;
+        std::string _commands;
+        bool _continue;
+        int _errors;
+    };
+
+    extern Parser* parser; // The current parser for bison/flex
 
 } // End namespace IceStorm
 

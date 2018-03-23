@@ -15,8 +15,7 @@ DEFINE_TEST("server");
 
 using namespace std;
 
-int
-run(int, char**, const Ice::CommunicatorPtr& communicator)
+int run(int, char**, const Ice::CommunicatorPtr& communicator)
 {
     string endpoints = getTestEndpoint(communicator, 0) + ":" + getTestEndpoint(communicator, 0, "udp");
     communicator->getProperties()->setProperty("TestAdapter.Endpoints", endpoints);
@@ -28,8 +27,7 @@ run(int, char**, const Ice::CommunicatorPtr& communicator)
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
 #ifdef ICE_STATIC_LIBS
     Ice::registerIceSSL(false);
@@ -46,6 +44,6 @@ main(int argc, char* argv[])
     catch(const Ice::Exception& ex)
     {
         cerr << ex << endl;
-        return  EXIT_FAILURE;
+        return EXIT_FAILURE;
     }
 }

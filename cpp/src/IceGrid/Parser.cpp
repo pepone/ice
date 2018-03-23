@@ -19,8 +19,8 @@
 #include <IceBox/IceBox.h>
 
 #ifdef HAVE_READLINE
-#   include <readline/readline.h>
-#   include <readline/history.h>
+#    include <readline/readline.h>
+#    include <readline/history.h>
 #endif
 
 #include <iterator>
@@ -37,383 +37,283 @@ using namespace IceGrid;
 
 namespace
 {
+    const char* _commandsHelp[][3] = {
+        {"application", "add",
+         "application add [-n | --no-patch] DESC [TARGET ... ] [NAME=VALUE ... ]\n"
+         "                          Add application described in DESC. If specified\n"
+         "                          the optional targets TARGET will be deployed.\n"},
+        {"application", "remove", "application remove NAME   Remove application NAME.\n"},
+        {"application", "describe", "application describe NAME Describe application NAME.\n"},
+        {"application", "diff",
+         "application diff [-s | --servers] DESC [TARGET ... ] [NAME=VALUE ... ]\n"
+         "                          Print the differences betwen the application\n"
+         "                          described in DESC and the current deployment.\n"
+         "                          If -s or --servers is specified, print the\n"
+         "                          the list of servers affected by the differences.\n"},
+        {"application", "update",
+         "application update [-n | --no-restart] DESC [TARGET ... ] [NAME=VALUE ... ]\n"
+         "                          Update the application described in DESC. If -n or\n"
+         "                          --no-restart is specified, the update will fail if\n"
+         "                          it is necessary to stop some servers.\n"},
+        {"application", "patch",
+         "application patch [-f | --force] NAME\n"
+         "                          Patch the given application data. If -f or --force is\n"
+         "                          specified, the servers depending on the data to patch\n"
+         "                          will be stopped if necessary.\n"},
+        {"application", "list", "application list          List all deployed applications.\n"},
+        {"server template", "instantiate",
+         "server template instantiate APPLICATION NODE TEMPLATE [NAME=VALUE ...]\n"
+         "                          Instantiate a server template.\n"},
+        {"server template", "describe",
+         "server template describe APPLICATION TEMPLATE\n"
+         "                          Describe application server template TEMPLATE.\n"},
+        {"service template", "describe",
+         "service template describe APPLICATION TEMPLATE\n"
+         "                          Describe application service template TEMPLATE.\n"},
+        {"node", "list", "node list                 List all registered nodes.\n"},
+        {"node", "describe", "node describe NAME        Show information about node NAME.\n"},
+        {"node", "ping", "node ping NAME            Ping node NAME.\n"},
+        {"node", "load", "node load NAME            Print the load of the node NAME.\n"},
+        {"node", "sockets",
+         "node sockets [NAME]       Print the number of CPU sockets of the\n"
+         "                          node NAME or all the nodes if NAME is omitted.\n"},
+        {"node", "show",
+         "node show [OPTIONS] NAME [log | stderr | stdout]\n"
+         "                          Show node NAME Ice log, stderr or stdout.\n"
+         "                          Options:\n"
+         "                           -f | --follow: Wait for new data to be available\n"
+         "                           -t N | --tail N: Print the last N log messages or lines\n"
+         "                           -h N | --head N: Print the first N lines (stderr and stdout only)\n"},
+        {"node", "shutdown", "node shutdown NAME        Shutdown node NAME.\n"},
+        {"registry", "list", "registry list             List all registered registries.\n"},
+        {"registry", "describe", "registry describe NAME    Show information about registry NAME.\n"},
+        {"registry", "ping", "registry ping NAME        Ping registry NAME.\n"},
+        {"registry", "show",
+         "registry show [OPTIONS] NAME [log | stderr | stdout ]\n"
+         "                          Show registry NAME Ice log, stderr or stdout.\n"
+         "                          Options:\n"
+         "                           -f | --follow: Wait for new log or data to be available\n"
+         "                           -t N | --tail N: Print the last N log messages or lines\n"
+         "                           -h N | --head N: Print the first N lines (stderr and stdout only)\n"},
+        {"registry", "shutdown", "registry shutdown NAME    Shutdown registry NAME.\n"},
+        {"server", "list", "server list               List all registered servers.\n"},
+        {"server", "remove", "server remove ID          Remove server ID.\n"},
+        {"server", "describe", "server describe ID        Describe server ID.\n"},
+        {"server", "properties", "server properties ID      Get the run-time properties of server ID.\n"},
+        {"server", "property", "server property ID NAME   Get the run-time property NAME of server ID.\n"},
+        {"server", "state", "server state ID           Get the state of server ID.\n"},
+        {"server", "pid", "server pid ID             Get the process id of server ID.\n"},
+        {"server", "start", "server start ID           Start server ID.\n"},
+        {"server", "stop", "server stop ID            Stop server ID.\n"},
+        {"server", "patch", "server patch ID           Patch server ID.\n"},
+        {"server", "signal", "server signal ID SIGNAL   Send SIGNAL (e.g. SIGTERM or 15) to server ID.\n"},
+        {"server", "stdout", "server stdout ID MESSAGE  Write MESSAGE on server ID's stdout.\n"},
+        {"server", "stderr", "server stderr ID MESSAGE  Write MESSAGE on server ID's stderr.\n"},
+        {"server", "show",
+         "server show [OPTIONS] ID [log | stderr | stdout | LOGFILE ]\n"
+         "                          Show server ID Ice log, stderr, stdout or log file LOGFILE.\n"
+         "                          Options:\n"
+         "                           -f | --follow: Wait for new data to be available\n"
+         "                           -t N | --tail N: Print the last N log messages or lines\n"
+         "                           -h N | --head N: Print the first N lines (not available for Ice log)\n"},
+        {"server", "enable", "server enable ID          Enable server ID.\n"},
+        {"server", "disable",
+         "server disable ID         Disable server ID (a disabled server can't be\n"
+         "                          started on demand or administratively).\n"},
 
-const char* _commandsHelp[][3] = {
-{ "application", "add",
-"application add [-n | --no-patch] DESC [TARGET ... ] [NAME=VALUE ... ]\n"
-"                          Add application described in DESC. If specified\n"
-"                          the optional targets TARGET will be deployed.\n"
-},
-{ "application", "remove",
-"application remove NAME   Remove application NAME.\n"
-},
-{ "application", "describe",
-"application describe NAME Describe application NAME.\n"
-},
-{ "application", "diff",
-"application diff [-s | --servers] DESC [TARGET ... ] [NAME=VALUE ... ]\n"
-"                          Print the differences betwen the application\n"
-"                          described in DESC and the current deployment.\n"
-"                          If -s or --servers is specified, print the\n"
-"                          the list of servers affected by the differences.\n"
-},
-{ "application", "update",
-"application update [-n | --no-restart] DESC [TARGET ... ] [NAME=VALUE ... ]\n"
-"                          Update the application described in DESC. If -n or\n"
-"                          --no-restart is specified, the update will fail if\n"
-"                          it is necessary to stop some servers.\n"
-},
-{ "application", "patch",
-"application patch [-f | --force] NAME\n"
-"                          Patch the given application data. If -f or --force is\n"
-"                          specified, the servers depending on the data to patch\n"
-"                          will be stopped if necessary.\n"
-},
-{ "application", "list",
-"application list          List all deployed applications.\n"
-},
-{ "server template", "instantiate",
-"server template instantiate APPLICATION NODE TEMPLATE [NAME=VALUE ...]\n"
-"                          Instantiate a server template.\n"
-},
-{ "server template", "describe",
-"server template describe APPLICATION TEMPLATE\n"
-"                          Describe application server template TEMPLATE.\n"
-},
-{ "service template", "describe",
-"service template describe APPLICATION TEMPLATE\n"
-"                          Describe application service template TEMPLATE.\n"
-},
-{ "node", "list",
-"node list                 List all registered nodes.\n"
-},
-{ "node", "describe",
-"node describe NAME        Show information about node NAME.\n"
-},
-{ "node", "ping",
-"node ping NAME            Ping node NAME.\n"
-},
-{ "node", "load",
-"node load NAME            Print the load of the node NAME.\n"
-},
-{ "node", "sockets",
-"node sockets [NAME]       Print the number of CPU sockets of the\n"
-"                          node NAME or all the nodes if NAME is omitted.\n"
-},
-{ "node", "show",
-"node show [OPTIONS] NAME [log | stderr | stdout]\n"
-"                          Show node NAME Ice log, stderr or stdout.\n"
-"                          Options:\n"
-"                           -f | --follow: Wait for new data to be available\n"
-"                           -t N | --tail N: Print the last N log messages or lines\n"
-"                           -h N | --head N: Print the first N lines (stderr and stdout only)\n"
-},
-{ "node", "shutdown",
-"node shutdown NAME        Shutdown node NAME.\n"
-},
-{ "registry", "list",
-"registry list             List all registered registries.\n"
-},
-{ "registry", "describe",
-"registry describe NAME    Show information about registry NAME.\n"
-},
-{ "registry", "ping",
-"registry ping NAME        Ping registry NAME.\n"
-},
-{ "registry", "show",
-"registry show [OPTIONS] NAME [log | stderr | stdout ]\n"
-"                          Show registry NAME Ice log, stderr or stdout.\n"
-"                          Options:\n"
-"                           -f | --follow: Wait for new log or data to be available\n"
-"                           -t N | --tail N: Print the last N log messages or lines\n"
-"                           -h N | --head N: Print the first N lines (stderr and stdout only)\n"
-},
-{ "registry", "shutdown",
-"registry shutdown NAME    Shutdown registry NAME.\n"
-},
-{ "server", "list",
-"server list               List all registered servers.\n"
-},
-{ "server", "remove",
-"server remove ID          Remove server ID.\n"
-},
-{ "server", "describe",
-"server describe ID        Describe server ID.\n"
-},
-{ "server", "properties",
-"server properties ID      Get the run-time properties of server ID.\n"
-},
-{ "server", "property",
-"server property ID NAME   Get the run-time property NAME of server ID.\n"
-},
-{ "server", "state",
-"server state ID           Get the state of server ID.\n"
-},
-{ "server", "pid",
-"server pid ID             Get the process id of server ID.\n"
-},
-{ "server", "start",
-"server start ID           Start server ID.\n"
-},
-{ "server", "stop",
-"server stop ID            Stop server ID.\n"
-},
-{ "server", "patch",
-"server patch ID           Patch server ID.\n"
-},
-{ "server", "signal",
-"server signal ID SIGNAL   Send SIGNAL (e.g. SIGTERM or 15) to server ID.\n"
-},
-{ "server", "stdout",
-"server stdout ID MESSAGE  Write MESSAGE on server ID's stdout.\n"
-},
-{ "server", "stderr",
-"server stderr ID MESSAGE  Write MESSAGE on server ID's stderr.\n"
-},
-{ "server", "show",
-"server show [OPTIONS] ID [log | stderr | stdout | LOGFILE ]\n"
-"                          Show server ID Ice log, stderr, stdout or log file LOGFILE.\n"
-"                          Options:\n"
-"                           -f | --follow: Wait for new data to be available\n"
-"                           -t N | --tail N: Print the last N log messages or lines\n"
-"                           -h N | --head N: Print the first N lines (not available for Ice log)\n"
-},
-{ "server", "enable",
-"server enable ID          Enable server ID.\n"
-},
-{ "server", "disable",
-"server disable ID         Disable server ID (a disabled server can't be\n"
-"                          started on demand or administratively).\n"
-},
+        {"service", "start", "service start ID NAME     Starts service NAME in IceBox server ID.\n"},
+        {"service", "stop", "service stop ID NAME      Stops service NAME in IceBox server ID.\n"},
+        {"service", "describe", "service describe ID NAME  Describes service NAME in IceBox server ID.\n"},
+        {"service", "properties",
+         "service properties ID NAME\n"
+         "                          Get the run-time properties of service NAME in\n"
+         "                          IceBox server ID.\n"},
+        {"service", "property",
+         "service property ID NAME PROPERTY\n"
+         "                          Get the run-time property PROPERTY of service NAME\n"
+         "                          from IceBox server ID.\n"},
+        {"service", "list", "service list ID           List the services in IceBox server ID.\n"},
 
-{ "service", "start",
-"service start ID NAME     Starts service NAME in IceBox server ID.\n"
-},
-{ "service", "stop",
-"service stop ID NAME      Stops service NAME in IceBox server ID.\n"
-},
-{ "service", "describe",
-"service describe ID NAME  Describes service NAME in IceBox server ID.\n"
-},
-{ "service", "properties",
-"service properties ID NAME\n"
-"                          Get the run-time properties of service NAME in\n"
-"                          IceBox server ID.\n"
-},
-{ "service", "property",
-"service property ID NAME PROPERTY\n"
-"                          Get the run-time property PROPERTY of service NAME\n"
-"                          from IceBox server ID.\n"
-},
-{ "service", "list",
-"service list ID           List the services in IceBox server ID.\n"
-},
+        {"adapter", "list", "adapter list              List all registered adapters.\n"},
+        {"adapter", "endpoints", "adapter endpoints ID      Show the endpoints of adapter or replica group ID.\n"},
+        {"adapter", "remove", "adapter remove ID         Remove adapter or replica group ID.\n"},
+        {"object", "add",
+         "object add PROXY [TYPE]   Add an object to the object registry,\n"
+         "                          optionally specifying its type.\n"},
+        {"object", "remove", "object remove IDENTITY    Remove an object from the object registry.\n"},
+        {"object", "find", "object find TYPE          Find all objects with the type TYPE.\n"},
+        {"object", "describe",
+         "object describe EXPR      Describe all registered objects whose stringified\n"
+         "                          identities match the expression EXPR. A trailing\n"
+         "                          wildcard is supported in EXPR, for example\n"
+         "                          \"object describe Ice*\".\n"},
+        {"object", "list",
+         "object list EXPR          List all registered objects whose stringified\n"
+         "                          identities match the expression EXPR. A trailing\n"
+         "                          wildcard is supported in EXPR, for example\n"
+         "                          \"object list Ice*\".\n"},
+        {0, 0, 0}};
 
-{ "adapter", "list",
-"adapter list              List all registered adapters.\n"
-},
-{ "adapter", "endpoints",
-"adapter endpoints ID      Show the endpoints of adapter or replica group ID.\n"
-},
-{ "adapter", "remove",
-"adapter remove ID         Remove adapter or replica group ID.\n"
-},
-{ "object", "add",
-"object add PROXY [TYPE]   Add an object to the object registry,\n"
-"                          optionally specifying its type.\n"
-},
-{ "object", "remove",
-"object remove IDENTITY    Remove an object from the object registry.\n"
-},
-{ "object", "find",
-"object find TYPE          Find all objects with the type TYPE.\n"
-},
-{ "object", "describe",
-"object describe EXPR      Describe all registered objects whose stringified\n"
-"                          identities match the expression EXPR. A trailing\n"
-"                          wildcard is supported in EXPR, for example\n"
-"                          \"object describe Ice*\".\n"
-},
-{ "object", "list",
-"object list EXPR          List all registered objects whose stringified\n"
-"                          identities match the expression EXPR. A trailing\n"
-"                          wildcard is supported in EXPR, for example\n"
-"                          \"object list Ice*\".\n"
-},
-{ 0, 0, 0 }
-};
-
-int loggerCallbackCount = 0;
+    int loggerCallbackCount = 0;
 
 #ifdef _WIN32
-Ice::StringConverterPtr windowsConsoleConverter = 0;
+    Ice::StringConverterPtr windowsConsoleConverter = 0;
 #endif
 
-void outputNewline()
-{
-    consoleOut << endl;
-}
-
-void flushOutput()
-{
-    consoleOut << flush;
-}
-
-void outputString(const string& s)
-{
-    consoleOut << s;
-}
-
-void writeMessage(const string& message, bool indent)
-{
-    string s = message;
-
-    if(indent)
+    void outputNewline()
     {
-        string::size_type idx = 0;
-        while((idx = s.find("\n", idx)) != string::npos)
-        {
-            s.insert(idx + 1, "   ");
-            ++idx;
-        }
+        consoleOut << endl;
     }
 
-    outputString(s);
-    outputNewline();
-    flushOutput();
-}
-
-void printLogMessage(const string& p, const Ice::LogMessage& logMessage)
-{
-    string prefix = p;
-
-    if(!prefix.empty())
+    void flushOutput()
     {
-        prefix += ": ";
+        consoleOut << flush;
     }
 
-    string timestamp = IceUtil::Time::microSeconds(logMessage.timestamp).toDateTime();
-
-    switch(logMessage.type)
+    void outputString(const string& s)
     {
-        case Ice::PrintMessage:
+        consoleOut << s;
+    }
+
+    void writeMessage(const string& message, bool indent)
+    {
+        string s = message;
+
+        if(indent)
         {
-            writeMessage(timestamp + " " + logMessage.message, false);
-            break;
-        }
-        case Ice::TraceMessage:
-        {
-            string s = "-- " + timestamp + " " + prefix;
-            if(!logMessage.traceCategory.empty())
+            string::size_type idx = 0;
+            while((idx = s.find("\n", idx)) != string::npos)
             {
-                s += logMessage.traceCategory + ": ";
+                s.insert(idx + 1, "   ");
+                ++idx;
             }
-            s += logMessage.message;
-            writeMessage(s, true);
-            break;
         }
-        case Ice::WarningMessage:
+
+        outputString(s);
+        outputNewline();
+        flushOutput();
+    }
+
+    void printLogMessage(const string& p, const Ice::LogMessage& logMessage)
+    {
+        string prefix = p;
+
+        if(!prefix.empty())
         {
-            writeMessage("!- " + timestamp + " " + prefix + "warning: " + logMessage.message, true);
-            break;
+            prefix += ": ";
         }
-        case Ice::ErrorMessage:
+
+        string timestamp = IceUtil::Time::microSeconds(logMessage.timestamp).toDateTime();
+
+        switch(logMessage.type)
         {
-            writeMessage("!! " + timestamp + " " + prefix + "error: " + logMessage.message, true);
-            break;
-        }
-        default:
-        {
-            assert(0);
+            case Ice::PrintMessage:
+            {
+                writeMessage(timestamp + " " + logMessage.message, false);
+                break;
+            }
+            case Ice::TraceMessage:
+            {
+                string s = "-- " + timestamp + " " + prefix;
+                if(!logMessage.traceCategory.empty())
+                {
+                    s += logMessage.traceCategory + ": ";
+                }
+                s += logMessage.message;
+                writeMessage(s, true);
+                break;
+            }
+            case Ice::WarningMessage:
+            {
+                writeMessage("!- " + timestamp + " " + prefix + "warning: " + logMessage.message, true);
+                break;
+            }
+            case Ice::ErrorMessage:
+            {
+                writeMessage("!! " + timestamp + " " + prefix + "error: " + logMessage.message, true);
+                break;
+            }
+            default:
+            {
+                assert(0);
+            }
         }
     }
-}
 
-class RemoteLoggerI : public Ice::RemoteLogger
-{
-public:
-
-    RemoteLoggerI();
-
-    virtual void init(const string&, const Ice::LogMessageSeq&, const Ice::Current&);
-    virtual void log(const Ice::LogMessage&, const Ice::Current&);
-
-    void destroy();
-
-private:
-
-    IceUtil::Monitor<IceUtil::Mutex> _monitor;
-    bool _initDone;
-    bool _destroyed;
-    string _prefix;
-};
-
-typedef IceUtil::Handle<RemoteLoggerI> RemoteLoggerIPtr;
-
-RemoteLoggerI::RemoteLoggerI() :
-    _initDone(false),
-    _destroyed(false)
-{
-}
-
-void
-RemoteLoggerI::init(const string& prefix, const Ice::LogMessageSeq& logMessages, const Ice::Current&)
-{
-    IceUtil::Monitor<IceUtil::Mutex>::Lock lock(_monitor);
-    if(!_destroyed)
+    class RemoteLoggerI : public Ice::RemoteLogger
     {
-        _prefix = prefix;
+    public:
+        RemoteLoggerI();
 
-        for(Ice::LogMessageSeq::const_iterator p = logMessages.begin(); p != logMessages.end(); ++p)
+        virtual void init(const string&, const Ice::LogMessageSeq&, const Ice::Current&);
+        virtual void log(const Ice::LogMessage&, const Ice::Current&);
+
+        void destroy();
+
+    private:
+        IceUtil::Monitor<IceUtil::Mutex> _monitor;
+        bool _initDone;
+        bool _destroyed;
+        string _prefix;
+    };
+
+    typedef IceUtil::Handle<RemoteLoggerI> RemoteLoggerIPtr;
+
+    RemoteLoggerI::RemoteLoggerI() : _initDone(false), _destroyed(false)
+    {
+    }
+
+    void RemoteLoggerI::init(const string& prefix, const Ice::LogMessageSeq& logMessages, const Ice::Current&)
+    {
+        IceUtil::Monitor<IceUtil::Mutex>::Lock lock(_monitor);
+        if(!_destroyed)
         {
-            printLogMessage(_prefix, *p);
-        }
+            _prefix = prefix;
 
-        _initDone = true;
+            for(Ice::LogMessageSeq::const_iterator p = logMessages.begin(); p != logMessages.end(); ++p)
+            {
+                printLogMessage(_prefix, *p);
+            }
+
+            _initDone = true;
+            _monitor.notifyAll();
+        }
+    }
+
+    void RemoteLoggerI::log(const Ice::LogMessage& logMessage, const Ice::Current&)
+    {
+        IceUtil::Monitor<IceUtil::Mutex>::Lock lock(_monitor);
+        while(!_initDone && !_destroyed)
+        {
+            _monitor.wait();
+        }
+        if(!_destroyed)
+        {
+            printLogMessage(_prefix, logMessage);
+        }
+    }
+
+    void RemoteLoggerI::destroy()
+    {
+        IceUtil::Monitor<IceUtil::Mutex>::Lock lock(_monitor);
+        _destroyed = true;
         _monitor.notifyAll();
     }
-}
 
-void
-RemoteLoggerI::log(const Ice::LogMessage& logMessage, const Ice::Current&)
-{
-    IceUtil::Monitor<IceUtil::Mutex>::Lock lock(_monitor);
-    while(!_initDone && !_destroyed)
-    {
-        _monitor.wait();
-    }
-    if(!_destroyed)
-    {
-        printLogMessage(_prefix, logMessage);
-    }
-}
-
-void
-RemoteLoggerI::destroy()
-{
-    IceUtil::Monitor<IceUtil::Mutex>::Lock lock(_monitor);
-    _destroyed = true;
-    _monitor.notifyAll();
-}
-
-}
+} // namespace
 
 namespace IceGrid
 {
-
-Parser* parser;
-
+    Parser* parser;
 }
 
-ParserPtr
-Parser::createParser(const CommunicatorPtr& communicator, const AdminSessionPrx& session, const AdminPrx& admin,
-                     bool interactive)
+ParserPtr Parser::createParser(const CommunicatorPtr& communicator, const AdminSessionPrx& session,
+                               const AdminPrx& admin, bool interactive)
 {
     return new Parser(communicator, session, admin, interactive);
 }
 
-void
-Parser::usage(const string& category, const string& command)
+void Parser::usage(const string& category, const string& command)
 {
     if(_helpCommands.find(category) == _helpCommands.end())
     {
@@ -429,8 +329,7 @@ Parser::usage(const string& category, const string& command)
     }
 }
 
-void
-Parser::usage(const string& category, const list<string>& args)
+void Parser::usage(const string& category, const list<string>& args)
 {
     if(args.empty())
     {
@@ -446,53 +345,47 @@ Parser::usage(const string& category, const list<string>& args)
     }
 }
 
-void
-Parser::usage()
+void Parser::usage()
 {
-     consoleOut <<
-         "help                        Print this message.\n"
-         "exit, quit                  Exit this program.\n"
-         "CATEGORY help               Print the help section of the given CATEGORY.\n"
-         "COMMAND help                Print the help of the given COMMAND.\n"
-         "\n"
-         "List of help categories:\n"
-         "\n"
-         "  application: commands to manage applications\n"
-         "  node: commands to manage nodes\n"
-         "  registry: commands to manage registries\n"
-         "  server: commands to manage servers\n"
-         "  service: commands to manage services\n"
-         "  adapter: commands to manage adapters\n"
-         "  object: commands to manage objects\n"
-         "  server template: commands to manage server templates\n"
-         "  service template: commands to manage service templates\n"
-         "\n";
+    consoleOut << "help                        Print this message.\n"
+                  "exit, quit                  Exit this program.\n"
+                  "CATEGORY help               Print the help section of the given CATEGORY.\n"
+                  "COMMAND help                Print the help of the given COMMAND.\n"
+                  "\n"
+                  "List of help categories:\n"
+                  "\n"
+                  "  application: commands to manage applications\n"
+                  "  node: commands to manage nodes\n"
+                  "  registry: commands to manage registries\n"
+                  "  server: commands to manage servers\n"
+                  "  service: commands to manage services\n"
+                  "  adapter: commands to manage adapters\n"
+                  "  object: commands to manage objects\n"
+                  "  server template: commands to manage server templates\n"
+                  "  service template: commands to manage service templates\n"
+                  "\n";
 }
 
-void
-Parser::interrupt()
+void Parser::interrupt()
 {
     Lock sync(*this);
     _interrupted = true;
     notifyAll();
 }
 
-bool
-Parser::interrupted() const
+bool Parser::interrupted() const
 {
     Lock sync(*this);
     return _interrupted;
 }
 
-void
-Parser::resetInterrupt()
+void Parser::resetInterrupt()
 {
     Lock sync(*this);
     _interrupted = false;
 }
 
-void
-Parser::checkInterrupted()
+void Parser::checkInterrupted()
 {
     if(!_interactive)
     {
@@ -504,8 +397,7 @@ Parser::checkInterrupted()
     }
 }
 
-void
-Parser::addApplication(const list<string>& origArgs)
+void Parser::addApplication(const list<string>& origArgs)
 {
     list<string> copyArgs = origArgs;
     copyArgs.push_front("icegridadmin");
@@ -581,8 +473,7 @@ Parser::addApplication(const list<string>& origArgs)
     }
 }
 
-void
-Parser::removeApplication(const list<string>& args)
+void Parser::removeApplication(const list<string>& args)
 {
     if(args.size() != 1)
     {
@@ -604,8 +495,7 @@ Parser::removeApplication(const list<string>& args)
     }
 }
 
-void
-Parser::describeApplication(const list<string>& args)
+void Parser::describeApplication(const list<string>& args)
 {
     if(args.size() < 1)
     {
@@ -632,8 +522,7 @@ Parser::describeApplication(const list<string>& args)
     }
 }
 
-void
-Parser::diffApplication(const list<string>& origArgs)
+void Parser::diffApplication(const list<string>& origArgs)
 {
     list<string> copyArgs = origArgs;
     copyArgs.push_front("icegridadmin");
@@ -657,7 +546,7 @@ Parser::diffApplication(const list<string>& origArgs)
 
     if(args.size() < 1)
     {
-        invalidCommand("application diff" , "requires at least one argument");
+        invalidCommand("application diff", "requires at least one argument");
         return;
     }
 
@@ -748,8 +637,7 @@ Parser::diffApplication(const list<string>& origArgs)
     }
 }
 
-void
-Parser::updateApplication(const list<string>& origArgs)
+void Parser::updateApplication(const list<string>& origArgs)
 {
     list<string> copyArgs = origArgs;
     copyArgs.push_front("icegridadmin");
@@ -818,8 +706,7 @@ Parser::updateApplication(const list<string>& origArgs)
     }
 }
 
-void
-Parser::patchApplication(const list<string>& origArgs)
+void Parser::patchApplication(const list<string>& origArgs)
 {
     list<string> copyArgs = origArgs;
     copyArgs.push_front("icegridadmin");
@@ -859,8 +746,7 @@ Parser::patchApplication(const list<string>& origArgs)
     }
 }
 
-void
-Parser::listAllApplications(const list<string>& args)
+void Parser::listAllApplications(const list<string>& args)
 {
     if(!args.empty())
     {
@@ -872,7 +758,7 @@ Parser::listAllApplications(const list<string>& args)
     {
         Ice::StringSeq names = _admin->getAllApplicationNames();
         ostringstream os;
-        copy(names.begin(), names.end(), ostream_iterator<string>(os,"\n"));
+        copy(names.begin(), names.end(), ostream_iterator<string>(os, "\n"));
         outputString(os.str());
     }
     catch(const Ice::Exception& ex)
@@ -881,8 +767,7 @@ Parser::listAllApplications(const list<string>& args)
     }
 }
 
-void
-Parser::describeServerTemplate(const list<string>& args)
+void Parser::describeServerTemplate(const list<string>& args)
 {
     if(args.size() != 2)
     {
@@ -935,8 +820,7 @@ Parser::describeServerTemplate(const list<string>& args)
     }
 }
 
-void
-Parser::instantiateServerTemplate(const list<string>& args)
+void Parser::instantiateServerTemplate(const list<string>& args)
 {
     if(args.size() < 3)
     {
@@ -972,8 +856,7 @@ Parser::instantiateServerTemplate(const list<string>& args)
     }
 }
 
-void
-Parser::describeServiceTemplate(const list<string>& args)
+void Parser::describeServiceTemplate(const list<string>& args)
 {
     if(args.size() != 2)
     {
@@ -1018,8 +901,7 @@ Parser::describeServiceTemplate(const list<string>& args)
     }
 }
 
-void
-Parser::describeNode(const list<string>& args)
+void Parser::describeNode(const list<string>& args)
 {
     if(args.size() != 1)
     {
@@ -1050,8 +932,7 @@ Parser::describeNode(const list<string>& args)
     }
 }
 
-void
-Parser::pingNode(const list<string>& args)
+void Parser::pingNode(const list<string>& args)
 {
     if(args.size() != 1)
     {
@@ -1076,8 +957,7 @@ Parser::pingNode(const list<string>& args)
     }
 }
 
-void
-Parser::printLoadNode(const list<string>& args)
+void Parser::printLoadNode(const list<string>& args)
 {
     if(args.size() != 1)
     {
@@ -1096,8 +976,7 @@ Parser::printLoadNode(const list<string>& args)
     }
 }
 
-void
-Parser::printNodeProcessorSockets(const list<string>& args)
+void Parser::printNodeProcessorSockets(const list<string>& args)
 {
     if(args.size() > 1)
     {
@@ -1121,7 +1000,7 @@ Parser::printNodeProcessorSockets(const list<string>& args)
         else
         {
             Ice::StringSeq names = _admin->getAllNodeNames();
-            map<string, pair< vector<string>, int> > processorSocketCounts;
+            map<string, pair<vector<string>, int>> processorSocketCounts;
             for(Ice::StringSeq::const_iterator p = names.begin(); p != names.end(); p++)
             {
                 try
@@ -1150,10 +1029,10 @@ Parser::printNodeProcessorSockets(const list<string>& args)
             os.flags(ios::left);
             os << setw(20) << "Hostname" << setw(20) << "| # of sockets" << setw(39) << "| Nodes" << endl;
             os << setw(79) << "=====================================================================" << endl;
-            for(map<string, pair< vector<string>, int> >::const_iterator q = processorSocketCounts.begin();
+            for(map<string, pair<vector<string>, int>>::const_iterator q = processorSocketCounts.begin();
                 q != processorSocketCounts.end(); ++q)
             {
-                os << setw(20) << setiosflags(ios::left) <<q->first;
+                os << setw(20) << setiosflags(ios::left) << q->first;
                 os << "| " << setw(18) << setiosflags(ios::left) << q->second.second;
                 os << "| " << setw(37) << setiosflags(ios::left) << toString(q->second.first);
                 os << endl;
@@ -1167,8 +1046,7 @@ Parser::printNodeProcessorSockets(const list<string>& args)
     }
 }
 
-void
-Parser::shutdownNode(const list<string>& args)
+void Parser::shutdownNode(const list<string>& args)
 {
     if(args.size() != 1)
     {
@@ -1186,8 +1064,7 @@ Parser::shutdownNode(const list<string>& args)
     }
 }
 
-void
-Parser::listAllNodes(const list<string>& args)
+void Parser::listAllNodes(const list<string>& args)
 {
     if(!args.empty())
     {
@@ -1199,7 +1076,7 @@ Parser::listAllNodes(const list<string>& args)
     {
         ostringstream os;
         Ice::StringSeq names = _admin->getAllNodeNames();
-        copy(names.begin(), names.end(), ostream_iterator<string>(os,"\n"));
+        copy(names.begin(), names.end(), ostream_iterator<string>(os, "\n"));
         consoleOut << os.str();
     }
     catch(const Ice::Exception& ex)
@@ -1208,8 +1085,7 @@ Parser::listAllNodes(const list<string>& args)
     }
 }
 
-void
-Parser::describeRegistry(const list<string>& args)
+void Parser::describeRegistry(const list<string>& args)
 {
     if(args.size() != 1)
     {
@@ -1235,8 +1111,7 @@ Parser::describeRegistry(const list<string>& args)
     }
 }
 
-void
-Parser::pingRegistry(const list<string>& args)
+void Parser::pingRegistry(const list<string>& args)
 {
     if(args.size() != 1)
     {
@@ -1261,8 +1136,7 @@ Parser::pingRegistry(const list<string>& args)
     }
 }
 
-void
-Parser::shutdownRegistry(const list<string>& args)
+void Parser::shutdownRegistry(const list<string>& args)
 {
     if(args.size() > 1)
     {
@@ -1287,8 +1161,7 @@ Parser::shutdownRegistry(const list<string>& args)
     }
 }
 
-void
-Parser::listAllRegistries(const list<string>& args)
+void Parser::listAllRegistries(const list<string>& args)
 {
     if(!args.empty())
     {
@@ -1300,7 +1173,7 @@ Parser::listAllRegistries(const list<string>& args)
     {
         ostringstream os;
         Ice::StringSeq names = _admin->getAllRegistryNames();
-        copy(names.begin(), names.end(), ostream_iterator<string>(os,"\n"));
+        copy(names.begin(), names.end(), ostream_iterator<string>(os, "\n"));
         consoleOut << os.str();
     }
     catch(const Ice::Exception& ex)
@@ -1309,8 +1182,7 @@ Parser::listAllRegistries(const list<string>& args)
     }
 }
 
-void
-Parser::removeServer(const list<string>& args)
+void Parser::removeServer(const list<string>& args)
 {
     if(args.size() != 1)
     {
@@ -1335,8 +1207,7 @@ Parser::removeServer(const list<string>& args)
     }
 }
 
-void
-Parser::startServer(const list<string>& args)
+void Parser::startServer(const list<string>& args)
 {
     if(args.size() != 1)
     {
@@ -1358,8 +1229,7 @@ Parser::startServer(const list<string>& args)
     }
 }
 
-void
-Parser::stopServer(const list<string>& args)
+void Parser::stopServer(const list<string>& args)
 {
     if(args.size() != 1)
     {
@@ -1381,8 +1251,7 @@ Parser::stopServer(const list<string>& args)
     }
 }
 
-void
-Parser::patchServer(const list<string>& origArgs)
+void Parser::patchServer(const list<string>& origArgs)
 {
     list<string> copyArgs = origArgs;
     copyArgs.push_front("icegridadmin");
@@ -1420,8 +1289,7 @@ Parser::patchServer(const list<string>& origArgs)
     }
 }
 
-void
-Parser::signalServer(const list<string>& args)
+void Parser::signalServer(const list<string>& args)
 {
     if(args.size() != 2)
     {
@@ -1441,8 +1309,7 @@ Parser::signalServer(const list<string>& args)
     }
 }
 
-void
-Parser::writeMessage(const list<string>& args, int fd)
+void Parser::writeMessage(const list<string>& args, int fd)
 {
     if(args.size() != 2)
     {
@@ -1458,7 +1325,7 @@ Parser::writeMessage(const list<string>& args, int fd)
         Ice::ObjectPrx serverAdmin = _admin->getServerAdmin(server);
         Ice::ProcessPrx process = Ice::ProcessPrx::uncheckedCast(serverAdmin, "Process");
 
-        process->writeMessage(*p,  fd);
+        process->writeMessage(*p, fd);
     }
     catch(const Ice::ObjectNotExistException&)
     {
@@ -1474,8 +1341,7 @@ Parser::writeMessage(const list<string>& args, int fd)
     }
 }
 
-void
-Parser::describeServer(const list<string>& args)
+void Parser::describeServer(const list<string>& args)
 {
     if(args.size() != 1)
     {
@@ -1506,8 +1372,7 @@ Parser::describeServer(const list<string>& args)
     }
 }
 
-void
-Parser::stateServer(const list<string>& args)
+void Parser::stateServer(const list<string>& args)
 {
     if(args.size() != 1)
     {
@@ -1521,45 +1386,45 @@ Parser::stateServer(const list<string>& args)
         string enabled = _admin->isServerEnabled(args.front()) ? "enabled" : "disabled";
         switch(state)
         {
-        case Inactive:
-        {
-            consoleOut << "inactive (" << enabled << ")" << endl;
-            break;
-        }
-        case Activating:
-        {
-            consoleOut << "activating (" << enabled << ")" << endl;
-            break;
-        }
-        case Active:
-        {
-            int pid = _admin->getServerPid(args.front());
-            consoleOut << "active (pid = " << pid << ", " << enabled << ")" << endl;
-            break;
-        }
-        case ActivationTimedOut:
-        {
-            int pid = _admin->getServerPid(args.front());
-            consoleOut << "activation timed out (pid = " << pid << ", " << enabled << ")" << endl;
-            break;
-        }
-        case Deactivating:
-        {
-            consoleOut << "deactivating (" << enabled << ")" << endl;
-            break;
-        }
-        case Destroying:
-        {
-            consoleOut << "destroying (" << enabled << ")" << endl;
-            break;
-        }
-        case Destroyed:
-        {
-            consoleOut << "destroyed (" << enabled << ")" << endl;
-            break;
-        }
-        default:
-            assert(false);
+            case Inactive:
+            {
+                consoleOut << "inactive (" << enabled << ")" << endl;
+                break;
+            }
+            case Activating:
+            {
+                consoleOut << "activating (" << enabled << ")" << endl;
+                break;
+            }
+            case Active:
+            {
+                int pid = _admin->getServerPid(args.front());
+                consoleOut << "active (pid = " << pid << ", " << enabled << ")" << endl;
+                break;
+            }
+            case ActivationTimedOut:
+            {
+                int pid = _admin->getServerPid(args.front());
+                consoleOut << "activation timed out (pid = " << pid << ", " << enabled << ")" << endl;
+                break;
+            }
+            case Deactivating:
+            {
+                consoleOut << "deactivating (" << enabled << ")" << endl;
+                break;
+            }
+            case Destroying:
+            {
+                consoleOut << "destroying (" << enabled << ")" << endl;
+                break;
+            }
+            case Destroyed:
+            {
+                consoleOut << "destroyed (" << enabled << ")" << endl;
+                break;
+            }
+            default:
+                assert(false);
         }
     }
     catch(const Ice::Exception& ex)
@@ -1568,8 +1433,7 @@ Parser::stateServer(const list<string>& args)
     }
 }
 
-void
-Parser::pidServer(const list<string>& args)
+void Parser::pidServer(const list<string>& args)
 {
     if(args.size() != 1)
     {
@@ -1595,8 +1459,7 @@ Parser::pidServer(const list<string>& args)
     }
 }
 
-void
-Parser::propertiesServer(const list<string>& args, bool single)
+void Parser::propertiesServer(const list<string>& args, bool single)
 {
     if(single && args.size() != 2)
     {
@@ -1642,8 +1505,7 @@ Parser::propertiesServer(const list<string>& args, bool single)
     }
 }
 
-void
-Parser::enableServer(const list<string>& args, bool enable)
+void Parser::enableServer(const list<string>& args, bool enable)
 {
     if(args.size() != 1)
     {
@@ -1668,8 +1530,7 @@ Parser::enableServer(const list<string>& args, bool enable)
     }
 }
 
-void
-Parser::listAllServers(const list<string>& args)
+void Parser::listAllServers(const list<string>& args)
 {
     if(!args.empty())
     {
@@ -1681,7 +1542,7 @@ Parser::listAllServers(const list<string>& args)
     {
         ostringstream os;
         Ice::StringSeq ids = _admin->getAllServerIds();
-        copy(ids.begin(), ids.end(), ostream_iterator<string>(os,"\n"));
+        copy(ids.begin(), ids.end(), ostream_iterator<string>(os, "\n"));
         consoleOut << os.str();
     }
     catch(const Ice::Exception& ex)
@@ -1690,8 +1551,7 @@ Parser::listAllServers(const list<string>& args)
     }
 }
 
-void
-Parser::startService(const list<string>& args)
+void Parser::startService(const list<string>& args)
 {
     if(args.size() != 2)
     {
@@ -1729,8 +1589,7 @@ Parser::startService(const list<string>& args)
     }
 }
 
-void
-Parser::stopService(const list<string>& args)
+void Parser::stopService(const list<string>& args)
 {
     if(args.size() != 2)
     {
@@ -1768,8 +1627,7 @@ Parser::stopService(const list<string>& args)
     }
 }
 
-void
-Parser::describeService(const list<string>& args)
+void Parser::describeService(const list<string>& args)
 {
     if(args.size() != 2)
     {
@@ -1816,8 +1674,7 @@ Parser::describeService(const list<string>& args)
     }
 }
 
-void
-Parser::propertiesService(const list<string>& args, bool single)
+void Parser::propertiesService(const list<string>& args, bool single)
 {
     if(single && args.size() != 3)
     {
@@ -1902,8 +1759,7 @@ Parser::propertiesService(const list<string>& args, bool single)
     }
 }
 
-void
-Parser::listServices(const list<string>& args)
+void Parser::listServices(const list<string>& args)
 {
     if(args.size() != 1)
     {
@@ -1935,8 +1791,7 @@ Parser::listServices(const list<string>& args)
     }
 }
 
-void
-Parser::endpointsAdapter(const list<string>& args)
+void Parser::endpointsAdapter(const list<string>& args)
 {
     if(args.size() != 1)
     {
@@ -1969,8 +1824,7 @@ Parser::endpointsAdapter(const list<string>& args)
     }
 }
 
-void
-Parser::removeAdapter(const list<string>& args)
+void Parser::removeAdapter(const list<string>& args)
 {
     if(args.size() != 1)
     {
@@ -1988,8 +1842,7 @@ Parser::removeAdapter(const list<string>& args)
     }
 }
 
-void
-Parser::listAllAdapters(const list<string>& args)
+void Parser::listAllAdapters(const list<string>& args)
 {
     if(!args.empty())
     {
@@ -2001,7 +1854,7 @@ Parser::listAllAdapters(const list<string>& args)
     {
         ostringstream os;
         Ice::StringSeq ids = _admin->getAllAdapterIds();
-        copy(ids.begin(), ids.end(), ostream_iterator<string>(os,"\n"));
+        copy(ids.begin(), ids.end(), ostream_iterator<string>(os, "\n"));
         consoleOut << os.str();
     }
     catch(const Ice::Exception& ex)
@@ -2010,8 +1863,7 @@ Parser::listAllAdapters(const list<string>& args)
     }
 }
 
-void
-Parser::addObject(const list<string>& args)
+void Parser::addObject(const list<string>& args)
 {
     if(args.size() != 1 && args.size() != 2)
     {
@@ -2041,8 +1893,7 @@ Parser::addObject(const list<string>& args)
     }
 }
 
-void
-Parser::removeObject(const list<string>& args)
+void Parser::removeObject(const list<string>& args)
 {
     if(args.size() != 1)
     {
@@ -2060,8 +1911,7 @@ Parser::removeObject(const list<string>& args)
     }
 }
 
-void
-Parser::findObject(const list<string>& args)
+void Parser::findObject(const list<string>& args)
 {
     if(args.size() != 1)
     {
@@ -2083,8 +1933,7 @@ Parser::findObject(const list<string>& args)
     }
 }
 
-void
-Parser::describeObject(const list<string>& args)
+void Parser::describeObject(const list<string>& args)
 {
     if(args.size() > 1)
     {
@@ -2117,9 +1966,9 @@ Parser::describeObject(const list<string>& args)
 
         for(ObjectInfoSeq::const_iterator p = objects.begin(); p != objects.end(); ++p)
         {
-            consoleOut << "proxy = `" << _communicator->proxyToString(p->proxy) << "' type = `" << p->type << "'" << endl;
+            consoleOut << "proxy = `" << _communicator->proxyToString(p->proxy) << "' type = `" << p->type << "'"
+                       << endl;
         }
-
     }
     catch(const Ice::Exception& ex)
     {
@@ -2127,8 +1976,7 @@ Parser::describeObject(const list<string>& args)
     }
 }
 
-void
-Parser::listObject(const list<string>& args)
+void Parser::listObject(const list<string>& args)
 {
     if(args.size() > 1)
     {
@@ -2159,8 +2007,7 @@ Parser::listObject(const list<string>& args)
     }
 }
 
-void
-Parser::show(const string& reader, const list<string>& origArgs)
+void Parser::show(const string& reader, const list<string>& origArgs)
 {
     list<string> copyArgs = origArgs;
     copyArgs.push_front("icegridadmin");
@@ -2256,11 +2103,9 @@ Parser::show(const string& reader, const list<string>& origArgs)
     }
 }
 
-void
-Parser::showFile(const string& id, const string& reader, const string& filename,
-                 bool head, bool tail, bool follow, int lineCount)
+void Parser::showFile(const string& id, const string& reader, const string& filename, bool head, bool tail, bool follow,
+                      int lineCount)
 {
-
     int maxBytes = _communicator->getProperties()->getPropertyAsIntWithDefault("Ice.MessageSizeMax", 1024) * 1024;
 
     FileIteratorPrx it;
@@ -2403,8 +2248,7 @@ Parser::showFile(const string& id, const string& reader, const string& filename,
     }
 }
 
-void
-Parser::showLog(const string& id, const string& reader, bool tail, bool follow, int lineCount)
+void Parser::showLog(const string& id, const string& reader, bool tail, bool follow, int lineCount)
 {
     outputNewline();
 
@@ -2483,8 +2327,7 @@ Parser::showLog(const string& id, const string& reader, bool tail, bool follow, 
         id.category = adminCallbackTemplate->ice_getIdentity().category;
 
         RemoteLoggerIPtr servant = new RemoteLoggerI;
-        Ice::RemoteLoggerPrx prx =
-            Ice::RemoteLoggerPrx::uncheckedCast(adapter->add(servant, id));
+        Ice::RemoteLoggerPrx prx = Ice::RemoteLoggerPrx::uncheckedCast(adapter->add(servant, id));
         adapter->activate();
 
         loggerAdmin->attachRemoteLogger(prx, Ice::LogMessageTypeSeq(), Ice::StringSeq(), tail ? lineCount : -1);
@@ -2513,8 +2356,8 @@ Parser::showLog(const string& id, const string& reader, bool tail, bool follow, 
     else
     {
         string prefix;
-        const Ice::LogMessageSeq logMessages = loggerAdmin->getLog(Ice::LogMessageTypeSeq(), Ice::StringSeq(),
-                                                                   tail ? lineCount : -1, prefix);
+        const Ice::LogMessageSeq logMessages =
+            loggerAdmin->getLog(Ice::LogMessageTypeSeq(), Ice::StringSeq(), tail ? lineCount : -1, prefix);
 
         for(Ice::LogMessageSeq::const_iterator p = logMessages.begin(); p != logMessages.end(); ++p)
         {
@@ -2523,20 +2366,17 @@ Parser::showLog(const string& id, const string& reader, bool tail, bool follow, 
     }
 }
 
-void
-Parser::showBanner()
+void Parser::showBanner()
 {
     consoleOut << "Ice " << ICE_STRING_VERSION << "  Copyright (c) 2003-2018 ZeroC, Inc." << endl;
 }
 
-void
-Parser::showCopying()
+void Parser::showCopying()
 {
     consoleOut << "This command is not implemented." << endl;
 }
 
-void
-Parser::showWarranty()
+void Parser::showWarranty()
 {
     consoleOut << "This command is not implemented." << endl;
 }
@@ -2546,16 +2386,14 @@ Parser::showWarranty()
 // paramenter is of type int&, in newer versions it
 // changes to size_t&
 //
-void
-Parser::getInput(char* buf, int& result, size_t maxSize)
+void Parser::getInput(char* buf, int& result, size_t maxSize)
 {
     size_t r = static_cast<size_t>(result);
     getInput(buf, r, maxSize);
     result = static_cast<int>(r);
 }
 
-void
-Parser::getInput(char* buf, size_t& result, size_t maxSize)
+void Parser::getInput(char* buf, size_t& result, size_t maxSize)
 {
     if(!_commands.empty())
     {
@@ -2626,12 +2464,12 @@ Parser::getInput(char* buf, size_t& result, size_t maxSize)
                 break;
             }
         }
-#ifdef _WIN32
+#    ifdef _WIN32
         if(windowsConsoleConverter)
         {
             line = nativeToUTF8(line, windowsConsoleConverter);
         }
-#endif
+#    endif
         result = line.length();
         if(result > maxSize)
         {
@@ -2647,14 +2485,12 @@ Parser::getInput(char* buf, size_t& result, size_t maxSize)
     }
 }
 
-void
-Parser::continueLine()
+void Parser::continueLine()
 {
     _continue = true;
 }
 
-const char*
-Parser::getPrompt()
+const char* Parser::getPrompt()
 {
     assert(_commands.empty());
 
@@ -2669,26 +2505,22 @@ Parser::getPrompt()
     }
 }
 
-void
-Parser::invalidCommand(const char* s)
+void Parser::invalidCommand(const char* s)
 {
     error(s);
 }
 
-void
-Parser::invalidCommand(const string& s)
+void Parser::invalidCommand(const string& s)
 {
     error(s.c_str());
 }
 
-void
-Parser::invalidCommand(const string& command, const string& msg)
+void Parser::invalidCommand(const string& command, const string& msg)
 {
     error("`" + command + "' " + msg + "\n(`" + command + " help' for more info)");
 }
 
-void
-Parser::invalidCommand(const list<string>& s)
+void Parser::invalidCommand(const list<string>& s)
 {
     if(s.empty())
     {
@@ -2720,8 +2552,7 @@ Parser::invalidCommand(const list<string>& s)
     }
 }
 
-string
-Parser::patchFailed(const Ice::StringSeq& reasons)
+string Parser::patchFailed(const Ice::StringSeq& reasons)
 {
     if(reasons.size() == 1)
     {
@@ -2767,34 +2598,28 @@ Parser::patchFailed(const Ice::StringSeq& reasons)
     }
 }
 
-void
-Parser::error(const char* s)
+void Parser::error(const char* s)
 {
-
     consoleErr << "error: " << s << endl;
     _errors++;
 }
 
-void
-Parser::error(const string& s)
+void Parser::error(const string& s)
 {
     error(s.c_str());
 }
 
-void
-Parser::warning(const char* s)
+void Parser::warning(const char* s)
 {
     consoleErr << "warning: " << s << endl;
 }
 
-void
-Parser::warning(const string& s)
+void Parser::warning(const string& s)
 {
     warning(s.c_str());
 }
 
-int
-Parser::parse(FILE* file, bool debug)
+int Parser::parse(FILE* file, bool debug)
 {
     yydebug = debug ? 1 : 0;
 
@@ -2818,8 +2643,7 @@ Parser::parse(FILE* file, bool debug)
     return status;
 }
 
-int
-Parser::parse(const std::string& commands, bool debug)
+int Parser::parse(const std::string& commands, bool debug)
 {
     yydebug = debug ? 1 : 0;
 
@@ -2843,9 +2667,7 @@ Parser::parse(const std::string& commands, bool debug)
     return status;
 }
 
-Parser::Parser(const CommunicatorPtr& communicator,
-               const AdminSessionPrx& session,
-               const AdminPrx& admin,
+Parser::Parser(const CommunicatorPtr& communicator, const AdminSessionPrx& session, const AdminPrx& admin,
                bool interactive) :
     _communicator(communicator),
     _session(session),
@@ -2870,8 +2692,7 @@ Parser::Parser(const CommunicatorPtr& communicator,
 #endif
 }
 
-void
-Parser::exception(const Ice::Exception& ex)
+void Parser::exception(const Ice::Exception& ex)
 {
     try
     {

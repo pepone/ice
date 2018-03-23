@@ -15,67 +15,61 @@
 
 namespace IceUtilInternal
 {
-
-template<class T>
-class MutexPtrTryLock
-{
-public:
-
-    MutexPtrTryLock<T>(const T* mutex) :
-        _mutex(mutex),
-        _acquired(false)
+    template<class T> class MutexPtrTryLock
     {
-        if(_mutex)
+    public:
+        MutexPtrTryLock<T>(const T* mutex) : _mutex(mutex), _acquired(false)
         {
-            _acquired = _mutex->tryLock();
-        }
-    }
-
-    ~MutexPtrTryLock<T>()
-    {
-        if(_mutex && _acquired)
-        {
-            _mutex->unlock();
-        }
-    }
-
-    void acquire() const
-    {
-        if(_mutex)
-        {
-            _mutex->lock();
-            _acquired = true;
-        }
-    }
-
-    void release() const
-    {
-        if(_mutex)
-        {
-            if(!_acquired)
+            if(_mutex)
             {
-                throw IceUtil::ThreadLockedException(__FILE__, __LINE__);
+                _acquired = _mutex->tryLock();
             }
-            _mutex->unlock();
-            _acquired = false;
         }
-    }
 
-    bool acquired() const
-    {
-        return _acquired;
-    }
+        ~MutexPtrTryLock<T>()
+        {
+            if(_mutex && _acquired)
+            {
+                _mutex->unlock();
+            }
+        }
 
-private:
+        void acquire() const
+        {
+            if(_mutex)
+            {
+                _mutex->lock();
+                _acquired = true;
+            }
+        }
 
-    // Not implemented; prevents accidental use.
-    //
-    MutexPtrTryLock<T>(const MutexPtrTryLock&);
-    MutexPtrTryLock<T>& operator=(const MutexPtrTryLock<T>&);
+        void release() const
+        {
+            if(_mutex)
+            {
+                if(!_acquired)
+                {
+                    throw IceUtil::ThreadLockedException(__FILE__, __LINE__);
+                }
+                _mutex->unlock();
+                _acquired = false;
+            }
+        }
 
-    const T* _mutex;
-    mutable bool _acquired;
-};
+        bool acquired() const
+        {
+            return _acquired;
+        }
+
+    private:
+        // Not implemented; prevents accidental use.
+        //
+        MutexPtrTryLock<T>(const MutexPtrTryLock&);
+        MutexPtrTryLock<T>& operator=(const MutexPtrTryLock<T>&);
+
+        const T* _mutex;
+        mutable bool _acquired;
+    };
 
 } // End namespace IceUtilInternal
 

@@ -25,8 +25,7 @@ QueryI::~QueryI()
 {
 }
 
-Ice::ObjectPrx
-QueryI::findObjectById(const Ice::Identity& id, const Ice::Current&) const
+Ice::ObjectPrx QueryI::findObjectById(const Ice::Identity& id, const Ice::Current&) const
 {
     try
     {
@@ -38,26 +37,23 @@ QueryI::findObjectById(const Ice::Identity& id, const Ice::Current&) const
     }
 }
 
-Ice::ObjectPrx
-QueryI::findObjectByType(const string& type, const Ice::Current& current) const
+Ice::ObjectPrx QueryI::findObjectByType(const string& type, const Ice::Current& current) const
 {
     return _database->getObjectByType(type, current.con, current.ctx);
 }
 
-Ice::ObjectPrx
-QueryI::findObjectByTypeOnLeastLoadedNode(const string& type, LoadSample sample, const Ice::Current& current) const
+Ice::ObjectPrx QueryI::findObjectByTypeOnLeastLoadedNode(const string& type, LoadSample sample,
+                                                         const Ice::Current& current) const
 {
     return _database->getObjectByTypeOnLeastLoadedNode(type, sample, current.con, current.ctx);
 }
 
-Ice::ObjectProxySeq
-QueryI::findAllObjectsByType(const string& type, const Ice::Current& current) const
+Ice::ObjectProxySeq QueryI::findAllObjectsByType(const string& type, const Ice::Current& current) const
 {
     return _database->getObjectsByType(type, current.con, current.ctx);
 }
 
-Ice::ObjectProxySeq
-QueryI::findAllReplicas(const Ice::ObjectPrx& proxy, const Ice::Current& current) const
+Ice::ObjectProxySeq QueryI::findAllReplicas(const Ice::ObjectPrx& proxy, const Ice::Current& current) const
 {
     if(!proxy)
     {

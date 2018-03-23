@@ -20,7 +20,6 @@ using namespace Test;
 class SingleI : public Single, public IceUtil::Monitor<IceUtil::Mutex>
 {
 public:
-
     SingleI(const CommunicatorPtr& communicator, const string& name) :
         _communicator(communicator),
         _name(name),
@@ -29,11 +28,11 @@ public:
     {
     }
 
-    virtual void
-    event(int i, const Current& current)
+    virtual void event(int i, const Current& current)
     {
         if((_name == "default" || _name == "oneway" || _name == "batch" || _name == "datagram" ||
-            _name == "batch datagram") && current.requestId != 0)
+            _name == "batch datagram") &&
+           current.requestId != 0)
         {
             cerr << endl << "expected oneway request";
             test(false);
@@ -64,8 +63,7 @@ public:
         }
     }
 
-    virtual void
-    waitForEvents()
+    virtual void waitForEvents()
     {
         Lock sync(*this);
         cout << "testing " << _name << " ... " << flush;
@@ -101,7 +99,6 @@ public:
     }
 
 private:
-
     CommunicatorPtr _communicator;
     const string _name;
     int _count;
@@ -110,8 +107,7 @@ private:
 };
 typedef IceUtil::Handle<SingleI> SingleIPtr;
 
-int
-run(int, char* argv[], const CommunicatorPtr& communicator)
+int run(int, char* argv[], const CommunicatorPtr& communicator)
 {
     PropertiesPtr properties = communicator->getProperties();
     const char* managerProxyProperty = "IceStormAdmin.TopicManager.Default";
@@ -265,8 +261,7 @@ run(int, char* argv[], const CommunicatorPtr& communicator)
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
     int status;
     CommunicatorPtr communicator;

@@ -12,8 +12,7 @@
 
 using namespace std;
 
-IceUtil::RecMutex::RecMutex() :
-    _count(0)
+IceUtil::RecMutex::RecMutex() : _count(0)
 {
 #ifdef _WIN32
     init(PrioNone);
@@ -22,22 +21,20 @@ IceUtil::RecMutex::RecMutex() :
 #endif
 }
 
-IceUtil::RecMutex::RecMutex(const IceUtil::MutexProtocol protocol) :
-    _count(0)
+IceUtil::RecMutex::RecMutex(const IceUtil::MutexProtocol protocol) : _count(0)
 {
     init(protocol);
 }
 
 #ifdef _WIN32
 
-void
-IceUtil::RecMutex::init(const MutexProtocol)
+void IceUtil::RecMutex::init(const MutexProtocol)
 {
-#   ifdef ICE_OS_UWP
+#    ifdef ICE_OS_UWP
     InitializeCriticalSectionEx(&_mutex, 0, 0);
-#   else
+#    else
     InitializeCriticalSection(&_mutex);
-#   endif
+#    endif
 }
 
 IceUtil::RecMutex::~RecMutex()
@@ -46,8 +43,7 @@ IceUtil::RecMutex::~RecMutex()
     DeleteCriticalSection(&_mutex);
 }
 
-void
-IceUtil::RecMutex::lock() const
+void IceUtil::RecMutex::lock() const
 {
     EnterCriticalSection(&_mutex);
     if(++_count > 1)
@@ -56,8 +52,7 @@ IceUtil::RecMutex::lock() const
     }
 }
 
-bool
-IceUtil::RecMutex::tryLock() const
+bool IceUtil::RecMutex::tryLock() const
 {
     if(!TryEnterCriticalSection(&_mutex))
     {
@@ -70,8 +65,7 @@ IceUtil::RecMutex::tryLock() const
     return true;
 }
 
-void
-IceUtil::RecMutex::unlock() const
+void IceUtil::RecMutex::unlock() const
 {
     if(--_count == 0)
     {
@@ -79,41 +73,36 @@ IceUtil::RecMutex::unlock() const
     }
 }
 
-#   ifdef ICE_HAS_WIN32_CONDVAR
-void
-IceUtil::RecMutex::unlock(LockState& state) const
+#    ifdef ICE_HAS_WIN32_CONDVAR
+void IceUtil::RecMutex::unlock(LockState& state) const
 {
     state.mutex = &_mutex;
     state.count = _count;
     _count = 0;
 }
 
-void
-IceUtil::RecMutex::lock(LockState& state) const
+void IceUtil::RecMutex::lock(LockState& state) const
 {
     _count = state.count;
 }
-#   else
-void
-IceUtil::RecMutex::unlock(LockState& state) const
+#    else
+void IceUtil::RecMutex::unlock(LockState& state) const
 {
     state.count = _count;
     _count = 0;
     LeaveCriticalSection(&_mutex);
 }
 
-void
-IceUtil::RecMutex::lock(LockState& state) const
+void IceUtil::RecMutex::lock(LockState& state) const
 {
     EnterCriticalSection(&_mutex);
     _count = state.count;
 }
-#   endif
+#    endif
 
 #else
 
-void
-IceUtil::RecMutex::init(const MutexProtocol protocol)
+void IceUtil::RecMutex::init(const MutexProtocol protocol)
 {
     int rc;
     pthread_mutexattr_t attr;
@@ -133,7 +122,7 @@ IceUtil::RecMutex::init(const MutexProtocol protocol)
         throw ThreadSyscallException(__FILE__, __LINE__, rc);
     }
 
-#if defined(_POSIX_THREAD_PRIO_INHERIT) && _POSIX_THREAD_PRIO_INHERIT > 0
+#    if defined(_POSIX_THREAD_PRIO_INHERIT) && _POSIX_THREAD_PRIO_INHERIT > 0
     if(PrioInherit == protocol)
     {
         rc = pthread_mutexattr_setprotocol(&attr, PTHREAD_PRIO_INHERIT);
@@ -143,7 +132,7 @@ IceUtil::RecMutex::init(const MutexProtocol protocol)
             throw ThreadSyscallException(__FILE__, __LINE__, rc);
         }
     }
-#endif
+#    endif
 
     rc = pthread_mutex_init(&_mutex, &attr);
     assert(rc == 0);
@@ -164,16 +153,15 @@ IceUtil::RecMutex::init(const MutexProtocol protocol)
 IceUtil::RecMutex::~RecMutex()
 {
     assert(_count == 0);
-#ifndef NDEBUG
+#    ifndef NDEBUG
     int rc = pthread_mutex_destroy(&_mutex);
     assert(rc == 0);
-#else
+#    else
     pthread_mutex_destroy(&_mutex);
-#endif
+#    endif
 }
 
-void
-IceUtil::RecMutex::lock() const
+void IceUtil::RecMutex::lock() const
 {
     int rc = pthread_mutex_lock(&_mutex);
     if(rc != 0)
@@ -187,8 +175,7 @@ IceUtil::RecMutex::lock() const
     }
 }
 
-bool
-IceUtil::RecMutex::tryLock() const
+bool IceUtil::RecMutex::tryLock() const
 {
     int rc = pthread_mutex_trylock(&_mutex);
     bool result = (rc == 0);
@@ -210,38 +197,34 @@ IceUtil::RecMutex::tryLock() const
     return result;
 }
 
-void
-IceUtil::RecMutex::unlock() const
+void IceUtil::RecMutex::unlock() const
 {
     if(--_count == 0)
     {
-#ifndef NDEBUG
+#    ifndef NDEBUG
         int rc = pthread_mutex_unlock(&_mutex);
         assert(rc == 0);
-#else
+#    else
         pthread_mutex_unlock(&_mutex);
-#endif
+#    endif
     }
 }
 
-void
-IceUtil::RecMutex::unlock(LockState& state) const
+void IceUtil::RecMutex::unlock(LockState& state) const
 {
     state.mutex = &_mutex;
     state.count = _count;
     _count = 0;
 }
 
-void
-IceUtil::RecMutex::lock(LockState& state) const
+void IceUtil::RecMutex::lock(LockState& state) const
 {
     _count = state.count;
 }
 
 #endif
 
-bool
-IceUtil::RecMutex::willUnlock() const
+bool IceUtil::RecMutex::willUnlock() const
 {
     return _count == 1;
 }

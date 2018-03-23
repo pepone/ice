@@ -15,7 +15,7 @@
 
 #ifdef _WIN32
 
-#   ifdef ICE_HAS_WIN32_CONDVAR
+#    ifdef ICE_HAS_WIN32_CONDVAR
 
 IceUtil::Cond::Cond()
 {
@@ -26,19 +26,17 @@ IceUtil::Cond::~Cond()
 {
 }
 
-void
-IceUtil::Cond::signal()
+void IceUtil::Cond::signal()
 {
     WakeConditionVariable(&_cond);
 }
 
-void
-IceUtil::Cond::broadcast()
+void IceUtil::Cond::broadcast()
 {
     WakeAllConditionVariable(&_cond);
 }
 
-#   else
+#    else
 
 IceUtilInternal::Semaphore::Semaphore(long initial)
 {
@@ -54,8 +52,7 @@ IceUtilInternal::Semaphore::~Semaphore()
     CloseHandle(_sem);
 }
 
-void
-IceUtilInternal::Semaphore::wait() const
+void IceUtilInternal::Semaphore::wait() const
 {
     DWORD rc = WaitForSingleObject(_sem, INFINITE);
     if(rc != WAIT_OBJECT_0)
@@ -64,8 +61,7 @@ IceUtilInternal::Semaphore::wait() const
     }
 }
 
-bool
-IceUtilInternal::Semaphore::timedWait(const IceUtil::Time& timeout) const
+bool IceUtilInternal::Semaphore::timedWait(const IceUtil::Time& timeout) const
 {
     IceUtil::Int64 msTimeout = timeout.toMilliSeconds();
     if(msTimeout < 0 || msTimeout > 0x7FFFFFFF)
@@ -81,8 +77,7 @@ IceUtilInternal::Semaphore::timedWait(const IceUtil::Time& timeout) const
     return rc != WAIT_TIMEOUT;
 }
 
-void
-IceUtilInternal::Semaphore::post(int count) const
+void IceUtilInternal::Semaphore::post(int count) const
 {
     int rc = ReleaseSemaphore(_sem, count, 0);
     if(rc == 0)
@@ -119,11 +114,7 @@ IceUtilInternal::Semaphore::post(int count) const
 // this case, if we are not careful the _queue will have been posted,
 // but the waking thread may not consume the semaphore.
 //
-IceUtil::Cond::Cond() :
-    _gate(1),
-    _blocked(0),
-    _unblocked(0),
-    _state(IceUtil::Cond::StateIdle)
+IceUtil::Cond::Cond() : _gate(1), _blocked(0), _unblocked(0), _state(IceUtil::Cond::StateIdle)
 {
 }
 
@@ -131,20 +122,17 @@ IceUtil::Cond::~Cond()
 {
 }
 
-void
-IceUtil::Cond::signal()
+void IceUtil::Cond::signal()
 {
     wake(false);
 }
 
-void
-IceUtil::Cond::broadcast()
+void IceUtil::Cond::broadcast()
 {
     wake(true);
 }
 
-void
-IceUtil::Cond::wake(bool broadcast)
+void IceUtil::Cond::wake(bool broadcast)
 {
     //
     // Lock gate. The gate will be locked if there are threads waiting
@@ -203,8 +191,7 @@ IceUtil::Cond::wake(bool broadcast)
     }
 }
 
-void
-IceUtil::Cond::preWait() const
+void IceUtil::Cond::preWait() const
 {
     //
     // _gate is used to protect _blocked. Furthermore, this prevents
@@ -216,8 +203,7 @@ IceUtil::Cond::preWait() const
     _gate.post();
 }
 
-void
-IceUtil::Cond::postWait(bool timedOutOrFailed) const
+void IceUtil::Cond::postWait(bool timedOutOrFailed) const
 {
     IceUtil::Mutex::Lock sync(_internal);
 
@@ -287,8 +273,7 @@ IceUtil::Cond::postWait(bool timedOutOrFailed) const
     }
 }
 
-void
-IceUtil::Cond::dowait() const
+void IceUtil::Cond::dowait() const
 {
     try
     {
@@ -302,8 +287,7 @@ IceUtil::Cond::dowait() const
     }
 }
 
-bool
-IceUtil::Cond::timedDowait(const Time& timeout) const
+bool IceUtil::Cond::timedDowait(const Time& timeout) const
 {
     try
     {
@@ -332,13 +316,13 @@ IceUtil::Cond::Cond()
         throw ThreadSyscallException(__FILE__, __LINE__, rc);
     }
 
-#if !defined(__hppa) && !defined(__APPLE__)
+#    if !defined(__hppa) && !defined(__APPLE__)
     rc = pthread_condattr_setclock(&attr, CLOCK_MONOTONIC);
     if(rc != 0)
     {
         throw ThreadSyscallException(__FILE__, __LINE__, rc);
     }
-#endif
+#    endif
 
     rc = pthread_cond_init(&_cond, &attr);
     if(rc != 0)
@@ -355,16 +339,15 @@ IceUtil::Cond::Cond()
 
 IceUtil::Cond::~Cond()
 {
-#ifndef NDEBUG
+#    ifndef NDEBUG
     int rc = pthread_cond_destroy(&_cond);
     assert(rc == 0);
-#else
+#    else
     pthread_cond_destroy(&_cond);
-#endif
+#    endif
 }
 
-void
-IceUtil::Cond::signal()
+void IceUtil::Cond::signal()
 {
     int rc = pthread_cond_signal(&_cond);
     if(rc != 0)
@@ -373,8 +356,7 @@ IceUtil::Cond::signal()
     }
 }
 
-void
-IceUtil::Cond::broadcast()
+void IceUtil::Cond::broadcast()
 {
     int rc = pthread_cond_broadcast(&_cond);
     if(rc != 0)

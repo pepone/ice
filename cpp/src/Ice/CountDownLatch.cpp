@@ -10,8 +10,7 @@
 #include <IceUtil/CountDownLatch.h>
 #include <IceUtil/ThreadException.h>
 
-IceUtilInternal::CountDownLatch::CountDownLatch(int count) :
-    _count(count)
+IceUtilInternal::CountDownLatch::CountDownLatch(int count) : _count(count)
 {
     if(count < 0)
     {
@@ -19,14 +18,14 @@ IceUtilInternal::CountDownLatch::CountDownLatch(int count) :
     }
 
 #ifdef _WIN32
-#   ifndef ICE_OS_UWP
+#    ifndef ICE_OS_UWP
     _event = CreateEvent(0, TRUE, FALSE, 0);
-#   else
-    _event = CreateEventExW(0, 0,  CREATE_EVENT_MANUAL_RESET, SEMAPHORE_ALL_ACCESS);
-#   endif
+#    else
+    _event = CreateEventExW(0, 0, CREATE_EVENT_MANUAL_RESET, SEMAPHORE_ALL_ACCESS);
+#    endif
     if(_event == 0)
     {
-        throw  IceUtil::ThreadSyscallException(__FILE__, __LINE__, GetLastError());
+        throw IceUtil::ThreadSyscallException(__FILE__, __LINE__, GetLastError());
     }
 #else
     int rc = pthread_mutex_init(&_mutex, 0);
@@ -48,29 +47,28 @@ IceUtilInternal::CountDownLatch::~CountDownLatch()
 #ifdef _WIN32
     CloseHandle(_event);
 #else
-#  ifndef NDEBUG
+#    ifndef NDEBUG
     int rc = pthread_mutex_destroy(&_mutex);
     assert(rc == 0);
     rc = pthread_cond_destroy(&_cond);
     assert(rc == 0);
-#  else
+#    else
     pthread_mutex_destroy(&_mutex);
     pthread_cond_destroy(&_cond);
-#  endif
+#    endif
 #endif
 }
 
-void
-IceUtilInternal::CountDownLatch::await() const
+void IceUtilInternal::CountDownLatch::await() const
 {
 #ifdef _WIN32
     while(InterlockedExchangeAdd(&_count, 0) > 0)
     {
-#   ifndef ICE_OS_UWP
+#    ifndef ICE_OS_UWP
         DWORD rc = WaitForSingleObject(_event, INFINITE);
-#   else
+#    else
         DWORD rc = WaitForSingleObjectEx(_event, INFINITE, false);
-#   endif
+#    endif
         assert(rc == WAIT_OBJECT_0 || rc == WAIT_FAILED);
 
         if(rc == WAIT_FAILED)
@@ -94,8 +92,7 @@ IceUtilInternal::CountDownLatch::await() const
 #endif
 }
 
-void
-IceUtilInternal::CountDownLatch::countDown()
+void IceUtilInternal::CountDownLatch::countDown()
 {
 #ifdef _WIN32
     if(InterlockedDecrement(&_count) == 0)
@@ -113,7 +110,7 @@ IceUtilInternal::CountDownLatch::countDown()
     {
         broadcast = true;
     }
-#if defined(__APPLE__)
+#    if defined(__APPLE__)
     //
     // On macOS we do the broadcast with the mutex held. This seems to
     // be necessary to prevent the broadcast call to hang (spinning in
@@ -130,7 +127,7 @@ IceUtilInternal::CountDownLatch::countDown()
     }
     unlock();
 
-#else
+#    else
     unlock();
 
     if(broadcast)
@@ -141,13 +138,12 @@ IceUtilInternal::CountDownLatch::countDown()
             throw IceUtil::ThreadSyscallException(__FILE__, __LINE__, rc);
         }
     }
-#endif
+#    endif
 
 #endif
 }
 
-int
-IceUtilInternal::CountDownLatch::getCount() const
+int IceUtilInternal::CountDownLatch::getCount() const
 {
 #ifdef _WIN32
     int count = InterlockedExchangeAdd(&_count, 0);
@@ -161,8 +157,7 @@ IceUtilInternal::CountDownLatch::getCount() const
 }
 
 #ifndef _WIN32
-void
-IceUtilInternal::CountDownLatch::lock() const
+void IceUtilInternal::CountDownLatch::lock() const
 {
     int rc = pthread_mutex_lock(&_mutex);
     if(rc != 0)
@@ -171,8 +166,7 @@ IceUtilInternal::CountDownLatch::lock() const
     }
 }
 
-void
-IceUtilInternal::CountDownLatch::unlock() const
+void IceUtilInternal::CountDownLatch::unlock() const
 {
     int rc = pthread_mutex_unlock(&_mutex);
     if(rc != 0)

@@ -17,34 +17,31 @@
 
 namespace IceInternal
 {
+    class TcpConnector : public Connector
+    {
+    public:
+        virtual TransceiverPtr connect();
 
-class TcpConnector : public Connector
-{
-public:
+        virtual Ice::Short type() const;
+        virtual std::string toString() const;
 
-    virtual TransceiverPtr connect();
+        virtual bool operator==(const Connector&) const;
+        virtual bool operator<(const Connector&) const;
 
-    virtual Ice::Short type() const;
-    virtual std::string toString() const;
+    private:
+        TcpConnector(const ProtocolInstancePtr&, const Address&, const NetworkProxyPtr&, const Address&, Ice::Int,
+                     const std::string&);
+        virtual ~TcpConnector();
+        friend class TcpEndpointI;
 
-    virtual bool operator==(const Connector&) const;
-    virtual bool operator<(const Connector&) const;
+        const ProtocolInstancePtr _instance;
+        const Address _addr;
+        const NetworkProxyPtr _proxy;
+        const Address _sourceAddr;
+        const Ice::Int _timeout;
+        const std::string _connectionId;
+    };
 
-private:
-
-    TcpConnector(const ProtocolInstancePtr&, const Address&, const NetworkProxyPtr&, const Address&, Ice::Int,
-                 const std::string&);
-    virtual ~TcpConnector();
-    friend class TcpEndpointI;
-
-    const ProtocolInstancePtr _instance;
-    const Address _addr;
-    const NetworkProxyPtr _proxy;
-    const Address _sourceAddr;
-    const Ice::Int _timeout;
-    const std::string _connectionId;
-};
-
-}
+} // namespace IceInternal
 
 #endif

@@ -14,87 +14,81 @@
 
 namespace IceInternal
 {
-
 #ifdef ICE_CPP11_MAPPING
 
-template<typename T>
-using UniquePtr = std::unique_ptr<T>;
+    template<typename T> using UniquePtr = std::unique_ptr<T>;
 
 #else
 
-template<typename T>
-class UniquePtr
-{
-public:
-
-    explicit UniquePtr(T* ptr = 0) :
-        _ptr(ptr)
+    template<typename T> class UniquePtr
     {
-    }
-
-    ~UniquePtr()
-    {
-        if(_ptr != 0)
+    public:
+        explicit UniquePtr(T* ptr = 0) : _ptr(ptr)
         {
-            delete _ptr;
         }
-    }
 
-    T* release()
-    {
-        T* r = _ptr;
-        _ptr = 0;
-        return r;
-    }
-
-    void reset(T* ptr = 0)
-    {
-        assert(ptr == 0 || ptr != _ptr);
-
-        if(_ptr != 0)
+        ~UniquePtr()
         {
-            delete _ptr;
+            if(_ptr != 0)
+            {
+                delete _ptr;
+            }
         }
-        _ptr = ptr;
-    }
 
-    T& operator*() const
-    {
-        return *_ptr;
-    }
+        T* release()
+        {
+            T* r = _ptr;
+            _ptr = 0;
+            return r;
+        }
 
-    T* operator->() const
-    {
-        return _ptr;
-    }
+        void reset(T* ptr = 0)
+        {
+            assert(ptr == 0 || ptr != _ptr);
 
-    T* get() const
-    {
-        return _ptr;
-    }
+            if(_ptr != 0)
+            {
+                delete _ptr;
+            }
+            _ptr = ptr;
+        }
 
-    operator bool() const
-    {
-        return _ptr != 0;
-    }
+        T& operator*() const
+        {
+            return *_ptr;
+        }
 
-    void swap(UniquePtr& a)
-    {
-        T* tmp = a._ptr;
-        a._ptr = _ptr;
-        _ptr = tmp;
-    }
+        T* operator->() const
+        {
+            return _ptr;
+        }
 
-private:
+        T* get() const
+        {
+            return _ptr;
+        }
 
-    UniquePtr(UniquePtr&);
-    UniquePtr& operator=(UniquePtr&);
+        operator bool() const
+        {
+            return _ptr != 0;
+        }
 
-    T* _ptr;
-};
+        void swap(UniquePtr& a)
+        {
+            T* tmp = a._ptr;
+            a._ptr = _ptr;
+            _ptr = tmp;
+        }
+
+    private:
+        UniquePtr(UniquePtr&);
+        UniquePtr& operator=(UniquePtr&);
+
+        T* _ptr;
+    };
 
 #endif
 
-}
+} // namespace IceInternal
 
 #endif

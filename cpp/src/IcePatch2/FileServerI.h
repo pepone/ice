@@ -15,47 +15,32 @@
 
 namespace IcePatch2
 {
+    class FileServerI : public FileServer
+    {
+    public:
+        FileServerI(const std::string&, const LargeFileInfoSeq&);
 
-class FileServerI : public FileServer
-{
-public:
+        FileInfoSeq getFileInfoSeq(Ice::Int, const Ice::Current&) const;
 
-    FileServerI(const std::string&, const LargeFileInfoSeq&);
+        LargeFileInfoSeq getLargeFileInfoSeq(Ice::Int, const Ice::Current&) const;
 
-    FileInfoSeq getFileInfoSeq(Ice::Int, const Ice::Current&) const;
+        ByteSeqSeq getChecksumSeq(const Ice::Current&) const;
 
-    LargeFileInfoSeq
-    getLargeFileInfoSeq(Ice::Int, const Ice::Current&) const;
+        Ice::ByteSeq getChecksum(const Ice::Current&) const;
 
-    ByteSeqSeq getChecksumSeq(const Ice::Current&) const;
+        void getFileCompressed_async(const AMD_FileServer_getFileCompressedPtr&, const std::string&, Ice::Int, Ice::Int,
+                                     const Ice::Current&) const;
 
-    Ice::ByteSeq getChecksum(const Ice::Current&) const;
+        void getLargeFileCompressed_async(const AMD_FileServer_getLargeFileCompressedPtr&, const std::string&,
+                                          Ice::Long, Ice::Int, const Ice::Current&) const;
 
-    void getFileCompressed_async(const AMD_FileServer_getFileCompressedPtr&,
-                                 const std::string&,
-                                 Ice::Int,
-                                 Ice::Int,
-                                 const Ice::Current&) const;
+    private:
+        void getFileCompressedInternal(const std::string&, Ice::Long, Ice::Int, std::vector<Ice::Byte>&, bool) const;
 
-    void getLargeFileCompressed_async(const AMD_FileServer_getLargeFileCompressedPtr&,
-                                      const std::string&,
-                                      Ice::Long,
-                                      Ice::Int,
-                                      const Ice::Current&) const;
+        const std::string _dataDir;
+        const IcePatch2Internal::FileTree0 _tree0;
+    };
 
-private:
-
-    void
-    getFileCompressedInternal(const std::string&,
-                              Ice::Long,
-                              Ice::Int,
-                              std::vector<Ice::Byte>&,
-                              bool) const;
-
-    const std::string _dataDir;
-    const IcePatch2Internal::FileTree0 _tree0;
-};
-
-}
+} // namespace IcePatch2
 
 #endif

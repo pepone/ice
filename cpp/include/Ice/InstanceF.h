@@ -16,10 +16,9 @@
 
 namespace IceInternal
 {
-
-class Instance;
-ICE_API IceUtil::Shared* upCast(Instance*);
-typedef IceInternal::Handle<Instance> InstancePtr;
-}
+    class Instance;
+    ICE_API IceUtil::Shared* upCast(Instance*);
+    typedef IceInternal::Handle<Instance> InstancePtr;
+} // namespace IceInternal
 
 #endif

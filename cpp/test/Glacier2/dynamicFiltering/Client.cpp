@@ -19,12 +19,10 @@ using namespace Test;
 class SessionControlClient : public Application
 {
 public:
-
-    virtual int run(int, char*[]);
+    virtual int run(int, char* []);
 };
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
     SessionControlClient app;
 
@@ -40,8 +38,7 @@ main(int argc, char* argv[])
     return app.main(argc, argv, initData);
 }
 
-int
-SessionControlClient::run(int argc, char* argv[])
+int SessionControlClient::run(int argc, char* argv[])
 {
     //
     // We initialize the controller on a separate port because we want
@@ -159,8 +156,8 @@ SessionControlClient::run(int argc, char* argv[])
     // Shut down the router.
     //
     communicator()->setDefaultRouter(0);
-    ObjectPrx processBase = communicator()->stringToProxy("Glacier2/admin -f Process:" +
-                                                          getTestEndpoint(communicator(), 51));
+    ObjectPrx processBase =
+        communicator()->stringToProxy("Glacier2/admin -f Process:" + getTestEndpoint(communicator(), 51));
     Ice::ProcessPrx process = Ice::ProcessPrx::checkedCast(processBase);
     test(process);
     process->shutdown();

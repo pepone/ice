@@ -26,9 +26,18 @@ using namespace Ice;
 using namespace IceInternal;
 
 #ifndef ICE_CPP11_MAPPING
-IceUtil::Shared* IceInternal::upCast(OutgoingAsyncBase* p) { return p; }
-IceUtil::Shared* IceInternal::upCast(ProxyOutgoingAsyncBase* p) { return p; }
-IceUtil::Shared* IceInternal::upCast(OutgoingAsync* p) { return p; }
+IceUtil::Shared* IceInternal::upCast(OutgoingAsyncBase* p)
+{
+    return p;
+}
+IceUtil::Shared* IceInternal::upCast(ProxyOutgoingAsyncBase* p)
+{
+    return p;
+}
+IceUtil::Shared* IceInternal::upCast(OutgoingAsync* p)
+{
+    return p;
+}
 #endif
 
 const unsigned char OutgoingAsyncBase::OK = 0x1;
@@ -43,45 +52,39 @@ OutgoingAsyncCompletionCallback::~OutgoingAsyncCompletionCallback()
     // Out of line to avoid weak vtable
 }
 
-bool
-OutgoingAsyncBase::sent()
+bool OutgoingAsyncBase::sent()
 {
     return sentImpl(true);
 }
 
-bool
-OutgoingAsyncBase::exception(const Exception& ex)
+bool OutgoingAsyncBase::exception(const Exception& ex)
 {
     return exceptionImpl(ex);
 }
 
-bool
-OutgoingAsyncBase::response()
+bool OutgoingAsyncBase::response()
 {
     assert(false); // Must be overriden by request that can handle responses
     return false;
 }
 
-void
-OutgoingAsyncBase::invokeSentAsync()
+void OutgoingAsyncBase::invokeSentAsync()
 {
     class AsynchronousSent : public DispatchWorkItem
     {
     public:
-
         AsynchronousSent(const ConnectionPtr& connection, const OutgoingAsyncBasePtr& outAsync) :
-            DispatchWorkItem(connection), _outAsync(outAsync)
+            DispatchWorkItem(connection),
+            _outAsync(outAsync)
         {
         }
 
-        virtual void
-        run()
+        virtual void run()
         {
             _outAsync->invokeSent();
         }
 
     private:
-
         const OutgoingAsyncBasePtr _outAsync;
     };
 
@@ -99,26 +102,23 @@ OutgoingAsyncBase::invokeSentAsync()
     }
 }
 
-void
-OutgoingAsyncBase::invokeExceptionAsync()
+void OutgoingAsyncBase::invokeExceptionAsync()
 {
     class AsynchronousException : public DispatchWorkItem
     {
     public:
-
         AsynchronousException(const ConnectionPtr& c, const OutgoingAsyncBasePtr& outAsync) :
-            DispatchWorkItem(c), _outAsync(outAsync)
+            DispatchWorkItem(c),
+            _outAsync(outAsync)
         {
         }
 
-        virtual void
-        run()
+        virtual void run()
         {
             _outAsync->invokeException();
         }
 
     private:
-
         const OutgoingAsyncBasePtr _outAsync;
     };
 
@@ -128,26 +128,23 @@ OutgoingAsyncBase::invokeExceptionAsync()
     _instance->clientThreadPool()->dispatch(new AsynchronousException(_cachedConnection, ICE_SHARED_FROM_THIS));
 }
 
-void
-OutgoingAsyncBase::invokeResponseAsync()
+void OutgoingAsyncBase::invokeResponseAsync()
 {
     class AsynchronousResponse : public DispatchWorkItem
     {
     public:
-
         AsynchronousResponse(const ConnectionPtr& connection, const OutgoingAsyncBasePtr& outAsync) :
-            DispatchWorkItem(connection), _outAsync(outAsync)
+            DispatchWorkItem(connection),
+            _outAsync(outAsync)
         {
         }
 
-        virtual void
-        run()
+        virtual void run()
         {
             _outAsync->invokeResponse();
         }
 
     private:
-
         const OutgoingAsyncBasePtr _outAsync;
     };
 
@@ -157,8 +154,7 @@ OutgoingAsyncBase::invokeResponseAsync()
     _instance->clientThreadPool()->dispatch(new AsynchronousResponse(_cachedConnection, ICE_SHARED_FROM_THIS));
 }
 
-void
-OutgoingAsyncBase::invokeSent()
+void OutgoingAsyncBase::invokeSent()
 {
     try
     {
@@ -179,8 +175,7 @@ OutgoingAsyncBase::invokeSent()
     }
 }
 
-void
-OutgoingAsyncBase::invokeException()
+void OutgoingAsyncBase::invokeException()
 {
     try
     {
@@ -198,8 +193,7 @@ OutgoingAsyncBase::invokeException()
     _observer.detach();
 }
 
-void
-OutgoingAsyncBase::invokeResponse()
+void OutgoingAsyncBase::invokeResponse()
 {
     if(_ex)
     {
@@ -241,8 +235,7 @@ OutgoingAsyncBase::invokeResponse()
     _observer.detach();
 }
 
-void
-OutgoingAsyncBase::cancelable(const CancellationHandlerPtr& handler)
+void OutgoingAsyncBase::cancelable(const CancellationHandlerPtr& handler)
 {
     Lock sync(_m);
     if(_cancellationException)
@@ -260,8 +253,7 @@ OutgoingAsyncBase::cancelable(const CancellationHandlerPtr& handler)
     _cancellationHandler = handler;
 }
 
-void
-OutgoingAsyncBase::cancel()
+void OutgoingAsyncBase::cancel()
 {
     cancel(Ice::InvocationCanceledException(__FILE__, __LINE__));
 }
@@ -276,8 +268,7 @@ OutgoingAsyncBase::OutgoingAsyncBase(const InstancePtr& instance) :
 {
 }
 
-bool
-OutgoingAsyncBase::sentImpl(bool done)
+bool OutgoingAsyncBase::sentImpl(bool done)
 {
     Lock sync(_m);
     bool alreadySent = (_state & Sent) > 0;
@@ -305,8 +296,7 @@ OutgoingAsyncBase::sentImpl(bool done)
     return invoke;
 }
 
-bool
-OutgoingAsyncBase::exceptionImpl(const Exception& ex)
+bool OutgoingAsyncBase::exceptionImpl(const Exception& ex)
 {
     Lock sync(_m);
     ICE_SET_EXCEPTION_FROM_CLONE(_ex, ex.ice_clone());
@@ -331,8 +321,7 @@ OutgoingAsyncBase::exceptionImpl(const Exception& ex)
     return invoke;
 }
 
-bool
-OutgoingAsyncBase::responseImpl(bool ok, bool invoke)
+bool OutgoingAsyncBase::responseImpl(bool ok, bool invoke)
 {
     Lock sync(_m);
     if(ok)
@@ -363,8 +352,7 @@ OutgoingAsyncBase::responseImpl(bool ok, bool invoke)
     return invoke;
 }
 
-void
-OutgoingAsyncBase::cancel(const Ice::LocalException& ex)
+void OutgoingAsyncBase::cancel(const Ice::LocalException& ex)
 {
     CancellationHandlerPtr handler;
     {
@@ -381,53 +369,45 @@ OutgoingAsyncBase::cancel(const Ice::LocalException& ex)
 
 #ifndef ICE_CPP11_MAPPING
 
-Int
-OutgoingAsyncBase::getHash() const
+Int OutgoingAsyncBase::getHash() const
 {
     return static_cast<Int>(reinterpret_cast<Long>(this) >> 4);
 }
 
-CommunicatorPtr
-OutgoingAsyncBase::getCommunicator() const
+CommunicatorPtr OutgoingAsyncBase::getCommunicator() const
 {
     return 0;
 }
 
-ConnectionPtr
-OutgoingAsyncBase::getConnection() const
+ConnectionPtr OutgoingAsyncBase::getConnection() const
 {
     return 0;
 }
 
-ObjectPrxPtr
-OutgoingAsyncBase::getProxy() const
+ObjectPrxPtr OutgoingAsyncBase::getProxy() const
 {
     return 0;
 }
 
-Ice::LocalObjectPtr
-OutgoingAsyncBase::getCookie() const
+Ice::LocalObjectPtr OutgoingAsyncBase::getCookie() const
 {
     return _cookie;
 }
 
-const std::string&
-OutgoingAsyncBase::getOperation() const
+const std::string& OutgoingAsyncBase::getOperation() const
 {
     assert(false); // Must be overriden
     static string empty;
     return empty;
 }
 
-bool
-OutgoingAsyncBase::isCompleted() const
+bool OutgoingAsyncBase::isCompleted() const
 {
     Lock sync(_m);
     return (_state & Done) > 0;
 }
 
-void
-OutgoingAsyncBase::waitForCompleted()
+void OutgoingAsyncBase::waitForCompleted()
 {
     Lock sync(_m);
     while(!(_state & Done))
@@ -436,15 +416,13 @@ OutgoingAsyncBase::waitForCompleted()
     }
 }
 
-bool
-OutgoingAsyncBase::isSent() const
+bool OutgoingAsyncBase::isSent() const
 {
     Lock sync(_m);
     return (_state & Sent) > 0;
 }
 
-void
-OutgoingAsyncBase::waitForSent()
+void OutgoingAsyncBase::waitForSent()
 {
     Lock sync(_m);
     while(!(_state & Sent) && !_ex.get())
@@ -453,14 +431,12 @@ OutgoingAsyncBase::waitForSent()
     }
 }
 
-bool
-OutgoingAsyncBase::sentSynchronously() const
+bool OutgoingAsyncBase::sentSynchronously() const
 {
     return _sentSynchronously;
 }
 
-void
-OutgoingAsyncBase::throwLocalException() const
+void OutgoingAsyncBase::throwLocalException() const
 {
     Lock sync(_m);
     if(_ex.get())
@@ -469,8 +445,7 @@ OutgoingAsyncBase::throwLocalException() const
     }
 }
 
-bool
-OutgoingAsyncBase::_waitForResponse()
+bool OutgoingAsyncBase::_waitForResponse()
 {
     Lock sync(_m);
     if(_state & EndCalled)
@@ -490,33 +465,28 @@ OutgoingAsyncBase::_waitForResponse()
     return _state & OK;
 }
 
-Ice::InputStream*
-OutgoingAsyncBase::_startReadParams()
+Ice::InputStream* OutgoingAsyncBase::_startReadParams()
 {
     _is.startEncapsulation();
     return &_is;
 }
 
-void
-OutgoingAsyncBase::_endReadParams()
+void OutgoingAsyncBase::_endReadParams()
 {
     _is.endEncapsulation();
 }
 
-void
-OutgoingAsyncBase::_readEmptyParams()
+void OutgoingAsyncBase::_readEmptyParams()
 {
     _is.skipEmptyEncapsulation();
 }
 
-void
-OutgoingAsyncBase::_readParamEncaps(const ::Ice::Byte*& encaps, ::Ice::Int& sz)
+void OutgoingAsyncBase::_readParamEncaps(const ::Ice::Byte*& encaps, ::Ice::Int& sz)
 {
     _is.readEncapsulation(encaps, sz);
 }
 
-void
-OutgoingAsyncBase::_throwUserException()
+void OutgoingAsyncBase::_throwUserException()
 {
     try
     {
@@ -530,8 +500,7 @@ OutgoingAsyncBase::_throwUserException()
     }
 }
 
-void
-OutgoingAsyncBase::_scheduleCallback(const CallbackPtr& cb)
+void OutgoingAsyncBase::_scheduleCallback(const CallbackPtr& cb)
 {
     //
     // NOTE: for internal use only. This should only be called when the invocation has
@@ -541,9 +510,7 @@ OutgoingAsyncBase::_scheduleCallback(const CallbackPtr& cb)
     class WorkItem : public DispatchWorkItem
     {
     public:
-
-        WorkItem(const ConnectionPtr& connection, const CallbackPtr& cb) :
-            DispatchWorkItem(connection), _cb(cb)
+        WorkItem(const ConnectionPtr& connection, const CallbackPtr& cb) : DispatchWorkItem(connection), _cb(cb)
         {
         }
 
@@ -553,7 +520,6 @@ OutgoingAsyncBase::_scheduleCallback(const CallbackPtr& cb)
         }
 
     private:
-
         CallbackPtr _cb;
     };
 
@@ -565,8 +531,7 @@ OutgoingAsyncBase::_scheduleCallback(const CallbackPtr& cb)
 
 #endif
 
-void
-OutgoingAsyncBase::warning(const std::exception& exc) const
+void OutgoingAsyncBase::warning(const std::exception& exc) const
 {
     if(_instance->initializationData().properties->getPropertyAsIntWithDefault("Ice.Warn.AMICallback", 1) > 0)
     {
@@ -583,8 +548,7 @@ OutgoingAsyncBase::warning(const std::exception& exc) const
     }
 }
 
-void
-OutgoingAsyncBase::warning() const
+void OutgoingAsyncBase::warning() const
 {
     if(_instance->initializationData().properties->getPropertyAsIntWithDefault("Ice.Warn.AMICallback", 1) > 0)
     {
@@ -593,8 +557,7 @@ OutgoingAsyncBase::warning() const
     }
 }
 
-bool
-ProxyOutgoingAsyncBase::exception(const Exception& exc)
+bool ProxyOutgoingAsyncBase::exception(const Exception& exc)
 {
     if(_childObserver)
     {
@@ -628,8 +591,7 @@ ProxyOutgoingAsyncBase::exception(const Exception& exc)
     }
 }
 
-void
-ProxyOutgoingAsyncBase::cancelable(const CancellationHandlerPtr& handler)
+void ProxyOutgoingAsyncBase::cancelable(const CancellationHandlerPtr& handler)
 {
     if(_proxy->_getReference()->getInvocationTimeout() == -2 && _cachedConnection)
     {
@@ -642,8 +604,7 @@ ProxyOutgoingAsyncBase::cancelable(const CancellationHandlerPtr& handler)
     OutgoingAsyncBase::cancelable(handler);
 }
 
-void
-ProxyOutgoingAsyncBase::retryException(const Exception& ex)
+void ProxyOutgoingAsyncBase::retryException(const Exception& ex)
 {
     try
     {
@@ -665,14 +626,12 @@ ProxyOutgoingAsyncBase::retryException(const Exception& ex)
     }
 }
 
-void
-ProxyOutgoingAsyncBase::retry()
+void ProxyOutgoingAsyncBase::retry()
 {
     invokeImpl(false);
 }
 
-void
-ProxyOutgoingAsyncBase::abort(const Ice::Exception& ex)
+void ProxyOutgoingAsyncBase::abort(const Ice::Exception& ex)
 {
     assert(!_childObserver);
 
@@ -692,14 +651,12 @@ ProxyOutgoingAsyncBase::abort(const Ice::Exception& ex)
 }
 
 #ifndef ICE_CPP11_MAPPING
-Ice::ObjectPrx
-ProxyOutgoingAsyncBase::getProxy() const
+Ice::ObjectPrx ProxyOutgoingAsyncBase::getProxy() const
 {
     return _proxy;
 }
 
-Ice::CommunicatorPtr
-ProxyOutgoingAsyncBase::getCommunicator() const
+Ice::CommunicatorPtr ProxyOutgoingAsyncBase::getCommunicator() const
 {
     return _proxy->ice_getCommunicator();
 }
@@ -718,8 +675,7 @@ ProxyOutgoingAsyncBase::~ProxyOutgoingAsyncBase()
 {
 }
 
-void
-ProxyOutgoingAsyncBase::invokeImpl(bool userThread)
+void ProxyOutgoingAsyncBase::invokeImpl(bool userThread)
 {
     try
     {
@@ -804,8 +760,7 @@ ProxyOutgoingAsyncBase::invokeImpl(bool userThread)
     }
 }
 
-bool
-ProxyOutgoingAsyncBase::sentImpl(bool done)
+bool ProxyOutgoingAsyncBase::sentImpl(bool done)
 {
     _sent = true;
     if(done)
@@ -818,8 +773,7 @@ ProxyOutgoingAsyncBase::sentImpl(bool done)
     return OutgoingAsyncBase::sentImpl(done);
 }
 
-bool
-ProxyOutgoingAsyncBase::exceptionImpl(const Exception& ex)
+bool ProxyOutgoingAsyncBase::exceptionImpl(const Exception& ex)
 {
     if(_proxy->_getReference()->getInvocationTimeout() != -1)
     {
@@ -828,8 +782,7 @@ ProxyOutgoingAsyncBase::exceptionImpl(const Exception& ex)
     return OutgoingAsyncBase::exceptionImpl(ex);
 }
 
-bool
-ProxyOutgoingAsyncBase::responseImpl(bool ok, bool invoke)
+bool ProxyOutgoingAsyncBase::responseImpl(bool ok, bool invoke)
 {
     if(_proxy->_getReference()->getInvocationTimeout() != -1)
     {
@@ -838,8 +791,7 @@ ProxyOutgoingAsyncBase::responseImpl(bool ok, bool invoke)
     return OutgoingAsyncBase::responseImpl(ok, invoke);
 }
 
-void
-ProxyOutgoingAsyncBase::runTimerTask()
+void ProxyOutgoingAsyncBase::runTimerTask()
 {
     if(_proxy->_getReference()->getInvocationTimeout() == -2)
     {
@@ -858,8 +810,7 @@ OutgoingAsync::OutgoingAsync(const ObjectPrxPtr& prx, bool synchronous) :
 {
 }
 
-void
-OutgoingAsync::prepare(const string& operation, OperationMode mode, const Context& context)
+void OutgoingAsync::prepare(const string& operation, OperationMode mode, const Context& context)
 {
     checkSupportedProtocol(getCompatibleProtocol(_proxy->_getReference()->getProtocol()));
 
@@ -911,8 +862,7 @@ OutgoingAsync::prepare(const string& operation, OperationMode mode, const Contex
     // defined both Ice::noExplicitContext and IceProxy::Ice::noExplicitContext
     // see comments in Ice/Proxy.h.
     //
-    if(&context != &Ice::noExplicitContext &&
-       &context != &IceProxy::Ice::noExplicitContext)
+    if(&context != &Ice::noExplicitContext && &context != &IceProxy::Ice::noExplicitContext)
 #else
     if(&context != &Ice::noExplicitContext)
 #endif
@@ -940,14 +890,12 @@ OutgoingAsync::prepare(const string& operation, OperationMode mode, const Contex
     }
 }
 
-bool
-OutgoingAsync::sent()
+bool OutgoingAsync::sent()
 {
     return ProxyOutgoingAsyncBase::sentImpl(!_proxy->ice_isTwoway()); // done = true if it's not a two-way proxy
 }
 
-bool
-OutgoingAsync::response()
+bool OutgoingAsync::response()
 {
     //
     // NOTE: this method is called from ConnectionI.parseMessage
@@ -1091,21 +1039,18 @@ OutgoingAsync::response()
     }
 }
 
-AsyncStatus
-OutgoingAsync::invokeRemote(const ConnectionIPtr& connection, bool compress, bool response)
+AsyncStatus OutgoingAsync::invokeRemote(const ConnectionIPtr& connection, bool compress, bool response)
 {
     _cachedConnection = connection;
     return connection->sendAsyncRequest(ICE_SHARED_FROM_THIS, compress, response, 0);
 }
 
-AsyncStatus
-OutgoingAsync::invokeCollocated(CollocatedRequestHandler* handler)
+AsyncStatus OutgoingAsync::invokeCollocated(CollocatedRequestHandler* handler)
 {
     return handler->invokeAsyncRequest(this, 0, _synchronous);
 }
 
-void
-OutgoingAsync::abort(const Exception& ex)
+void OutgoingAsync::abort(const Exception& ex)
 {
     const Reference::Mode mode = _proxy->_getReference()->getMode();
     if(mode == Reference::ModeBatchOneway || mode == Reference::ModeBatchDatagram)
@@ -1121,8 +1066,7 @@ OutgoingAsync::abort(const Exception& ex)
     ProxyOutgoingAsyncBase::abort(ex);
 }
 
-void
-OutgoingAsync::invoke(const string& operation)
+void OutgoingAsync::invoke(const string& operation)
 {
     const Reference::Mode mode = _proxy->_getReference()->getMode();
     if(mode == Reference::ModeBatchOneway || mode == Reference::ModeBatchDatagram)
@@ -1142,12 +1086,8 @@ OutgoingAsync::invoke(const string& operation)
 }
 
 #ifdef ICE_CPP11_MAPPING
-void
-OutgoingAsync::invoke(const string& operation,
-                      Ice::OperationMode mode,
-                      Ice::FormatType format,
-                      const Ice::Context& context,
-                      function<void(Ice::OutputStream*)> write)
+void OutgoingAsync::invoke(const string& operation, Ice::OperationMode mode, Ice::FormatType format,
+                           const Ice::Context& context, function<void(Ice::OutputStream*)> write)
 {
     try
     {
@@ -1170,8 +1110,7 @@ OutgoingAsync::invoke(const string& operation,
     }
 }
 
-void
-OutgoingAsync::throwUserException()
+void OutgoingAsync::throwUserException()
 {
     try
     {
@@ -1193,32 +1132,27 @@ OutgoingAsync::throwUserException()
 
 #ifdef ICE_CPP11_MAPPING
 
-bool
-LambdaInvoke::handleSent(bool, bool alreadySent)
+bool LambdaInvoke::handleSent(bool, bool alreadySent)
 {
     return _sent != nullptr && !alreadySent; // Invoke the sent callback only if not already invoked.
 }
 
-bool
-LambdaInvoke::handleException(const Ice::Exception&)
+bool LambdaInvoke::handleException(const Ice::Exception&)
 {
     return _exception != nullptr; // Invoke the callback
 }
 
-bool
-LambdaInvoke::handleResponse(bool)
+bool LambdaInvoke::handleResponse(bool)
 {
     return _response != nullptr;
 }
 
-void
-LambdaInvoke::handleInvokeSent(bool sentSynchronously, OutgoingAsyncBase*) const
+void LambdaInvoke::handleInvokeSent(bool sentSynchronously, OutgoingAsyncBase*) const
 {
     _sent(sentSynchronously);
 }
 
-void
-LambdaInvoke::handleInvokeException(const Ice::Exception& ex, OutgoingAsyncBase*) const
+void LambdaInvoke::handleInvokeException(const Ice::Exception& ex, OutgoingAsyncBase*) const
 {
     try
     {
@@ -1230,8 +1164,7 @@ LambdaInvoke::handleInvokeException(const Ice::Exception& ex, OutgoingAsyncBase*
     }
 }
 
-void
-LambdaInvoke::handleInvokeResponse(bool ok, OutgoingAsyncBase*) const
+void LambdaInvoke::handleInvokeResponse(bool ok, OutgoingAsyncBase*) const
 {
     _response(ok);
 }
@@ -1240,56 +1173,50 @@ LambdaInvoke::handleInvokeResponse(bool ok, OutgoingAsyncBase*) const
 
 namespace
 {
-
-//
-// Dummy class derived from CallbackBase
-// We use this class for the dummyCallback extern pointer in OutgoingAsync. In turn,
-// this allows us to test whether the user supplied a null delegate instance to the
-// generated begin_ method without having to generate a separate test to throw IllegalArgumentException
-// in the inlined versions of the begin_ method. In other words, this reduces the amount of generated
-// object code.
-//
-class DummyCallback : public CallbackBase
-{
-public:
-
-    DummyCallback()
+    //
+    // Dummy class derived from CallbackBase
+    // We use this class for the dummyCallback extern pointer in OutgoingAsync. In turn,
+    // this allows us to test whether the user supplied a null delegate instance to the
+    // generated begin_ method without having to generate a separate test to throw IllegalArgumentException
+    // in the inlined versions of the begin_ method. In other words, this reduces the amount of generated
+    // object code.
+    //
+    class DummyCallback : public CallbackBase
     {
-    }
+    public:
+        DummyCallback()
+        {
+        }
 
-    virtual void
-    completed(const Ice::AsyncResultPtr&) const
-    {
-         assert(false);
-    }
+        virtual void completed(const Ice::AsyncResultPtr&) const
+        {
+            assert(false);
+        }
 
-    virtual CallbackBasePtr
-    verify(const Ice::LocalObjectPtr&)
-    {
-        //
-        // Called by the AsyncResult constructor to verify the delegate. The dummy
-        // delegate is passed when the user used a begin_ method without delegate.
-        // By returning 0 here, we tell the AsyncResult that no delegates was
-        // provided.
-        //
-        return 0;
-    }
+        virtual CallbackBasePtr verify(const Ice::LocalObjectPtr&)
+        {
+            //
+            // Called by the AsyncResult constructor to verify the delegate. The dummy
+            // delegate is passed when the user used a begin_ method without delegate.
+            // By returning 0 here, we tell the AsyncResult that no delegates was
+            // provided.
+            //
+            return 0;
+        }
 
-    virtual void
-    sent(const AsyncResultPtr&) const
-    {
-         assert(false);
-    }
+        virtual void sent(const AsyncResultPtr&) const
+        {
+            assert(false);
+        }
 
-    virtual bool
-    hasSentCallback() const
-    {
-        assert(false);
-        return false;
-    }
-};
+        virtual bool hasSentCallback() const
+        {
+            assert(false);
+            return false;
+        }
+    };
 
-}
+} // namespace
 
 //
 // This gives a pointer value to compare against in the generated
@@ -1304,8 +1231,7 @@ CallbackBase::~CallbackBase()
     // Out of line to avoid weak vtable
 }
 
-void
-CallbackBase::checkCallback(bool obj, bool cb)
+void CallbackBase::checkCallback(bool obj, bool cb)
 {
     if(!obj)
     {

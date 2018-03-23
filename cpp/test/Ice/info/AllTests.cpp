@@ -17,39 +17,35 @@ using namespace Test;
 
 namespace
 {
-
-Ice::TCPEndpointInfoPtr
-getTCPEndpointInfo(const Ice::EndpointInfoPtr& info)
-{
-    for(Ice::EndpointInfoPtr p = info; p; p = p->underlying)
+    Ice::TCPEndpointInfoPtr getTCPEndpointInfo(const Ice::EndpointInfoPtr& info)
     {
-        Ice::TCPEndpointInfoPtr tcpInfo = ICE_DYNAMIC_CAST(Ice::TCPEndpointInfo, p);
-        if(tcpInfo)
+        for(Ice::EndpointInfoPtr p = info; p; p = p->underlying)
         {
-            return tcpInfo;
+            Ice::TCPEndpointInfoPtr tcpInfo = ICE_DYNAMIC_CAST(Ice::TCPEndpointInfo, p);
+            if(tcpInfo)
+            {
+                return tcpInfo;
+            }
         }
+        return ICE_NULLPTR;
     }
-    return ICE_NULLPTR;
-}
 
-Ice::TCPConnectionInfoPtr
-getTCPConnectionInfo(const Ice::ConnectionInfoPtr& info)
-{
-    for(Ice::ConnectionInfoPtr p = info; p; p = p->underlying)
+    Ice::TCPConnectionInfoPtr getTCPConnectionInfo(const Ice::ConnectionInfoPtr& info)
     {
-        Ice::TCPConnectionInfoPtr tcpInfo = ICE_DYNAMIC_CAST(Ice::TCPConnectionInfo, p);
-        if(tcpInfo)
+        for(Ice::ConnectionInfoPtr p = info; p; p = p->underlying)
         {
-            return tcpInfo;
+            Ice::TCPConnectionInfoPtr tcpInfo = ICE_DYNAMIC_CAST(Ice::TCPConnectionInfo, p);
+            if(tcpInfo)
+            {
+                return tcpInfo;
+            }
         }
+        return ICE_NULLPTR;
     }
-    return ICE_NULLPTR;
-}
 
-}
+} // namespace
 
-void
-allTests(const Ice::CommunicatorPtr& communicator)
+void allTests(const Ice::CommunicatorPtr& communicator)
 {
     cout << "testing proxy endpoint information... " << flush;
     {
@@ -112,7 +108,7 @@ allTests(const Ice::CommunicatorPtr& communicator)
     bool uwp = false;
 #endif
     if(!uwp || (communicator->getProperties()->getProperty("Ice.Default.Protocol") != "ssl" &&
-                  communicator->getProperties()->getProperty("Ice.Default.Protocol") != "wss"))
+                communicator->getProperties()->getProperty("Ice.Default.Protocol") != "wss"))
     {
         cout << "test object adapter endpoint information... " << flush;
         {
@@ -128,7 +124,7 @@ allTests(const Ice::CommunicatorPtr& communicator)
             Ice::TCPEndpointInfoPtr ipEndpoint = getTCPEndpointInfo(endpoints[0]->getInfo());
             test(ipEndpoint);
             test(ipEndpoint->type() == Ice::TCPEndpointType || ipEndpoint->type() == Ice::SSLEndpointType ||
-                ipEndpoint->type() == Ice::WSEndpointType || ipEndpoint->type() == Ice::WSSEndpointType);
+                 ipEndpoint->type() == Ice::WSEndpointType || ipEndpoint->type() == Ice::WSSEndpointType);
             test(ipEndpoint->host == "127.0.0.1");
             test(ipEndpoint->port > 0);
             test(ipEndpoint->timeout == 15000);
@@ -151,7 +147,8 @@ allTests(const Ice::CommunicatorPtr& communicator)
             ostringstream portStr;
             portStr << port;
             communicator->getProperties()->setProperty("TestAdapter.Endpoints", "default -h * -p " + portStr.str());
-            communicator->getProperties()->setProperty("TestAdapter.PublishedEndpoints", getTestEndpoint(communicator, 1));
+            communicator->getProperties()->setProperty("TestAdapter.PublishedEndpoints",
+                                                       getTestEndpoint(communicator, 1));
             adapter = communicator->createObjectAdapter("TestAdapter");
 
             endpoints = adapter->getEndpoints();
@@ -252,7 +249,7 @@ allTests(const Ice::CommunicatorPtr& communicator)
             {
                 IceSSL::ConnectionInfoPtr wssinfo = ICE_DYNAMIC_CAST(IceSSL::ConnectionInfo, wsinfo->underlying);
                 test(wssinfo->verified);
-#if !defined(ICE_OS_UWP) && TARGET_OS_IPHONE==0
+#if !defined(ICE_OS_UWP) && TARGET_OS_IPHONE == 0
                 test(!wssinfo->certs.empty());
 #endif
             }

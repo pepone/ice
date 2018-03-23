@@ -15,13 +15,12 @@ using namespace std;
 using namespace Ice;
 using namespace IceInternal;
 
-void
-IceInternal::ValueFactoryManagerI::add(ICE_IN(ICE_DELEGATE(ValueFactory)) factory, const string& id)
+void IceInternal::ValueFactoryManagerI::add(ICE_IN(ICE_DELEGATE(ValueFactory)) factory, const string& id)
 {
     IceUtil::Mutex::Lock sync(*this);
 
-    if((_factoryMapHint != _factoryMap.end() && _factoryMapHint->first == id)
-       || _factoryMap.find(id) != _factoryMap.end())
+    if((_factoryMapHint != _factoryMap.end() && _factoryMapHint->first == id) ||
+       _factoryMap.find(id) != _factoryMap.end())
     {
         throw AlreadyRegisteredException(__FILE__, __LINE__, "value factory", id);
     }
@@ -61,7 +60,6 @@ IceInternal::ValueFactoryManagerI::find(const string& id) const ICE_NOEXCEPT
     }
 }
 
-IceInternal::ValueFactoryManagerI::ValueFactoryManagerI() :
-    _factoryMapHint(_factoryMap.end())
+IceInternal::ValueFactoryManagerI::ValueFactoryManagerI() : _factoryMapHint(_factoryMap.end())
 {
 }

@@ -31,157 +31,148 @@
 
 namespace IceInternal
 {
-
-template<typename T>
-class Handle : public ::IceUtil::HandleBase<T>
-{
-public:
-
-    Handle(T* p = 0)
+    template<typename T> class Handle : public ::IceUtil::HandleBase<T>
     {
-        this->_ptr = p;
-
-        if(this->_ptr)
+    public:
+        Handle(T* p = 0)
         {
-            upCast(this->_ptr)->__incRef();
-        }
-    }
-
-    template<typename Y>
-    Handle(const Handle<Y>& r)
-    {
-        this->_ptr = r._ptr;
-
-        if(this->_ptr)
-        {
-            upCast(this->_ptr)->__incRef();
-        }
-    }
-
-    template<typename Y>
-    Handle(const ::IceUtil::Handle<Y>& r)
-    {
-        this->_ptr = r._ptr;
-
-        if(this->_ptr)
-        {
-            upCast(this->_ptr)->__incRef();
-        }
-    }
-
-    Handle(const Handle& r)
-    {
-        this->_ptr = r._ptr;
-
-        if(this->_ptr)
-        {
-            upCast(this->_ptr)->__incRef();
-        }
-    }
-
-    ~Handle()
-    {
-        if(this->_ptr)
-        {
-            upCast(this->_ptr)->__decRef();
-        }
-    }
-
-    Handle& operator=(T* p)
-    {
-        if(this->_ptr != p)
-        {
-            if(p)
-            {
-                upCast(p)->__incRef();
-            }
-
-            T* ptr = this->_ptr;
             this->_ptr = p;
 
-            if(ptr)
+            if(this->_ptr)
             {
-                upCast(ptr)->__decRef();
+                upCast(this->_ptr)->__incRef();
             }
         }
-        return *this;
-    }
 
-    template<typename Y>
-    Handle& operator=(const Handle<Y>& r)
-    {
-        if(this->_ptr != r._ptr)
+        template<typename Y> Handle(const Handle<Y>& r)
         {
-            if(r._ptr)
-            {
-                upCast(r._ptr)->__incRef();
-            }
-
-            T* ptr = this->_ptr;
             this->_ptr = r._ptr;
 
-            if(ptr)
+            if(this->_ptr)
             {
-                upCast(ptr)->__decRef();
+                upCast(this->_ptr)->__incRef();
             }
         }
-        return *this;
-    }
 
-    template<typename Y>
-    Handle& operator=(const ::IceUtil::Handle<Y>& r)
-    {
-        if(this->_ptr != r._ptr)
+        template<typename Y> Handle(const ::IceUtil::Handle<Y>& r)
         {
-            if(r._ptr)
-            {
-                upCast(r._ptr)->__incRef();
-            }
-
-            T* ptr = this->_ptr;
             this->_ptr = r._ptr;
 
-            if(ptr)
+            if(this->_ptr)
             {
-                upCast(ptr)->__decRef();
+                upCast(this->_ptr)->__incRef();
             }
         }
-        return *this;
-    }
 
-    Handle& operator=(const Handle& r)
-    {
-        if(this->_ptr != r._ptr)
+        Handle(const Handle& r)
         {
-            if(r._ptr)
-            {
-                upCast(r._ptr)->__incRef();
-            }
-
-            T* ptr = this->_ptr;
             this->_ptr = r._ptr;
 
-            if(ptr)
+            if(this->_ptr)
             {
-                upCast(ptr)->__decRef();
+                upCast(this->_ptr)->__incRef();
             }
         }
-        return *this;
-    }
 
-    template<class Y>
-    static Handle dynamicCast(const ::IceUtil::HandleBase<Y>& r)
-    {
-        return Handle(dynamic_cast<T*>(r._ptr));
-    }
+        ~Handle()
+        {
+            if(this->_ptr)
+            {
+                upCast(this->_ptr)->__decRef();
+            }
+        }
 
-    template<class Y>
-    static Handle dynamicCast(Y* p)
-    {
-        return Handle(dynamic_cast<T*>(p));
-    }
-};
+        Handle& operator=(T* p)
+        {
+            if(this->_ptr != p)
+            {
+                if(p)
+                {
+                    upCast(p)->__incRef();
+                }
 
-}
+                T* ptr = this->_ptr;
+                this->_ptr = p;
+
+                if(ptr)
+                {
+                    upCast(ptr)->__decRef();
+                }
+            }
+            return *this;
+        }
+
+        template<typename Y> Handle& operator=(const Handle<Y>& r)
+        {
+            if(this->_ptr != r._ptr)
+            {
+                if(r._ptr)
+                {
+                    upCast(r._ptr)->__incRef();
+                }
+
+                T* ptr = this->_ptr;
+                this->_ptr = r._ptr;
+
+                if(ptr)
+                {
+                    upCast(ptr)->__decRef();
+                }
+            }
+            return *this;
+        }
+
+        template<typename Y> Handle& operator=(const ::IceUtil::Handle<Y>& r)
+        {
+            if(this->_ptr != r._ptr)
+            {
+                if(r._ptr)
+                {
+                    upCast(r._ptr)->__incRef();
+                }
+
+                T* ptr = this->_ptr;
+                this->_ptr = r._ptr;
+
+                if(ptr)
+                {
+                    upCast(ptr)->__decRef();
+                }
+            }
+            return *this;
+        }
+
+        Handle& operator=(const Handle& r)
+        {
+            if(this->_ptr != r._ptr)
+            {
+                if(r._ptr)
+                {
+                    upCast(r._ptr)->__incRef();
+                }
+
+                T* ptr = this->_ptr;
+                this->_ptr = r._ptr;
+
+                if(ptr)
+                {
+                    upCast(ptr)->__decRef();
+                }
+            }
+            return *this;
+        }
+
+        template<class Y> static Handle dynamicCast(const ::IceUtil::HandleBase<Y>& r)
+        {
+            return Handle(dynamic_cast<T*>(r._ptr));
+        }
+
+        template<class Y> static Handle dynamicCast(Y* p)
+        {
+            return Handle(dynamic_cast<T*>(p));
+        }
+    };
+
+} // namespace IceInternal
 
 #endif

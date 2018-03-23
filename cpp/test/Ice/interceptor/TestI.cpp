@@ -8,7 +8,7 @@
 // **********************************************************************
 
 #ifndef INTERCEPTOR_TEST_API_EXPORTS
-#   define INTERCEPTOR_TEST_API_EXPORTS
+#    define INTERCEPTOR_TEST_API_EXPORTS
 #endif
 #include <Ice/Ice.h>
 #include <Test.h>
@@ -17,8 +17,7 @@
 using namespace IceUtil;
 using namespace std;
 
-void
-Test::RetryException::ice_print(ostream& out) const
+void Test::RetryException::ice_print(ostream& out) const
 {
     Exception::ice_print(out);
     out << ":\nretry dispatch";

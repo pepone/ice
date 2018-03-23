@@ -18,16 +18,12 @@ using namespace IceUtil;
 class MonitorRecMutexTestThread : public Thread
 {
 public:
-
-    MonitorRecMutexTestThread(Monitor<RecMutex>& m) :
-        _monitor(m),
-        _tryLock(false)
+    MonitorRecMutexTestThread(Monitor<RecMutex>& m) : _monitor(m), _tryLock(false)
     {
     }
 
     virtual void run()
     {
-
         Monitor<RecMutex>::TryLock tlock(_monitor);
         test(!tlock.acquired());
 
@@ -40,8 +36,7 @@ public:
         Monitor<RecMutex>::Lock lock(_monitor);
     }
 
-    void
-    waitTryLock()
+    void waitTryLock()
     {
         Mutex::Lock lock(_tryLockMutex);
         while(!_tryLock)
@@ -51,7 +46,6 @@ public:
     }
 
 private:
-
     Monitor<RecMutex>& _monitor;
     bool _tryLock;
     //
@@ -66,10 +60,7 @@ typedef Handle<MonitorRecMutexTestThread> MonitorRecMutexTestThreadPtr;
 class MonitorRecMutexTestThread2 : public Thread, public Monitor<RecMutex>
 {
 public:
-
-    MonitorRecMutexTestThread2(Monitor<RecMutex>& monitor) :
-        finished(false),
-        _monitor(monitor)
+    MonitorRecMutexTestThread2(Monitor<RecMutex>& monitor) : finished(false), _monitor(monitor)
     {
     }
 
@@ -83,7 +74,6 @@ public:
     bool finished;
 
 private:
-
     Monitor<RecMutex>& _monitor;
 };
 
@@ -91,13 +81,11 @@ typedef Handle<MonitorRecMutexTestThread2> MonitorRecMutexTestThread2Ptr;
 
 static const string monitorRecMutexTestName("monitor<recmutex>");
 
-MonitorRecMutexTest::MonitorRecMutexTest() :
-    TestBase(monitorRecMutexTestName)
+MonitorRecMutexTest::MonitorRecMutexTest() : TestBase(monitorRecMutexTestName)
 {
 }
 
-void
-MonitorRecMutexTest::run()
+void MonitorRecMutexTest::run()
 {
     Monitor<RecMutex> monitor;
     MonitorRecMutexTestThreadPtr t;

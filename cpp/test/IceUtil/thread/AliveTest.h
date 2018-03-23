@@ -15,11 +15,9 @@
 class AliveTest : public TestBase
 {
 public:
-
     AliveTest();
 
 private:
-
     virtual void run();
 };
 

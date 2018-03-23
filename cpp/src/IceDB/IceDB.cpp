@@ -15,9 +15,7 @@
 using namespace IceDB;
 using namespace std;
 
-LMDBException::LMDBException(const char* file, int line, int err) :
-    IceUtil::Exception(file, line),
-    _error(err)
+LMDBException::LMDBException(const char* file, int line, int err) : IceUtil::Exception(file, line), _error(err)
 {
 }
 
@@ -27,35 +25,30 @@ LMDBException::~LMDBException() throw()
 }
 #endif
 
-string
-LMDBException::ice_id() const
+string LMDBException::ice_id() const
 {
     return "::IceDB::LMDBException";
 }
 
-void
-LMDBException::ice_print(ostream& out) const
+void LMDBException::ice_print(ostream& out) const
 {
     IceUtil::Exception::ice_print(out);
     out << ": " << mdb_strerror(_error);
 }
 
 #ifndef ICE_CPP11_MAPPING
-LMDBException*
-LMDBException::ice_clone() const
+LMDBException* LMDBException::ice_clone() const
 {
     return new LMDBException(*this);
 }
 #endif
 
-void
-LMDBException::ice_throw() const
+void LMDBException::ice_throw() const
 {
     throw *this;
 }
 
-int
-LMDBException::error() const
+int LMDBException::error() const
 {
     return _error;
 }
@@ -72,14 +65,12 @@ KeyTooLongException::~KeyTooLongException() throw()
 }
 #endif
 
-string
-KeyTooLongException::ice_id() const
+string KeyTooLongException::ice_id() const
 {
     return "::IceDB::KeyTooLongException";
 }
 
-void
-KeyTooLongException::ice_print(ostream& out) const
+void KeyTooLongException::ice_print(ostream& out) const
 {
     IceUtil::Exception::ice_print(out);
     out << ": ";
@@ -91,22 +82,18 @@ KeyTooLongException::ice_print(ostream& out) const
 }
 
 #ifndef ICE_CPP11_MAPPING
-KeyTooLongException*
-KeyTooLongException::ice_clone() const
+KeyTooLongException* KeyTooLongException::ice_clone() const
 {
     return new KeyTooLongException(*this);
 }
 #endif
 
-void
-KeyTooLongException::ice_throw() const
+void KeyTooLongException::ice_throw() const
 {
     throw *this;
 }
 
-BadEnvException::BadEnvException(const char* file, int line, size_t size) :
-    IceUtil::Exception(file, line),
-    _size(size)
+BadEnvException::BadEnvException(const char* file, int line, size_t size) : IceUtil::Exception(file, line), _size(size)
 {
 }
 
@@ -116,14 +103,12 @@ BadEnvException::~BadEnvException() throw()
 }
 #endif
 
-string
-BadEnvException::ice_id() const
+string BadEnvException::ice_id() const
 {
     return "::IceDB::BadEnvException";
 }
 
-void
-BadEnvException::ice_print(ostream& out) const
+void BadEnvException::ice_print(ostream& out) const
 {
     IceUtil::Exception::ice_print(out);
     out << ": LMDB env max key size = " << _size;
@@ -131,15 +116,13 @@ BadEnvException::ice_print(ostream& out) const
 }
 
 #ifndef ICE_CPP11_MAPPING
-BadEnvException*
-BadEnvException::ice_clone() const
+BadEnvException* BadEnvException::ice_clone() const
 {
     return new BadEnvException(*this);
 }
 #endif
 
-void
-BadEnvException::ice_throw() const
+void BadEnvException::ice_throw() const
 {
     throw *this;
 }
@@ -211,8 +194,7 @@ Env::~Env()
     close();
 }
 
-void
-Env::close()
+void Env::close()
 {
     if(_menv != 0)
     {
@@ -221,8 +203,7 @@ Env::close()
     }
 }
 
-MDB_env*
-Env::menv() const
+MDB_env* Env::menv() const
 {
     return _menv;
 }
@@ -241,8 +222,7 @@ Txn::~Txn()
     rollback();
 }
 
-void
-Txn::commit()
+void Txn::commit()
 {
     const int rc = mdb_txn_commit(_mtxn);
     _mtxn = 0;
@@ -252,8 +232,7 @@ Txn::commit()
     }
 }
 
-void
-Txn::rollback()
+void Txn::rollback()
 {
     if(_mtxn != 0)
     {
@@ -262,8 +241,7 @@ Txn::rollback()
     }
 }
 
-MDB_txn*
-Txn::mtxn() const
+MDB_txn* Txn::mtxn() const
 {
     return _mtxn;
 }
@@ -273,19 +251,16 @@ ReadOnlyTxn::~ReadOnlyTxn()
     // Out of line to avoid weak vtable
 }
 
-ReadOnlyTxn::ReadOnlyTxn(const Env& env) :
-    Txn(env, MDB_RDONLY)
+ReadOnlyTxn::ReadOnlyTxn(const Env& env) : Txn(env, MDB_RDONLY)
 {
 }
 
-void
-ReadOnlyTxn::reset()
+void ReadOnlyTxn::reset()
 {
     mdb_txn_reset(_mtxn);
 }
 
-void
-ReadOnlyTxn::renew()
+void ReadOnlyTxn::renew()
 {
     const int rc = mdb_txn_renew(_mtxn);
     if(rc != MDB_SUCCESS)
@@ -299,8 +274,7 @@ ReadWriteTxn::~ReadWriteTxn()
     // Out of line to avoid weak vtable
 }
 
-ReadWriteTxn::ReadWriteTxn(const Env& env) :
-    Txn(env, 0)
+ReadWriteTxn::ReadWriteTxn(const Env& env) : Txn(env, 0)
 {
 }
 
@@ -321,8 +295,7 @@ DbiBase::DbiBase(const Txn& txn, const std::string& name, unsigned int flags, MD
     }
 }
 
-DbiBase::DbiBase() :
-    _mdbi(0)
+DbiBase::DbiBase() : _mdbi(0)
 {
 }
 
@@ -330,24 +303,21 @@ DbiBase::~DbiBase()
 {
 }
 
-void
-DbiBase::clear(const ReadWriteTxn& txn)
+void DbiBase::clear(const ReadWriteTxn& txn)
 {
     const int rc = mdb_drop(txn.mtxn(), _mdbi, 0);
-    if (rc != MDB_SUCCESS)
+    if(rc != MDB_SUCCESS)
     {
         throw LMDBException(__FILE__, __LINE__, rc);
     }
 }
 
-MDB_dbi
-DbiBase::mdbi() const
+MDB_dbi DbiBase::mdbi() const
 {
     return _mdbi;
 }
 
-bool
-DbiBase::get(const Txn& txn, MDB_val* key, MDB_val* data) const
+bool DbiBase::get(const Txn& txn, MDB_val* key, MDB_val* data) const
 {
     assert(key->mv_size <= maxKeySize);
 
@@ -359,8 +329,7 @@ DbiBase::get(const Txn& txn, MDB_val* key, MDB_val* data) const
     return rc == MDB_SUCCESS;
 }
 
-void
-DbiBase::put(const ReadWriteTxn& txn, MDB_val* key, MDB_val* data, unsigned int flags)
+void DbiBase::put(const ReadWriteTxn& txn, MDB_val* key, MDB_val* data, unsigned int flags)
 {
     assert(key->mv_size <= maxKeySize);
 
@@ -371,28 +340,25 @@ DbiBase::put(const ReadWriteTxn& txn, MDB_val* key, MDB_val* data, unsigned int 
     }
 }
 
-bool
-DbiBase::find(const Txn& txn, MDB_val* key) const
+bool DbiBase::find(const Txn& txn, MDB_val* key) const
 {
     MDB_val data;
     return get(txn, key, &data);
 }
 
-bool
-DbiBase::del(const ReadWriteTxn& txn, MDB_val* key, MDB_val* data)
+bool DbiBase::del(const ReadWriteTxn& txn, MDB_val* key, MDB_val* data)
 {
     assert(key->mv_size <= maxKeySize);
 
     const int rc = mdb_del(txn.mtxn(), _mdbi, key, data);
-    if (rc != MDB_SUCCESS && rc != MDB_NOTFOUND)
+    if(rc != MDB_SUCCESS && rc != MDB_NOTFOUND)
     {
         throw LMDBException(__FILE__, __LINE__, rc);
     }
     return rc == MDB_SUCCESS;
 }
 
-CursorBase::CursorBase(MDB_dbi dbi, const Txn& txn, bool readOnly) :
-    _readOnly(readOnly)
+CursorBase::CursorBase(MDB_dbi dbi, const Txn& txn, bool readOnly) : _readOnly(readOnly)
 {
     const int rc = mdb_cursor_open(txn.mtxn(), dbi, &_mcursor);
     if(rc != MDB_SUCCESS)
@@ -409,8 +375,7 @@ CursorBase::~CursorBase()
     }
 }
 
-void
-CursorBase::close()
+void CursorBase::close()
 {
     if(_mcursor != 0)
     {
@@ -419,14 +384,12 @@ CursorBase::close()
     }
 }
 
-MDB_cursor*
-CursorBase::mcursor() const
+MDB_cursor* CursorBase::mcursor() const
 {
     return _mcursor;
 }
 
-bool
-CursorBase::get(MDB_val* key, MDB_val* data, MDB_cursor_op op)
+bool CursorBase::get(MDB_val* key, MDB_val* data, MDB_cursor_op op)
 {
     const int rc = mdb_cursor_get(_mcursor, key, data, op);
     if(rc != MDB_SUCCESS && rc != MDB_NOTFOUND)
@@ -436,46 +399,41 @@ CursorBase::get(MDB_val* key, MDB_val* data, MDB_cursor_op op)
     return rc == MDB_SUCCESS;
 }
 
-void
-CursorBase::put(MDB_val* key, MDB_val* data, unsigned int flags)
+void CursorBase::put(MDB_val* key, MDB_val* data, unsigned int flags)
 {
     assert(key->mv_size <= maxKeySize);
     assert(!_readOnly);
 
     const int rc = mdb_cursor_put(_mcursor, key, data, flags);
-    if (rc != MDB_SUCCESS)
+    if(rc != MDB_SUCCESS)
     {
         throw LMDBException(__FILE__, __LINE__, rc);
     }
 }
 
-bool
-CursorBase::find(MDB_val* key)
+bool CursorBase::find(MDB_val* key)
 {
     MDB_val data;
     return get(key, &data, MDB_SET);
 }
 
-bool
-CursorBase::find(MDB_val* key, MDB_val* data)
+bool CursorBase::find(MDB_val* key, MDB_val* data)
 {
     return get(key, data, MDB_SET);
 }
 
-void
-CursorBase::del(unsigned int flags)
+void CursorBase::del(unsigned int flags)
 {
     assert(!_readOnly);
 
     const int rc = mdb_cursor_del(_mcursor, flags);
-    if (rc != MDB_SUCCESS)
+    if(rc != MDB_SUCCESS)
     {
         throw LMDBException(__FILE__, __LINE__, rc);
     }
 }
 
-void
-CursorBase::renew(const ReadOnlyTxn& txn)
+void CursorBase::renew(const ReadOnlyTxn& txn)
 {
     assert(_readOnly);
     const int rc = mdb_cursor_renew(txn.mtxn(), CursorBase::_mcursor);
@@ -493,8 +451,7 @@ CursorBase::renew(const ReadOnlyTxn& txn)
 // with the given (max) size. This is why we need a fairly small default map size
 // on Windows, and a larger value on other platforms.
 
-size_t
-IceDB::getMapSize(int configValue)
+size_t IceDB::getMapSize(int configValue)
 {
 #ifdef _WIN32
     const size_t defaultMapSize = 10;
@@ -502,5 +459,5 @@ IceDB::getMapSize(int configValue)
     const size_t defaultMapSize = 100;
 #endif
 
-   return ((configValue <= 0) ? defaultMapSize : configValue) * 1024 * 1024;
+    return ((configValue <= 0) ? defaultMapSize : configValue) * 1024 * 1024;
 }

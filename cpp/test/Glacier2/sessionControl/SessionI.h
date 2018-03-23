@@ -15,14 +15,12 @@
 class SessionManagerI : public Glacier2::SessionManager
 {
 public:
-
     virtual Glacier2::SessionPrx create(const std::string&, const Glacier2::SessionControlPrx&, const Ice::Current&);
 };
 
 class SessionI : public Test::Session
 {
 public:
-
     SessionI(const Glacier2::SessionControlPrx&);
 
     virtual void destroyFromClient_async(const Test::AMD_Session_destroyFromClientPtr&, const Ice::Current&);
@@ -31,7 +29,6 @@ public:
     virtual void destroy(const Ice::Current&);
 
 private:
-
     Glacier2::SessionControlPrx _sessionControl;
 };
 

@@ -14,10 +14,10 @@
 #ifdef ICE_CPP11_MAPPING
 namespace Test
 {
-using OneOptionalPrx = Ice::ObjectPrx;
-using OneOptionalPrxPtr = ::std::shared_ptr<Ice::ObjectPrx>;
-using MultiOptionalPrx = Ice::ObjectPrx;
-}
+    using OneOptionalPrx = Ice::ObjectPrx;
+    using OneOptionalPrxPtr = ::std::shared_ptr<Ice::ObjectPrx>;
+    using MultiOptionalPrx = Ice::ObjectPrx;
+} // namespace Test
 #endif
 
 using namespace std;
@@ -25,23 +25,20 @@ using namespace Test;
 
 namespace
 {
+    //
+    // Converts a vector to an "array range"
+    //
+    template<typename T> pair<const T*, const T*> toArrayRange(const vector<T>& v)
+    {
+        return make_pair(&v[0], &v[0] + v.size());
+    }
 
-//
-// Converts a vector to an "array range"
-//
-template<typename T> pair<const T*, const T*>
-toArrayRange(const vector<T>& v)
-{
-    return make_pair(&v[0], &v[0] + v.size());
-}
+    template<typename T> pair<const T*, const T*> toArrayRange(const T* v, size_t sz)
+    {
+        return make_pair(v, v + sz);
+    }
 
-template<typename T> pair<const T*, const T*>
-toArrayRange(const T* v, size_t sz)
-{
-    return make_pair(v, v + sz);
-}
-
-}
+} // namespace
 
 #ifdef ICE_CPP11_MAPPING
 class TestObjectReader : public Ice::Value
@@ -50,7 +47,9 @@ class TestObjectReader : public Ice::Object
 #endif
 {
 public:
-    virtual void _iceWrite(Ice::OutputStream*) const { }
+    virtual void _iceWrite(Ice::OutputStream*) const
+    {
+    }
 
     virtual void _iceRead(Ice::InputStream* in)
     {
@@ -63,7 +62,6 @@ public:
 #ifdef ICE_CPP11_MAPPING
 
 protected:
-
     virtual std::shared_ptr<Value> _iceCloneImpl() const
     {
         assert(0); // not used
@@ -80,7 +78,9 @@ class BObjectReader : public Ice::Object
 #endif
 {
 public:
-    virtual void _iceWrite(Ice::OutputStream*) const { }
+    virtual void _iceWrite(Ice::OutputStream*) const
+    {
+    }
 
     virtual void _iceRead(Ice::InputStream* in)
     {
@@ -100,7 +100,6 @@ public:
 #ifdef ICE_CPP11_MAPPING
 
 protected:
-
     virtual std::shared_ptr<Value> _iceCloneImpl() const
     {
         assert(0); // not used
@@ -117,7 +116,9 @@ class CObjectReader : public Ice::Object
 #endif
 {
 public:
-    virtual void _iceWrite(Ice::OutputStream*) const { }
+    virtual void _iceWrite(Ice::OutputStream*) const
+    {
+    }
 
     virtual void _iceRead(Ice::InputStream* in)
     {
@@ -140,7 +141,6 @@ public:
 #ifdef ICE_CPP11_MAPPING
 
 protected:
-
     virtual std::shared_ptr<Value> _iceCloneImpl() const
     {
         assert(0); // not used
@@ -157,7 +157,6 @@ class DObjectWriter : public Ice::Object
 #endif
 {
 public:
-
     virtual void _iceWrite(Ice::OutputStream* out) const
     {
         out->startValue(0);
@@ -165,7 +164,7 @@ public:
         out->startSlice("::Test::D", -1, false);
         string s = "test";
         out->write(s);
-        IceUtil::Optional<vector<string> > o;
+        IceUtil::Optional<vector<string>> o;
         o = vector<string>();
         o->push_back("test1");
         o->push_back("test2");
@@ -188,12 +187,13 @@ public:
         out->endValue();
     }
 
-    virtual void _iceRead(Ice::InputStream*) { }
+    virtual void _iceRead(Ice::InputStream*)
+    {
+    }
 
 #ifdef ICE_CPP11_MAPPING
 
 protected:
-
     virtual std::shared_ptr<Value> _iceCloneImpl() const
     {
         assert(0); // not used
@@ -201,7 +201,6 @@ protected:
     }
 
 #endif
-
 };
 
 #ifdef ICE_CPP11_MAPPING
@@ -211,7 +210,9 @@ class DObjectReader : public Ice::Object
 #endif
 {
 public:
-    virtual void _iceWrite(Ice::OutputStream*) const { }
+    virtual void _iceWrite(Ice::OutputStream*) const
+    {
+    }
 
     virtual void _iceRead(Ice::InputStream* in)
     {
@@ -221,10 +222,10 @@ public:
         string s;
         in->read(s);
         test(s == "test");
-        IceUtil::Optional<vector<string> > o;
+        IceUtil::Optional<vector<string>> o;
         in->read(1, o);
-        test(o && o->size() == 4 &&
-             (*o)[0] == "test1" && (*o)[1] == "test2" && (*o)[2] == "test3" && (*o)[3] == "test4");
+        test(o && o->size() == 4 && (*o)[0] == "test1" && (*o)[1] == "test2" && (*o)[2] == "test3" &&
+             (*o)[3] == "test4");
         in->read(1000, a);
         in->endSlice();
         // ::Test::B
@@ -247,7 +248,6 @@ public:
 #ifdef ICE_CPP11_MAPPING
 
 protected:
-
     virtual std::shared_ptr<Value> _iceCloneImpl() const
     {
         assert(0); // not used
@@ -257,7 +257,6 @@ protected:
 #endif
 
 private:
-
     IceUtil::Optional<APtr> a;
 };
 
@@ -268,7 +267,9 @@ class FObjectReader : public Ice::Object
 #endif
 {
 public:
-    virtual void _iceWrite(Ice::OutputStream*) const { }
+    virtual void _iceWrite(Ice::OutputStream*) const
+    {
+    }
 
     virtual void _iceRead(Ice::InputStream* in)
     {
@@ -276,7 +277,7 @@ public:
         in->startValue();
         in->startSlice();
         // Don't read af on purpose
-        //in.read(1, _f->af);
+        // in.read(1, _f->af);
         in->endSlice();
         in->startSlice();
         in->read(_f->ae);
@@ -284,8 +285,7 @@ public:
         in->endValue(false);
     }
 
-    FPtr
-    getF()
+    FPtr getF()
     {
         return _f;
     }
@@ -293,7 +293,6 @@ public:
 #ifdef ICE_CPP11_MAPPING
 
 protected:
-
     virtual std::shared_ptr<Value> _iceCloneImpl() const
     {
         assert(0); // not used
@@ -303,26 +302,23 @@ protected:
 #endif
 
 private:
-
     FPtr _f;
 };
 
 class FactoryI
 #ifndef ICE_CPP11_MAPPING
-               : public Ice::ValueFactory
+    : public Ice::ValueFactory
 #endif
 
 {
     bool _enabled;
 
 public:
-
     FactoryI() : _enabled(false)
     {
     }
 
-    Ice::ValuePtr
-    create(const string& typeId)
+    Ice::ValuePtr create(const string& typeId)
     {
         if(!_enabled)
         {
@@ -331,34 +327,33 @@ public:
 
         if(typeId == "::Test::OneOptional")
         {
-           return ICE_MAKE_SHARED(TestObjectReader);
+            return ICE_MAKE_SHARED(TestObjectReader);
         }
         else if(typeId == "::Test::MultiOptional")
         {
-           return ICE_MAKE_SHARED(TestObjectReader);
+            return ICE_MAKE_SHARED(TestObjectReader);
         }
         else if(typeId == "::Test::B")
         {
-           return ICE_MAKE_SHARED(BObjectReader);
+            return ICE_MAKE_SHARED(BObjectReader);
         }
         else if(typeId == "::Test::C")
         {
-           return ICE_MAKE_SHARED(CObjectReader);
+            return ICE_MAKE_SHARED(CObjectReader);
         }
         else if(typeId == "::Test::D")
         {
-           return ICE_MAKE_SHARED(DObjectReader);
+            return ICE_MAKE_SHARED(DObjectReader);
         }
         else if(typeId == "::Test::F")
         {
-           return ICE_MAKE_SHARED(FObjectReader);
+            return ICE_MAKE_SHARED(FObjectReader);
         }
 
         return 0;
     }
 
-    void
-    setEnabled(bool enabled)
+    void setEnabled(bool enabled)
     {
         _enabled = enabled;
     }
@@ -370,13 +365,13 @@ using FactoryIPtr = shared_ptr<FactoryI>;
 typedef IceUtil::Handle<FactoryI> FactoryIPtr;
 #endif
 
-InitialPrxPtr
-allTests(const Ice::CommunicatorPtr& communicator, bool)
+InitialPrxPtr allTests(const Ice::CommunicatorPtr& communicator, bool)
 {
     FactoryIPtr factory = ICE_MAKE_SHARED(FactoryI);
 
 #ifdef ICE_CPP11_MAPPING
-    communicator->getValueFactoryManager()->add([factory](const string& typeId) { return factory->create(typeId); }, "");
+    communicator->getValueFactoryManager()->add([factory](const string& typeId) { return factory->create(typeId); },
+                                                "");
 #else
     communicator->getValueFactoryManager()->add(factory, "");
 #endif
@@ -525,14 +520,15 @@ allTests(const Ice::CommunicatorPtr& communicator, bool)
     cout << "testing comparison operators... " << flush;
 
     test(mo1->a == static_cast<Ice::Byte>(15) && static_cast<Ice::Byte>(15) == mo1->a &&
-        mo1->a != static_cast<Ice::Byte>(16) && static_cast<Ice::Byte>(16) != mo1->a);
+         mo1->a != static_cast<Ice::Byte>(16) && static_cast<Ice::Byte>(16) != mo1->a);
     test(mo1->a < static_cast<Ice::Byte>(16) && mo1->a > static_cast<Ice::Byte>(14) &&
-        mo1->a <= static_cast<Ice::Byte>(15) && mo1->a >= static_cast<Ice::Byte>(15) &&
-        mo1->a <= static_cast<Ice::Byte>(16) && mo1->a >= static_cast<Ice::Byte>(14));
+         mo1->a <= static_cast<Ice::Byte>(15) && mo1->a >= static_cast<Ice::Byte>(15) &&
+         mo1->a <= static_cast<Ice::Byte>(16) && mo1->a >= static_cast<Ice::Byte>(14));
     test(mo1->a > IceUtil::Optional<Ice::Byte>() && IceUtil::Optional<Ice::Byte>() < mo1->a);
     test(14 > IceUtil::Optional<int>() && IceUtil::Optional<int>() < 14);
 
-    test(mo1->h == string("test") && string("test") == mo1->h && mo1->h != string("testa") && string("testa") != mo1->h);
+    test(mo1->h == string("test") && string("test") == mo1->h && mo1->h != string("testa") &&
+         string("testa") != mo1->h);
     test(mo1->h < string("test1") && mo1->h > string("tesa") && mo1->h <= string("test"));
     test(mo1->h >= string("test") && mo1->h <= string("test1") && mo1->h >= string("tesa"));
     test(mo1->h > IceUtil::Optional<string>() && IceUtil::Optional<string>() < mo1->h);
@@ -613,7 +609,7 @@ allTests(const Ice::CommunicatorPtr& communicator, bool)
 
 #ifdef ICE_CPP11_MAPPING
     test(mo5->oops.value().size() == mo1->oops.value().size());
-    for(size_t i = 0; i< mo5->oops.value().size(); ++i)
+    for(size_t i = 0; i < mo5->oops.value().size(); ++i)
     {
         test(targetEqualTo(mo5->oops.value()[i], mo1->oops.value()[i]));
     }
@@ -740,7 +736,7 @@ allTests(const Ice::CommunicatorPtr& communicator, bool)
 
 #ifdef ICE_CPP11_MAPPING
     test(mo8->oops.value().size() == mo1->oops.value().size());
-    for(size_t i = 0; i< mo8->oops.value().size(); ++i)
+    for(size_t i = 0; i < mo8->oops.value().size(); ++i)
     {
         test(targetEqualTo(mo8->oops.value()[i], mo1->oops.value()[i]));
     }
@@ -1034,7 +1030,8 @@ allTests(const Ice::CommunicatorPtr& communicator, bool)
 #endif
             out.endEncapsulation();
             out.finished(inEncaps);
-            test(initial->ice_invoke("opClassAndUnknownOptional", Ice::ICE_ENUM(OperationMode, Normal), inEncaps, outEncaps));
+            test(initial->ice_invoke("opClassAndUnknownOptional", Ice::ICE_ENUM(OperationMode, Normal), inEncaps,
+                                     outEncaps));
 
             Ice::InputStream in(communicator, out.getEncoding(), outEncaps);
             in.startEncapsulation();
@@ -1535,7 +1532,7 @@ allTests(const Ice::CommunicatorPtr& communicator, bool)
 
     cout << "testing optional parameters and custom sequences... " << flush;
     {
-        IceUtil::Optional<std::pair<const Ice::Byte*, const Ice::Byte*> > p1;
+        IceUtil::Optional<std::pair<const Ice::Byte*, const Ice::Byte*>> p1;
         IceUtil::Optional<ByteSeq> p3;
         IceUtil::Optional<ByteSeq> p2 = initial->opByteSeq(p1, p3);
         test(!p2 && !p3);
@@ -1566,7 +1563,7 @@ allTests(const Ice::CommunicatorPtr& communicator, bool)
     }
 
     {
-        IceUtil::Optional<std::pair<const bool*, const bool*> > p1;
+        IceUtil::Optional<std::pair<const bool*, const bool*>> p1;
         IceUtil::Optional<BoolSeq> p3;
         IceUtil::Optional<BoolSeq> p2 = initial->opBoolSeq(p1, p3);
         test(!p2 && !p3);
@@ -1598,7 +1595,7 @@ allTests(const Ice::CommunicatorPtr& communicator, bool)
     }
 
     {
-        IceUtil::Optional<std::pair<const Ice::Short*, const Ice::Short*> > p1;
+        IceUtil::Optional<std::pair<const Ice::Short*, const Ice::Short*>> p1;
         IceUtil::Optional<ShortSeq> p3;
         IceUtil::Optional<ShortSeq> p2 = initial->opShortSeq(p1, p3);
         test(!p2 && !p3);
@@ -1629,7 +1626,7 @@ allTests(const Ice::CommunicatorPtr& communicator, bool)
     }
 
     {
-        IceUtil::Optional<std::pair<const Ice::Int*, const Ice::Int*> > p1;
+        IceUtil::Optional<std::pair<const Ice::Int*, const Ice::Int*>> p1;
         IceUtil::Optional<IntSeq> p3;
         IceUtil::Optional<IntSeq> p2 = initial->opIntSeq(p1, p3);
         test(!p2 && !p3);
@@ -1660,7 +1657,7 @@ allTests(const Ice::CommunicatorPtr& communicator, bool)
     }
 
     {
-        IceUtil::Optional<std::pair<const Ice::Long*, const Ice::Long*> > p1;
+        IceUtil::Optional<std::pair<const Ice::Long*, const Ice::Long*>> p1;
         IceUtil::Optional<LongSeq> p3;
         IceUtil::Optional<LongSeq> p2 = initial->opLongSeq(p1, p3);
         test(!p2 && !p3);
@@ -1691,7 +1688,7 @@ allTests(const Ice::CommunicatorPtr& communicator, bool)
     }
 
     {
-        IceUtil::Optional<std::pair<const Ice::Float*, const Ice::Float*> > p1;
+        IceUtil::Optional<std::pair<const Ice::Float*, const Ice::Float*>> p1;
         IceUtil::Optional<FloatSeq> p3;
         IceUtil::Optional<FloatSeq> p2 = initial->opFloatSeq(p1, p3);
         test(!p2 && !p3);
@@ -1722,7 +1719,7 @@ allTests(const Ice::CommunicatorPtr& communicator, bool)
     }
 
     {
-        IceUtil::Optional<std::pair<const Ice::Double*, const Ice::Double*> > p1;
+        IceUtil::Optional<std::pair<const Ice::Double*, const Ice::Double*>> p1;
         IceUtil::Optional<DoubleSeq> p3;
         IceUtil::Optional<DoubleSeq> p2 = initial->opDoubleSeq(p1, p3);
         test(!p2 && !p3);
@@ -1754,19 +1751,19 @@ allTests(const Ice::CommunicatorPtr& communicator, bool)
 
 #ifndef ICE_CPP11_MAPPING
     {
-        IceUtil::Optional<std::pair<StringSeq::const_iterator, StringSeq::const_iterator> > p1;
+        IceUtil::Optional<std::pair<StringSeq::const_iterator, StringSeq::const_iterator>> p1;
         IceUtil::Optional<StringSeq> p3;
         IceUtil::Optional<StringSeq> p2 = initial->opStringSeq(p1, p3);
         test(!p2 && !p3);
 
         StringSeq ss(10);
         fill(ss.begin(), ss.end(), "test1");
-#if defined(__SUNPRO_CC) && defined(_RWSTD_NO_MEMBER_TEMPLATES)
+#    if defined(__SUNPRO_CC) && defined(_RWSTD_NO_MEMBER_TEMPLATES)
         std::pair<StringSeq::const_iterator, StringSeq::const_iterator> cpair(ss.begin(), ss.end());
         p1 = cpair;
-#else
+#    else
         p1 = make_pair(ss.begin(), ss.end());
-#endif
+#    endif
         p2 = initial->opStringSeq(p1, p3);
         test(p2 && p3);
         test(p2 == ss && p3 == ss);
@@ -1791,7 +1788,7 @@ allTests(const Ice::CommunicatorPtr& communicator, bool)
 #endif
 
     {
-        IceUtil::Optional<std::pair<const FixedStruct*, const FixedStruct*> > p1;
+        IceUtil::Optional<std::pair<const FixedStruct*, const FixedStruct*>> p1;
         IceUtil::Optional<FixedStructSeq> p3;
         IceUtil::Optional<FixedStructSeq> p2 = initial->opFixedStructSeq(p1, p3);
         test(!p2 && !p3);
@@ -1838,18 +1835,18 @@ allTests(const Ice::CommunicatorPtr& communicator, bool)
 
 #ifndef ICE_CPP11_MAPPING
     {
-        IceUtil::Optional<std::pair<VarStructSeq::const_iterator, VarStructSeq::const_iterator> > p1;
+        IceUtil::Optional<std::pair<VarStructSeq::const_iterator, VarStructSeq::const_iterator>> p1;
         IceUtil::Optional<VarStructSeq> p3;
         IceUtil::Optional<VarStructSeq> p2 = initial->opVarStructSeq(p1, p3);
         test(!p2 && !p3);
 
         VarStructSeq ss(10);
-#if defined(__SUNPRO_CC) && defined(_RWSTD_NO_MEMBER_TEMPLATES)
+#    if defined(__SUNPRO_CC) && defined(_RWSTD_NO_MEMBER_TEMPLATES)
         std::pair<VarStructSeq::const_iterator, VarStructSeq::const_iterator> cpair(ss.begin(), ss.end());
         p1 = cpair;
-#else
+#    else
         p1 = make_pair(ss.begin(), ss.end());
-#endif
+#    endif
         p2 = initial->opVarStructSeq(p1, p3);
         test(p2 && p3);
         test(p2 == ss && p3 == ss);
@@ -1971,7 +1968,7 @@ allTests(const Ice::CommunicatorPtr& communicator, bool)
     {
         if(supportsCppStringView)
         {
-            IceUtil::Optional<std::map<int, Util::string_view> > p1;
+            IceUtil::Optional<std::map<int, Util::string_view>> p1;
             IceUtil::Optional<IntStringDict> p3;
             IceUtil::Optional<IntStringDict> p2 = initial->opCustomIntStringDict(p1, p3);
             test(!p2 && !p3);
@@ -2040,8 +2037,8 @@ allTests(const Ice::CommunicatorPtr& communicator, bool)
             //
             // Use the 1.0 encoding with an exception whose only class members are optional.
             //
-            initial->ice_encodingVersion(Ice::Encoding_1_0)->
-                opOptionalException(30, string("test"), ICE_MAKE_SHARED(OneOptional, 53));
+            initial->ice_encodingVersion(Ice::Encoding_1_0)
+                ->opOptionalException(30, string("test"), ICE_MAKE_SHARED(OneOptional, 53));
             test(false);
         }
         catch(const OptionalException& ex)

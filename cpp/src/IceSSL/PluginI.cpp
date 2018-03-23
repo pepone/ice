@@ -41,8 +41,7 @@ IceSSL::Plugin::~Plugin()
 //
 // Plugin implementation.
 //
-PluginI::PluginI(const Ice::CommunicatorPtr& com, const SSLEnginePtr& engine) :
-    _engine(engine)
+PluginI::PluginI(const Ice::CommunicatorPtr& com, const SSLEnginePtr& engine) : _engine(engine)
 {
     //
     // Register the endpoint factory. We have to do this now, rather
@@ -53,22 +52,19 @@ PluginI::PluginI(const Ice::CommunicatorPtr& com, const SSLEnginePtr& engine) :
     IceInternal::getProtocolPluginFacade(com)->addEndpointFactory(new EndpointFactoryI(instance, TCPEndpointType));
 }
 
-void
-PluginI::initialize()
+void PluginI::initialize()
 {
     _engine->initialize();
 }
 
-void
-PluginI::destroy()
+void PluginI::destroy()
 {
     _engine->destroy();
     _engine = 0;
 }
 
 #ifdef ICE_CPP11_MAPPING
-void
-PluginI::setCertificateVerifier(std::function<bool(const std::shared_ptr<IceSSL::ConnectionInfo>&)> verifier)
+void PluginI::setCertificateVerifier(std::function<bool(const std::shared_ptr<IceSSL::ConnectionInfo>&)> verifier)
 {
     if(verifier)
     {
@@ -80,29 +76,26 @@ PluginI::setCertificateVerifier(std::function<bool(const std::shared_ptr<IceSSL:
     }
 }
 #else
-void
-PluginI::setCertificateVerifier(const CertificateVerifierPtr& verifier)
+void PluginI::setCertificateVerifier(const CertificateVerifierPtr& verifier)
 {
     _engine->setCertificateVerifier(verifier);
 }
 #endif
 
 #ifdef ICE_CPP11_MAPPING
-void
-PluginI::setPasswordPrompt(std::function<std::string()> prompt)
+void PluginI::setPasswordPrompt(std::function<std::string()> prompt)
 {
-     if(prompt)
-     {
-         _engine->setPasswordPrompt(make_shared<PasswordPrompt>(std::move(prompt)));
-     }
-     else
-     {
-         _engine->setPasswordPrompt(nullptr);
-     }
+    if(prompt)
+    {
+        _engine->setPasswordPrompt(make_shared<PasswordPrompt>(std::move(prompt)));
+    }
+    else
+    {
+        _engine->setPasswordPrompt(nullptr);
+    }
 }
 #else
-void
-PluginI::setPasswordPrompt(const PasswordPromptPtr& prompt)
+void PluginI::setPasswordPrompt(const PasswordPromptPtr& prompt)
 {
     _engine->setPasswordPrompt(prompt);
 }
@@ -110,28 +103,22 @@ PluginI::setPasswordPrompt(const PasswordPromptPtr& prompt)
 
 extern "C"
 {
-
-ICESSL_API Ice::Plugin*
-createIceSSL(const CommunicatorPtr&, const string&, const StringSeq&);
-
+    ICESSL_API Ice::Plugin* createIceSSL(const CommunicatorPtr&, const string&, const StringSeq&);
 }
 
 namespace Ice
 {
+    ICESSL_API void registerIceSSL(bool loadOnInitialize)
+    {
+        Ice::registerPluginFactory("IceSSL", createIceSSL, loadOnInitialize);
+    }
 
-ICESSL_API void
-registerIceSSL(bool loadOnInitialize)
-{
-    Ice::registerPluginFactory("IceSSL", createIceSSL, loadOnInitialize);
-}
-
-}
+} // namespace Ice
 
 //
 // Objective-C function to allow Objective-C programs to register plugin.
 //
-extern "C" ICESSL_API void
-ICEregisterIceSSL(bool loadOnInitialize)
+extern "C" ICESSL_API void ICEregisterIceSSL(bool loadOnInitialize)
 {
     Ice::registerIceSSL(loadOnInitialize);
 }

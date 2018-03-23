@@ -14,13 +14,12 @@
 
 namespace IceUtil
 {
+    /**
+     * Generates a universally unique identifier (UUID).
+     * @return The UUID.
+     */
+    ICE_API std::string generateUUID();
 
-/**
- * Generates a universally unique identifier (UUID).
- * @return The UUID.
- */
-ICE_API std::string generateUUID();
-
-}
+} // namespace IceUtil
 
 #endif

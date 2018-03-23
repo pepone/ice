@@ -18,23 +18,19 @@ using namespace Test;
 class PingReplyI : public PingReply, public IceUtil::Monitor<IceUtil::Mutex>
 {
 public:
-
-    virtual void
-    reply(const Ice::Current&)
+    virtual void reply(const Ice::Current&)
     {
         Lock sync(*this);
         ++_replies;
         notify();
     }
 
-    void
-    reset()
+    void reset()
     {
-         _replies = 0;
+        _replies = 0;
     }
 
-    bool
-    waitReply(int expectedReplies, const IceUtil::Time& timeout)
+    bool waitReply(int expectedReplies, const IceUtil::Time& timeout)
     {
         Lock sync(*this);
         IceUtil::Time end = IceUtil::Time::now() + timeout;
@@ -54,13 +50,11 @@ public:
     }
 
 private:
-
     int _replies;
 };
 ICE_DEFINE_PTR(PingReplyIPtr, PingReplyI);
 
-void
-allTests(const CommunicatorPtr& communicator)
+void allTests(const CommunicatorPtr& communicator)
 {
     communicator->getProperties()->setProperty("ReplyAdapter.Endpoints", "udp");
     Ice::ObjectAdapterPtr adapter = communicator->createObjectAdapter("ReplyAdapter");
@@ -151,7 +145,7 @@ allTests(const CommunicatorPtr& communicator)
     }
     base = communicator->stringToProxy("test -d:" + endpoint.str());
     TestIntfPrxPtr objMcast = ICE_UNCHECKED_CAST(TestIntfPrx, base);
-#if (!defined(__APPLE__) || (defined(__APPLE__) && !TARGET_OS_IPHONE))
+#if(!defined(__APPLE__) || (defined(__APPLE__) && !TARGET_OS_IPHONE))
     cout << "testing udp multicast... " << flush;
 
     nRetry = 5;
@@ -207,26 +201,26 @@ allTests(const CommunicatorPtr& communicator)
     // Windows...). For Windows, see UdpTransceiver constructor for the details. So
     // we don't run this test.
     //
-//     cout << "testing udp bi-dir connection... " << flush;
-//     nRetry = 5;
-//     while(nRetry-- > 0)
-//     {
-//         replyI->reset();
-//         objMcast->pingBiDir(reply->ice_getIdentity());
-//         ret = replyI->waitReply(5, IceUtil::Time::seconds(2));
-//         if(ret)
-//         {
-//             break; // Success
-//         }
-//         replyI = new PingReplyI;
-//         reply = PingReplyPrx::uncheckedCast(adapter->addWithUUID(replyI))->ice_datagram();
-//     }
-//     if(!ret)
-//     {
-//         cout << "failed (is a firewall enabled?)" << endl;
-//     }
-//     else
-//     {
-//         cout << "ok" << endl;
-//     }
+    //     cout << "testing udp bi-dir connection... " << flush;
+    //     nRetry = 5;
+    //     while(nRetry-- > 0)
+    //     {
+    //         replyI->reset();
+    //         objMcast->pingBiDir(reply->ice_getIdentity());
+    //         ret = replyI->waitReply(5, IceUtil::Time::seconds(2));
+    //         if(ret)
+    //         {
+    //             break; // Success
+    //         }
+    //         replyI = new PingReplyI;
+    //         reply = PingReplyPrx::uncheckedCast(adapter->addWithUUID(replyI))->ice_datagram();
+    //     }
+    //     if(!ret)
+    //     {
+    //         cout << "failed (is a firewall enabled?)" << endl;
+    //     }
+    //     else
+    //     {
+    //         cout << "ok" << endl;
+    //     }
 }

@@ -18,32 +18,29 @@
 
 namespace IceSSL
 {
+    class EndpointI;
 
-class EndpointI;
+    class ConnectorI : public IceInternal::Connector
+    {
+    public:
+        virtual IceInternal::TransceiverPtr connect();
 
-class ConnectorI : public IceInternal::Connector
-{
-public:
+        virtual Ice::Short type() const;
+        virtual std::string toString() const;
 
-    virtual IceInternal::TransceiverPtr connect();
+        virtual bool operator==(const IceInternal::Connector&) const;
+        virtual bool operator<(const IceInternal::Connector&) const;
 
-    virtual Ice::Short type() const;
-    virtual std::string toString() const;
+    private:
+        ConnectorI(const InstancePtr&, const IceInternal::ConnectorPtr&, const std::string&);
+        virtual ~ConnectorI();
+        friend class EndpointI;
 
-    virtual bool operator==(const IceInternal::Connector&) const;
-    virtual bool operator<(const IceInternal::Connector&) const;
+        const InstancePtr _instance;
+        const IceInternal::ConnectorPtr _delegate;
+        const std::string _host;
+    };
 
-private:
-
-    ConnectorI(const InstancePtr&, const IceInternal::ConnectorPtr&, const std::string&);
-    virtual ~ConnectorI();
-    friend class EndpointI;
-
-    const InstancePtr _instance;
-    const IceInternal::ConnectorPtr _delegate;
-    const std::string _host;
-};
-
-} // IceSSL namespace end
+} // namespace IceSSL
 
 #endif

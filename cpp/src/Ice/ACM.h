@@ -23,102 +23,95 @@
 
 namespace IceInternal
 {
+    class ACMConfig
+    {
+    public:
+        ACMConfig(bool = false);
+        ACMConfig(const Ice::PropertiesPtr&, const Ice::LoggerPtr&, const std::string&, const ACMConfig&);
 
-class ACMConfig
-{
-public:
+        IceUtil::Time timeout;
+        Ice::ACMHeartbeat heartbeat;
+        Ice::ACMClose close;
+    };
 
-    ACMConfig(bool = false);
-    ACMConfig(const Ice::PropertiesPtr&, const Ice::LoggerPtr&, const std::string&, const ACMConfig&);
+    class ACMMonitor : public IceUtil::TimerTask
+    {
+    public:
+        virtual void add(const Ice::ConnectionIPtr&) = 0;
+        virtual void remove(const Ice::ConnectionIPtr&) = 0;
+        virtual void reap(const Ice::ConnectionIPtr&) = 0;
 
-    IceUtil::Time timeout;
-    Ice::ACMHeartbeat heartbeat;
-    Ice::ACMClose close;
-};
+        virtual ACMMonitorPtr acm(const IceUtil::Optional<int>&, const IceUtil::Optional<Ice::ACMClose>&,
+                                  const IceUtil::Optional<Ice::ACMHeartbeat>&) = 0;
+        virtual Ice::ACM getACM() = 0;
+    };
 
-class ACMMonitor : public IceUtil::TimerTask
-{
-public:
-
-    virtual void add(const Ice::ConnectionIPtr&) = 0;
-    virtual void remove(const Ice::ConnectionIPtr&) = 0;
-    virtual void reap(const Ice::ConnectionIPtr&) = 0;
-
-    virtual ACMMonitorPtr acm(const IceUtil::Optional<int>&,
-                              const IceUtil::Optional<Ice::ACMClose>&,
-                              const IceUtil::Optional<Ice::ACMHeartbeat>&) = 0;
-    virtual Ice::ACM getACM() = 0;
-};
-
-class FactoryACMMonitor : public ACMMonitor, public IceUtil::Monitor<IceUtil::Mutex>
+    class FactoryACMMonitor : public ACMMonitor,
+                              public IceUtil::Monitor<IceUtil::Mutex>
 #ifdef ICE_CPP11_MAPPING
-                        , public std::enable_shared_from_this<FactoryACMMonitor>
+        ,
+                              public std::enable_shared_from_this<FactoryACMMonitor>
 #endif
-{
-public:
+    {
+    public:
+        FactoryACMMonitor(const InstancePtr&, const ACMConfig&);
+        virtual ~FactoryACMMonitor();
 
-    FactoryACMMonitor(const InstancePtr&, const ACMConfig&);
-    virtual ~FactoryACMMonitor();
+        virtual void add(const Ice::ConnectionIPtr&);
+        virtual void remove(const Ice::ConnectionIPtr&);
+        virtual void reap(const Ice::ConnectionIPtr&);
 
-    virtual void add(const Ice::ConnectionIPtr&);
-    virtual void remove(const Ice::ConnectionIPtr&);
-    virtual void reap(const Ice::ConnectionIPtr&);
+        virtual ACMMonitorPtr acm(const IceUtil::Optional<int>&, const IceUtil::Optional<Ice::ACMClose>&,
+                                  const IceUtil::Optional<Ice::ACMHeartbeat>&);
+        virtual Ice::ACM getACM();
 
-    virtual ACMMonitorPtr acm(const IceUtil::Optional<int>&,
-                              const IceUtil::Optional<Ice::ACMClose>&,
-                              const IceUtil::Optional<Ice::ACMHeartbeat>&);
-    virtual Ice::ACM getACM();
+        void destroy();
+        void swapReapedConnections(std::vector<Ice::ConnectionIPtr>&);
 
-    void destroy();
-    void swapReapedConnections(std::vector<Ice::ConnectionIPtr>&);
+    private:
+        friend class ConnectionACMMonitor;
+        void handleException(const std::exception&);
+        void handleException();
 
-private:
+        virtual void runTimerTask();
 
-    friend class ConnectionACMMonitor;
-    void handleException(const std::exception&);
-    void handleException();
+        InstancePtr _instance;
+        const ACMConfig _config;
 
-    virtual void runTimerTask();
+        std::vector<std::pair<Ice::ConnectionIPtr, bool>> _changes;
+        std::set<Ice::ConnectionIPtr> _connections;
+        std::vector<Ice::ConnectionIPtr> _reapedConnections;
+    };
 
-    InstancePtr _instance;
-    const ACMConfig _config;
-
-    std::vector<std::pair<Ice::ConnectionIPtr, bool> > _changes;
-    std::set<Ice::ConnectionIPtr> _connections;
-    std::vector<Ice::ConnectionIPtr> _reapedConnections;
-};
-
-class ConnectionACMMonitor : public ACMMonitor,
-                             public IceUtil::Mutex
+    class ConnectionACMMonitor : public ACMMonitor,
+                                 public IceUtil::Mutex
 #ifdef ICE_CPP11_MAPPING
-                           , public std::enable_shared_from_this<ConnectionACMMonitor>
+        ,
+                                 public std::enable_shared_from_this<ConnectionACMMonitor>
 #endif
-{
-public:
+    {
+    public:
+        ConnectionACMMonitor(const FactoryACMMonitorPtr&, const IceUtil::TimerPtr&, const ACMConfig&);
+        virtual ~ConnectionACMMonitor();
 
-    ConnectionACMMonitor(const FactoryACMMonitorPtr&, const IceUtil::TimerPtr&, const ACMConfig&);
-    virtual ~ConnectionACMMonitor();
+        virtual void add(const Ice::ConnectionIPtr&);
+        virtual void remove(const Ice::ConnectionIPtr&);
+        virtual void reap(const Ice::ConnectionIPtr&);
 
-    virtual void add(const Ice::ConnectionIPtr&);
-    virtual void remove(const Ice::ConnectionIPtr&);
-    virtual void reap(const Ice::ConnectionIPtr&);
+        virtual ACMMonitorPtr acm(const IceUtil::Optional<int>&, const IceUtil::Optional<Ice::ACMClose>&,
+                                  const IceUtil::Optional<Ice::ACMHeartbeat>&);
+        virtual Ice::ACM getACM();
 
-    virtual ACMMonitorPtr acm(const IceUtil::Optional<int>&,
-                              const IceUtil::Optional<Ice::ACMClose>&,
-                              const IceUtil::Optional<Ice::ACMHeartbeat>&);
-    virtual Ice::ACM getACM();
+    private:
+        virtual void runTimerTask();
 
-private:
+        const FactoryACMMonitorPtr _parent;
+        const IceUtil::TimerPtr _timer;
+        const ACMConfig _config;
 
-    virtual void runTimerTask();
+        Ice::ConnectionIPtr _connection;
+    };
 
-    const FactoryACMMonitorPtr _parent;
-    const IceUtil::TimerPtr _timer;
-    const ACMConfig _config;
-
-    Ice::ConnectionIPtr _connection;
-};
-
-}
+} // namespace IceInternal
 
 #endif

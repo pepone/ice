@@ -16,14 +16,12 @@ TestI::TestI(const Ice::StringSeq& args) : _args(args)
 {
 }
 
-std::string
-TestI::getProperty(ICE_IN(std::string) name, const Ice::Current& current)
+std::string TestI::getProperty(ICE_IN(std::string) name, const Ice::Current& current)
 {
     return current.adapter->getCommunicator()->getProperties()->getProperty(name);
 }
 
-Ice::StringSeq
-TestI::getArgs(const Ice::Current&)
+Ice::StringSeq TestI::getArgs(const Ice::Current&)
 {
     return _args;
 }

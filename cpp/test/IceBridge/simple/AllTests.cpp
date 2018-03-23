@@ -15,79 +15,69 @@ using namespace std;
 
 namespace
 {
-
-class CallbackI : public Test::Callback
-{
-public:
-
-    CallbackI() : _count(0), _datagramCount(0)
+    class CallbackI : public Test::Callback
     {
-    }
+    public:
+        CallbackI() : _count(0), _datagramCount(0)
+        {
+        }
 
-    virtual void
-    ping(const Ice::Current&)
+        virtual void ping(const Ice::Current&)
+        {
+            ++_count;
+        }
+
+        virtual int getCount(const Ice::Current&)
+        {
+            return _count;
+        }
+
+        virtual void datagram(const Ice::Current& c)
+        {
+            test(c.con->getEndpoint()->getInfo()->datagram());
+            ++_datagramCount;
+        }
+
+        virtual int getDatagramCount(const Ice::Current&)
+        {
+            return _datagramCount;
+        }
+
+    private:
+        int _count;
+        int _datagramCount;
+    };
+
+    class HeartbeatCallbackI : public Ice::HeartbeatCallback, private IceUtil::Mutex
     {
-        ++_count;
-    }
+    public:
+        HeartbeatCallbackI() : _count(0)
+        {
+        }
 
-    virtual int
-    getCount(const Ice::Current&)
-    {
-        return _count;
-    }
+        virtual void heartbeat(const Ice::ConnectionPtr&)
+        {
+            Lock sync(*this);
+            ++_count;
+        }
 
-    virtual void
-    datagram(const Ice::Current& c)
-    {
-        test(c.con->getEndpoint()->getInfo()->datagram());
-        ++_datagramCount;
-    }
+        int getCount() const
+        {
+            Lock sync(*this);
+            return _count;
+        }
 
-    virtual int
-    getDatagramCount(const Ice::Current&)
-    {
-        return _datagramCount;
-    }
+    private:
+        int _count;
+    };
 
-private:
+} // namespace
 
-    int _count;
-    int _datagramCount;
-};
-
-class HeartbeatCallbackI : public Ice::HeartbeatCallback, private IceUtil::Mutex
-{
-public:
-
-    HeartbeatCallbackI() : _count(0)
-    {
-    }
-
-    virtual void heartbeat(const Ice::ConnectionPtr&)
-    {
-        Lock sync(*this);
-        ++_count;
-    }
-
-    int getCount() const
-    {
-        Lock sync(*this);
-        return _count;
-    }
-
-private:
-
-    int _count;
-};
-
-}
-
-void
-allTests(const Ice::CommunicatorPtr& communicator)
+void allTests(const Ice::CommunicatorPtr& communicator)
 {
     cout << "testing connection to bridge... " << flush;
     Ice::ObjectPrx base = communicator->stringToProxy("test:" + getTestEndpoint(communicator, 1) + ":" +
-                                                         getTestEndpoint(communicator, 1, "udp"));
+                                                      getTestEndpoint(communicator, 1, "udp"));
     test(base);
     Test::MyClassPrx cl = Ice::checkedCast<Test::MyClassPrx>(base);
     cl->ice_ping();

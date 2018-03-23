@@ -13,12 +13,13 @@
 #include <TestCommon.h>
 
 HoldI::HoldI(const IceUtil::TimerPtr& timer, const Ice::ObjectAdapterPtr& adapter) :
-    _last(0), _timer(timer), _adapter(adapter)
+    _last(0),
+    _timer(timer),
+    _adapter(adapter)
 {
 }
 
-void
-HoldI::putOnHold(Ice::Int milliSeconds, const Ice::Current&)
+void HoldI::putOnHold(Ice::Int milliSeconds, const Ice::Current&)
 {
     if(milliSeconds < 0)
     {
@@ -41,19 +42,16 @@ HoldI::putOnHold(Ice::Int milliSeconds, const Ice::Current&)
     }
 }
 
-void
-HoldI::waitForHold(const Ice::Current& current)
+void HoldI::waitForHold(const Ice::Current& current)
 {
     class WaitForHold : public IceUtil::TimerTask
     {
     public:
-
         WaitForHold(const Ice::ObjectAdapterPtr& adapter) : _adapter(adapter)
         {
         }
 
-        void
-        runTimerTask()
+        void runTimerTask()
         {
             try
             {
@@ -71,7 +69,6 @@ HoldI::waitForHold(const Ice::Current& current)
         }
 
     private:
-
         const Ice::ObjectAdapterPtr _adapter;
     };
 
@@ -84,8 +81,7 @@ HoldI::waitForHold(const Ice::Current& current)
     }
 }
 
-Ice::Int
-HoldI::set(Ice::Int value, Ice::Int delay, const Ice::Current&)
+Ice::Int HoldI::set(Ice::Int value, Ice::Int delay, const Ice::Current&)
 {
     IceUtil::ThreadControl::sleep(IceUtil::Time::milliSeconds(delay));
 
@@ -95,23 +91,20 @@ HoldI::set(Ice::Int value, Ice::Int delay, const Ice::Current&)
     return tmp;
 }
 
-void
-HoldI::setOneway(Ice::Int value, Ice::Int expected, const Ice::Current&)
+void HoldI::setOneway(Ice::Int value, Ice::Int expected, const Ice::Current&)
 {
     Lock sync(*this);
     test(_last == expected);
     _last = value;
 }
 
-void
-HoldI::shutdown(const Ice::Current&)
+void HoldI::shutdown(const Ice::Current&)
 {
     _adapter->hold();
     _adapter->getCommunicator()->shutdown();
 }
 
-void
-HoldI::runTimerTask()
+void HoldI::runTimerTask()
 {
     try
     {

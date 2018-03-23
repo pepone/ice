@@ -16,11 +16,10 @@
 
 namespace IceInternal
 {
+    class NetworkProxy;
+    ICE_API IceUtil::Shared* upCast(NetworkProxy*);
+    typedef Handle<NetworkProxy> NetworkProxyPtr;
 
-class NetworkProxy;
-ICE_API IceUtil::Shared* upCast(NetworkProxy*);
-typedef Handle<NetworkProxy> NetworkProxyPtr;
-
-}
+} // namespace IceInternal
 
 #endif

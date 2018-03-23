@@ -16,8 +16,7 @@ TestI::TestI()
 {
 }
 
-void
-TestI::shutdown(const Ice::Current& current)
+void TestI::shutdown(const Ice::Current& current)
 {
     current.adapter->getCommunicator()->shutdown();
 }

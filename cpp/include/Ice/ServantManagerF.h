@@ -16,11 +16,10 @@
 
 namespace IceInternal
 {
+    class ServantManager;
+    ICE_API IceUtil::Shared* upCast(ServantManager*);
+    typedef Handle<ServantManager> ServantManagerPtr;
 
-class ServantManager;
-ICE_API IceUtil::Shared* upCast(ServantManager*);
-typedef Handle<ServantManager> ServantManagerPtr;
-
-}
+} // namespace IceInternal
 
 #endif

@@ -26,40 +26,37 @@ using namespace std;
 using namespace Ice;
 using namespace IceBT;
 
-IceUtil::Shared* IceBT::upCast(AcceptorI* p) { return p; }
+IceUtil::Shared* IceBT::upCast(AcceptorI* p)
+{
+    return p;
+}
 
 namespace
 {
-
-class ProfileCallbackI : public ProfileCallback
-{
-public:
-
-    ProfileCallbackI(const AcceptorIPtr& acceptor) :
-        _acceptor(acceptor)
+    class ProfileCallbackI : public ProfileCallback
     {
-    }
+    public:
+        ProfileCallbackI(const AcceptorIPtr& acceptor) : _acceptor(acceptor)
+        {
+        }
 
-    virtual void newConnection(int fd)
-    {
-        _acceptor->newConnection(fd);
-    }
+        virtual void newConnection(int fd)
+        {
+            _acceptor->newConnection(fd);
+        }
 
-private:
+    private:
+        AcceptorIPtr _acceptor;
+    };
 
-    AcceptorIPtr _acceptor;
-};
+} // namespace
 
-}
-
-IceInternal::NativeInfoPtr
-IceBT::AcceptorI::getNativeInfo()
+IceInternal::NativeInfoPtr IceBT::AcceptorI::getNativeInfo()
 {
     return this;
 }
 
-void
-IceBT::AcceptorI::close()
+void IceBT::AcceptorI::close()
 {
     if(!_path.empty())
     {
@@ -73,8 +70,7 @@ IceBT::AcceptorI::close()
     }
 }
 
-IceInternal::EndpointIPtr
-IceBT::AcceptorI::listen()
+IceInternal::EndpointIPtr IceBT::AcceptorI::listen()
 {
     assert(!_uuid.empty());
 
@@ -102,8 +98,7 @@ IceBT::AcceptorI::listen()
     return _endpoint;
 }
 
-IceInternal::TransceiverPtr
-IceBT::AcceptorI::accept()
+IceInternal::TransceiverPtr IceBT::AcceptorI::accept()
 {
     //
     // The plug-in may not be initialized.
@@ -135,20 +130,17 @@ IceBT::AcceptorI::accept()
     return t;
 }
 
-string
-IceBT::AcceptorI::protocol() const
+string IceBT::AcceptorI::protocol() const
 {
     return _instance->protocol();
 }
 
-string
-IceBT::AcceptorI::toString() const
+string IceBT::AcceptorI::toString() const
 {
     return addrToString(_addr, _channel);
 }
 
-string
-IceBT::AcceptorI::toDetailedString() const
+string IceBT::AcceptorI::toDetailedString() const
 {
     ostringstream os;
     os << "local address = " << toString();
@@ -163,8 +155,7 @@ IceBT::AcceptorI::toDetailedString() const
     return os.str();
 }
 
-int
-IceBT::AcceptorI::effectiveChannel() const
+int IceBT::AcceptorI::effectiveChannel() const
 {
     //
     // If no channel was specified in the endpoint (_channel == 0), the Bluetooth daemon will select
@@ -175,8 +166,7 @@ IceBT::AcceptorI::effectiveChannel() const
     return _channel;
 }
 
-void
-IceBT::AcceptorI::newConnection(int fd)
+void IceBT::AcceptorI::newConnection(int fd)
 {
     IceUtil::Monitor<IceUtil::Mutex>::Lock lock(_lock);
 
@@ -213,13 +203,13 @@ IceBT::AcceptorI::AcceptorI(const EndpointIPtr& endpoint, const InstancePtr& ins
     DeviceAddress da;
     if(!parseDeviceAddress(s, da))
     {
-        throw EndpointParseException(__FILE__, __LINE__, "invalid address value `" + s + "' in endpoint " +
-                                     endpoint->toString());
+        throw EndpointParseException(__FILE__, __LINE__,
+                                     "invalid address value `" + s + "' in endpoint " + endpoint->toString());
     }
     if(!_instance->engine()->adapterExists(s))
     {
-        throw EndpointParseException(__FILE__, __LINE__, "no device found for `" + s + "' in endpoint " +
-                                     endpoint->toString());
+        throw EndpointParseException(__FILE__, __LINE__,
+                                     "no device found for `" + s + "' in endpoint " + endpoint->toString());
     }
 
     const_cast<string&>(_addr) = s;

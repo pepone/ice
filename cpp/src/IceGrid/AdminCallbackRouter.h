@@ -16,35 +16,30 @@
 
 namespace IceGrid
 {
+    //
+    // The AdminCallbackRouter routes callbacks from the servers, nodes etc. to the
+    // admin clients using the admin-client => registry connection.
+    //
 
-//
-// The AdminCallbackRouter routes callbacks from the servers, nodes etc. to the
-// admin clients using the admin-client => registry connection.
-//
+    class AdminCallbackRouter : public Ice::BlobjectArrayAsync
+    {
+    public:
+        void addMapping(const std::string&, const Ice::ConnectionPtr&);
+        void removeMapping(const std::string&);
 
-class AdminCallbackRouter : public Ice::BlobjectArrayAsync
-{
-public:
+        virtual void invokeResponse(bool, const std::pair<const ::Ice::Byte*, const ::Ice::Byte*>&,
+                                    const Ice::AMD_Object_ice_invokePtr&);
 
-    void addMapping(const std::string&, const Ice::ConnectionPtr&);
-    void removeMapping(const std::string&);
+        virtual void invokeException(const Ice::Exception&, const Ice::AMD_Object_ice_invokePtr&);
 
-    virtual void invokeResponse(bool,
-                                const std::pair<const ::Ice::Byte*, const ::Ice::Byte*>&,
-                                const Ice::AMD_Object_ice_invokePtr&);
+        virtual void ice_invoke_async(const Ice::AMD_Object_ice_invokePtr&,
+                                      const std::pair<const Ice::Byte*, const Ice::Byte*>&, const Ice::Current&);
 
-    virtual void invokeException(const Ice::Exception&, const Ice::AMD_Object_ice_invokePtr&);
+    private:
+        IceUtil::Mutex _mutex;
+        std::map<std::string, Ice::ConnectionPtr> _categoryToConnection;
+    };
 
-    virtual void ice_invoke_async(const Ice::AMD_Object_ice_invokePtr&,
-                                  const std::pair<const Ice::Byte*, const Ice::Byte*>&,
-                                  const Ice::Current&);
-
-private:
-
-    IceUtil::Mutex _mutex;
-    std::map<std::string, Ice::ConnectionPtr> _categoryToConnection;
-};
-
-typedef IceUtil::Handle<AdminCallbackRouter> AdminCallbackRouterPtr;
-}
+    typedef IceUtil::Handle<AdminCallbackRouter> AdminCallbackRouterPtr;
+} // namespace IceGrid
 #endif

@@ -22,8 +22,7 @@
 using namespace IceStorm;
 using namespace std;
 
-TransientTopicManagerImpl::TransientTopicManagerImpl(const InstancePtr& instance) :
-    _instance(instance)
+TransientTopicManagerImpl::TransientTopicManagerImpl(const InstancePtr& instance) : _instance(instance)
 {
 }
 
@@ -31,8 +30,7 @@ TransientTopicManagerImpl::~TransientTopicManagerImpl()
 {
 }
 
-TopicPrx
-TransientTopicManagerImpl::create(const string& name, const Ice::Current&)
+TopicPrx TransientTopicManagerImpl::create(const string& name, const Ice::Current&)
 {
     Lock sync(*this);
 
@@ -52,8 +50,7 @@ TransientTopicManagerImpl::create(const string& name, const Ice::Current&)
     if(traceLevels->topicMgr > 0)
     {
         Ice::Trace out(traceLevels->logger, traceLevels->topicMgrCat);
-        out << "creating new topic \"" << name << "\". id: "
-            << _instance->communicator()->identityToString(id);
+        out << "creating new topic \"" << name << "\". id: " << _instance->communicator()->identityToString(id);
     }
 
     //
@@ -69,8 +66,7 @@ TransientTopicManagerImpl::create(const string& name, const Ice::Current&)
     return prx;
 }
 
-TopicPrx
-TransientTopicManagerImpl::retrieve(const string& name, const Ice::Current&) const
+TopicPrx TransientTopicManagerImpl::retrieve(const string& name, const Ice::Current&) const
 {
     Lock sync(*this);
 
@@ -89,8 +85,7 @@ TransientTopicManagerImpl::retrieve(const string& name, const Ice::Current&) con
     return TopicPrx::uncheckedCast(_instance->topicAdapter()->createProxy(p->second->id()));
 }
 
-TopicDict
-TransientTopicManagerImpl::retrieveAll(const Ice::Current&) const
+TopicDict TransientTopicManagerImpl::retrieveAll(const Ice::Current&) const
 {
     Lock sync(*this);
 
@@ -106,25 +101,22 @@ TransientTopicManagerImpl::retrieveAll(const Ice::Current&) const
         // name, or if created with pre-3.2 IceStorm "/<topicname>".
         //
         all.insert(TopicDict::value_type(
-                       p->first, TopicPrx::uncheckedCast(_instance->topicAdapter()->createProxy(p->second->id()))));
+            p->first, TopicPrx::uncheckedCast(_instance->topicAdapter()->createProxy(p->second->id()))));
     }
 
     return all;
 }
-Ice::SliceChecksumDict
-TransientTopicManagerImpl::getSliceChecksums(const Ice::Current&) const
+Ice::SliceChecksumDict TransientTopicManagerImpl::getSliceChecksums(const Ice::Current&) const
 {
     return Ice::sliceChecksums();
 }
 
-IceStormElection::NodePrx
-TransientTopicManagerImpl::getReplicaNode(const Ice::Current&) const
+IceStormElection::NodePrx TransientTopicManagerImpl::getReplicaNode(const Ice::Current&) const
 {
     return IceStormElection::NodePrx();
 }
 
-void
-TransientTopicManagerImpl::reap()
+void TransientTopicManagerImpl::reap()
 {
     //
     // Always called with mutex locked.
@@ -159,8 +151,7 @@ TransientTopicManagerImpl::reap()
     }
 }
 
-void
-TransientTopicManagerImpl::shutdown()
+void TransientTopicManagerImpl::shutdown()
 {
     Lock sync(*this);
 

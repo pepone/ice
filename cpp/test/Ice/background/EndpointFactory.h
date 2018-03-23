@@ -15,8 +15,9 @@
 class EndpointFactory : public IceInternal::EndpointFactory
 {
 public:
-
-    virtual ~EndpointFactory() { }
+    virtual ~EndpointFactory()
+    {
+    }
 
     virtual ::Ice::Short type() const;
     virtual ::std::string protocol() const;
@@ -27,7 +28,6 @@ public:
     virtual IceInternal::EndpointFactoryPtr clone(const IceInternal::ProtocolInstancePtr&) const;
 
 protected:
-
     EndpointFactory(const IceInternal::EndpointFactoryPtr&);
     friend class TestPluginI;
 

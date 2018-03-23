@@ -19,11 +19,11 @@
 
 #ifndef ICE_XML_API
 #    if defined(ICE_STATIC_LIBS)
-#       define ICE_XML_API /**/
+#        define ICE_XML_API /**/
 #    elif defined(ICE_XML_API_EXPORTS)
-#       define ICE_XML_API ICE_DECLSPEC_EXPORT
+#        define ICE_XML_API ICE_DECLSPEC_EXPORT
 #    else
-#       define ICE_XML_API ICE_DECLSPEC_IMPORT
+#        define ICE_XML_API ICE_DECLSPEC_IMPORT
 #    endif
 #endif
 
@@ -32,157 +32,145 @@
 //
 
 #if !defined(ICE_BUILDING_ICE_XML) && defined(ICE_XML_API_EXPORTS)
-#   define ICE_BUILDING_ICE_XML
+#    define ICE_BUILDING_ICE_XML
 #endif
 
 #if defined(_MSC_VER) && !defined(ICE_BUILDING_ICE_XML)
-#   pragma comment(lib, ICE_LIBNAME("IceXML"))
+#    pragma comment(lib, ICE_LIBNAME("IceXML"))
 #endif
 
 namespace IceXML
 {
-
-class ICE_XML_API ParserException : public IceUtil::ExceptionHelper<ParserException>
-{
-public:
-
-    ParserException(const std::string&);
-    ParserException(const char*, int, const std::string&);
+    class ICE_XML_API ParserException : public IceUtil::ExceptionHelper<ParserException>
+    {
+    public:
+        ParserException(const std::string&);
+        ParserException(const char*, int, const std::string&);
 #ifndef ICE_CPP11_COMPILER
-    virtual ~ParserException() throw();
+        virtual ~ParserException() throw();
 #endif
 
-    virtual std::string ice_id() const;
-    virtual void ice_print(std::ostream&) const;
+        virtual std::string ice_id() const;
+        virtual void ice_print(std::ostream&) const;
 #ifndef ICE_CPP11_MAPPING
-    virtual ParserException* ice_clone() const;
+        virtual ParserException* ice_clone() const;
 #endif
 
-    std::string reason() const;
+        std::string reason() const;
 
-private:
+    private:
+        std::string _reason;
+        static const char* _name;
+    };
 
-    std::string _reason;
-    static const char* _name;
-};
+    class Node;
+    typedef IceUtil::Handle<Node> NodePtr;
 
-class Node;
-typedef IceUtil::Handle< Node > NodePtr;
+    typedef std::vector<NodePtr> NodeList;
 
-typedef std::vector<NodePtr> NodeList;
+    class Element;
+    typedef IceUtil::Handle<Element> ElementPtr;
 
-class Element;
-typedef IceUtil::Handle< Element > ElementPtr;
+    class Text;
+    typedef IceUtil::Handle<Text> TextPtr;
 
-class Text;
-typedef IceUtil::Handle< Text > TextPtr;
+    class Document;
+    typedef IceUtil::Handle<Document> DocumentPtr;
 
-class Document;
-typedef IceUtil::Handle< Document > DocumentPtr;
+    typedef std::map<std::string, std::string> Attributes;
 
-typedef std::map<std::string, std::string> Attributes;
+    class ICE_XML_API Node : public IceUtil::Shared
+    {
+    public:
+        virtual ~Node();
 
-class ICE_XML_API Node : public IceUtil::Shared
-{
-public:
+        virtual NodePtr getParent() const;
+        virtual std::string getName() const;
+        virtual std::string getValue() const;
+        virtual NodeList getChildren() const;
+        virtual Attributes getAttributes() const;
+        virtual std::string getAttribute(const std::string&) const;
 
-    virtual ~Node();
+        virtual bool addChild(const NodePtr&);
 
-    virtual NodePtr getParent() const;
-    virtual std::string getName() const;
-    virtual std::string getValue() const;
-    virtual NodeList getChildren() const;
-    virtual Attributes getAttributes() const;
-    virtual std::string getAttribute(const std::string&) const;
+        virtual void destroy();
 
-    virtual bool addChild(const NodePtr&);
+        int getLine() const;
+        int getColumn() const;
 
-    virtual void destroy();
+    protected:
+        Node(const NodePtr&, const std::string&, const std::string&, int, int);
 
-    int getLine() const;
-    int getColumn() const;
+        NodePtr _parent;
+        std::string _name;
+        std::string _value;
+        int _line;
+        int _column;
+    };
 
-protected:
+    class ICE_XML_API Element : public Node
+    {
+    public:
+        Element(const NodePtr&, const std::string&, const Attributes&, int, int);
+        virtual ~Element();
 
-    Node(const NodePtr&, const std::string&, const std::string&, int, int);
+        virtual NodeList getChildren() const;
+        virtual Attributes getAttributes() const;
+        virtual std::string getAttribute(const std::string&) const;
 
-    NodePtr _parent;
-    std::string _name;
-    std::string _value;
-    int _line;
-    int _column;
-};
+        virtual bool addChild(const NodePtr&);
 
-class ICE_XML_API Element : public Node
-{
-public:
+        virtual void destroy();
 
-    Element(const NodePtr&, const std::string&, const Attributes&, int, int);
-    virtual ~Element();
+    private:
+        NodeList _children;
+        Attributes _attributes;
+    };
 
-    virtual NodeList getChildren() const;
-    virtual Attributes getAttributes() const;
-    virtual std::string getAttribute(const std::string&) const;
+    class ICE_XML_API Text : public Node
+    {
+    public:
+        Text(const NodePtr&, const std::string&, int, int);
+        virtual ~Text();
+    };
 
-    virtual bool addChild(const NodePtr&);
+    class ICE_XML_API Document : public Node
+    {
+    public:
+        Document();
+        virtual ~Document();
 
-    virtual void destroy();
+        virtual NodeList getChildren() const;
 
-private:
+        virtual bool addChild(const NodePtr&);
 
-    NodeList _children;
-    Attributes _attributes;
-};
+        virtual void destroy();
 
-class ICE_XML_API Text : public Node
-{
-public:
+    private:
+        NodeList _children;
+    };
 
-    Text(const NodePtr&, const std::string&, int, int);
-    virtual ~Text();
-};
+    class ICE_XML_API Handler
+    {
+    public:
+        virtual ~Handler();
 
-class ICE_XML_API Document : public Node
-{
-public:
+        virtual void startElement(const std::string&, const Attributes&, int, int) = 0;
+        virtual void endElement(const std::string&, int, int) = 0;
+        virtual void characters(const std::string&, int, int) = 0;
+        virtual void error(const std::string&, int, int);
+    };
 
-    Document();
-    virtual ~Document();
+    class ICE_XML_API Parser
+    {
+    public:
+        static DocumentPtr parse(const std::string&); // The given filename must be UTF-8 encoded
+        static DocumentPtr parse(std::istream&);
 
-    virtual NodeList getChildren() const;
+        static void parse(const std::string&, Handler&);
+        static void parse(std::istream&, Handler&);
+    };
 
-    virtual bool addChild(const NodePtr&);
-
-    virtual void destroy();
-
-private:
-
-    NodeList _children;
-};
-
-class ICE_XML_API Handler
-{
-public:
-
-    virtual ~Handler();
-
-    virtual void startElement(const std::string&, const Attributes&, int, int) = 0;
-    virtual void endElement(const std::string&, int, int) = 0;
-    virtual void characters(const std::string&, int, int) = 0;
-    virtual void error(const std::string&, int, int);
-};
-
-class ICE_XML_API Parser
-{
-public:
-
-    static DocumentPtr parse(const std::string&); // The given filename must be UTF-8 encoded
-    static DocumentPtr parse(std::istream&);
-
-    static void parse(const std::string&, Handler&);
-    static void parse(std::istream&, Handler&);
-};
-
-}
+} // namespace IceXML
 
 #endif

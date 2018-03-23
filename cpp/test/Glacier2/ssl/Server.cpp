@@ -17,37 +17,34 @@ using namespace std;
 
 namespace
 {
-
-void testContext(bool ssl, const Ice::CommunicatorPtr& communicator, const Ice::Context& context)
-{
-    Ice::Context ctx = context;
-    if(!ssl)
+    void testContext(bool ssl, const Ice::CommunicatorPtr& communicator, const Ice::Context& context)
     {
-        test(ctx["_con.type"] == "tcp");
-        ostringstream port;
-        port << getTestPort(communicator->getProperties(), 0);
-        test(ctx["_con.localPort"] == port.str());
+        Ice::Context ctx = context;
+        if(!ssl)
+        {
+            test(ctx["_con.type"] == "tcp");
+            ostringstream port;
+            port << getTestPort(communicator->getProperties(), 0);
+            test(ctx["_con.localPort"] == port.str());
+        }
+        else
+        {
+            test(ctx["_con.type"] == "ssl");
+            ostringstream port;
+            port << getTestPort(communicator->getProperties(), 1);
+            test(ctx["_con.localPort"] == port.str());
+        }
+        test(ctx["_con.localAddress"] == "127.0.0.1");
+        test(ctx["_con.remotePort"] != "");
+        test(ctx["_con.remoteAddress"] == "127.0.0.1");
     }
-    else
-    {
-        test(ctx["_con.type"] == "ssl");
-        ostringstream port;
-        port << getTestPort(communicator->getProperties(), 1);
-        test(ctx["_con.localPort"] == port.str());
-    }
-    test(ctx["_con.localAddress"] == "127.0.0.1");
-    test(ctx["_con.remotePort"] != "");
-    test(ctx["_con.remoteAddress"] == "127.0.0.1");
-}
 
-}
+} // namespace
 
 class PermissionsVerifierI : public Glacier2::PermissionsVerifier
 {
 public:
-
-    virtual bool
-    checkPermissions(const string& userId, const string&, string&, const Ice::Current& current) const
+    virtual bool checkPermissions(const string& userId, const string&, string&, const Ice::Current& current) const
     {
         testContext(userId == "ssl", current.adapter->getCommunicator(), current.ctx);
         return true;
@@ -57,17 +54,17 @@ public:
 class SSLPermissionsVerifierI : public Glacier2::SSLPermissionsVerifier
 {
 public:
-
-    virtual bool
-    authorize(const Glacier2::SSLInfo& info, string&, const Ice::Current& current) const
+    virtual bool authorize(const Glacier2::SSLInfo& info, string&, const Ice::Current& current) const
     {
         testContext(true, current.adapter->getCommunicator(), current.ctx);
 
         IceSSL::CertificatePtr cert = IceSSL::Certificate::decode(info.certs[0]);
-        test(cert->getIssuerDN() == IceSSL::DistinguishedName(
-             "emailAddress=info@zeroc.com,C=US,ST=Florida,L=Jupiter,O=ZeroC\\, Inc.,OU=Ice,CN=Ice Tests CA"));
-        test(cert->getSubjectDN() == IceSSL::DistinguishedName(
-             "emailAddress=info@zeroc.com,C=US,ST=Florida,L=Jupiter,O=ZeroC\\, Inc.,OU=Ice,CN=client"));
+        test(cert->getIssuerDN() ==
+             IceSSL::DistinguishedName(
+                 "emailAddress=info@zeroc.com,C=US,ST=Florida,L=Jupiter,O=ZeroC\\, Inc.,OU=Ice,CN=Ice Tests CA"));
+        test(cert->getSubjectDN() ==
+             IceSSL::DistinguishedName(
+                 "emailAddress=info@zeroc.com,C=US,ST=Florida,L=Jupiter,O=ZeroC\\, Inc.,OU=Ice,CN=client"));
         test(cert->checkValidity());
 
         return true;
@@ -77,13 +74,11 @@ public:
 class SessionI : public Glacier2::Session
 {
 public:
-
     SessionI(bool shutdown, bool ssl) : _shutdown(shutdown), _ssl(ssl)
     {
     }
 
-    virtual void
-    destroy(const Ice::Current& current)
+    virtual void destroy(const Ice::Current& current)
     {
         testContext(_ssl, current.adapter->getCommunicator(), current.ctx);
 
@@ -94,14 +89,12 @@ public:
         }
     }
 
-    virtual void
-    ice_ping(const Ice::Current& current) const
+    virtual void ice_ping(const Ice::Current& current) const
     {
         testContext(_ssl, current.adapter->getCommunicator(), current.ctx);
     }
 
 private:
-
     const bool _shutdown;
     const bool _ssl;
 };
@@ -109,9 +102,8 @@ private:
 class SessionManagerI : public Glacier2::SessionManager
 {
 public:
-
-    virtual Glacier2::SessionPrx
-    create(const string& userId, const Glacier2::SessionControlPrx&, const Ice::Current& current)
+    virtual Glacier2::SessionPrx create(const string& userId, const Glacier2::SessionControlPrx&,
+                                        const Ice::Current& current)
     {
         testContext(userId == "ssl", current.adapter->getCommunicator(), current.ctx);
 
@@ -123,9 +115,8 @@ public:
 class SSLSessionManagerI : public Glacier2::SSLSessionManager
 {
 public:
-
-    virtual Glacier2::SessionPrx
-    create(const Glacier2::SSLInfo& info, const Glacier2::SessionControlPrx&, const Ice::Current& current)
+    virtual Glacier2::SessionPrx create(const Glacier2::SSLInfo& info, const Glacier2::SessionControlPrx&,
+                                        const Ice::Current& current)
     {
         testContext(true, current.adapter->getCommunicator(), current.ctx);
 
@@ -136,9 +127,11 @@ public:
         try
         {
             IceSSL::CertificatePtr cert = IceSSL::Certificate::decode(info.certs[0]);
-            test(cert->getIssuerDN() == IceSSL::DistinguishedName(
+            test(cert->getIssuerDN() ==
+                 IceSSL::DistinguishedName(
                      "emailAddress=info@zeroc.com,C=US,ST=Florida,L=Jupiter,O=ZeroC\\, Inc.,OU=Ice,CN=Ice Tests CA"));
-            test(cert->getSubjectDN() == IceSSL::DistinguishedName(
+            test(cert->getSubjectDN() ==
+                 IceSSL::DistinguishedName(
                      "emailAddress=info@zeroc.com,C=US,ST=Florida,L=Jupiter,O=ZeroC\\, Inc.,OU=Ice,CN=client"));
             test(cert->checkValidity());
         }
@@ -155,23 +148,20 @@ public:
 class SessionServer : public Ice::Application
 {
 public:
-
-    virtual int run(int, char*[]);
+    virtual int run(int, char* []);
 };
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
     SessionServer app;
     Ice::InitializationData initData = getTestInitData(argc, argv);
     return app.main(argc, argv, initData);
 }
 
-int
-SessionServer::run(int, char**)
+int SessionServer::run(int, char**)
 {
-    Ice::ObjectAdapterPtr adapter = communicator()->createObjectAdapterWithEndpoints("SessionServer",
-                                                             getTestEndpoint(communicator(), 3, "tcp"));
+    Ice::ObjectAdapterPtr adapter =
+        communicator()->createObjectAdapterWithEndpoints("SessionServer", getTestEndpoint(communicator(), 3, "tcp"));
     adapter->add(new PermissionsVerifierI, Ice::stringToIdentity("verifier"));
     adapter->add(new SSLPermissionsVerifierI, Ice::stringToIdentity("sslverifier"));
     adapter->add(new SessionManagerI, Ice::stringToIdentity("sessionmanager"));

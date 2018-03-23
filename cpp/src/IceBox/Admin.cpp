@@ -20,20 +20,17 @@ using namespace IceInternal;
 class Client : public Ice::Application
 {
 public:
-
     void usage();
-    virtual int run(int, char*[]);
+    virtual int run(int, char* []);
 };
 
 #ifdef _WIN32
 
-int
-wmain(int argc, wchar_t* argv[])
+int wmain(int argc, wchar_t* argv[])
 
 #else
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 
 #endif
 {
@@ -41,24 +38,20 @@ main(int argc, char* argv[])
     return app.main(argc, argv);
 }
 
-void
-Client::usage()
+void Client::usage()
 {
     consoleErr << "Usage: " << appName() << " [options] [command...]\n";
-    consoleErr <<
-        "Options:\n"
-        "-h, --help           Show this message.\n"
-        "-v, --version        Display the Ice version.\n"
-        "\n"
-        "Commands:\n"
-        "start SERVICE        Start a service.\n"
-        "stop SERVICE         Stop a service.\n"
-        "shutdown             Shutdown the server.\n"
-        ;
+    consoleErr << "Options:\n"
+                  "-h, --help           Show this message.\n"
+                  "-v, --version        Display the Ice version.\n"
+                  "\n"
+                  "Commands:\n"
+                  "start SERVICE        Start a service.\n"
+                  "stop SERVICE         Stop a service.\n"
+                  "shutdown             Shutdown the server.\n";
 }
 
-int
-Client::run(int argc, char* argv[])
+int Client::run(int argc, char* argv[])
 {
     IceUtilInternal::Options opts;
     opts.addOpt("h", "help");

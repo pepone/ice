@@ -18,45 +18,40 @@ using namespace Test;
 
 namespace
 {
-
-Ice::IPEndpointInfoPtr
-getIPEndpointInfo(const Ice::EndpointInfoPtr& info)
-{
-    for(Ice::EndpointInfoPtr p = info; p; p = p->underlying)
+    Ice::IPEndpointInfoPtr getIPEndpointInfo(const Ice::EndpointInfoPtr& info)
     {
-        Ice::IPEndpointInfoPtr ipInfo = ICE_DYNAMIC_CAST(Ice::IPEndpointInfo, p);
-        if(ipInfo)
+        for(Ice::EndpointInfoPtr p = info; p; p = p->underlying)
         {
-            return ipInfo;
+            Ice::IPEndpointInfoPtr ipInfo = ICE_DYNAMIC_CAST(Ice::IPEndpointInfo, p);
+            if(ipInfo)
+            {
+                return ipInfo;
+            }
         }
+        return ICE_NULLPTR;
     }
-    return ICE_NULLPTR;
-}
 
-Ice::IPConnectionInfoPtr
-getIPConnectionInfo(const Ice::ConnectionInfoPtr& info)
-{
-    for(Ice::ConnectionInfoPtr p = info; p; p = p->underlying)
+    Ice::IPConnectionInfoPtr getIPConnectionInfo(const Ice::ConnectionInfoPtr& info)
     {
-        Ice::IPConnectionInfoPtr ipInfo = ICE_DYNAMIC_CAST(Ice::IPConnectionInfo, p);
-        if(ipInfo)
+        for(Ice::ConnectionInfoPtr p = info; p; p = p->underlying)
         {
-            return ipInfo;
+            Ice::IPConnectionInfoPtr ipInfo = ICE_DYNAMIC_CAST(Ice::IPConnectionInfo, p);
+            if(ipInfo)
+            {
+                return ipInfo;
+            }
         }
+        return ICE_NULLPTR;
     }
-    return ICE_NULLPTR;
-}
 
-}
+} // namespace
 
-void
-TestI::shutdown(const Ice::Current& current)
+void TestI::shutdown(const Ice::Current& current)
 {
     current.adapter->getCommunicator()->shutdown();
 }
 
-Ice::Context
-TestI::getEndpointInfoAsContext(const Ice::Current& c)
+Ice::Context TestI::getEndpointInfoAsContext(const Ice::Current& c)
 {
     ostringstream os;
 
@@ -88,8 +83,7 @@ TestI::getEndpointInfoAsContext(const Ice::Current& c)
     return ctx;
 }
 
-Ice::Context
-TestI::getConnectionInfoAsContext(const Ice::Current& c)
+Ice::Context TestI::getConnectionInfoAsContext(const Ice::Current& c)
 {
     Ice::Context ctx;
     Ice::ConnectionInfoPtr info = c.con->getInfo();

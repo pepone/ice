@@ -22,7 +22,6 @@ using namespace Test;
 class ControllerI : public Controller
 {
 public:
-
     virtual void stop(const Ice::Current& c)
     {
         c.adapter->getCommunicator()->shutdown();
@@ -32,34 +31,28 @@ public:
 class SingleI : public Single, public IceUtil::Monitor<IceUtil::Mutex>
 {
 public:
-
-    SingleI() :
-        _nevents(0)
+    SingleI() : _nevents(0)
     {
     }
 
-    virtual void
-    event(int, const Current&)
+    virtual void event(int, const Current&)
     {
         Lock sync(*this);
         ++_nevents;
     }
 
-    int
-    nevents() const
+    int nevents() const
     {
         Lock sync(*this);
         return _nevents;
     }
 
 private:
-
     int _nevents;
 };
 typedef IceUtil::Handle<SingleI> SingleIPtr;
 
-int
-run(int, char* argv[], const CommunicatorPtr& communicator)
+int run(int, char* argv[], const CommunicatorPtr& communicator)
 {
     PropertiesPtr properties = communicator->getProperties();
     const char* managerProxyProperty = "IceStormAdmin.TopicManager.Default";
@@ -127,8 +120,7 @@ run(int, char* argv[], const CommunicatorPtr& communicator)
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
     int status;
     CommunicatorPtr communicator;

@@ -23,76 +23,73 @@
 
 namespace IceInternal
 {
-
-class ICE_API ProtocolInstance : public IceUtil::Shared
-{
-public:
-
-    virtual ~ProtocolInstance();
-
-    ProtocolInstance(const Ice::CommunicatorPtr&, Ice::Short, const std::string&, bool);
-
-    int traceLevel() const
+    class ICE_API ProtocolInstance : public IceUtil::Shared
     {
-        return _traceLevel;
-    }
+    public:
+        virtual ~ProtocolInstance();
 
-    const std::string& traceCategory() const
-    {
-        return _traceCategory;
-    }
+        ProtocolInstance(const Ice::CommunicatorPtr&, Ice::Short, const std::string&, bool);
 
-    const Ice::LoggerPtr& logger() const;
+        int traceLevel() const
+        {
+            return _traceLevel;
+        }
 
-    const std::string& protocol() const
-    {
-        return _protocol;
-    }
+        const std::string& traceCategory() const
+        {
+            return _traceCategory;
+        }
 
-    Ice::Short type() const
-    {
-        return _type;
-    }
+        const Ice::LoggerPtr& logger() const;
 
-    const Ice::PropertiesPtr& properties() const
-    {
-        return _properties;
-    }
+        const std::string& protocol() const
+        {
+            return _protocol;
+        }
 
-    bool secure() const
-    {
-        return _secure;
-    }
+        Ice::Short type() const
+        {
+            return _type;
+        }
 
-    IceInternal::EndpointFactoryPtr getEndpointFactory(Ice::Short) const;
-    BufSizeWarnInfo getBufSizeWarn(Ice::Short type);
-    void setSndBufSizeWarn(Ice::Short type, int size);
-    void setRcvBufSizeWarn(Ice::Short type, int size);
-    bool preferIPv6() const;
-    ProtocolSupport protocolSupport() const;
-    const std::string& defaultHost() const;
-    const Address& defaultSourceAddress() const;
-    const Ice::EncodingVersion& defaultEncoding() const;
-    NetworkProxyPtr networkProxy() const;
-    size_t messageSizeMax() const;
-    int defaultTimeout() const;
+        const Ice::PropertiesPtr& properties() const
+        {
+            return _properties;
+        }
 
-    void resolve(const std::string&, int, Ice::EndpointSelectionType, const IPEndpointIPtr&,
-                 const EndpointI_connectorsPtr&) const;
+        bool secure() const
+        {
+            return _secure;
+        }
 
-protected:
+        IceInternal::EndpointFactoryPtr getEndpointFactory(Ice::Short) const;
+        BufSizeWarnInfo getBufSizeWarn(Ice::Short type);
+        void setSndBufSizeWarn(Ice::Short type, int size);
+        void setRcvBufSizeWarn(Ice::Short type, int size);
+        bool preferIPv6() const;
+        ProtocolSupport protocolSupport() const;
+        const std::string& defaultHost() const;
+        const Address& defaultSourceAddress() const;
+        const Ice::EncodingVersion& defaultEncoding() const;
+        NetworkProxyPtr networkProxy() const;
+        size_t messageSizeMax() const;
+        int defaultTimeout() const;
 
-    ProtocolInstance(const InstancePtr&, Ice::Short, const std::string&, bool);
-    friend class Instance;
-    const InstancePtr _instance;
-    const int _traceLevel;
-    const std::string _traceCategory;
-    const Ice::PropertiesPtr _properties;
-    const std::string _protocol;
-    const Ice::Short _type;
-    const bool _secure;
-};
+        void resolve(const std::string&, int, Ice::EndpointSelectionType, const IPEndpointIPtr&,
+                     const EndpointI_connectorsPtr&) const;
 
-}
+    protected:
+        ProtocolInstance(const InstancePtr&, Ice::Short, const std::string&, bool);
+        friend class Instance;
+        const InstancePtr _instance;
+        const int _traceLevel;
+        const std::string _traceCategory;
+        const Ice::PropertiesPtr _properties;
+        const std::string _protocol;
+        const Ice::Short _type;
+        const bool _secure;
+    };
+
+} // namespace IceInternal
 
 #endif

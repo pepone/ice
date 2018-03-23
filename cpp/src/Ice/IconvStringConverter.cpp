@@ -21,35 +21,31 @@ IconvInitializationException::IconvInitializationException(const char* file, int
 {
 }
 
-#ifndef ICE_CPP11_COMPILER
+#    ifndef ICE_CPP11_COMPILER
 IconvInitializationException::~IconvInitializationException() throw()
 {
 }
-#endif
+#    endif
 
-void
-IconvInitializationException::ice_print(ostream& out) const
+void IconvInitializationException::ice_print(ostream& out) const
 {
     IceUtil::Exception::ice_print(out);
     out << ": " << _reason;
 }
 
-string
-IconvInitializationException::ice_id() const
+string IconvInitializationException::ice_id() const
 {
     return "::Ice::IconvInitializationException";
 }
 
-#ifndef ICE_CPP11_MAPPING
-IconvInitializationException*
-IconvInitializationException::ice_clone() const
+#    ifndef ICE_CPP11_MAPPING
+IconvInitializationException* IconvInitializationException::ice_clone() const
 {
     return new IconvInitializationException(*this);
 }
-#endif
+#    endif
 
-string
-IconvInitializationException::reason() const
+string IconvInitializationException::reason() const
 {
     return _reason;
 }

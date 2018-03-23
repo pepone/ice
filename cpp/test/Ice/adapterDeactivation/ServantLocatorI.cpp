@@ -17,45 +17,40 @@ using namespace Test;
 
 namespace
 {
-
-class RouterI : public Ice::Router
-{
-public:
-
-    RouterI() : _nextPort(23456)
+    class RouterI : public Ice::Router
     {
-    }
+    public:
+        RouterI() : _nextPort(23456)
+        {
+        }
 
-    virtual Ice::ObjectPrxPtr
-    getClientProxy(IceUtil::Optional<bool>&, const Ice::Current&) const
-    {
-        return ICE_NULLPTR;
-    }
+        virtual Ice::ObjectPrxPtr getClientProxy(IceUtil::Optional<bool>&, const Ice::Current&) const
+        {
+            return ICE_NULLPTR;
+        }
 
-    virtual Ice::ObjectPrxPtr
-    getServerProxy(const Ice::Current& c) const
-    {
-        ostringstream os;
-        os << "dummy:tcp -h localhost -p " << _nextPort++ << " -t 30000";
-        return c.adapter->getCommunicator()->stringToProxy(os.str());
-    }
+        virtual Ice::ObjectPrxPtr getServerProxy(const Ice::Current& c) const
+        {
+            ostringstream os;
+            os << "dummy:tcp -h localhost -p " << _nextPort++ << " -t 30000";
+            return c.adapter->getCommunicator()->stringToProxy(os.str());
+        }
 
-    virtual Ice::ObjectProxySeq
+        virtual Ice::ObjectProxySeq
 #ifdef ICE_CPP11_MAPPING
-    addProxies(Ice::ObjectProxySeq, const Ice::Current&)
+        addProxies(Ice::ObjectProxySeq, const Ice::Current&)
 #else
-    addProxies(const Ice::ObjectProxySeq&, const Ice::Current&)
+        addProxies(const Ice::ObjectProxySeq&, const Ice::Current&)
 #endif
-    {
-        return Ice::ObjectProxySeq();
-    }
+        {
+            return Ice::ObjectProxySeq();
+        }
 
-private:
+    private:
+        mutable int _nextPort;
+    };
 
-    mutable int _nextPort;
-};
-
-}
+} // namespace
 
 ServantLocatorI::ServantLocatorI() : _deactivated(false), _router(ICE_MAKE_SHARED(RouterI))
 {
@@ -110,8 +105,7 @@ ServantLocatorI::finished(const Ice::Current& current, const Ice::ObjectPtr&, co
     test(co->message() == "blahblah");
 }
 
-void
-ServantLocatorI::deactivate(const string&)
+void ServantLocatorI::deactivate(const string&)
 {
     test(!_deactivated);
 

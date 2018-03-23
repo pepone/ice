@@ -17,10 +17,10 @@
 #include <IceUtil/Random.h>
 
 #ifdef _WIN32
-#   include <rpc.h>
+#    include <rpc.h>
 #else
-#   include <sys/types.h>
-#   include <unistd.h>
+#    include <sys/types.h>
+#    include <unistd.h>
 #endif
 
 using namespace std;
@@ -29,68 +29,62 @@ using namespace std;
 
 namespace
 {
-
-char myPid[2];
-
+    char myPid[2];
 }
 
 namespace IceUtilInternal
 {
-
-//
-// Initialize the pid.
-//
-class PidInitializer
-{
-public:
-
-    PidInitializer()
+    //
+    // Initialize the pid.
+    //
+    class PidInitializer
     {
-#ifndef _WIN32
-        pid_t p = getpid();
-#else
-        int p = GetCurrentProcessId();
-#endif
-        myPid[0] = (p >> 8) & 0x7F;
-        myPid[1] = p & 0xFF;
-    }
-};
+    public:
+        PidInitializer()
+        {
+#    ifndef _WIN32
+            pid_t p = getpid();
+#    else
+            int p = GetCurrentProcessId();
+#    endif
+            myPid[0] = (p >> 8) & 0x7F;
+            myPid[1] = p & 0xFF;
+        }
+    };
 
-PidInitializer pidInitializer;
+    PidInitializer pidInitializer;
 
-};
+}; // namespace IceUtilInternal
 #endif
 
 namespace
 {
-
-// Helper char to hex functions
-//
-inline void halfByteToHex(unsigned char hb, char*& hexBuffer)
-{
-    if(hb < 10)
+    // Helper char to hex functions
+    //
+    inline void halfByteToHex(unsigned char hb, char*& hexBuffer)
     {
-        *hexBuffer++ = '0' + hb;
+        if(hb < 10)
+        {
+            *hexBuffer++ = '0' + hb;
+        }
+        else
+        {
+            *hexBuffer++ = 'A' + (hb - 10);
+        }
     }
-    else
+
+    inline void bytesToHex(unsigned char* bytes, size_t len, char*& hexBuffer)
     {
-        *hexBuffer++ = 'A' + (hb - 10);
+        for(size_t i = 0; i < len; i++)
+        {
+            halfByteToHex((bytes[i] & 0xF0) >> 4, hexBuffer);
+            halfByteToHex((bytes[i] & 0x0F), hexBuffer);
+        }
     }
-}
 
-inline void bytesToHex(unsigned char* bytes, size_t len, char*& hexBuffer)
-{
-    for(size_t i = 0; i < len; i++)
-    {
-        halfByteToHex((bytes[i] & 0xF0) >> 4, hexBuffer);
-        halfByteToHex((bytes[i] & 0x0F), hexBuffer);
-    }
-}
+} // namespace
 
-}
-
-string
-IceUtil::generateUUID()
+string IceUtil::generateUUID()
 {
 #if defined(_WIN32) && !defined(ICE_OS_UWP)
 

@@ -19,7 +19,7 @@
 #include <Ice/TraceLevels.h>
 
 #if defined(ICE_OS_UWP)
-#   include <Ice/StringConverter.h>
+#    include <Ice/StringConverter.h>
 #endif
 
 using namespace std;
@@ -27,95 +27,88 @@ using namespace Ice;
 using namespace Ice::Instrumentation;
 using namespace IceInternal;
 
-ICE_API IceUtil::Shared* IceInternal::upCast(ThreadPool* p) { return p; }
+ICE_API IceUtil::Shared* IceInternal::upCast(ThreadPool* p)
+{
+    return p;
+}
 
 namespace
 {
-
-class ShutdownWorkItem : public ThreadPoolWorkItem
-{
-public:
-
-    ShutdownWorkItem(const InstancePtr& instance) : _instance(instance)
+    class ShutdownWorkItem : public ThreadPoolWorkItem
     {
-    }
-
-    virtual void
-    execute(ThreadPoolCurrent& current)
-    {
-        current.ioCompleted();
-        try
-        {
-            _instance->objectAdapterFactory()->shutdown();
-        }
-        catch(const CommunicatorDestroyedException&)
+    public:
+        ShutdownWorkItem(const InstancePtr& instance) : _instance(instance)
         {
         }
-    }
 
-private:
-
-    const InstancePtr _instance;
-};
-
-class FinishedWorkItem : public ThreadPoolWorkItem
-{
-public:
-
-    FinishedWorkItem(const EventHandlerPtr& handler, bool close) : _handler(handler), _close(close)
-    {
-    }
-
-    virtual void
-    execute(ThreadPoolCurrent& current)
-    {
-        _handler->finished(current, _close);
-
-        //
-        // Break cyclic reference count.
-        //
-        if(_handler->getNativeInfo())
+        virtual void execute(ThreadPoolCurrent& current)
         {
-            _handler->getNativeInfo()->setReadyCallback(0);
+            current.ioCompleted();
+            try
+            {
+                _instance->objectAdapterFactory()->shutdown();
+            }
+            catch(const CommunicatorDestroyedException&)
+            {
+            }
         }
-    }
 
-private:
+    private:
+        const InstancePtr _instance;
+    };
 
-    const EventHandlerPtr _handler;
-    const bool _close;
-};
-
-class JoinThreadWorkItem : public ThreadPoolWorkItem
-{
-public:
-
-    JoinThreadWorkItem(const IceUtil::ThreadPtr& thread) : _thread(thread)
+    class FinishedWorkItem : public ThreadPoolWorkItem
     {
-    }
+    public:
+        FinishedWorkItem(const EventHandlerPtr& handler, bool close) : _handler(handler), _close(close)
+        {
+        }
 
-    virtual void
-    execute(ThreadPoolCurrent&)
+        virtual void execute(ThreadPoolCurrent& current)
+        {
+            _handler->finished(current, _close);
+
+            //
+            // Break cyclic reference count.
+            //
+            if(_handler->getNativeInfo())
+            {
+                _handler->getNativeInfo()->setReadyCallback(0);
+            }
+        }
+
+    private:
+        const EventHandlerPtr _handler;
+        const bool _close;
+    };
+
+    class JoinThreadWorkItem : public ThreadPoolWorkItem
     {
-        // No call to ioCompleted, this shouldn't block (and we don't want to cause
-        // a new thread to be started).
-        _thread->getThreadControl().join();
-    }
+    public:
+        JoinThreadWorkItem(const IceUtil::ThreadPtr& thread) : _thread(thread)
+        {
+        }
 
-private:
+        virtual void execute(ThreadPoolCurrent&)
+        {
+            // No call to ioCompleted, this shouldn't block (and we don't want to cause
+            // a new thread to be started).
+            _thread->getThreadControl().join();
+        }
 
-    IceUtil::ThreadPtr _thread;
-};
+    private:
+        IceUtil::ThreadPtr _thread;
+    };
 
-//
-// Exception raised by the thread pool work queue when the thread pool
-// is destroyed.
-//
-class ThreadPoolDestroyedException
-{
-};
+    //
+    // Exception raised by the thread pool work queue when the thread pool
+    // is destroyed.
+    //
+    class ThreadPoolDestroyedException
+    {
+    };
 
-}
+} // namespace
 
 Ice::DispatcherCall::~DispatcherCall()
 {
@@ -135,8 +128,7 @@ IceInternal::DispatchWorkItem::DispatchWorkItem(const Ice::ConnectionPtr& connec
 {
 }
 
-void
-IceInternal::DispatchWorkItem::execute(ThreadPoolCurrent& current)
+void IceInternal::DispatchWorkItem::execute(ThreadPoolCurrent& current)
 {
     current.ioCompleted(); // Promote follower
     current.dispatchFromThisThread(this);
@@ -149,10 +141,9 @@ IceInternal::ThreadPoolWorkQueue::ThreadPoolWorkQueue(ThreadPool& threadPool) :
     _registered = SocketOperationRead;
 }
 
-void
-IceInternal::ThreadPoolWorkQueue::destroy()
+void IceInternal::ThreadPoolWorkQueue::destroy()
 {
-    //Lock sync(*this); Called with the thread pool locked
+    // Lock sync(*this); Called with the thread pool locked
     assert(!_destroyed);
     _destroyed = true;
 #if defined(ICE_USE_IOCP) || defined(ICE_OS_UWP)
@@ -162,10 +153,9 @@ IceInternal::ThreadPoolWorkQueue::destroy()
 #endif
 }
 
-void
-IceInternal::ThreadPoolWorkQueue::queue(const ThreadPoolWorkItemPtr& item)
+void IceInternal::ThreadPoolWorkQueue::queue(const ThreadPoolWorkItemPtr& item)
 {
-    //Lock sync(*this); Called with the thread pool locked
+    // Lock sync(*this); Called with the thread pool locked
     _workItems.push_back(item);
 #if defined(ICE_USE_IOCP) || defined(ICE_OS_UWP)
     _threadPool._selector.completed(this, SocketOperationRead);
@@ -178,23 +168,20 @@ IceInternal::ThreadPoolWorkQueue::queue(const ThreadPoolWorkItemPtr& item)
 }
 
 #if defined(ICE_USE_IOCP) || defined(ICE_OS_UWP)
-bool
-IceInternal::ThreadPoolWorkQueue::startAsync(SocketOperation)
+bool IceInternal::ThreadPoolWorkQueue::startAsync(SocketOperation)
 {
     assert(false);
     return false;
 }
 
-bool
-IceInternal::ThreadPoolWorkQueue::finishAsync(SocketOperation)
+bool IceInternal::ThreadPoolWorkQueue::finishAsync(SocketOperation)
 {
     assert(false);
     return false;
 }
 #endif
 
-void
-IceInternal::ThreadPoolWorkQueue::message(ThreadPoolCurrent& current)
+void IceInternal::ThreadPoolWorkQueue::message(ThreadPoolCurrent& current)
 {
     ThreadPoolWorkItemPtr workItem;
     {
@@ -230,20 +217,17 @@ IceInternal::ThreadPoolWorkQueue::message(ThreadPoolCurrent& current)
     }
 }
 
-void
-IceInternal::ThreadPoolWorkQueue::finished(ThreadPoolCurrent&, bool)
+void IceInternal::ThreadPoolWorkQueue::finished(ThreadPoolCurrent&, bool)
 {
     assert(false);
 }
 
-string
-IceInternal::ThreadPoolWorkQueue::toString() const
+string IceInternal::ThreadPoolWorkQueue::toString() const
 {
     return "work queue";
 }
 
-NativeInfoPtr
-IceInternal::ThreadPoolWorkQueue::getNativeInfo()
+NativeInfoPtr IceInternal::ThreadPoolWorkQueue::getNativeInfo()
 {
     return 0;
 }
@@ -274,13 +258,13 @@ IceInternal::ThreadPool::ThreadPool(const InstancePtr& instance, const string& p
 {
     PropertiesPtr properties = _instance->initializationData().properties;
 #ifndef ICE_OS_UWP
-#   ifdef _WIN32
+#    ifdef _WIN32
     SYSTEM_INFO sysInfo;
     GetSystemInfo(&sysInfo);
     int nProcessors = sysInfo.dwNumberOfProcessors;
-#   else
+#    else
     int nProcessors = static_cast<int>(sysconf(_SC_NPROCESSORS_ONLN));
-#   endif
+#    endif
 #endif
 
     //
@@ -378,14 +362,14 @@ IceInternal::ThreadPool::ThreadPool(const InstancePtr& instance, const string& p
     if(_instance->traceLevels()->threadPool >= 1)
     {
         Trace out(_instance->initializationData().logger, _instance->traceLevels()->threadPoolCat);
-        out << "creating " << _prefix << ": Size = " << _size << ", SizeMax = " << _sizeMax << ", SizeWarn = "
-            << _sizeWarn;
+        out << "creating " << _prefix << ": Size = " << _size << ", SizeMax = " << _sizeMax
+            << ", SizeWarn = " << _sizeWarn;
     }
 
     __setNoDelete(true);
     try
     {
-        for(int i = 0 ; i < _size ; ++i)
+        for(int i = 0; i < _size; ++i)
         {
             EventHandlerThreadPtr thread = new EventHandlerThread(this, nextThreadId());
             if(_hasPriority)
@@ -424,8 +408,7 @@ IceInternal::ThreadPool::~ThreadPool()
     assert(_destroyed);
 }
 
-void
-IceInternal::ThreadPool::destroy()
+void IceInternal::ThreadPool::destroy()
 {
     Lock sync(*this);
     if(_destroyed)
@@ -436,8 +419,7 @@ IceInternal::ThreadPool::destroy()
     _workQueue->destroy();
 }
 
-void
-IceInternal::ThreadPool::updateObservers()
+void IceInternal::ThreadPool::updateObservers()
 {
     Lock sync(*this);
     for(set<EventHandlerThreadPtr>::iterator p = _threads.begin(); p != _threads.end(); ++p)
@@ -446,8 +428,7 @@ IceInternal::ThreadPool::updateObservers()
     }
 }
 
-void
-IceInternal::ThreadPool::initialize(const EventHandlerPtr& handler)
+void IceInternal::ThreadPool::initialize(const EventHandlerPtr& handler)
 {
     Lock sync(*this);
     assert(!_destroyed);
@@ -456,28 +437,25 @@ IceInternal::ThreadPool::initialize(const EventHandlerPtr& handler)
     class ReadyCallbackI : public ReadyCallback
     {
     public:
-
         ReadyCallbackI(const ThreadPoolPtr& threadPool, const EventHandlerPtr& handler) :
-            _threadPool(threadPool), _handler(handler)
+            _threadPool(threadPool),
+            _handler(handler)
         {
         }
 
-        virtual void
-        ready(SocketOperation op, bool value)
+        virtual void ready(SocketOperation op, bool value)
         {
             _threadPool->ready(_handler, op, value);
         }
 
     private:
-
         const ThreadPoolPtr _threadPool;
         const EventHandlerPtr _handler;
     };
     handler->getNativeInfo()->setReadyCallback(new ReadyCallbackI(this, handler));
 }
 
-void
-IceInternal::ThreadPool::update(const EventHandlerPtr& handler, SocketOperation remove, SocketOperation add)
+void IceInternal::ThreadPool::update(const EventHandlerPtr& handler, SocketOperation remove, SocketOperation add)
 {
     Lock sync(*this);
     assert(!_destroyed);
@@ -486,8 +464,8 @@ IceInternal::ThreadPool::update(const EventHandlerPtr& handler, SocketOperation 
     remove = static_cast<SocketOperation>(remove & ~add);
 
     // Don't remove/add if already un-registered or registered
-    remove  = static_cast<SocketOperation>(handler->_registered & remove);
-    add  = static_cast<SocketOperation>(~handler->_registered & add);
+    remove = static_cast<SocketOperation>(handler->_registered & remove);
+    add = static_cast<SocketOperation>(~handler->_registered & add);
     if(remove == add)
     {
         return;
@@ -496,8 +474,7 @@ IceInternal::ThreadPool::update(const EventHandlerPtr& handler, SocketOperation 
     _selector.update(handler.get(), remove, add);
 }
 
-bool
-IceInternal::ThreadPool::finish(const EventHandlerPtr& handler, bool closeNow)
+bool IceInternal::ThreadPool::finish(const EventHandlerPtr& handler, bool closeNow)
 {
     Lock sync(*this);
     assert(!_destroyed);
@@ -520,8 +497,7 @@ IceInternal::ThreadPool::finish(const EventHandlerPtr& handler, bool closeNow)
 #endif
 }
 
-void
-IceInternal::ThreadPool::ready(const EventHandlerPtr& handler, SocketOperation op, bool value)
+void IceInternal::ThreadPool::ready(const EventHandlerPtr& handler, SocketOperation op, bool value)
 {
     Lock sync(*this);
     if(_destroyed)
@@ -531,19 +507,14 @@ IceInternal::ThreadPool::ready(const EventHandlerPtr& handler, SocketOperation o
     _selector.ready(handler.get(), op, value);
 }
 
-void
-IceInternal::ThreadPool::dispatchFromThisThread(const DispatchWorkItemPtr& workItem)
+void IceInternal::ThreadPool::dispatchFromThisThread(const DispatchWorkItemPtr& workItem)
 {
     if(_dispatcher)
     {
         try
         {
 #ifdef ICE_CPP11_MAPPING
-            _dispatcher([workItem]()
-            {
-                workItem->run();
-            },
-            workItem->getConnection());
+            _dispatcher([workItem]() { workItem->run(); }, workItem->getConnection());
 #else
             _dispatcher->dispatch(workItem, workItem->getConnection());
 #endif
@@ -571,8 +542,7 @@ IceInternal::ThreadPool::dispatchFromThisThread(const DispatchWorkItemPtr& workI
     }
 }
 
-void
-IceInternal::ThreadPool::dispatch(const DispatchWorkItemPtr& workItem)
+void IceInternal::ThreadPool::dispatch(const DispatchWorkItemPtr& workItem)
 {
     Lock sync(*this);
     if(_destroyed)
@@ -582,8 +552,7 @@ IceInternal::ThreadPool::dispatch(const DispatchWorkItemPtr& workItem)
     _workQueue->queue(workItem);
 }
 
-void
-IceInternal::ThreadPool::joinWithAllThreads()
+void IceInternal::ThreadPool::joinWithAllThreads()
 {
     assert(_destroyed);
 
@@ -600,14 +569,12 @@ IceInternal::ThreadPool::joinWithAllThreads()
     _selector.destroy();
 }
 
-string
-IceInternal::ThreadPool::prefix() const
+string IceInternal::ThreadPool::prefix() const
 {
     return _prefix;
 }
 
-void
-IceInternal::ThreadPool::run(const EventHandlerThreadPtr& thread)
+void IceInternal::ThreadPool::run(const EventHandlerThreadPtr& thread)
 {
 #if !defined(ICE_USE_IOCP) && !defined(ICE_OS_UWP)
     ThreadPoolCurrent current(_instance, this, thread);
@@ -627,8 +594,8 @@ IceInternal::ThreadPool::run(const EventHandlerThreadPtr& thread)
             catch(const exception& ex)
             {
                 Error out(_instance->initializationData().logger);
-                out << "exception in `" << _prefix << "':\n" << ex << "\nevent handler: "
-                    << current._handler->toString();
+                out << "exception in `" << _prefix << "':\n"
+                    << ex << "\nevent handler: " << current._handler->toString();
             }
             catch(...)
             {
@@ -702,7 +669,7 @@ IceInternal::ThreadPool::run(const EventHandlerThreadPtr& thread)
             // Get the next ready handler.
             //
             while(_nextHandler != _handlers.end() &&
-                    !(_nextHandler->second & ~_nextHandler->first->_disabled & _nextHandler->first->_registered))
+                  !(_nextHandler->second & ~_nextHandler->first->_disabled & _nextHandler->first->_registered))
             {
                 ++_nextHandler;
             }
@@ -760,12 +727,12 @@ IceInternal::ThreadPool::run(const EventHandlerThreadPtr& thread)
         try
         {
             current._ioCompleted = false;
-#ifdef ICE_OS_UWP
+#    ifdef ICE_OS_UWP
             current._handler = ICE_GET_SHARED_FROM_THIS(_selector.getNextHandler(current.operation, _threadIdleTime));
-#else
-            current._handler = ICE_GET_SHARED_FROM_THIS(_selector.getNextHandler(current.operation, current._count, current._error,
-                               _threadIdleTime));
-#endif
+#    else
+            current._handler = ICE_GET_SHARED_FROM_THIS(
+                _selector.getNextHandler(current.operation, current._count, current._error, _threadIdleTime));
+#    endif
         }
         catch(const SelectorTimeoutException&)
         {
@@ -779,14 +746,14 @@ IceInternal::ThreadPool::run(const EventHandlerThreadPtr& thread)
                 }
                 else if(_inUse < static_cast<int>(_threads.size() - 1)) // If not the last idle thread, we can exit.
                 {
-#ifndef ICE_OS_UWP
+#    ifndef ICE_OS_UWP
                     BOOL hasIO = false;
                     GetThreadIOPendingFlag(GetCurrentThread(), &hasIO);
                     if(hasIO)
                     {
                         continue;
                     }
-#endif
+#    endif
                     if(_instance->traceLevels()->threadPool >= 1)
                     {
                         Trace out(_instance->initializationData().logger, _instance->traceLevels()->threadPoolCat);
@@ -810,13 +777,14 @@ IceInternal::ThreadPool::run(const EventHandlerThreadPtr& thread)
 
             try
             {
-#ifdef ICE_OS_UWP
-                current._handler = ICE_GET_SHARED_FROM_THIS(_selector.getNextHandler(current.operation, _serverIdleTime));
-#else
+#    ifdef ICE_OS_UWP
+                current._handler =
+                    ICE_GET_SHARED_FROM_THIS(_selector.getNextHandler(current.operation, _serverIdleTime));
+#    else
 
-                current._handler = ICE_GET_SHARED_FROM_THIS(_selector.getNextHandler(current.operation, current._count,
-                                   current._error, _serverIdleTime));
-#endif
+                current._handler = ICE_GET_SHARED_FROM_THIS(
+                    _selector.getNextHandler(current.operation, current._count, current._error, _serverIdleTime));
+#    endif
             }
             catch(const SelectorTimeoutException&)
             {
@@ -848,8 +816,8 @@ IceInternal::ThreadPool::run(const EventHandlerThreadPtr& thread)
             Error out(_instance->initializationData().logger);
             out << "exception in `" << _prefix << "':\n" << ex << "\nevent handler: " << current._handler->toString();
         }
-#ifdef ICE_OS_UWP
-        catch(Platform::Exception^ ex)
+#    ifdef ICE_OS_UWP
+        catch(Platform::Exception ^ ex)
         {
             //
             // We don't need to pass the wide string converter in the call to wstringToString
@@ -860,7 +828,7 @@ IceInternal::ThreadPool::run(const EventHandlerThreadPtr& thread)
                 << wstringToString(ex->Message->Data(), _instance->getStringConverter())
                 << "\nevent handler: " << current._handler->toString();
         }
-#endif
+#    endif
         catch(...)
         {
             Error out(_instance->initializationData().logger);
@@ -880,8 +848,7 @@ IceInternal::ThreadPool::run(const EventHandlerThreadPtr& thread)
 #endif
 }
 
-bool
-IceInternal::ThreadPool::ioCompleted(ThreadPoolCurrent& current)
+bool IceInternal::ThreadPool::ioCompleted(ThreadPoolCurrent& current)
 {
     IceUtil::Monitor<IceUtil::Mutex>::Lock sync(*this);
 
@@ -891,7 +858,6 @@ IceInternal::ThreadPool::ioCompleted(ThreadPoolCurrent& current)
 
     if(_sizeMax > 1)
     {
-
 #if !defined(ICE_USE_IOCP) && !defined(ICE_OS_UWP)
         --_inUseIO;
 
@@ -923,7 +889,9 @@ IceInternal::ThreadPool::ioCompleted(ThreadPoolCurrent& current)
         {
             Warning out(_instance->initializationData().logger);
             out << "thread pool `" << _prefix << "' is running low on threads\n"
-                << "Size=" << _size << ", " << "SizeMax=" << _sizeMax << ", " << "SizeWarn=" << _sizeWarn;
+                << "Size=" << _size << ", "
+                << "SizeMax=" << _sizeMax << ", "
+                << "SizeWarn=" << _sizeWarn;
         }
 
         if(!_destroyed)
@@ -963,8 +931,7 @@ IceInternal::ThreadPool::ioCompleted(ThreadPoolCurrent& current)
 }
 
 #if defined(ICE_USE_IOCP) || defined(ICE_OS_UWP)
-bool
-IceInternal::ThreadPool::startMessage(ThreadPoolCurrent& current)
+bool IceInternal::ThreadPool::startMessage(ThreadPoolCurrent& current)
 {
     assert(current._handler->_pending & current.operation);
 
@@ -974,11 +941,11 @@ IceInternal::ThreadPool::startMessage(ThreadPoolCurrent& current)
         current._handler->_completed = static_cast<SocketOperation>(current._handler->_completed | current.operation);
         current._handler->_started = static_cast<SocketOperation>(current._handler->_started & ~current.operation);
 
-#ifndef ICE_OS_UWP
+#    ifndef ICE_OS_UWP
         AsyncInfo* info = current._handler->getNativeInfo()->getAsyncInfo(current.operation);
         info->count = current._count;
         info->error = current._error;
-#endif
+#    endif
 
         if(!current._handler->finishAsync(current.operation)) // Returns false if the handler is finished.
         {
@@ -1036,8 +1003,7 @@ IceInternal::ThreadPool::startMessage(ThreadPoolCurrent& current)
     }
 }
 
-void
-IceInternal::ThreadPool::finishMessage(ThreadPoolCurrent& current)
+void IceInternal::ThreadPool::finishMessage(ThreadPoolCurrent& current)
 {
     if(current._handler->_registered & current.operation && !current._handler->_finish)
     {
@@ -1070,8 +1036,7 @@ IceInternal::ThreadPool::finishMessage(ThreadPoolCurrent& current)
     }
 }
 #else
-void
-IceInternal::ThreadPool::promoteFollower(ThreadPoolCurrent& current)
+void IceInternal::ThreadPool::promoteFollower(ThreadPoolCurrent& current)
 {
     assert(!_promote && current._leader);
     _promote = true;
@@ -1082,8 +1047,7 @@ IceInternal::ThreadPool::promoteFollower(ThreadPoolCurrent& current)
     current._leader = false;
 }
 
-bool
-IceInternal::ThreadPool::followerWait(ThreadPoolCurrent& current)
+bool IceInternal::ThreadPool::followerWait(ThreadPoolCurrent& current)
 {
     assert(!current._leader);
 
@@ -1107,8 +1071,8 @@ IceInternal::ThreadPool::followerWait(ThreadPoolCurrent& current)
         {
             if(!timedWait(IceUtil::Time::seconds(_threadIdleTime)))
             {
-                if(!_destroyed && (!_promote || _inUseIO == _sizeIO ||
-                                   (_nextHandler == _handlers.end() && _inUseIO > 0)))
+                if(!_destroyed &&
+                   (!_promote || _inUseIO == _sizeIO || (_nextHandler == _handlers.end() && _inUseIO > 0)))
                 {
                     if(_instance->traceLevels()->threadPool >= 1)
                     {
@@ -1133,8 +1097,7 @@ IceInternal::ThreadPool::followerWait(ThreadPoolCurrent& current)
 }
 #endif
 
-string
-IceInternal::ThreadPool::nextThreadId()
+string IceInternal::ThreadPool::nextThreadId()
 {
     ostringstream os;
     os << _prefix << "-" << _nextThreadId++;
@@ -1149,8 +1112,7 @@ IceInternal::ThreadPool::EventHandlerThread::EventHandlerThread(const ThreadPool
     updateObserver();
 }
 
-void
-IceInternal::ThreadPool::EventHandlerThread::updateObserver()
+void IceInternal::ThreadPool::EventHandlerThread::updateObserver()
 {
     // Must be called with the thread pool mutex locked
     const CommunicatorObserverPtr& obsv = _pool->_instance->initializationData().observer;
@@ -1160,8 +1122,7 @@ IceInternal::ThreadPool::EventHandlerThread::updateObserver()
     }
 }
 
-void
-IceInternal::ThreadPool::EventHandlerThread::setState(Ice::Instrumentation::ThreadState s)
+void IceInternal::ThreadPool::EventHandlerThread::setState(Ice::Instrumentation::ThreadState s)
 {
     // Must be called with the thread pool mutex locked
     if(_observer)
@@ -1174,8 +1135,7 @@ IceInternal::ThreadPool::EventHandlerThread::setState(Ice::Instrumentation::Thre
     _state = s;
 }
 
-void
-IceInternal::ThreadPool::EventHandlerThread::run()
+void IceInternal::ThreadPool::EventHandlerThread::run()
 {
 #ifdef ICE_CPP11_MAPPING
     if(_pool->_instance->initializationData().threadStart)
@@ -1249,8 +1209,7 @@ IceInternal::ThreadPool::EventHandlerThread::run()
     _pool = 0; // Break cyclic dependency.
 }
 
-ThreadPoolCurrent::ThreadPoolCurrent(const InstancePtr& instance,
-                                     const ThreadPoolPtr& threadPool,
+ThreadPoolCurrent::ThreadPoolCurrent(const InstancePtr& instance, const ThreadPoolPtr& threadPool,
                                      const ThreadPool::EventHandlerThreadPtr& thread) :
     operation(SocketOperationNone),
     stream(instance.get(), Ice::currentProtocolEncoding),
@@ -1258,7 +1217,8 @@ ThreadPoolCurrent::ThreadPoolCurrent(const InstancePtr& instance,
     _thread(thread),
     _ioCompleted(false)
 #if !defined(ICE_USE_IOCP) && !defined(ICE_OS_UWP)
-    , _leader(false)
+    ,
+    _leader(false)
 #endif
 {
 }

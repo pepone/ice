@@ -16,21 +16,19 @@ using namespace IceGrid;
 
 namespace
 {
+    //
+    // Encodings supported by the observers. We create one topic per
+    // encoding version and subscribe the observer to the appropriate
+    // topic depending on its encoding.
+    //
+    Ice::EncodingVersion encodings[] = {{1, 0}, {1, 1}};
 
-//
-// Encodings supported by the observers. We create one topic per
-// encoding version and subscribe the observer to the appropriate
-// topic depending on its encoding.
-//
-Ice::EncodingVersion encodings[] = {
-    { 1, 0 },
-    { 1, 1 }
-};
-
-}
+} // namespace
 
 ObserverTopic::ObserverTopic(const IceStorm::TopicManagerPrx& topicManager, const string& name, Ice::Long dbSerial) :
-    _logger(topicManager->ice_getCommunicator()->getLogger()), _serial(0), _dbSerial(dbSerial)
+    _logger(topicManager->ice_getCommunicator()->getLogger()),
+    _serial(0),
+    _dbSerial(dbSerial)
 {
     for(int i = 0; i < static_cast<int>(sizeof(encodings) / sizeof(Ice::EncodingVersion)); ++i)
     {
@@ -60,8 +58,7 @@ ObserverTopic::~ObserverTopic()
 {
 }
 
-int
-ObserverTopic::subscribe(const Ice::ObjectPrx& obsv, const string& name)
+int ObserverTopic::subscribe(const Ice::ObjectPrx& obsv, const string& name)
 {
     Lock sync(*this);
     if(_topics.empty())
@@ -99,8 +96,7 @@ ObserverTopic::subscribe(const Ice::ObjectPrx& obsv, const string& name)
     return -1;
 }
 
-void
-ObserverTopic::unsubscribe(const Ice::ObjectPrx& observer, const string& name)
+void ObserverTopic::unsubscribe(const Ice::ObjectPrx& observer, const string& name)
 {
     Lock sync(*this);
     Ice::EncodingVersion v = IceInternal::getCompatibleEncoding(observer->ice_getEncodingVersion());
@@ -124,7 +120,7 @@ ObserverTopic::unsubscribe(const Ice::ObjectPrx& observer, const string& name)
         assert(_syncSubscribers.find(name) != _syncSubscribers.end());
         _syncSubscribers.erase(name);
 
-        map<int, set<string> >::iterator p = _waitForUpdates.begin();
+        map<int, set<string>>::iterator p = _waitForUpdates.begin();
         bool notifyMonitor = false;
         while(p != _waitForUpdates.end())
         {
@@ -147,29 +143,27 @@ ObserverTopic::unsubscribe(const Ice::ObjectPrx& observer, const string& name)
     }
 }
 
-void
-ObserverTopic::destroy()
+void ObserverTopic::destroy()
 {
     Lock sync(*this);
     _topics.clear();
     notifyAll();
 }
 
-void
-ObserverTopic::receivedUpdate(const string& name, int serial, const string& failure)
+void ObserverTopic::receivedUpdate(const string& name, int serial, const string& failure)
 {
     Lock sync(*this);
-    map<int, set<string> >::iterator p = _waitForUpdates.find(serial);
+    map<int, set<string>>::iterator p = _waitForUpdates.find(serial);
     if(p != _waitForUpdates.end())
     {
         p->second.erase(name);
 
         if(!failure.empty())
         {
-            map<int, map<string, string> >::iterator q = _updateFailures.find(serial);
+            map<int, map<string, string>>::iterator q = _updateFailures.find(serial);
             if(q == _updateFailures.end())
             {
-                q = _updateFailures.insert(make_pair(serial, map<string ,string>())).first;
+                q = _updateFailures.insert(make_pair(serial, map<string, string>())).first;
             }
             q->second.insert(make_pair(name, failure));
         }
@@ -183,22 +177,19 @@ ObserverTopic::receivedUpdate(const string& name, int serial, const string& fail
     }
 }
 
-void
-ObserverTopic::waitForSyncedSubscribers(int serial, const string& name)
+void ObserverTopic::waitForSyncedSubscribers(int serial, const string& name)
 {
     Lock sync(*this);
     waitForSyncedSubscribersNoSync(serial, name);
 }
 
-int
-ObserverTopic::getSerial() const
+int ObserverTopic::getSerial() const
 {
     Lock sync(*this);
     return _serial;
 }
 
-void
-ObserverTopic::addExpectedUpdate(int serial, const string& name)
+void ObserverTopic::addExpectedUpdate(int serial, const string& name)
 {
     if(_syncSubscribers.empty() && name.empty())
     {
@@ -217,8 +208,7 @@ ObserverTopic::addExpectedUpdate(int serial, const string& name)
     }
 }
 
-void
-ObserverTopic::waitForSyncedSubscribersNoSync(int serial, const string& name)
+void ObserverTopic::waitForSyncedSubscribersNoSync(int serial, const string& name)
 {
     if(serial < 0)
     {
@@ -230,10 +220,10 @@ ObserverTopic::waitForSyncedSubscribersNoSync(int serial, const string& name)
     //
     while(!_topics.empty())
     {
-        map<int, set<string> >::const_iterator p = _waitForUpdates.find(serial);
+        map<int, set<string>>::const_iterator p = _waitForUpdates.find(serial);
         if(p == _waitForUpdates.end())
         {
-            map<int, map<string, string> >::iterator q = _updateFailures.find(serial);
+            map<int, map<string, string>>::iterator q = _updateFailures.find(serial);
             if(q != _updateFailures.end())
             {
                 map<string, string> failures = q->second;
@@ -260,8 +250,7 @@ ObserverTopic::waitForSyncedSubscribersNoSync(int serial, const string& name)
     }
 }
 
-void
-ObserverTopic::updateSerial(Ice::Long dbSerial)
+void ObserverTopic::updateSerial(Ice::Long dbSerial)
 {
     ++_serial;
     if(dbSerial > 0)
@@ -270,8 +259,7 @@ ObserverTopic::updateSerial(Ice::Long dbSerial)
     }
 }
 
-Ice::Context
-ObserverTopic::getContext(int serial, Ice::Long dbSerial) const
+Ice::Context ObserverTopic::getContext(int serial, Ice::Long dbSerial) const
 {
     Ice::Context context;
     {
@@ -294,8 +282,7 @@ RegistryObserverTopic::RegistryObserverTopic(const IceStorm::TopicManagerPrx& to
     _publishers = getPublishers<RegistryObserverPrx>();
 }
 
-void
-RegistryObserverTopic::registryUp(const RegistryInfo& info)
+void RegistryObserverTopic::registryUp(const RegistryInfo& info)
 {
     Lock sync(*this);
     if(_topics.empty())
@@ -318,8 +305,7 @@ RegistryObserverTopic::registryUp(const RegistryInfo& info)
     }
 }
 
-void
-RegistryObserverTopic::registryDown(const string& name)
+void RegistryObserverTopic::registryDown(const string& name)
 {
     Lock sync(*this);
     if(_topics.empty())
@@ -348,8 +334,7 @@ RegistryObserverTopic::registryDown(const string& name)
     }
 }
 
-void
-RegistryObserverTopic::initObserver(const Ice::ObjectPrx& obsv)
+void RegistryObserverTopic::initObserver(const Ice::ObjectPrx& obsv)
 {
     RegistryObserverPrx observer = RegistryObserverPrx::uncheckedCast(obsv);
     RegistryInfoSeq registries;
@@ -375,14 +360,12 @@ NodeObserverTopic::NodeObserverTopic(const IceStorm::TopicManagerPrx& topicManag
     }
 }
 
-void
-NodeObserverTopic::nodeInit(const NodeDynamicInfoSeq&, const Ice::Current&)
+void NodeObserverTopic::nodeInit(const NodeDynamicInfoSeq&, const Ice::Current&)
 {
     assert(false);
 }
 
-void
-NodeObserverTopic::nodeUp(const NodeDynamicInfo& info, const Ice::Current&)
+void NodeObserverTopic::nodeUp(const NodeDynamicInfo& info, const Ice::Current&)
 {
     Lock sync(*this);
     if(_topics.empty())
@@ -409,14 +392,12 @@ NodeObserverTopic::nodeUp(const NodeDynamicInfo& info, const Ice::Current&)
     }
 }
 
-void
-NodeObserverTopic::nodeDown(const string& /*name*/, const Ice::Current&)
+void NodeObserverTopic::nodeDown(const string& /*name*/, const Ice::Current&)
 {
     assert(false);
 }
 
-void
-NodeObserverTopic::updateServer(const string& node, const ServerDynamicInfo& server, const Ice::Current&)
+void NodeObserverTopic::updateServer(const string& node, const ServerDynamicInfo& server, const Ice::Current&)
 {
     Lock sync(*this);
     if(_topics.empty())
@@ -480,8 +461,7 @@ NodeObserverTopic::updateServer(const string& node, const ServerDynamicInfo& ser
     }
 }
 
-void
-NodeObserverTopic::updateAdapter(const string& node, const AdapterDynamicInfo& adapter, const Ice::Current&)
+void NodeObserverTopic::updateAdapter(const string& node, const AdapterDynamicInfo& adapter, const Ice::Current&)
 {
     Lock sync(*this);
     if(_topics.empty())
@@ -536,8 +516,7 @@ NodeObserverTopic::updateAdapter(const string& node, const AdapterDynamicInfo& a
     }
 }
 
-void
-NodeObserverTopic::nodeDown(const string& name)
+void NodeObserverTopic::nodeDown(const string& name)
 {
     Lock sync(*this);
     if(_topics.empty())
@@ -573,8 +552,7 @@ NodeObserverTopic::nodeDown(const string& name)
     }
 }
 
-void
-NodeObserverTopic::initObserver(const Ice::ObjectPrx& obsv)
+void NodeObserverTopic::initObserver(const Ice::ObjectPrx& obsv)
 {
     NodeObserverPrx observer = NodeObserverPrx::uncheckedCast(obsv);
     NodeDynamicInfoSeq nodes;
@@ -586,8 +564,7 @@ NodeObserverTopic::initObserver(const Ice::ObjectPrx& obsv)
     observer->nodeInit(nodes, getContext(_serial));
 }
 
-bool
-NodeObserverTopic::isServerEnabled(const string& server) const
+bool NodeObserverTopic::isServerEnabled(const string& server) const
 {
     Lock sync(*this);
     if(_topics.empty())
@@ -613,8 +590,7 @@ ApplicationObserverTopic::ApplicationObserverTopic(const IceStorm::TopicManagerP
     _publishers = getPublishers<ApplicationObserverPrx>();
 }
 
-int
-ApplicationObserverTopic::applicationInit(Ice::Long dbSerial, const ApplicationInfoSeq& apps)
+int ApplicationObserverTopic::applicationInit(Ice::Long dbSerial, const ApplicationInfoSeq& apps)
 {
     Lock sync(*this);
     if(_topics.empty())
@@ -643,8 +619,7 @@ ApplicationObserverTopic::applicationInit(Ice::Long dbSerial, const ApplicationI
     return _serial;
 }
 
-int
-ApplicationObserverTopic::applicationAdded(Ice::Long dbSerial, const ApplicationInfo& info)
+int ApplicationObserverTopic::applicationAdded(Ice::Long dbSerial, const ApplicationInfo& info)
 {
     Lock sync(*this);
     if(_topics.empty())
@@ -670,8 +645,7 @@ ApplicationObserverTopic::applicationAdded(Ice::Long dbSerial, const Application
     return _serial;
 }
 
-int
-ApplicationObserverTopic::applicationRemoved(Ice::Long dbSerial, const string& name)
+int ApplicationObserverTopic::applicationRemoved(Ice::Long dbSerial, const string& name)
 {
     Lock sync(*this);
     if(_topics.empty())
@@ -696,8 +670,7 @@ ApplicationObserverTopic::applicationRemoved(Ice::Long dbSerial, const string& n
     return _serial;
 }
 
-int
-ApplicationObserverTopic::applicationUpdated(Ice::Long dbSerial, const ApplicationUpdateInfo& info)
+int ApplicationObserverTopic::applicationUpdated(Ice::Long dbSerial, const ApplicationUpdateInfo& info)
 {
     Lock sync(*this);
     if(_topics.empty())
@@ -764,8 +737,7 @@ ApplicationObserverTopic::applicationUpdated(Ice::Long dbSerial, const Applicati
     return _serial;
 }
 
-void
-ApplicationObserverTopic::initObserver(const Ice::ObjectPrx& obsv)
+void ApplicationObserverTopic::initObserver(const Ice::ObjectPrx& obsv)
 {
     ApplicationObserverPrx observer = ApplicationObserverPrx::uncheckedCast(obsv);
     ApplicationInfoSeq applications;
@@ -784,8 +756,7 @@ AdapterObserverTopic::AdapterObserverTopic(const IceStorm::TopicManagerPrx& topi
     _publishers = getPublishers<AdapterObserverPrx>();
 }
 
-int
-AdapterObserverTopic::adapterInit(Ice::Long dbSerial, const AdapterInfoSeq& adpts)
+int AdapterObserverTopic::adapterInit(Ice::Long dbSerial, const AdapterInfoSeq& adpts)
 {
     Lock sync(*this);
     if(_topics.empty())
@@ -814,8 +785,7 @@ AdapterObserverTopic::adapterInit(Ice::Long dbSerial, const AdapterInfoSeq& adpt
     return _serial;
 }
 
-int
-AdapterObserverTopic::adapterAdded(Ice::Long dbSerial, const AdapterInfo& info)
+int AdapterObserverTopic::adapterAdded(Ice::Long dbSerial, const AdapterInfo& info)
 {
     Lock sync(*this);
     if(_topics.empty())
@@ -840,8 +810,7 @@ AdapterObserverTopic::adapterAdded(Ice::Long dbSerial, const AdapterInfo& info)
     return _serial;
 }
 
-int
-AdapterObserverTopic::adapterUpdated(Ice::Long dbSerial, const AdapterInfo& info)
+int AdapterObserverTopic::adapterUpdated(Ice::Long dbSerial, const AdapterInfo& info)
 {
     Lock sync(*this);
     if(_topics.empty())
@@ -866,8 +835,7 @@ AdapterObserverTopic::adapterUpdated(Ice::Long dbSerial, const AdapterInfo& info
     return _serial;
 }
 
-int
-AdapterObserverTopic::adapterRemoved(Ice::Long dbSerial, const string& id)
+int AdapterObserverTopic::adapterRemoved(Ice::Long dbSerial, const string& id)
 {
     Lock sync(*this);
     if(_topics.empty())
@@ -892,8 +860,7 @@ AdapterObserverTopic::adapterRemoved(Ice::Long dbSerial, const string& id)
     return _serial;
 }
 
-void
-AdapterObserverTopic::initObserver(const Ice::ObjectPrx& obsv)
+void AdapterObserverTopic::initObserver(const Ice::ObjectPrx& obsv)
 {
     AdapterObserverPrx observer = AdapterObserverPrx::uncheckedCast(obsv);
     AdapterInfoSeq adapters;
@@ -912,8 +879,7 @@ ObjectObserverTopic::ObjectObserverTopic(const IceStorm::TopicManagerPrx& topicM
     _publishers = getPublishers<ObjectObserverPrx>();
 }
 
-int
-ObjectObserverTopic::objectInit(Ice::Long dbSerial, const ObjectInfoSeq& objects)
+int ObjectObserverTopic::objectInit(Ice::Long dbSerial, const ObjectInfoSeq& objects)
 {
     Lock sync(*this);
     if(_topics.empty())
@@ -942,8 +908,7 @@ ObjectObserverTopic::objectInit(Ice::Long dbSerial, const ObjectInfoSeq& objects
     return _serial;
 }
 
-int
-ObjectObserverTopic::objectAdded(Ice::Long dbSerial, const ObjectInfo& info)
+int ObjectObserverTopic::objectAdded(Ice::Long dbSerial, const ObjectInfo& info)
 {
     Lock sync(*this);
     if(_topics.empty())
@@ -968,8 +933,7 @@ ObjectObserverTopic::objectAdded(Ice::Long dbSerial, const ObjectInfo& info)
     return _serial;
 }
 
-int
-ObjectObserverTopic::objectUpdated(Ice::Long dbSerial, const ObjectInfo& info)
+int ObjectObserverTopic::objectUpdated(Ice::Long dbSerial, const ObjectInfo& info)
 {
     Lock sync(*this);
     if(_topics.empty())
@@ -994,8 +958,7 @@ ObjectObserverTopic::objectUpdated(Ice::Long dbSerial, const ObjectInfo& info)
     return _serial;
 }
 
-int
-ObjectObserverTopic::objectRemoved(Ice::Long dbSerial, const Ice::Identity& id)
+int ObjectObserverTopic::objectRemoved(Ice::Long dbSerial, const Ice::Identity& id)
 {
     Lock sync(*this);
     if(_topics.empty())
@@ -1020,8 +983,7 @@ ObjectObserverTopic::objectRemoved(Ice::Long dbSerial, const Ice::Identity& id)
     return _serial;
 }
 
-int
-ObjectObserverTopic::wellKnownObjectsAddedOrUpdated(const ObjectInfoSeq& infos)
+int ObjectObserverTopic::wellKnownObjectsAddedOrUpdated(const ObjectInfoSeq& infos)
 {
     Lock sync(*this);
     if(_topics.empty())
@@ -1072,12 +1034,11 @@ ObjectObserverTopic::wellKnownObjectsAddedOrUpdated(const ObjectInfoSeq& infos)
     // here. This operation is called by ReplicaSessionI.
     //
     addExpectedUpdate(_serial);
-    //waitForSyncedSubscribersNoSync(_serial);
+    // waitForSyncedSubscribersNoSync(_serial);
     return _serial;
 }
 
-int
-ObjectObserverTopic::wellKnownObjectsRemoved(const ObjectInfoSeq& infos)
+int ObjectObserverTopic::wellKnownObjectsRemoved(const ObjectInfoSeq& infos)
 {
     Lock sync(*this);
     if(_topics.empty())
@@ -1109,12 +1070,11 @@ ObjectObserverTopic::wellKnownObjectsRemoved(const ObjectInfoSeq& infos)
     // IceGrid.
     //
     addExpectedUpdate(_serial);
-    //waitForSyncedSubscribersNoSync(_serial);
+    // waitForSyncedSubscribersNoSync(_serial);
     return _serial;
 }
 
-void
-ObjectObserverTopic::initObserver(const Ice::ObjectPrx& obsv)
+void ObjectObserverTopic::initObserver(const Ice::ObjectPrx& obsv)
 {
     ObjectObserverPrx observer = ObjectObserverPrx::uncheckedCast(obsv);
     ObjectInfoSeq objects;

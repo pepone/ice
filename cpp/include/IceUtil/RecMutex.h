@@ -17,95 +17,92 @@
 
 namespace IceUtil
 {
-
-//
-// Forward declarations for friend.
-//
-class Cond;
-
-//
-// Recursive Mutex implementation.
-//
-class ICE_API RecMutex
-{
-public:
+    //
+    // Forward declarations for friend.
+    //
+    class Cond;
 
     //
-    // Lock & TryLock typedefs.
+    // Recursive Mutex implementation.
     //
-    typedef LockT<RecMutex> Lock;
-    typedef TryLockT<RecMutex> TryLock;
+    class ICE_API RecMutex
+    {
+    public:
+        //
+        // Lock & TryLock typedefs.
+        //
+        typedef LockT<RecMutex> Lock;
+        typedef TryLockT<RecMutex> TryLock;
 
-    RecMutex();
-    RecMutex(const MutexProtocol);
-    ~RecMutex();
+        RecMutex();
+        RecMutex(const MutexProtocol);
+        ~RecMutex();
 
-    //
-    // Note that lock/tryLock & unlock in general should not be used
-    // directly. Instead use Lock & TryLock.
-    //
+        //
+        // Note that lock/tryLock & unlock in general should not be used
+        // directly. Instead use Lock & TryLock.
+        //
 
-    void lock() const;
+        void lock() const;
 
-    //
-    // Returns true if the lock was acquired or was already acquired
-    // by the calling thread, and false otherwise.
-    //
-    bool tryLock() const;
+        //
+        // Returns true if the lock was acquired or was already acquired
+        // by the calling thread, and false otherwise.
+        //
+        bool tryLock() const;
 
-    void unlock() const;
+        void unlock() const;
 
-    //
-    // Returns true if the mutex will unlock when calling unlock()
-    // (false otherwise). For non-recursive mutexes, this will always
-    // return true.
-    // This function is used by the Monitor implementation to know whether
-    // the Mutex has been locked for the first time, or unlocked for the
-    // last time (that is another thread is able to acquire the mutex).
-    // Pre-condition: the mutex must be locked.
-    //
-    bool willUnlock() const;
+        //
+        // Returns true if the mutex will unlock when calling unlock()
+        // (false otherwise). For non-recursive mutexes, this will always
+        // return true.
+        // This function is used by the Monitor implementation to know whether
+        // the Mutex has been locked for the first time, or unlocked for the
+        // last time (that is another thread is able to acquire the mutex).
+        // Pre-condition: the mutex must be locked.
+        //
+        bool willUnlock() const;
 
-private:
+    private:
+        void init(const MutexProtocol);
+        // noncopyable
+        RecMutex(const RecMutex&);
+        void operator=(const RecMutex&);
 
-    void init(const MutexProtocol);
-    // noncopyable
-    RecMutex(const RecMutex&);
-    void operator=(const RecMutex&);
-
-    //
-    // LockState and the lock/unlock variations are for use by the
-    // Condition variable implementation.
-    //
+        //
+        // LockState and the lock/unlock variations are for use by the
+        // Condition variable implementation.
+        //
 #ifdef _WIN32
-    struct LockState
-    {
-#   ifdef ICE_HAS_WIN32_CONDVAR
-        CRITICAL_SECTION* mutex;
-#   endif
-        int count;
-    };
+        struct LockState
+        {
+#    ifdef ICE_HAS_WIN32_CONDVAR
+            CRITICAL_SECTION* mutex;
+#    endif
+            int count;
+        };
 #else
-    struct LockState
-    {
-        pthread_mutex_t* mutex;
-        int count;
-    };
+        struct LockState
+        {
+            pthread_mutex_t* mutex;
+            int count;
+        };
 #endif
 
-    void unlock(LockState&) const;
-    void lock(LockState&) const;
+        void unlock(LockState&) const;
+        void lock(LockState&) const;
 
-    friend class Cond;
+        friend class Cond;
 
 #ifdef _WIN32
-    mutable CRITICAL_SECTION _mutex;
+        mutable CRITICAL_SECTION _mutex;
 #else
-    mutable pthread_mutex_t _mutex;
+        mutable pthread_mutex_t _mutex;
 #endif
 
-    mutable int _count;
-};
+        mutable int _count;
+    };
 
 } // End namespace IceUtil
 

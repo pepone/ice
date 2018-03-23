@@ -16,11 +16,10 @@ using namespace std;
 
 namespace IceStormInternal
 {
-IceDB::IceContext dbContext;
+    IceDB::IceContext dbContext;
 }
 
-string
-IceStormInternal::identityToTopicName(const Ice::Identity& id)
+string IceStormInternal::identityToTopicName(const Ice::Identity& id)
 {
     //
     // Work out the topic name. If the category is empty then we're in
@@ -36,8 +35,7 @@ IceStormInternal::identityToTopicName(const Ice::Identity& id)
     return id.name.substr(6);
 }
 
-Ice::Identity
-IceStormInternal::nameToIdentity(const InstancePtr& instance, const string& name)
+Ice::Identity IceStormInternal::nameToIdentity(const InstancePtr& instance, const string& name)
 {
     // Identity is instanceName>/topic.<topicname>
     Ice::Identity id;
@@ -47,8 +45,7 @@ IceStormInternal::nameToIdentity(const InstancePtr& instance, const string& name
     return id;
 }
 
-string
-IceStormInternal::describeEndpoints(const Ice::ObjectPrx& proxy)
+string IceStormInternal::describeEndpoints(const Ice::ObjectPrx& proxy)
 {
     ostringstream os;
     if(proxy)
@@ -70,8 +67,7 @@ IceStormInternal::describeEndpoints(const Ice::ObjectPrx& proxy)
     return os.str();
 }
 
-int
-IceStormInternal::compareSubscriberRecordKey(const MDB_val* v1, const MDB_val* v2)
+int IceStormInternal::compareSubscriberRecordKey(const MDB_val* v1, const MDB_val* v2)
 {
     SubscriberRecordKey k1, k2;
     IceDB::Codec<SubscriberRecordKey, IceDB::IceContext, Ice::OutputStream>::read(k1, *v1, dbContext);
@@ -90,8 +86,7 @@ IceStormInternal::compareSubscriberRecordKey(const MDB_val* v1, const MDB_val* v
     }
 }
 
-IceStormElection::LogUpdate
-IceStormInternal::getIncrementedLLU(const IceDB::ReadWriteTxn& txn, LLUMap& lluMap)
+IceStormElection::LogUpdate IceStormInternal::getIncrementedLLU(const IceDB::ReadWriteTxn& txn, LLUMap& lluMap)
 {
     IceStormElection::LogUpdate llu;
     lluMap.get(txn, lluDbKey, llu);

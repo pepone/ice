@@ -17,8 +17,7 @@
 using namespace std;
 using namespace IceInternal;
 
-ConnectionRequestHandler::ConnectionRequestHandler(const ReferencePtr& reference,
-                                                   const Ice::ConnectionIPtr& connection,
+ConnectionRequestHandler::ConnectionRequestHandler(const ReferencePtr& reference, const Ice::ConnectionIPtr& connection,
                                                    bool compress) :
     RequestHandler(reference),
     _connection(connection),
@@ -26,8 +25,8 @@ ConnectionRequestHandler::ConnectionRequestHandler(const ReferencePtr& reference
 {
 }
 
-RequestHandlerPtr
-ConnectionRequestHandler::update(const RequestHandlerPtr& previousHandler, const RequestHandlerPtr& newHandler)
+RequestHandlerPtr ConnectionRequestHandler::update(const RequestHandlerPtr& previousHandler,
+                                                   const RequestHandlerPtr& newHandler)
 {
     assert(previousHandler);
     try
@@ -53,26 +52,22 @@ ConnectionRequestHandler::update(const RequestHandlerPtr& previousHandler, const
     return ICE_SHARED_FROM_THIS;
 }
 
-AsyncStatus
-ConnectionRequestHandler::sendAsyncRequest(const ProxyOutgoingAsyncBasePtr& out)
+AsyncStatus ConnectionRequestHandler::sendAsyncRequest(const ProxyOutgoingAsyncBasePtr& out)
 {
     return out->invokeRemote(_connection, _compress, _response);
 }
 
-void
-ConnectionRequestHandler::asyncRequestCanceled(const OutgoingAsyncBasePtr& outAsync, const Ice::LocalException& ex)
+void ConnectionRequestHandler::asyncRequestCanceled(const OutgoingAsyncBasePtr& outAsync, const Ice::LocalException& ex)
 {
     _connection->asyncRequestCanceled(outAsync, ex);
 }
 
-Ice::ConnectionIPtr
-ConnectionRequestHandler::getConnection()
+Ice::ConnectionIPtr ConnectionRequestHandler::getConnection()
 {
     return _connection;
 }
 
-Ice::ConnectionIPtr
-ConnectionRequestHandler::waitForConnection()
+Ice::ConnectionIPtr ConnectionRequestHandler::waitForConnection()
 {
     return _connection;
 }

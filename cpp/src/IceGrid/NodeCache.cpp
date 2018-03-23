@@ -23,289 +23,285 @@ using namespace IceGrid;
 
 namespace IceGrid
 {
-
-struct ToInternalServerDescriptor : std::unary_function<CommunicatorDescriptorPtr&, void>
-{
-    ToInternalServerDescriptor(const InternalServerDescriptorPtr& descriptor, const InternalNodeInfoPtr& node,
-                               int iceVersion) :
-        _desc(descriptor),
-        _node(node),
-        _iceVersion(iceVersion)
+    struct ToInternalServerDescriptor : std::unary_function<CommunicatorDescriptorPtr&, void>
     {
-    }
-
-    void
-    operator()(const CommunicatorDescriptorPtr& desc)
-    {
-        //
-        // Figure out the configuration file name for the communicator
-        // (if it's a service, it's "config_<service name>", if it's
-        // the server, it's just "config").
-        //
-        string filename = "config";
-        ServiceDescriptorPtr svc = ServiceDescriptorPtr::dynamicCast(desc);
-        if(svc)
+        ToInternalServerDescriptor(const InternalServerDescriptorPtr& descriptor, const InternalNodeInfoPtr& node,
+                                   int iceVersion) :
+            _desc(descriptor),
+            _node(node),
+            _iceVersion(iceVersion)
         {
-            filename += "_" + svc->name;
-            _desc->services->push_back(svc->name);
         }
 
-        PropertyDescriptorSeq& props = _desc->properties[filename];
-        PropertyDescriptorSeq communicatorProps = desc->propertySet.properties;
-
-        //
-        // If this is a service communicator and the IceBox server has Admin
-        // enabled or Admin endpoints configured, we ignore the server-lifetime attributes
-        // of the service object adapters and assume it's set to false.
-        //
-        bool ignoreServerLifetime = false;
-        if(svc)
+        void operator()(const CommunicatorDescriptorPtr& desc)
         {
-            if(_iceVersion == 0 || _iceVersion >= 30300)
-            {
-                if(getPropertyAsInt(_desc->properties["config"], "Ice.Admin.Enabled") > 0 ||
-                   getProperty(_desc->properties["config"], "Ice.Admin.Endpoints") != "")
-                {
-                    ignoreServerLifetime = true;
-                }
-            }
-        }
-        //
-        // Add the adapters and their configuration.
-        //
-        for(AdapterDescriptorSeq::const_iterator q = desc->adapters.begin(); q != desc->adapters.end(); ++q)
-        {
-            _desc->adapters.push_back(new InternalAdapterDescriptor(q->id,
-                                                                    ignoreServerLifetime ? false : q->serverLifetime));
-
-            props.push_back(createProperty("# Object adapter " + q->name));
-            PropertyDescriptor prop = removeProperty(communicatorProps, q->name + ".Endpoints");
-            prop.name = q->name + ".Endpoints";
-            props.push_back(prop);
-            props.push_back(createProperty(q->name + ".AdapterId", q->id));
-            if(!q->replicaGroupId.empty())
-            {
-                props.push_back(createProperty(q->name + ".ReplicaGroupId", q->replicaGroupId));
-            }
-
             //
-            // Ignore the register process attribute if the server is using Ice >= 3.3.0
+            // Figure out the configuration file name for the communicator
+            // (if it's a service, it's "config_<service name>", if it's
+            // the server, it's just "config").
             //
-            if(_iceVersion != 0 && _iceVersion < 30300)
-            {
-                if(q->registerProcess)
-                {
-                    props.push_back(createProperty(q->name + ".RegisterProcess", "1"));
-                    _desc->processRegistered = true;
-                }
-            }
-        }
-
-        _desc->logs.insert(_desc->logs.end(), desc->logs.begin(), desc->logs.end());
-
-        const string dbsPath = _node->dataDir + "/servers/" + _desc->id + "/dbs/";
-        for(DbEnvDescriptorSeq::const_iterator p = desc->dbEnvs.begin(); p != desc->dbEnvs.end(); ++p)
-        {
-            props.push_back(createProperty("# Database environment " + p->name));
-            if(p->dbHome.empty())
-            {
-                _desc->dbEnvs.push_back(new InternalDbEnvDescriptor(p->name, p->properties));
-                props.push_back(createProperty("Freeze.DbEnv." + p->name + ".DbHome", dbsPath + p->name));
-            }
-            else
-            {
-                props.push_back(createProperty("Freeze.DbEnv." + p->name + ".DbHome", p->dbHome));
-            }
-        }
-
-        //
-        // Copy the communicator descriptor properties.
-        //
-        if(!communicatorProps.empty())
-        {
+            string filename = "config";
+            ServiceDescriptorPtr svc = ServiceDescriptorPtr::dynamicCast(desc);
             if(svc)
             {
-                props.push_back(createProperty("# Service descriptor properties"));
+                filename += "_" + svc->name;
+                _desc->services->push_back(svc->name);
             }
-            else
-            {
-                props.push_back(createProperty("# Server descriptor properties"));
-            }
-            copy(communicatorProps.begin(), communicatorProps.end(), back_inserter(props));
-        }
 
-        //
-        // For Ice servers > 3.3.0 escape the properties.
-        //
-        if(_iceVersion == 0 || _iceVersion >= 30300)
-        {
-            for(PropertyDescriptorSeq::iterator p = props.begin(); p != props.end(); ++p)
+            PropertyDescriptorSeq& props = _desc->properties[filename];
+            PropertyDescriptorSeq communicatorProps = desc->propertySet.properties;
+
+            //
+            // If this is a service communicator and the IceBox server has Admin
+            // enabled or Admin endpoints configured, we ignore the server-lifetime attributes
+            // of the service object adapters and assume it's set to false.
+            //
+            bool ignoreServerLifetime = false;
+            if(svc)
             {
-                if(p->name.find('#') != 0 || !p->value.empty())
+                if(_iceVersion == 0 || _iceVersion >= 30300)
                 {
-                    p->name = escapeProperty(p->name, true);
-                    p->value = escapeProperty(p->value);
+                    if(getPropertyAsInt(_desc->properties["config"], "Ice.Admin.Enabled") > 0 ||
+                       getProperty(_desc->properties["config"], "Ice.Admin.Endpoints") != "")
+                    {
+                        ignoreServerLifetime = true;
+                    }
+                }
+            }
+            //
+            // Add the adapters and their configuration.
+            //
+            for(AdapterDescriptorSeq::const_iterator q = desc->adapters.begin(); q != desc->adapters.end(); ++q)
+            {
+                _desc->adapters.push_back(
+                    new InternalAdapterDescriptor(q->id, ignoreServerLifetime ? false : q->serverLifetime));
+
+                props.push_back(createProperty("# Object adapter " + q->name));
+                PropertyDescriptor prop = removeProperty(communicatorProps, q->name + ".Endpoints");
+                prop.name = q->name + ".Endpoints";
+                props.push_back(prop);
+                props.push_back(createProperty(q->name + ".AdapterId", q->id));
+                if(!q->replicaGroupId.empty())
+                {
+                    props.push_back(createProperty(q->name + ".ReplicaGroupId", q->replicaGroupId));
+                }
+
+                //
+                // Ignore the register process attribute if the server is using Ice >= 3.3.0
+                //
+                if(_iceVersion != 0 && _iceVersion < 30300)
+                {
+                    if(q->registerProcess)
+                    {
+                        props.push_back(createProperty(q->name + ".RegisterProcess", "1"));
+                        _desc->processRegistered = true;
+                    }
+                }
+            }
+
+            _desc->logs.insert(_desc->logs.end(), desc->logs.begin(), desc->logs.end());
+
+            const string dbsPath = _node->dataDir + "/servers/" + _desc->id + "/dbs/";
+            for(DbEnvDescriptorSeq::const_iterator p = desc->dbEnvs.begin(); p != desc->dbEnvs.end(); ++p)
+            {
+                props.push_back(createProperty("# Database environment " + p->name));
+                if(p->dbHome.empty())
+                {
+                    _desc->dbEnvs.push_back(new InternalDbEnvDescriptor(p->name, p->properties));
+                    props.push_back(createProperty("Freeze.DbEnv." + p->name + ".DbHome", dbsPath + p->name));
+                }
+                else
+                {
+                    props.push_back(createProperty("Freeze.DbEnv." + p->name + ".DbHome", p->dbHome));
+                }
+            }
+
+            //
+            // Copy the communicator descriptor properties.
+            //
+            if(!communicatorProps.empty())
+            {
+                if(svc)
+                {
+                    props.push_back(createProperty("# Service descriptor properties"));
+                }
+                else
+                {
+                    props.push_back(createProperty("# Server descriptor properties"));
+                }
+                copy(communicatorProps.begin(), communicatorProps.end(), back_inserter(props));
+            }
+
+            //
+            // For Ice servers > 3.3.0 escape the properties.
+            //
+            if(_iceVersion == 0 || _iceVersion >= 30300)
+            {
+                for(PropertyDescriptorSeq::iterator p = props.begin(); p != props.end(); ++p)
+                {
+                    if(p->name.find('#') != 0 || !p->value.empty())
+                    {
+                        p->name = escapeProperty(p->name, true);
+                        p->value = escapeProperty(p->value);
+                    }
                 }
             }
         }
-    }
 
-    PropertyDescriptor
-    removeProperty(PropertyDescriptorSeq& properties, const string& name)
-    {
-        string value;
-        PropertyDescriptorSeq::iterator p = properties.begin();
-        while(p != properties.end())
+        PropertyDescriptor removeProperty(PropertyDescriptorSeq& properties, const string& name)
         {
-            if(p->name == name)
+            string value;
+            PropertyDescriptorSeq::iterator p = properties.begin();
+            while(p != properties.end())
             {
-                value = p->value;
-                p = properties.erase(p);
+                if(p->name == name)
+                {
+                    value = p->value;
+                    p = properties.erase(p);
+                }
+                else
+                {
+                    ++p;
+                }
             }
-            else
-            {
-                ++p;
-            }
+            PropertyDescriptor desc;
+            desc.name = name;
+            desc.value = value;
+            return desc;
         }
-        PropertyDescriptor desc;
-        desc.name = name;
-        desc.value = value;
-        return desc;
-    }
 
-    InternalServerDescriptorPtr _desc;
-    InternalNodeInfoPtr _node;
-    int _iceVersion;
-};
+        InternalServerDescriptorPtr _desc;
+        InternalNodeInfoPtr _node;
+        int _iceVersion;
+    };
 
-class LoadCB : public virtual IceUtil::Shared
-{
-public:
-
-    LoadCB(const TraceLevelsPtr& traceLevels, const ServerEntryPtr& server, const string& node, int timeout) :
-        _traceLevels(traceLevels), _server(server), _id(server->getId()), _node(node), _timeout(timeout)
+    class LoadCB : public virtual IceUtil::Shared
     {
-    }
-
-    void
-    response(const ServerPrx& server, const AdapterPrxDict& adapters, int at, int dt)
-    {
-        if(_traceLevels && _traceLevels->server > 1)
+    public:
+        LoadCB(const TraceLevelsPtr& traceLevels, const ServerEntryPtr& server, const string& node, int timeout) :
+            _traceLevels(traceLevels),
+            _server(server),
+            _id(server->getId()),
+            _node(node),
+            _timeout(timeout)
         {
-            Ice::Trace out(_traceLevels->logger, _traceLevels->serverCat);
-            out << "loaded `" << _id << "' on node `" << _node << "'";
         }
 
-        //
-        // Add the node session timeout on the proxies to ensure the
-        // timeout is large enough.
-        //
-        _server->loadCallback(server, adapters, at + _timeout, dt + _timeout);
-    }
-
-    void
-    exception(const Ice::Exception& ex)
-    {
-        try
-        {
-            ex.ice_throw();
-        }
-        catch(const DeploymentException& ex)
+        void response(const ServerPrx& server, const AdapterPrxDict& adapters, int at, int dt)
         {
             if(_traceLevels && _traceLevels->server > 1)
             {
                 Ice::Trace out(_traceLevels->logger, _traceLevels->serverCat);
-                out << "couldn't load `" << _id << "' on node `" << _node << "':\n" << ex.reason;
+                out << "loaded `" << _id << "' on node `" << _node << "'";
             }
 
-            ostringstream os;
-            os << "couldn't load `" << _id << "' on node `" << _node << "':\n" << ex.reason;
-            _server->exception(DeploymentException(os.str()));
+            //
+            // Add the node session timeout on the proxies to ensure the
+            // timeout is large enough.
+            //
+            _server->loadCallback(server, adapters, at + _timeout, dt + _timeout);
         }
-        catch(const Ice::Exception& ex)
+
+        void exception(const Ice::Exception& ex)
+        {
+            try
+            {
+                ex.ice_throw();
+            }
+            catch(const DeploymentException& ex)
+            {
+                if(_traceLevels && _traceLevels->server > 1)
+                {
+                    Ice::Trace out(_traceLevels->logger, _traceLevels->serverCat);
+                    out << "couldn't load `" << _id << "' on node `" << _node << "':\n" << ex.reason;
+                }
+
+                ostringstream os;
+                os << "couldn't load `" << _id << "' on node `" << _node << "':\n" << ex.reason;
+                _server->exception(DeploymentException(os.str()));
+            }
+            catch(const Ice::Exception& ex)
+            {
+                if(_traceLevels && _traceLevels->server > 1)
+                {
+                    Ice::Trace out(_traceLevels->logger, _traceLevels->serverCat);
+                    out << "couldn't load `" << _id << "' on node `" << _node << "':\n" << ex;
+                }
+
+                ostringstream os;
+                os << ex;
+                _server->exception(NodeUnreachableException(_node, os.str()));
+            }
+        }
+
+    private:
+        const TraceLevelsPtr _traceLevels;
+        const ServerEntryPtr _server;
+        const string _id;
+        const string _node;
+        const int _timeout;
+    };
+
+    class DestroyCB : public virtual IceUtil::Shared
+    {
+    public:
+        DestroyCB(const TraceLevelsPtr& traceLevels, const ServerEntryPtr& server, const string& node) :
+            _traceLevels(traceLevels),
+            _server(server),
+            _id(server->getId()),
+            _node(node)
+        {
+        }
+
+        void response()
         {
             if(_traceLevels && _traceLevels->server > 1)
             {
                 Ice::Trace out(_traceLevels->logger, _traceLevels->serverCat);
-                out << "couldn't load `" << _id << "' on node `" << _node << "':\n" << ex;
+                out << "unloaded `" << _id << "' on node `" << _node << "'";
             }
-
-            ostringstream os;
-            os << ex;
-            _server->exception(NodeUnreachableException(_node, os.str()));
+            _server->destroyCallback();
         }
-    }
 
-private:
-
-    const TraceLevelsPtr _traceLevels;
-    const ServerEntryPtr _server;
-    const string _id;
-    const string _node;
-    const int _timeout;
-};
-
-class DestroyCB : public virtual IceUtil::Shared
-{
-public:
-
-    DestroyCB(const TraceLevelsPtr& traceLevels, const ServerEntryPtr& server, const string& node) :
-        _traceLevels(traceLevels), _server(server), _id(server->getId()), _node(node)
-    {
-    }
-
-    void
-    response()
-    {
-        if(_traceLevels && _traceLevels->server > 1)
+        void exception(const Ice::Exception& ex)
         {
-            Ice::Trace out(_traceLevels->logger, _traceLevels->serverCat);
-            out << "unloaded `" << _id << "' on node `" << _node << "'";
-        }
-        _server->destroyCallback();
-    }
-
-    void
-    exception(const Ice::Exception& ex)
-    {
-        try
-        {
-            ex.ice_throw();
-        }
-        catch(const DeploymentException& ex)
-        {
-            if(_traceLevels && _traceLevels->server > 1)
+            try
             {
-                Ice::Trace out(_traceLevels->logger, _traceLevels->serverCat);
-                out << "couldn't unload `" << _id << "' on node `" << _node << "':\n" << ex.reason;
+                ex.ice_throw();
             }
-
-            ostringstream os;
-            os << "couldn't unload `" << _id << "' on node `" << _node << "':\n" << ex.reason;
-            _server->exception(DeploymentException(os.str()));
-        }
-        catch(const Ice::Exception& ex)
-        {
-            if(_traceLevels && _traceLevels->server > 1)
+            catch(const DeploymentException& ex)
             {
-                Ice::Trace out(_traceLevels->logger, _traceLevels->serverCat);
-                out << "couldn't unload `" << _id << "' on node `" << _node << "':\n" << ex;
+                if(_traceLevels && _traceLevels->server > 1)
+                {
+                    Ice::Trace out(_traceLevels->logger, _traceLevels->serverCat);
+                    out << "couldn't unload `" << _id << "' on node `" << _node << "':\n" << ex.reason;
+                }
+
+                ostringstream os;
+                os << "couldn't unload `" << _id << "' on node `" << _node << "':\n" << ex.reason;
+                _server->exception(DeploymentException(os.str()));
             }
-            ostringstream os;
-            os << ex;
-            _server->exception(NodeUnreachableException(_node, os.str()));
+            catch(const Ice::Exception& ex)
+            {
+                if(_traceLevels && _traceLevels->server > 1)
+                {
+                    Ice::Trace out(_traceLevels->logger, _traceLevels->serverCat);
+                    out << "couldn't unload `" << _id << "' on node `" << _node << "':\n" << ex;
+                }
+                ostringstream os;
+                os << ex;
+                _server->exception(NodeUnreachableException(_node, os.str()));
+            }
         }
-    }
 
-private:
+    private:
+        const TraceLevelsPtr _traceLevels;
+        const ServerEntryPtr _server;
+        const string _id;
+        const string _node;
+    };
 
-    const TraceLevelsPtr _traceLevels;
-    const ServerEntryPtr _server;
-    const string _id;
-    const string _node;
-};
-
-}
+} // namespace IceGrid
 
 NodeCache::NodeCache(const Ice::CommunicatorPtr& communicator, ReplicaCache& replicaCache, const string& replicaName) :
     _communicator(communicator),
@@ -314,8 +310,7 @@ NodeCache::NodeCache(const Ice::CommunicatorPtr& communicator, ReplicaCache& rep
 {
 }
 
-NodeEntryPtr
-NodeCache::get(const string& name, bool create) const
+NodeEntryPtr NodeCache::get(const string& name, bool create) const
 {
     Lock sync(*this);
     NodeEntryPtr entry = getImpl(name);
@@ -344,36 +339,31 @@ NodeEntry::~NodeEntry()
 {
 }
 
-void
-NodeEntry::addDescriptor(const string& application, const NodeDescriptor& descriptor)
+void NodeEntry::addDescriptor(const string& application, const NodeDescriptor& descriptor)
 {
     Lock sync(*this);
     _descriptors.insert(make_pair(application, descriptor));
 }
 
-void
-NodeEntry::removeDescriptor(const string& application)
+void NodeEntry::removeDescriptor(const string& application)
 {
     Lock sync(*this);
     _descriptors.erase(application);
 }
 
-void
-NodeEntry::addServer(const ServerEntryPtr& entry)
+void NodeEntry::addServer(const ServerEntryPtr& entry)
 {
     Lock sync(*this);
     _servers.insert(make_pair(entry->getId(), entry));
 }
 
-void
-NodeEntry::removeServer(const ServerEntryPtr& entry)
+void NodeEntry::removeServer(const ServerEntryPtr& entry)
 {
     Lock sync(*this);
     _servers.erase(entry->getId());
 }
 
-void
-NodeEntry::setSession(const NodeSessionIPtr& session)
+void NodeEntry::setSession(const NodeSessionIPtr& session)
 {
     Lock sync(*this);
 
@@ -452,24 +442,21 @@ NodeEntry::setSession(const NodeSessionIPtr& session)
     }
 }
 
-NodePrx
-NodeEntry::getProxy() const
+NodePrx NodeEntry::getProxy() const
 {
     Lock sync(*this);
     checkSession();
     return _session->getNode();
 }
 
-InternalNodeInfoPtr
-NodeEntry::getInfo() const
+InternalNodeInfoPtr NodeEntry::getInfo() const
 {
     Lock sync(*this);
     checkSession();
     return _session->getInfo();
 }
 
-ServerEntrySeq
-NodeEntry::getServers() const
+ServerEntrySeq NodeEntry::getServers() const
 {
     Lock sync(*this);
     ServerEntrySeq entries;
@@ -480,8 +467,7 @@ NodeEntry::getServers() const
     return entries;
 }
 
-LoadInfo
-NodeEntry::getLoadInfoAndLoadFactor(const string& application, float& loadFactor) const
+LoadInfo NodeEntry::getLoadInfoAndLoadFactor(const string& application, float& loadFactor) const
 {
     Lock sync(*this);
     checkSession();
@@ -528,35 +514,31 @@ NodeEntry::getLoadInfoAndLoadFactor(const string& application, float& loadFactor
     return _session->getLoadInfo();
 }
 
-NodeSessionIPtr
-NodeEntry::getSession() const
+NodeSessionIPtr NodeEntry::getSession() const
 {
     Lock sync(*this);
     checkSession();
     return _session;
 }
 
-Ice::ObjectPrx
-NodeEntry::getAdminProxy() const
+Ice::ObjectPrx NodeEntry::getAdminProxy() const
 {
     Ice::ObjectPrx prx = getProxy();
     assert(prx);
     Ice::Identity adminId;
-    adminId.name = "NodeAdmin-" + _name ;
+    adminId.name = "NodeAdmin-" + _name;
     adminId.category = prx->ice_getIdentity().category;
     return prx->ice_identity(adminId);
 }
 
-bool
-NodeEntry::canRemove()
+bool NodeEntry::canRemove()
 {
     Lock sync(*this);
     return _servers.empty() && !_session && _descriptors.empty();
 }
 
-void
-NodeEntry::loadServer(const ServerEntryPtr& entry, const ServerInfo& server, const SessionIPtr& session, int timeout,
-                      bool noRestart)
+void NodeEntry::loadServer(const ServerEntryPtr& entry, const ServerInfo& server, const SessionIPtr& session,
+                           int timeout, bool noRestart)
 {
     try
     {
@@ -613,16 +595,14 @@ NodeEntry::loadServer(const ServerEntryPtr& entry, const ServerInfo& server, con
             node->begin_loadServerWithoutRestart(desc, _cache.getReplicaName(),
                                                  newCallback_Node_loadServerWithoutRestart(
                                                      new LoadCB(_cache.getTraceLevels(), entry, _name, sessionTimeout),
-                                                     &LoadCB::response,
-                                                     &LoadCB::exception));
+                                                     &LoadCB::response, &LoadCB::exception));
         }
         else
         {
-            node->begin_loadServer(desc, _cache.getReplicaName(),
-                                   newCallback_Node_loadServer(
-                                       new LoadCB(_cache.getTraceLevels(), entry, _name, sessionTimeout),
-                                       &LoadCB::response,
-                                       &LoadCB::exception));
+            node->begin_loadServer(
+                desc, _cache.getReplicaName(),
+                newCallback_Node_loadServer(new LoadCB(_cache.getTraceLevels(), entry, _name, sessionTimeout),
+                                            &LoadCB::response, &LoadCB::exception));
         }
     }
     catch(const NodeUnreachableException& ex)
@@ -631,8 +611,7 @@ NodeEntry::loadServer(const ServerEntryPtr& entry, const ServerInfo& server, con
     }
 }
 
-void
-NodeEntry::destroyServer(const ServerEntryPtr& entry, const ServerInfo& info, int timeout, bool noRestart)
+void NodeEntry::destroyServer(const ServerEntryPtr& entry, const ServerInfo& info, int timeout, bool noRestart)
 {
     try
     {
@@ -662,20 +641,17 @@ NodeEntry::destroyServer(const ServerEntryPtr& entry, const ServerInfo& info, in
 
         if(noRestart)
         {
-            node->begin_destroyServerWithoutRestart(info.descriptor->id, info.uuid, info.revision,
-                                                    _cache.getReplicaName(),
-                                                    newCallback_Node_destroyServerWithoutRestart(
-                                                        new DestroyCB(_cache.getTraceLevels(), entry, _name),
-                                                        &DestroyCB::response,
-                                                        &DestroyCB::exception));
+            node->begin_destroyServerWithoutRestart(
+                info.descriptor->id, info.uuid, info.revision, _cache.getReplicaName(),
+                newCallback_Node_destroyServerWithoutRestart(new DestroyCB(_cache.getTraceLevels(), entry, _name),
+                                                             &DestroyCB::response, &DestroyCB::exception));
         }
         else
         {
-            node->begin_destroyServer(info.descriptor->id, info.uuid, info.revision, _cache.getReplicaName(),
-                                      newCallback_Node_destroyServer(
-                                          new DestroyCB(_cache.getTraceLevels(), entry, _name),
-                                          &DestroyCB::response,
-                                          &DestroyCB::exception));
+            node->begin_destroyServer(
+                info.descriptor->id, info.uuid, info.revision, _cache.getReplicaName(),
+                newCallback_Node_destroyServer(new DestroyCB(_cache.getTraceLevels(), entry, _name),
+                                               &DestroyCB::response, &DestroyCB::exception));
         }
     }
     catch(const NodeUnreachableException& ex)
@@ -684,8 +660,7 @@ NodeEntry::destroyServer(const ServerEntryPtr& entry, const ServerInfo& info, in
     }
 }
 
-ServerInfo
-NodeEntry::getServerInfo(const ServerInfo& server, const SessionIPtr& session)
+ServerInfo NodeEntry::getServerInfo(const ServerInfo& server, const SessionIPtr& session)
 {
     Lock sync(*this);
     checkSession();
@@ -696,8 +671,7 @@ NodeEntry::getServerInfo(const ServerInfo& server, const SessionIPtr& session)
     return info;
 }
 
-InternalServerDescriptorPtr
-NodeEntry::getInternalServerDescriptor(const ServerInfo& server, const SessionIPtr& session)
+InternalServerDescriptorPtr NodeEntry::getInternalServerDescriptor(const ServerInfo& server, const SessionIPtr& session)
 {
     Lock sync(*this);
     checkSession();
@@ -719,16 +693,14 @@ NodeEntry::getInternalServerDescriptor(const ServerInfo& server, const SessionIP
     return getInternalServerDescriptor(info);
 }
 
-void
-NodeEntry::__incRef()
+void NodeEntry::__incRef()
 {
     Lock sync(*this);
     assert(_ref >= 0);
     ++_ref;
 }
 
-void
-NodeEntry::__decRef()
+void NodeEntry::__decRef()
 {
     //
     // The node entry implements its own reference counting. If the
@@ -766,8 +738,7 @@ NodeEntry::__decRef()
     }
 }
 
-void
-NodeEntry::checkSession() const
+void NodeEntry::checkSession() const
 {
     if(_session)
     {
@@ -803,8 +774,7 @@ NodeEntry::checkSession() const
         _registering = true;
         NodeEntry* self = const_cast<NodeEntry*>(this);
         _proxy->begin_registerWithReplica(_cache.getReplicaCache().getInternalRegistry(),
-                                          newCallback_Node_registerWithReplica(self,
-                                                                               &NodeEntry::finishedRegistration,
+                                          newCallback_Node_registerWithReplica(self, &NodeEntry::finishedRegistration,
                                                                                &NodeEntry::finishedRegistration));
         _proxy = 0; // Registration with the proxy is only attempted once.
     }
@@ -823,8 +793,7 @@ NodeEntry::checkSession() const
     }
 }
 
-void
-NodeEntry::setProxy(const NodePrx& node)
+void NodeEntry::setProxy(const NodePrx& node)
 {
     Lock sync(*this);
 
@@ -840,8 +809,7 @@ NodeEntry::setProxy(const NodePrx& node)
     }
 }
 
-void
-NodeEntry::finishedRegistration()
+void NodeEntry::finishedRegistration()
 {
     Lock sync(*this);
     if(_cache.getTraceLevels() && _cache.getTraceLevels()->node > 0)
@@ -864,8 +832,7 @@ NodeEntry::finishedRegistration()
     }
 }
 
-void
-NodeEntry::finishedRegistration(const Ice::Exception& ex)
+void NodeEntry::finishedRegistration(const Ice::Exception& ex)
 {
     Lock sync(*this);
     if(_cache.getTraceLevels() && _cache.getTraceLevels()->node > 0)
@@ -881,8 +848,7 @@ NodeEntry::finishedRegistration(const Ice::Exception& ex)
     }
 }
 
-ServerDescriptorPtr
-NodeEntry::getServerDescriptor(const ServerInfo& server, const SessionIPtr& session)
+ServerDescriptorPtr NodeEntry::getServerDescriptor(const ServerInfo& server, const SessionIPtr& session)
 {
     assert(_session);
 
@@ -903,13 +869,12 @@ NodeEntry::getServerDescriptor(const ServerInfo& server, const SessionIPtr& sess
     }
     else
     {
-        return ServerHelper(server.descriptor).instantiate(resolve, PropertyDescriptorSeq(),
-                                                           PropertySetDescriptorDict());
+        return ServerHelper(server.descriptor)
+            .instantiate(resolve, PropertyDescriptorSeq(), PropertySetDescriptorDict());
     }
 }
 
-InternalServerDescriptorPtr
-NodeEntry::getInternalServerDescriptor(const ServerInfo& info) const
+InternalServerDescriptorPtr NodeEntry::getInternalServerDescriptor(const ServerInfo& info) const
 {
     //
     // Note that at this point all variables in info have been resolved
@@ -932,8 +897,8 @@ NodeEntry::getInternalServerDescriptor(const ServerInfo& info) const
     server->services = Ice::StringSeq();
     if(!info.descriptor->distrib.icepatch.empty())
     {
-        server->distrib = new InternalDistributionDescriptor(info.descriptor->distrib.icepatch,
-                                                             info.descriptor->distrib.directories);
+        server->distrib =
+            new InternalDistributionDescriptor(info.descriptor->distrib.icepatch, info.descriptor->distrib.directories);
     }
     server->options = info.descriptor->options;
     server->envs = info.descriptor->envs;
@@ -999,7 +964,7 @@ NodeEntry::getInternalServerDescriptor(const ServerInfo& info) const
     IceBoxDescriptorPtr iceBox = IceBoxDescriptorPtr::dynamicCast(info.descriptor);
     if(iceBox)
     {
-        for(ServiceInstanceDescriptorSeq::const_iterator p = iceBox->services.begin(); p != iceBox->services.end();++p)
+        for(ServiceInstanceDescriptorSeq::const_iterator p = iceBox->services.begin(); p != iceBox->services.end(); ++p)
         {
             ServiceDescriptorPtr s = p->descriptor;
             const string path = _session->getInfo()->dataDir + "/servers/" + server->id + "/config/config_" + s->name;
@@ -1009,8 +974,8 @@ NodeEntry::getInternalServerDescriptor(const ServerInfo& info) const
             // (escaped) property
             // For example, \\server\dir\file.cfg needs to become \\\server\dir\file.cfg or \\\\server\\dir\\file.cfg.
             //
-            props.push_back(createProperty("IceBox.Service." + s->name, s->entry + " --Ice.Config='"
-                                           + escapeProperty(path) + "'"));
+            props.push_back(
+                createProperty("IceBox.Service." + s->name, s->entry + " --Ice.Config='" + escapeProperty(path) + "'"));
 
             if(servicesStr.empty())
             {
@@ -1044,7 +1009,7 @@ NodeEntry::getInternalServerDescriptor(const ServerInfo& info) const
             }
         }
         if(!hasProperty(info.descriptor->propertySet.properties, "IceBox.InstanceName") &&
-            hasProperty(iceBox->propertySet.properties, "IceBox.ServiceManager.Endpoints"))
+           hasProperty(iceBox->propertySet.properties, "IceBox.ServiceManager.Endpoints"))
         {
             props.push_back(createProperty("IceBox.InstanceName", server->id));
         }

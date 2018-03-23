@@ -23,7 +23,7 @@
 #include <cstring>
 
 #ifndef _WIN32
-#   include <sys/wait.h>
+#    include <sys/wait.h>
 #endif
 
 using namespace std;
@@ -35,20 +35,21 @@ using namespace IceUtilInternal;
 //
 namespace Slice
 {
-
-enum Outdest
-{
-    Out=0, Err=1, Dbg=2, Num_Outdest=3
-};
-
+    enum Outdest
+    {
+        Out = 0,
+        Err = 1,
+        Dbg = 2,
+        Num_Outdest = 3
+    };
 }
 
-extern "C" int   mcpp_lib_main(int argc, char** argv);
-extern "C" void  mcpp_use_mem_buffers(int tf);
+extern "C" int mcpp_lib_main(int argc, char** argv);
+extern "C" void mcpp_use_mem_buffers(int tf);
 extern "C" char* mcpp_get_mem_buffer(Outdest od);
 
-Slice::PreprocessorPtr
-Slice::Preprocessor::create(const string& path, const string& fileName, const vector<string>& args)
+Slice::PreprocessorPtr Slice::Preprocessor::create(const string& path, const string& fileName,
+                                                   const vector<string>& args)
 {
     return new Preprocessor(path, fileName, args);
 }
@@ -67,14 +68,12 @@ Slice::Preprocessor::~Preprocessor()
     close();
 }
 
-string
-Slice::Preprocessor::getFileName()
+string Slice::Preprocessor::getFileName()
 {
     return _fileName;
 }
 
-string
-Slice::Preprocessor::getBaseName()
+string Slice::Preprocessor::getBaseName()
 {
     string base(_fileName);
     string suffix;
@@ -86,8 +85,7 @@ Slice::Preprocessor::getBaseName()
     return base;
 }
 
-string
-Slice::Preprocessor::addQuotes(const string& arg)
+string Slice::Preprocessor::addQuotes(const string& arg)
 {
     //
     // Add quotes around the given argument to ensure that arguments
@@ -96,8 +94,7 @@ Slice::Preprocessor::addQuotes(const string& arg)
     return "\"" + escapeString(arg, "", IceUtilInternal::Unicode) + "\"";
 }
 
-string
-Slice::Preprocessor::normalizeIncludePath(const string& path)
+string Slice::Preprocessor::normalizeIncludePath(const string& path)
 {
     string result = path;
 
@@ -129,8 +126,8 @@ Slice::Preprocessor::normalizeIncludePath(const string& path)
         result.replace(pos, 2, "/");
     }
 
-    if(result == "/" || (result.size() == 3 && IceUtilInternal::isAlpha(result[0]) && result[1] == ':' &&
-                         result[2] == '/'))
+    if(result == "/" ||
+       (result.size() == 3 && IceUtilInternal::isAlpha(result[0]) && result[1] == ':' && result[2] == '/'))
     {
         return result;
     }
@@ -145,38 +142,36 @@ Slice::Preprocessor::normalizeIncludePath(const string& path)
 
 namespace
 {
-
-vector<string>
-baseArgs(vector<string> args, bool keepComments, const vector<string>& extraArgs, const string& fileName)
-{
-    if(keepComments)
+    vector<string> baseArgs(vector<string> args, bool keepComments, const vector<string>& extraArgs,
+                            const string& fileName)
     {
-        args.push_back("-C");
+        if(keepComments)
+        {
+            args.push_back("-C");
+        }
+        args.push_back("-e");
+        args.push_back("en_us.utf8");
+
+        //
+        // Define version macros __ICE_VERSION__ is preferred. We keep
+        // ICE_VERSION for backward compatibility with 3.5.0.
+        //
+        const string version[2] = {"ICE_VERSION", "__ICE_VERSION__"};
+        for(int i = 0; i < 2; ++i)
+        {
+            ostringstream os;
+            os << "-D" << version[i] << "=" << ICE_INT_VERSION;
+            args.push_back(os.str());
+        }
+
+        copy(extraArgs.begin(), extraArgs.end(), back_inserter(args));
+        args.push_back(fileName);
+        return args;
     }
-    args.push_back("-e");
-    args.push_back("en_us.utf8");
 
-    //
-    // Define version macros __ICE_VERSION__ is preferred. We keep
-    // ICE_VERSION for backward compatibility with 3.5.0.
-    //
-    const string version[2] = {"ICE_VERSION", "__ICE_VERSION__"};
-    for(int i = 0; i < 2; ++i)
-    {
-        ostringstream os;
-        os << "-D" << version[i] << "=" << ICE_INT_VERSION;
-        args.push_back(os.str());
-    }
+} // namespace
 
-    copy(extraArgs.begin(), extraArgs.end(), back_inserter(args));
-    args.push_back(fileName);
-    return args;
-}
-
-}
-
-FILE*
-Slice::Preprocessor::preprocess(bool keepComments, const string& extraArg)
+FILE* Slice::Preprocessor::preprocess(bool keepComments, const string& extraArg)
 {
     vector<string> args;
     if(!extraArg.empty())
@@ -186,8 +181,7 @@ Slice::Preprocessor::preprocess(bool keepComments, const string& extraArg)
     return preprocess(keepComments, args);
 }
 
-FILE*
-Slice::Preprocessor::preprocess(bool keepComments, const vector<string>& extraArgs)
+FILE* Slice::Preprocessor::preprocess(bool keepComments, const vector<string>& extraArgs)
 {
     if(!checkInputFile())
     {
@@ -297,20 +291,18 @@ Slice::Preprocessor::preprocess(bool keepComments, const vector<string>& extraAr
     return _cppHandle;
 }
 
-bool
-Slice::Preprocessor::printMakefileDependencies(ostream& out, Language lang, const vector<string>& includePaths,
-                                               const string& extraArg, const string& cppSourceExt,
-                                               const string& optValue)
+bool Slice::Preprocessor::printMakefileDependencies(ostream& out, Language lang, const vector<string>& includePaths,
+                                                    const string& extraArg, const string& cppSourceExt,
+                                                    const string& optValue)
 {
     vector<string> extraArgs;
     extraArgs.push_back(extraArg);
     return printMakefileDependencies(out, lang, includePaths, extraArgs, cppSourceExt, optValue);
 }
 
-bool
-Slice::Preprocessor::printMakefileDependencies(ostream& out, Language lang, const vector<string>& includePaths,
-                                               const vector<string>& extraArgs, const string& cppSourceExt,
-                                               const string& optValue)
+bool Slice::Preprocessor::printMakefileDependencies(ostream& out, Language lang, const vector<string>& includePaths,
+                                                    const vector<string>& extraArgs, const string& cppSourceExt,
+                                                    const string& optValue)
 {
     if(!checkInputFile())
     {
@@ -427,9 +419,9 @@ Slice::Preprocessor::printMakefileDependencies(ostream& out, Language lang, cons
     // Get the main output file name.
     //
 #ifdef _MSC_VER
-     string suffix = ".obj:";
+    string suffix = ".obj:";
 #else
-     string suffix = ".o:";
+    string suffix = ".o:";
 #endif
     pos = unprocessed.find(suffix) + suffix.size();
     string result;
@@ -595,7 +587,6 @@ Slice::Preprocessor::printMakefileDependencies(ostream& out, Language lang, cons
             {
                 string name = result.substr(0, pos);
                 result.replace(0, pos + suffix.size() - 1, name + "." + cppHeaderExt);
-
             }
             break;
         }
@@ -739,8 +730,7 @@ Slice::Preprocessor::printMakefileDependencies(ostream& out, Language lang, cons
     return true;
 }
 
-bool
-Slice::Preprocessor::close()
+bool Slice::Preprocessor::close()
 {
     if(_cppHandle != 0)
     {
@@ -761,8 +751,7 @@ Slice::Preprocessor::close()
     return true;
 }
 
-bool
-Slice::Preprocessor::checkInputFile()
+bool Slice::Preprocessor::checkInputFile()
 {
     string base(_fileName);
     string suffix;

@@ -18,33 +18,32 @@ using namespace std;
 using namespace Ice;
 using namespace IceInternal;
 
-IceUtil::Shared* IceInternal::upCast(ProtocolPluginFacade* p) { return p; }
+IceUtil::Shared* IceInternal::upCast(ProtocolPluginFacade* p)
+{
+    return p;
+}
 
 IceInternal::ProtocolPluginFacade::~ProtocolPluginFacade()
 {
     // Out of line to avoid weak vtable
 }
 
-ProtocolPluginFacadePtr
-IceInternal::getProtocolPluginFacade(const CommunicatorPtr& communicator)
+ProtocolPluginFacadePtr IceInternal::getProtocolPluginFacade(const CommunicatorPtr& communicator)
 {
     return new ProtocolPluginFacade(communicator);
 }
 
-CommunicatorPtr
-IceInternal::ProtocolPluginFacade::getCommunicator() const
+CommunicatorPtr IceInternal::ProtocolPluginFacade::getCommunicator() const
 {
     return _communicator;
 }
 
-void
-IceInternal::ProtocolPluginFacade::addEndpointFactory(const EndpointFactoryPtr& factory) const
+void IceInternal::ProtocolPluginFacade::addEndpointFactory(const EndpointFactoryPtr& factory) const
 {
     _instance->endpointFactoryManager()->add(factory);
 }
 
-EndpointFactoryPtr
-IceInternal::ProtocolPluginFacade::getEndpointFactory(Ice::Short type) const
+EndpointFactoryPtr IceInternal::ProtocolPluginFacade::getEndpointFactory(Ice::Short type) const
 {
     return _instance->endpointFactoryManager()->get(type);
 }

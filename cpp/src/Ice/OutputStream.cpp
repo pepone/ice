@@ -29,48 +29,44 @@ using namespace IceInternal;
 
 namespace
 {
-
-class StreamUTF8BufferI : public IceUtil::UTF8Buffer
-{
-public:
-
-    StreamUTF8BufferI(OutputStream& stream) :
-        _stream(stream)
+    class StreamUTF8BufferI : public IceUtil::UTF8Buffer
     {
-    }
-
-    Ice::Byte* getMoreBytes(size_t howMany, Ice::Byte* firstUnused)
-    {
-        assert(howMany > 0);
-
-        if(firstUnused != 0)
+    public:
+        StreamUTF8BufferI(OutputStream& stream) : _stream(stream)
         {
-            //
-            // Return unused bytes
-            //
-            _stream.resize(firstUnused - _stream.b.begin());
         }
 
-        //
-        // Index of first unused byte
-        //
-        Buffer::Container::size_type pos = _stream.b.size();
+        Ice::Byte* getMoreBytes(size_t howMany, Ice::Byte* firstUnused)
+        {
+            assert(howMany > 0);
 
-        //
-        // Since resize may reallocate the buffer, when firstUnused != 0, the
-        // return value can be != firstUnused
-        //
-        _stream.resize(pos + howMany);
+            if(firstUnused != 0)
+            {
+                //
+                // Return unused bytes
+                //
+                _stream.resize(firstUnused - _stream.b.begin());
+            }
 
-        return &_stream.b[pos];
-    }
+            //
+            // Index of first unused byte
+            //
+            Buffer::Container::size_type pos = _stream.b.size();
 
-private:
+            //
+            // Since resize may reallocate the buffer, when firstUnused != 0, the
+            // return value can be != firstUnused
+            //
+            _stream.resize(pos + howMany);
 
-    OutputStream& _stream;
-};
+            return &_stream.b[pos];
+        }
 
-}
+    private:
+        OutputStream& _stream;
+    };
+
+} // namespace
 
 Ice::OutputStream::OutputStream() :
     _instance(0),
@@ -81,9 +77,7 @@ Ice::OutputStream::OutputStream() :
 {
 }
 
-Ice::OutputStream::OutputStream(const CommunicatorPtr& communicator) :
-    _closure(0),
-    _currentEncaps(0)
+Ice::OutputStream::OutputStream(const CommunicatorPtr& communicator) : _closure(0), _currentEncaps(0)
 {
     initialize(communicator);
 }
@@ -105,30 +99,25 @@ Ice::OutputStream::OutputStream(const CommunicatorPtr& communicator, const Encod
     b.reset();
 }
 
-Ice::OutputStream::OutputStream(Instance* instance, const EncodingVersion& encoding) :
-    _closure(0),
-    _currentEncaps(0)
+Ice::OutputStream::OutputStream(Instance* instance, const EncodingVersion& encoding) : _closure(0), _currentEncaps(0)
 {
     initialize(instance, encoding);
 }
 
-void
-Ice::OutputStream::initialize(const CommunicatorPtr& communicator)
+void Ice::OutputStream::initialize(const CommunicatorPtr& communicator)
 {
     assert(communicator);
     Instance* instance = getInstance(communicator).get();
     initialize(instance, instance->defaultsAndOverrides()->defaultEncoding);
 }
 
-void
-Ice::OutputStream::initialize(const CommunicatorPtr& communicator, const EncodingVersion& encoding)
+void Ice::OutputStream::initialize(const CommunicatorPtr& communicator, const EncodingVersion& encoding)
 {
     assert(communicator);
     initialize(getInstance(communicator).get(), encoding);
 }
 
-void
-Ice::OutputStream::initialize(Instance* instance, const EncodingVersion& encoding)
+void Ice::OutputStream::initialize(Instance* instance, const EncodingVersion& encoding)
 {
     assert(instance);
 
@@ -138,8 +127,7 @@ Ice::OutputStream::initialize(Instance* instance, const EncodingVersion& encodin
     _format = _instance->defaultsAndOverrides()->defaultFormat;
 }
 
-void
-Ice::OutputStream::clear()
+void Ice::OutputStream::clear()
 {
     while(_currentEncaps && _currentEncaps != &_preAllocatedEncaps)
     {
@@ -149,28 +137,24 @@ Ice::OutputStream::clear()
     }
 }
 
-void
-Ice::OutputStream::setFormat(FormatType fmt)
+void Ice::OutputStream::setFormat(FormatType fmt)
 {
     _format = fmt;
 }
 
-void*
-Ice::OutputStream::getClosure() const
+void* Ice::OutputStream::getClosure() const
 {
     return _closure;
 }
 
-void*
-Ice::OutputStream::setClosure(void* p)
+void* Ice::OutputStream::setClosure(void* p)
 {
     void* prev = _closure;
     _closure = p;
     return prev;
 }
 
-void
-Ice::OutputStream::swap(OutputStream& other)
+void Ice::OutputStream::swap(OutputStream& other)
 {
     swapBuffer(other);
 
@@ -188,8 +172,7 @@ Ice::OutputStream::swap(OutputStream& other)
     other.resetEncapsulation();
 }
 
-void
-Ice::OutputStream::resetEncapsulation()
+void Ice::OutputStream::resetEncapsulation()
 {
     while(_currentEncaps && _currentEncaps != &_preAllocatedEncaps)
     {
@@ -201,8 +184,7 @@ Ice::OutputStream::resetEncapsulation()
     _preAllocatedEncaps.reset();
 }
 
-void
-Ice::OutputStream::startEncapsulation()
+void Ice::OutputStream::startEncapsulation()
 {
     //
     // If no encoding version is specified, use the current write
@@ -220,8 +202,7 @@ Ice::OutputStream::startEncapsulation()
     }
 }
 
-void
-Ice::OutputStream::writePendingValues()
+void Ice::OutputStream::writePendingValues()
 {
     if(_currentEncaps && _currentEncaps->encoder)
     {
@@ -242,8 +223,7 @@ Ice::OutputStream::writePendingValues()
     }
 }
 
-void
-Ice::OutputStream::writeBlob(const vector<Byte>& v)
+void Ice::OutputStream::writeBlob(const vector<Byte>& v)
 {
     if(!v.empty())
     {
@@ -253,8 +233,7 @@ Ice::OutputStream::writeBlob(const vector<Byte>& v)
     }
 }
 
-void
-Ice::OutputStream::write(const Byte* begin, const Byte* end)
+void Ice::OutputStream::write(const Byte* begin, const Byte* end)
 {
     Int sz = static_cast<Int>(end - begin);
     writeSize(sz);
@@ -266,8 +245,7 @@ Ice::OutputStream::write(const Byte* begin, const Byte* end)
     }
 }
 
-void
-Ice::OutputStream::write(const vector<bool>& v)
+void Ice::OutputStream::write(const vector<bool>& v)
 {
     Int sz = static_cast<Int>(v.size());
     writeSize(sz);
@@ -281,32 +259,28 @@ Ice::OutputStream::write(const vector<bool>& v)
 
 namespace
 {
-
-template<size_t boolSize>
-struct WriteBoolHelper
-{
-    static void write(const bool* begin, OutputStream::Container::size_type pos, OutputStream::Container& b, Int sz)
+    template<size_t boolSize> struct WriteBoolHelper
     {
-        for(int idx = 0; idx < sz; ++idx)
+        static void write(const bool* begin, OutputStream::Container::size_type pos, OutputStream::Container& b, Int sz)
         {
-           b[pos + idx] = static_cast<Byte>(*(begin + idx));
+            for(int idx = 0; idx < sz; ++idx)
+            {
+                b[pos + idx] = static_cast<Byte>(*(begin + idx));
+            }
         }
-    }
-};
+    };
 
-template<>
-struct WriteBoolHelper<1>
-{
-    static void write(const bool* begin, OutputStream::Container::size_type pos, OutputStream::Container& b, Int sz)
+    template<> struct WriteBoolHelper<1>
     {
-        memcpy(&b[pos], begin, sz);
-    }
-};
+        static void write(const bool* begin, OutputStream::Container::size_type pos, OutputStream::Container& b, Int sz)
+        {
+            memcpy(&b[pos], begin, sz);
+        }
+    };
 
-}
+} // namespace
 
-void
-Ice::OutputStream::write(const bool* begin, const bool* end)
+void Ice::OutputStream::write(const bool* begin, const bool* end)
 {
     Int sz = static_cast<Int>(end - begin);
     writeSize(sz);
@@ -318,8 +292,7 @@ Ice::OutputStream::write(const bool* begin, const bool* end)
     }
 }
 
-void
-Ice::OutputStream::write(Short v)
+void Ice::OutputStream::write(Short v)
 {
     Container::size_type pos = b.size();
     resize(pos + sizeof(Short));
@@ -335,8 +308,7 @@ Ice::OutputStream::write(Short v)
 #endif
 }
 
-void
-Ice::OutputStream::write(const Short* begin, const Short* end)
+void Ice::OutputStream::write(const Short* begin, const Short* end)
 {
     Int sz = static_cast<Int>(end - begin);
     writeSize(sz);
@@ -347,7 +319,7 @@ Ice::OutputStream::write(const Short* begin, const Short* end)
 #ifdef ICE_BIG_ENDIAN
         const Byte* src = reinterpret_cast<const Byte*>(begin) + sizeof(Short) - 1;
         Byte* dest = &(*(b.begin() + pos));
-        for(int j = 0 ; j < sz ; ++j)
+        for(int j = 0; j < sz; ++j)
         {
             *dest++ = *src--;
             *dest++ = *src--;
@@ -359,8 +331,7 @@ Ice::OutputStream::write(const Short* begin, const Short* end)
     }
 }
 
-void
-Ice::OutputStream::write(const Int* begin, const Int* end)
+void Ice::OutputStream::write(const Int* begin, const Int* end)
 {
     Int sz = static_cast<Int>(end - begin);
     writeSize(sz);
@@ -371,7 +342,7 @@ Ice::OutputStream::write(const Int* begin, const Int* end)
 #ifdef ICE_BIG_ENDIAN
         const Byte* src = reinterpret_cast<const Byte*>(begin) + sizeof(Int) - 1;
         Byte* dest = &(*(b.begin() + pos));
-        for(int j = 0 ; j < sz ; ++j)
+        for(int j = 0; j < sz; ++j)
         {
             *dest++ = *src--;
             *dest++ = *src--;
@@ -385,8 +356,7 @@ Ice::OutputStream::write(const Int* begin, const Int* end)
     }
 }
 
-void
-Ice::OutputStream::write(Long v)
+void Ice::OutputStream::write(Long v)
 {
     Container::size_type pos = b.size();
     resize(pos + sizeof(Long));
@@ -414,8 +384,7 @@ Ice::OutputStream::write(Long v)
 #endif
 }
 
-void
-Ice::OutputStream::write(const Long* begin, const Long* end)
+void Ice::OutputStream::write(const Long* begin, const Long* end)
 {
     Int sz = static_cast<Int>(end - begin);
     writeSize(sz);
@@ -426,7 +395,7 @@ Ice::OutputStream::write(const Long* begin, const Long* end)
 #ifdef ICE_BIG_ENDIAN
         const Byte* src = reinterpret_cast<const Byte*>(begin) + sizeof(Long) - 1;
         Byte* dest = &(*(b.begin() + pos));
-        for(int j = 0 ; j < sz ; ++j)
+        for(int j = 0; j < sz; ++j)
         {
             *dest++ = *src--;
             *dest++ = *src--;
@@ -444,8 +413,7 @@ Ice::OutputStream::write(const Long* begin, const Long* end)
     }
 }
 
-void
-Ice::OutputStream::write(Float v)
+void Ice::OutputStream::write(Float v)
 {
     Container::size_type pos = b.size();
     resize(pos + sizeof(Float));
@@ -465,8 +433,7 @@ Ice::OutputStream::write(Float v)
 #endif
 }
 
-void
-Ice::OutputStream::write(const Float* begin, const Float* end)
+void Ice::OutputStream::write(const Float* begin, const Float* end)
 {
     Int sz = static_cast<Int>(end - begin);
     writeSize(sz);
@@ -477,7 +444,7 @@ Ice::OutputStream::write(const Float* begin, const Float* end)
 #ifdef ICE_BIG_ENDIAN
         const Byte* src = reinterpret_cast<const Byte*>(begin) + sizeof(Float) - 1;
         Byte* dest = &(*(b.begin() + pos));
-        for(int j = 0 ; j < sz ; ++j)
+        for(int j = 0; j < sz; ++j)
         {
             *dest++ = *src--;
             *dest++ = *src--;
@@ -491,8 +458,7 @@ Ice::OutputStream::write(const Float* begin, const Float* end)
     }
 }
 
-void
-Ice::OutputStream::write(Double v)
+void Ice::OutputStream::write(Double v)
 {
     Container::size_type pos = b.size();
     resize(pos + sizeof(Double));
@@ -509,7 +475,7 @@ Ice::OutputStream::write(Double v)
     *dest = *src;
 #else
     const Byte* src = reinterpret_cast<const Byte*>(&v);
-#  if defined(ICE_LITTLEBYTE_BIGWORD)
+#    if defined(ICE_LITTLEBYTE_BIGWORD)
     dest[4] = *src++;
     dest[5] = *src++;
     dest[6] = *src++;
@@ -518,7 +484,7 @@ Ice::OutputStream::write(Double v)
     dest[1] = *src++;
     dest[2] = *src++;
     dest[3] = *src;
-#  else
+#    else
     *dest++ = *src++;
     *dest++ = *src++;
     *dest++ = *src++;
@@ -527,12 +493,11 @@ Ice::OutputStream::write(Double v)
     *dest++ = *src++;
     *dest++ = *src++;
     *dest = *src;
-#  endif
+#    endif
 #endif
 }
 
-void
-Ice::OutputStream::write(const Double* begin, const Double* end)
+void Ice::OutputStream::write(const Double* begin, const Double* end)
 {
     Int sz = static_cast<Int>(end - begin);
     writeSize(sz);
@@ -543,7 +508,7 @@ Ice::OutputStream::write(const Double* begin, const Double* end)
 #ifdef ICE_BIG_ENDIAN
         const Byte* src = reinterpret_cast<const Byte*>(begin) + sizeof(Double) - 1;
         Byte* dest = &(*(b.begin() + pos));
-        for(int j = 0 ; j < sz ; ++j)
+        for(int j = 0; j < sz; ++j)
         {
             *dest++ = *src--;
             *dest++ = *src--;
@@ -558,7 +523,7 @@ Ice::OutputStream::write(const Double* begin, const Double* end)
 #elif defined(ICE_LITTLEBYTE_BIGWORD)
         const Byte* src = reinterpret_cast<const Byte*>(begin);
         Byte* dest = &(*(b.begin() + pos));
-        for(int j = 0 ; j < sz ; ++j)
+        for(int j = 0; j < sz; ++j)
         {
             dest[4] = *src++;
             dest[5] = *src++;
@@ -590,8 +555,7 @@ Ice::OutputStream::write(const char*)
 }
 */
 
-void
-Ice::OutputStream::writeConverted(const char* vdata, size_t vsize)
+void Ice::OutputStream::writeConverted(const char* vdata, size_t vsize)
 {
     //
     // What is the size of the resulting UTF-8 encoded string?
@@ -682,8 +646,7 @@ Ice::OutputStream::writeConverted(const char* vdata, size_t vsize)
     }
 }
 
-void
-Ice::OutputStream::write(const string* begin, const string* end, bool convert)
+void Ice::OutputStream::write(const string* begin, const string* end, bool convert)
 {
     Int sz = static_cast<Int>(end - begin);
     writeSize(sz);
@@ -696,8 +659,7 @@ Ice::OutputStream::write(const string* begin, const string* end, bool convert)
     }
 }
 
-void
-Ice::OutputStream::write(const wstring& v)
+void Ice::OutputStream::write(const wstring& v)
 {
     if(v.empty())
     {
@@ -777,8 +739,7 @@ Ice::OutputStream::write(const wstring& v)
     }
 }
 
-void
-Ice::OutputStream::write(const wstring* begin, const wstring* end)
+void Ice::OutputStream::write(const wstring* begin, const wstring* end)
 {
     Int sz = static_cast<Int>(end - begin);
     writeSize(sz);
@@ -809,8 +770,7 @@ Ice::OutputStream::write(const ObjectPrx& v)
     }
 }
 
-void
-Ice::OutputStream::writeEnum(Int v, Int maxValue)
+void Ice::OutputStream::writeEnum(Int v, Int maxValue)
 {
     if(getEncoding() == Encoding_1_0)
     {
@@ -833,15 +793,13 @@ Ice::OutputStream::writeEnum(Int v, Int maxValue)
     }
 }
 
-void
-Ice::OutputStream::writeException(const UserException& e)
+void Ice::OutputStream::writeException(const UserException& e)
 {
     initEncaps();
     _currentEncaps->encoder->write(e);
 }
 
-bool
-Ice::OutputStream::writeOptImpl(Int tag, OptionalFormat type)
+bool Ice::OutputStream::writeOptImpl(Int tag, OptionalFormat type)
 {
     if(getEncoding() == Encoding_1_0)
     {
@@ -863,14 +821,12 @@ Ice::OutputStream::writeOptImpl(Int tag, OptionalFormat type)
     return true;
 }
 
-void
-Ice::OutputStream::finished(vector<Byte>& bytes)
+void Ice::OutputStream::finished(vector<Byte>& bytes)
 {
     vector<Byte>(b.begin(), b.end()).swap(bytes);
 }
 
-pair<const Byte*, const Byte*>
-Ice::OutputStream::finished()
+pair<const Byte*, const Byte*> Ice::OutputStream::finished()
 {
     if(b.empty())
     {
@@ -882,14 +838,12 @@ Ice::OutputStream::finished()
     }
 }
 
-void
-Ice::OutputStream::throwEncapsulationException(const char* file, int line)
+void Ice::OutputStream::throwEncapsulationException(const char* file, int line)
 {
     throw EncapsulationException(file, line);
 }
 
-void
-Ice::OutputStream::initEncaps()
+void Ice::OutputStream::initEncaps()
 {
     if(!_currentEncaps) // Lazy initialization.
     {
@@ -921,8 +875,7 @@ Ice::OutputStream::EncapsEncoder::~EncapsEncoder()
     // Out of line to avoid weak vtable
 }
 
-Int
-Ice::OutputStream::EncapsEncoder::registerTypeId(const string& typeId)
+Int Ice::OutputStream::EncapsEncoder::registerTypeId(const string& typeId)
 {
     TypeIdMap::const_iterator p = _typeIdMap.find(typeId);
     if(p != _typeIdMap.end())
@@ -936,8 +889,7 @@ Ice::OutputStream::EncapsEncoder::registerTypeId(const string& typeId)
     }
 }
 
-void
-Ice::OutputStream::EncapsEncoder10::write(const ValuePtr& v)
+void Ice::OutputStream::EncapsEncoder10::write(const ValuePtr& v)
 {
     //
     // Object references are encoded as a negative integer in 1.0.
@@ -952,8 +904,7 @@ Ice::OutputStream::EncapsEncoder10::write(const ValuePtr& v)
     }
 }
 
-void
-Ice::OutputStream::EncapsEncoder10::write(const UserException& v)
+void Ice::OutputStream::EncapsEncoder10::write(const UserException& v)
 {
     //
     // User exception with the 1.0 encoding start with a boolean
@@ -972,14 +923,12 @@ Ice::OutputStream::EncapsEncoder10::write(const UserException& v)
     }
 }
 
-void
-Ice::OutputStream::EncapsEncoder10::startInstance(SliceType sliceType, const SlicedDataPtr&)
+void Ice::OutputStream::EncapsEncoder10::startInstance(SliceType sliceType, const SlicedDataPtr&)
 {
     _sliceType = sliceType;
 }
 
-void
-Ice::OutputStream::EncapsEncoder10::endInstance()
+void Ice::OutputStream::EncapsEncoder10::endInstance()
 {
     if(_sliceType == ValueSlice)
     {
@@ -993,8 +942,7 @@ Ice::OutputStream::EncapsEncoder10::endInstance()
     _sliceType = NoSlice;
 }
 
-void
-Ice::OutputStream::EncapsEncoder10::startSlice(const string& typeId, int, bool /*last*/)
+void Ice::OutputStream::EncapsEncoder10::startSlice(const string& typeId, int, bool /*last*/)
 {
     //
     // For instance slices, encode a boolean to indicate how the type ID
@@ -1025,8 +973,7 @@ Ice::OutputStream::EncapsEncoder10::startSlice(const string& typeId, int, bool /
     _writeSlice = _stream->b.size();
 }
 
-void
-Ice::OutputStream::EncapsEncoder10::endSlice()
+void Ice::OutputStream::EncapsEncoder10::endSlice()
 {
     //
     // Write the slice length.
@@ -1036,8 +983,7 @@ Ice::OutputStream::EncapsEncoder10::endSlice()
     _stream->write(sz, dest);
 }
 
-void
-Ice::OutputStream::EncapsEncoder10::writePendingValues()
+void Ice::OutputStream::EncapsEncoder10::writePendingValues()
 {
     while(!_toBeMarshaledMap.empty())
     {
@@ -1082,8 +1028,7 @@ Ice::OutputStream::EncapsEncoder10::writePendingValues()
     _stream->writeSize(0); // Zero marker indicates end of sequence of sequences of instances.
 }
 
-Int
-Ice::OutputStream::EncapsEncoder10::registerValue(const ValuePtr& v)
+Int Ice::OutputStream::EncapsEncoder10::registerValue(const ValuePtr& v)
 {
     assert(v);
 
@@ -1113,8 +1058,7 @@ Ice::OutputStream::EncapsEncoder10::registerValue(const ValuePtr& v)
     return _valueIdIndex;
 }
 
-void
-Ice::OutputStream::EncapsEncoder11::write(const ValuePtr& v)
+void Ice::OutputStream::EncapsEncoder11::write(const ValuePtr& v)
 {
     if(!v)
     {
@@ -1148,14 +1092,12 @@ Ice::OutputStream::EncapsEncoder11::write(const ValuePtr& v)
     }
 }
 
-void
-Ice::OutputStream::EncapsEncoder11::write(const UserException& v)
+void Ice::OutputStream::EncapsEncoder11::write(const UserException& v)
 {
     v._write(_stream);
 }
 
-void
-Ice::OutputStream::EncapsEncoder11::startInstance(SliceType sliceType, const SlicedDataPtr& data)
+void Ice::OutputStream::EncapsEncoder11::startInstance(SliceType sliceType, const SlicedDataPtr& data)
 {
     if(!_current)
     {
@@ -1174,14 +1116,12 @@ Ice::OutputStream::EncapsEncoder11::startInstance(SliceType sliceType, const Sli
     }
 }
 
-void
-Ice::OutputStream::EncapsEncoder11::endInstance()
+void Ice::OutputStream::EncapsEncoder11::endInstance()
 {
     _current = _current->previous;
 }
 
-void
-Ice::OutputStream::EncapsEncoder11::startSlice(const string& typeId, int compactId, bool last)
+void Ice::OutputStream::EncapsEncoder11::startSlice(const string& typeId, int compactId, bool last)
 {
     assert(_current->indirectionTable.empty() && _current->indirectionMap.empty());
 
@@ -1247,8 +1187,7 @@ Ice::OutputStream::EncapsEncoder11::startSlice(const string& typeId, int compact
     _current->firstSlice = false;
 }
 
-void
-Ice::OutputStream::EncapsEncoder11::endSlice()
+void Ice::OutputStream::EncapsEncoder11::endSlice()
 {
     //
     // Write the optional member end marker if some optional members
@@ -1298,8 +1237,7 @@ Ice::OutputStream::EncapsEncoder11::endSlice()
     *dest = _current->sliceFlags;
 }
 
-bool
-Ice::OutputStream::EncapsEncoder11::writeOptional(Ice::Int tag, Ice::OptionalFormat format)
+bool Ice::OutputStream::EncapsEncoder11::writeOptional(Ice::Int tag, Ice::OptionalFormat format)
 {
     if(!_current)
     {
@@ -1319,8 +1257,7 @@ Ice::OutputStream::EncapsEncoder11::writeOptional(Ice::Int tag, Ice::OptionalFor
     }
 }
 
-void
-Ice::OutputStream::EncapsEncoder11::writeSlicedData(const SlicedDataPtr& slicedData)
+void Ice::OutputStream::EncapsEncoder11::writeSlicedData(const SlicedDataPtr& slicedData)
 {
     assert(slicedData);
 
@@ -1358,8 +1295,7 @@ Ice::OutputStream::EncapsEncoder11::writeSlicedData(const SlicedDataPtr& slicedD
     }
 }
 
-void
-Ice::OutputStream::EncapsEncoder11::writeInstance(const ValuePtr& v)
+void Ice::OutputStream::EncapsEncoder11::writeInstance(const ValuePtr& v)
 {
     assert(v);
 

@@ -18,90 +18,76 @@ using namespace std;
 using namespace Ice;
 using namespace IceInternal;
 
-NativeInfoPtr
-IceInternal::TcpTransceiver::getNativeInfo()
+NativeInfoPtr IceInternal::TcpTransceiver::getNativeInfo()
 {
     return _stream;
 }
 
-SocketOperation
-IceInternal::TcpTransceiver::initialize(Buffer& readBuffer, Buffer& writeBuffer)
+SocketOperation IceInternal::TcpTransceiver::initialize(Buffer& readBuffer, Buffer& writeBuffer)
 {
     return _stream->connect(readBuffer, writeBuffer);
 }
 
-SocketOperation
-IceInternal::TcpTransceiver::closing(bool initiator, const Ice::LocalException&)
+SocketOperation IceInternal::TcpTransceiver::closing(bool initiator, const Ice::LocalException&)
 {
     // If we are initiating the connection closure, wait for the peer
     // to close the TCP/IP connection. Otherwise, close immediately.
     return initiator ? SocketOperationRead : SocketOperationNone;
 }
 
-void
-IceInternal::TcpTransceiver::close()
+void IceInternal::TcpTransceiver::close()
 {
     _stream->close();
 }
 
-SocketOperation
-IceInternal::TcpTransceiver::write(Buffer& buf)
+SocketOperation IceInternal::TcpTransceiver::write(Buffer& buf)
 {
     return _stream->write(buf);
 }
 
-SocketOperation
-IceInternal::TcpTransceiver::read(Buffer& buf)
+SocketOperation IceInternal::TcpTransceiver::read(Buffer& buf)
 {
     return _stream->read(buf);
 }
 
 #if defined(ICE_USE_IOCP) || defined(ICE_OS_UWP)
-bool
-IceInternal::TcpTransceiver::startWrite(Buffer& buf)
+bool IceInternal::TcpTransceiver::startWrite(Buffer& buf)
 {
     return _stream->startWrite(buf);
 }
 
-void
-IceInternal::TcpTransceiver::finishWrite(Buffer& buf)
+void IceInternal::TcpTransceiver::finishWrite(Buffer& buf)
 {
     _stream->finishWrite(buf);
 }
 
-void
-IceInternal::TcpTransceiver::startRead(Buffer& buf)
+void IceInternal::TcpTransceiver::startRead(Buffer& buf)
 {
     _stream->startRead(buf);
 }
 
-void
-IceInternal::TcpTransceiver::finishRead(Buffer& buf)
+void IceInternal::TcpTransceiver::finishRead(Buffer& buf)
 {
     _stream->finishRead(buf);
 }
 #endif
 
-string
-IceInternal::TcpTransceiver::protocol() const
+string IceInternal::TcpTransceiver::protocol() const
 {
     return _instance->protocol();
 }
 
-string
-IceInternal::TcpTransceiver::toString() const
+string IceInternal::TcpTransceiver::toString() const
 {
     return _stream->toString();
 }
 
-string
-IceInternal::TcpTransceiver::toDetailedString() const
+string IceInternal::TcpTransceiver::toDetailedString() const
 {
     return toString();
 }
 
-Ice::ConnectionInfoPtr
-IceInternal::TcpTransceiver::getInfo() const
+Ice::ConnectionInfoPtr IceInternal::TcpTransceiver::getInfo() const
 {
     TCPConnectionInfoPtr info = ICE_MAKE_SHARED(TCPConnectionInfo);
     fdToAddressAndPort(_stream->fd(), info->localAddress, info->localPort, info->remoteAddress, info->remotePort);
@@ -113,13 +99,11 @@ IceInternal::TcpTransceiver::getInfo() const
     return info;
 }
 
-void
-IceInternal::TcpTransceiver::checkSendSize(const Buffer&)
+void IceInternal::TcpTransceiver::checkSendSize(const Buffer&)
 {
 }
 
-void
-IceInternal::TcpTransceiver::setBufferSize(int rcvSize, int sndSize)
+void IceInternal::TcpTransceiver::setBufferSize(int rcvSize, int sndSize)
 {
     _stream->setBufferSize(rcvSize, sndSize);
 }

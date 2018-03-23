@@ -21,7 +21,7 @@
 #include <IceUtil/Cond.h>
 #include <IceUtil/ConsoleUtil.h>
 #if !defined(ICE_OS_UWP) && (!defined(__APPLE__) || TARGET_OS_IPHONE == 0)
-#   include <IceUtil/CtrlCHandler.h>
+#    include <IceUtil/CtrlCHandler.h>
 #endif
 #include <IceUtil/Exception.h>
 #include <IceUtil/Functional.h>

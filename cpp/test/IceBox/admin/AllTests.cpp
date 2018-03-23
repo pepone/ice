@@ -14,8 +14,7 @@
 using namespace std;
 using namespace Test;
 
-void
-allTests(const Ice::CommunicatorPtr& communicator)
+void allTests(const Ice::CommunicatorPtr& communicator)
 {
     string ref = "DemoIceBox/admin:default -p 9996 -t 10000";
     Ice::ObjectPrxPtr admin = communicator->stringToProxy(ref);
@@ -70,9 +69,9 @@ allTests(const Ice::CommunicatorPtr& communicator)
         Ice::PropertyDict setProps;
         setProps["Prop1"] = "10"; // Changed
         setProps["Prop2"] = "20"; // Changed
-        setProps["Prop3"] = ""; // Removed
-        setProps["Prop4"] = "4"; // Added
-        setProps["Prop5"] = "5"; // Added
+        setProps["Prop3"] = "";   // Removed
+        setProps["Prop4"] = "4";  // Added
+        setProps["Prop5"] = "5";  // Added
         pa->setProperties(setProps);
         test(pa->getProperty("Prop1") == "10");
         test(pa->getProperty("Prop2") == "20");

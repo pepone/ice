@@ -15,26 +15,25 @@
 class MetricsI : public Test::Metrics
 {
 public:
-
 #ifdef ICE_CPP11_MAPPING
     virtual void opAsync(std::function<void()>, std::function<void(std::exception_ptr)>, const Ice::Current&);
 
     virtual void failAsync(std::function<void()>, std::function<void(std::exception_ptr)>, const Ice::Current&);
 
     virtual void opWithUserExceptionAsync(std::function<void()>, std::function<void(std::exception_ptr)>,
-                                           const Ice::Current&);
+                                          const Ice::Current&);
 
     virtual void opWithRequestFailedExceptionAsync(std::function<void()>, std::function<void(std::exception_ptr)>,
-                                                    const Ice::Current&);
+                                                   const Ice::Current&);
 
     virtual void opWithLocalExceptionAsync(std::function<void()>, std::function<void(std::exception_ptr)>,
-                                            const Ice::Current&);
+                                           const Ice::Current&);
 
     virtual void opWithUnknownExceptionAsync(std::function<void()>, std::function<void(std::exception_ptr)>,
-                                              const Ice::Current&);
+                                             const Ice::Current&);
 
     virtual void opByteSAsync(Test::ByteSeq, std::function<void()>, std::function<void(std::exception_ptr)>,
-                               const Ice::Current&);
+                              const Ice::Current&);
 #else
     virtual void op_async(const Test::AMD_Metrics_opPtr&, const Ice::Current&);
 
@@ -60,7 +59,6 @@ public:
 class ControllerI : public Test::Controller
 {
 public:
-
     ControllerI(const Ice::ObjectAdapterPtr&);
 
     virtual void hold(const Ice::Current&);
@@ -68,7 +66,6 @@ public:
     virtual void resume(const Ice::Current&);
 
 private:
-
     const Ice::ObjectAdapterPtr _adapter;
 };
 

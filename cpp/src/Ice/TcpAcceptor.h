@@ -16,59 +16,56 @@
 #include <Ice/Network.h>
 
 #if defined(ICE_OS_UWP)
-#include <deque>
+#    include <deque>
 #endif
 
 namespace IceInternal
 {
+    class TcpEndpoint;
 
-class TcpEndpoint;
-
-class TcpAcceptor : public Acceptor, public NativeInfo
-{
-public:
-
-    virtual NativeInfoPtr getNativeInfo();
+    class TcpAcceptor : public Acceptor, public NativeInfo
+    {
+    public:
+        virtual NativeInfoPtr getNativeInfo();
 #if defined(ICE_USE_IOCP) || defined(ICE_OS_UWP)
-    virtual AsyncInfo* getAsyncInfo(SocketOperation);
+        virtual AsyncInfo* getAsyncInfo(SocketOperation);
 #endif
 
-    virtual void close();
-    virtual EndpointIPtr listen();
+        virtual void close();
+        virtual EndpointIPtr listen();
 #if defined(ICE_USE_IOCP) || defined(ICE_OS_UWP)
-    virtual void startAccept();
-    virtual void finishAccept();
+        virtual void startAccept();
+        virtual void finishAccept();
 #endif
 
-    virtual TransceiverPtr accept();
-    virtual std::string protocol() const;
-    virtual std::string toString() const;
-    virtual std::string toDetailedString() const;
+        virtual TransceiverPtr accept();
+        virtual std::string protocol() const;
+        virtual std::string toString() const;
+        virtual std::string toDetailedString() const;
 
-    int effectivePort() const;
+        int effectivePort() const;
 
-private:
+    private:
+        TcpAcceptor(const TcpEndpointIPtr&, const ProtocolInstancePtr&, const std::string&, int);
+        virtual ~TcpAcceptor();
+        friend class TcpEndpointI;
 
-    TcpAcceptor(const TcpEndpointIPtr&, const ProtocolInstancePtr&, const std::string&, int);
-    virtual ~TcpAcceptor();
-    friend class TcpEndpointI;
+        TcpEndpointIPtr _endpoint;
+        const ProtocolInstancePtr _instance;
+        const Address _addr;
 
-    TcpEndpointIPtr _endpoint;
-    const ProtocolInstancePtr _instance;
-    const Address _addr;
-
-    int _backlog;
+        int _backlog;
 #if defined(ICE_USE_IOCP)
-    SOCKET _acceptFd;
-    int _acceptError;
-    std::vector<char> _acceptBuf;
-    AsyncInfo _info;
+        SOCKET _acceptFd;
+        int _acceptError;
+        std::vector<char> _acceptBuf;
+        AsyncInfo _info;
 #elif defined(ICE_OS_UWP)
-    IceUtil::Mutex _mutex;
-    bool _acceptPending;
-    std::deque<Windows::Networking::Sockets::StreamSocket^> _accepted;
+        IceUtil::Mutex _mutex;
+        bool _acceptPending;
+        std::deque<Windows::Networking::Sockets::StreamSocket ^> _accepted;
 #endif
-};
+    };
 
-}
+} // namespace IceInternal
 #endif

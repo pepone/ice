@@ -17,34 +17,31 @@
 
 namespace IceInternal
 {
+    class UdpConnector : public Connector
+    {
+    public:
+        virtual TransceiverPtr connect();
 
-class UdpConnector : public Connector
-{
-public:
+        virtual Ice::Short type() const;
+        virtual std::string toString() const;
 
-    virtual TransceiverPtr connect();
+        virtual bool operator==(const Connector&) const;
+        virtual bool operator<(const Connector&) const;
 
-    virtual Ice::Short type() const;
-    virtual std::string toString() const;
+    private:
+        UdpConnector(const ProtocolInstancePtr&, const Address&, const Address&, const std::string&, int,
+                     const std::string&);
 
-    virtual bool operator==(const Connector&) const;
-    virtual bool operator<(const Connector&) const;
+        virtual ~UdpConnector();
+        friend class UdpEndpointI;
 
-private:
+        const ProtocolInstancePtr _instance;
+        const Address _addr;
+        const Address _sourceAddr;
+        const std::string _mcastInterface;
+        const int _mcastTtl;
+        const std::string _connectionId;
+    };
 
-    UdpConnector(const ProtocolInstancePtr&, const Address&, const Address&, const std::string&, int,
-                 const std::string&);
-
-    virtual ~UdpConnector();
-    friend class UdpEndpointI;
-
-    const ProtocolInstancePtr _instance;
-    const Address _addr;
-    const Address _sourceAddr;
-    const std::string _mcastInterface;
-    const int _mcastTtl;
-    const std::string _connectionId;
-};
-
-}
+} // namespace IceInternal
 #endif

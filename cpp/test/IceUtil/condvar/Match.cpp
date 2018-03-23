@@ -38,14 +38,11 @@ struct Game
 class Player : public Thread
 {
 public:
-
-    Player(Game* game, State which) :
-        _game(game), _which(which)
+    Player(Game* game, State which) : _game(game), _which(which)
     {
     }
 
-    virtual void
-    run()
+    virtual void run()
     {
         Mutex::Lock sync(_game->mutex);
         while(_game->state < StateGameOver)
@@ -65,23 +62,19 @@ public:
                 _game->cond.wait(sync);
                 if(_game->state == _which && !_game->noise)
                 {
-                    cout << endl << "PLAYER-" << ((_which == StatePlayerA) ? "B" : "A")
-                         << ": Supurious wakeup" << endl;
+                    cout << endl << "PLAYER-" << ((_which == StatePlayerA) ? "B" : "A") << ": Supurious wakeup" << endl;
                 }
-            }
-            while(_game->state == _which);
+            } while(_game->state == _which);
         }
     }
 
 private:
-
     Game* _game;
     State _which;
 };
 typedef Handle<Player> PlayerPtr;
 
-int
-main(int argc, char** argv)
+int main(int argc, char** argv)
 {
     Options opts;
     opts.addOpt("t", "timeout", Options::NeedArg, "5");
@@ -117,7 +110,7 @@ main(int argc, char** argv)
             Mutex::Lock sync(game.mutex);
             game.noise = true;
         }
-        for(int i =0 ; i < 100000; ++i)
+        for(int i = 0; i < 100000; ++i)
         {
             game.cond.broadcast();
         }

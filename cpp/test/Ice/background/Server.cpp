@@ -17,65 +17,53 @@
 #include <Ice/Router.h>
 
 #ifdef _MSC_VER
-#   pragma comment(lib, ICE_LIBNAME("testtransport"))
+#    pragma comment(lib, ICE_LIBNAME("testtransport"))
 #endif
 
 using namespace std;
 
 extern "C"
 {
-
-Ice::Plugin* createTestTransport(const Ice::CommunicatorPtr&, const std::string&, const Ice::StringSeq&);
-
+    Ice::Plugin* createTestTransport(const Ice::CommunicatorPtr&, const std::string&, const Ice::StringSeq&);
 };
 
 class LocatorI : public Ice::Locator
 {
 public:
-
 #ifdef ICE_CPP11_MAPPING
-    virtual void
-    findAdapterByIdAsync(string,
-                         function<void(const shared_ptr<Ice::ObjectPrx>&)> response,
-                         function<void(exception_ptr)>,
-                         const Ice::Current& current) const
+    virtual void findAdapterByIdAsync(string, function<void(const shared_ptr<Ice::ObjectPrx>&)> response,
+                                      function<void(exception_ptr)>, const Ice::Current& current) const
     {
         _controller->checkCallPause(current);
         Ice::CommunicatorPtr communicator = current.adapter->getCommunicator();
         response(current.adapter->createDirectProxy(Ice::stringToIdentity("dummy")));
     }
 
-    virtual void
-    findObjectByIdAsync(Ice::Identity id,
-                        function<void(const shared_ptr<Ice::ObjectPrx>&)> response,
-                        function<void(exception_ptr)>,
-                        const Ice::Current& current) const
+    virtual void findObjectByIdAsync(Ice::Identity id, function<void(const shared_ptr<Ice::ObjectPrx>&)> response,
+                                     function<void(exception_ptr)>, const Ice::Current& current) const
     {
         _controller->checkCallPause(current);
         Ice::CommunicatorPtr communicator = current.adapter->getCommunicator();
         response(current.adapter->createDirectProxy(id));
     }
 #else
-    virtual void
-    findAdapterById_async(const Ice::AMD_Locator_findAdapterByIdPtr& response, const string&,
-                          const Ice::Current& current) const
+    virtual void findAdapterById_async(const Ice::AMD_Locator_findAdapterByIdPtr& response, const string&,
+                                       const Ice::Current& current) const
     {
         _controller->checkCallPause(current);
         Ice::CommunicatorPtr communicator = current.adapter->getCommunicator();
         response->ice_response(current.adapter->createDirectProxy(Ice::stringToIdentity("dummy")));
     }
 
-    virtual void
-    findObjectById_async(const Ice::AMD_Locator_findObjectByIdPtr& response, const Ice::Identity& id,
-                         const Ice::Current& current) const
+    virtual void findObjectById_async(const Ice::AMD_Locator_findObjectByIdPtr& response, const Ice::Identity& id,
+                                      const Ice::Current& current) const
     {
         _controller->checkCallPause(current);
         Ice::CommunicatorPtr communicator = current.adapter->getCommunicator();
         response->ice_response(current.adapter->createDirectProxy(id));
     }
 #endif
-    virtual Ice::LocatorRegistryPrxPtr
-    getRegistry(const Ice::Current&) const
+    virtual Ice::LocatorRegistryPrxPtr getRegistry(const Ice::Current&) const
     {
         return ICE_NULLPTR;
     }
@@ -85,31 +73,27 @@ public:
     }
 
 private:
-
     BackgroundControllerIPtr _controller;
 };
 
 class RouterI : public Ice::Router
 {
 public:
-
-    virtual Ice::ObjectPrxPtr
-    getClientProxy(IceUtil::Optional<bool>& hasRoutingTable, const Ice::Current& current) const
+    virtual Ice::ObjectPrxPtr getClientProxy(IceUtil::Optional<bool>& hasRoutingTable,
+                                             const Ice::Current& current) const
     {
         hasRoutingTable = true;
         _controller->checkCallPause(current);
         return ICE_NULLPTR;
     }
 
-    virtual Ice::ObjectPrxPtr
-    getServerProxy(const Ice::Current& current) const
+    virtual Ice::ObjectPrxPtr getServerProxy(const Ice::Current& current) const
     {
         _controller->checkCallPause(current);
         return ICE_NULLPTR;
     }
 
-    virtual Ice::ObjectProxySeq
-    addProxies(ICE_IN(Ice::ObjectProxySeq), const Ice::Current&)
+    virtual Ice::ObjectProxySeq addProxies(ICE_IN(Ice::ObjectProxySeq), const Ice::Current&)
     {
         return Ice::ObjectProxySeq();
     }
@@ -120,12 +104,10 @@ public:
     }
 
 private:
-
     BackgroundControllerIPtr _controller;
 };
 
-int
-run(int, char**, const Ice::CommunicatorPtr& communicator)
+int run(int, char**, const Ice::CommunicatorPtr& communicator)
 {
     communicator->getProperties()->setProperty("TestAdapter.Endpoints", getTestEndpoint(communicator, 0));
     communicator->getProperties()->setProperty("ControllerAdapter.Endpoints", getTestEndpoint(communicator, 1, "tcp"));
@@ -155,8 +137,7 @@ run(int, char**, const Ice::CommunicatorPtr& communicator)
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
 #ifdef ICE_STATIC_LIBS
     Ice::registerIceSSL(false);

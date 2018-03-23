@@ -23,8 +23,7 @@ using namespace std;
 using namespace Ice;
 using namespace IceInternal;
 
-TransceiverPtr
-IceObjC::StreamConnector::connect()
+TransceiverPtr IceObjC::StreamConnector::connect()
 {
     UniqueRef<CFReadStreamRef> readStream;
     UniqueRef<CFWriteStreamRef> writeStream;
@@ -35,14 +34,12 @@ IceObjC::StreamConnector::connect()
     return new StreamTransceiver(_instance, readStream.release(), writeStream.release(), _host, _port);
 }
 
-Short
-IceObjC::StreamConnector::type() const
+Short IceObjC::StreamConnector::type() const
 {
     return _instance->type();
 }
 
-string
-IceObjC::StreamConnector::toString() const
+string IceObjC::StreamConnector::toString() const
 {
     string proxyHost = _instance->proxyHost();
     ostringstream os;
@@ -57,8 +54,7 @@ IceObjC::StreamConnector::toString() const
     return os.str();
 }
 
-bool
-IceObjC::StreamConnector::operator==(const IceInternal::Connector& r) const
+bool IceObjC::StreamConnector::operator==(const IceInternal::Connector& r) const
 {
     const StreamConnector* p = dynamic_cast<const StreamConnector*>(&r);
     if(!p)
@@ -89,8 +85,7 @@ IceObjC::StreamConnector::operator==(const IceInternal::Connector& r) const
     return true;
 }
 
-bool
-IceObjC::StreamConnector::operator<(const IceInternal::Connector& r) const
+bool IceObjC::StreamConnector::operator<(const IceInternal::Connector& r) const
 {
     const StreamConnector* p = dynamic_cast<const StreamConnector*>(&r);
     if(!p)
@@ -128,11 +123,8 @@ IceObjC::StreamConnector::operator<(const IceInternal::Connector& r) const
     return _port < p->_port;
 }
 
-IceObjC::StreamConnector::StreamConnector(const InstancePtr& instance,
-                                          const string& host,
-                                          Ice::Int port,
-                                          Ice::Int timeout,
-                                          const string& connectionId) :
+IceObjC::StreamConnector::StreamConnector(const InstancePtr& instance, const string& host, Ice::Int port,
+                                          Ice::Int timeout, const string& connectionId) :
     _instance(instance),
     _host(host.empty() ? string("127.0.0.1") : host),
     _port(port),

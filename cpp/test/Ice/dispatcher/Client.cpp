@@ -16,16 +16,14 @@ DEFINE_TEST("client")
 
 using namespace std;
 
-int
-run(int, char**, const Ice::CommunicatorPtr& communicator)
+int run(int, char**, const Ice::CommunicatorPtr& communicator)
 {
     void allTests(const Ice::CommunicatorPtr&);
     allTests(communicator);
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
 #ifdef ICE_STATIC_LIBS
     Ice::registerIceSSL(false);
@@ -44,10 +42,9 @@ main(int argc, char* argv[])
 
 #ifdef ICE_CPP11_MAPPING
         IceUtil::Handle<Dispatcher> dispatcher = new Dispatcher;
-        initData.dispatcher = [=](function<void()> call, const shared_ptr<Ice::Connection>& conn)
-            {
-                dispatcher->dispatch(make_shared<DispatcherCall>(call), conn);
-            };
+        initData.dispatcher = [=](function<void()> call, const shared_ptr<Ice::Connection>& conn) {
+            dispatcher->dispatch(make_shared<DispatcherCall>(call), conn);
+        };
 #else
         initData.dispatcher = new Dispatcher();
 #endif

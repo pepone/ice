@@ -17,49 +17,47 @@ using namespace std;
 
 namespace
 {
+    //
+    // A no-op Logger, used when testing the Logger Admin
+    //
 
-//
-// A no-op Logger, used when testing the Logger Admin
-//
-
-class NullLogger : public Ice::Logger
+    class NullLogger : public Ice::Logger
 #ifdef ICE_CPP11_MAPPING
-                 , public std::enable_shared_from_this<NullLogger>
+        ,
+                       public std::enable_shared_from_this<NullLogger>
 #endif
-{
-public:
-
-    virtual void print(const string&)
     {
-    }
+    public:
+        virtual void print(const string&)
+        {
+        }
 
-    virtual void trace(const string&, const string&)
-    {
-    }
+        virtual void trace(const string&, const string&)
+        {
+        }
 
-    virtual void warning(const string&)
-    {
-    }
+        virtual void warning(const string&)
+        {
+        }
 
-    virtual void error(const string&)
-    {
-    }
+        virtual void error(const string&)
+        {
+        }
 
-    virtual string getPrefix()
-    {
-        return "NullLogger";
-    }
+        virtual string getPrefix()
+        {
+            return "NullLogger";
+        }
 
-    virtual Ice::LoggerPtr cloneWithPrefix(const string&)
-    {
-        return ICE_SHARED_FROM_THIS;
-    }
-};
+        virtual Ice::LoggerPtr cloneWithPrefix(const string&)
+        {
+            return ICE_SHARED_FROM_THIS;
+        }
+    };
 
-}
+} // namespace
 
-int
-run(int, char**, const Ice::CommunicatorPtr& communicator)
+int run(int, char**, const Ice::CommunicatorPtr& communicator)
 {
     communicator->getProperties()->setProperty("TestAdapter.Endpoints", getTestEndpoint(communicator, 0));
     Ice::ObjectAdapterPtr adapter = communicator->createObjectAdapter("TestAdapter");
@@ -76,8 +74,7 @@ run(int, char**, const Ice::CommunicatorPtr& communicator)
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
 #ifdef ICE_STATIC_LIBS
     Ice::registerIceSSL(false);

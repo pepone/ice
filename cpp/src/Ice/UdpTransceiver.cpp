@@ -18,7 +18,7 @@
 #include <IceUtil/StringUtil.h>
 
 #ifdef ICE_OS_UWP
-#   include <ppltasks.h> // For Concurrency::task
+#    include <ppltasks.h> // For Concurrency::task
 #endif
 
 using namespace std;
@@ -32,37 +32,37 @@ using namespace Windows::Networking;
 using namespace Windows::Networking::Sockets;
 #endif
 
-IceUtil::Shared* IceInternal::upCast(UdpTransceiver* p) { return p; }
+IceUtil::Shared* IceInternal::upCast(UdpTransceiver* p)
+{
+    return p;
+}
 
-NativeInfoPtr
-IceInternal::UdpTransceiver::getNativeInfo()
+NativeInfoPtr IceInternal::UdpTransceiver::getNativeInfo()
 {
     return this;
 }
 
 #if defined(ICE_USE_IOCP) || defined(ICE_OS_UWP)
-AsyncInfo*
-IceInternal::UdpTransceiver::getAsyncInfo(SocketOperation status)
+AsyncInfo* IceInternal::UdpTransceiver::getAsyncInfo(SocketOperation status)
 {
-#if defined(ICE_USE_IOCP)
+#    if defined(ICE_USE_IOCP)
     switch(status)
     {
-    case SocketOperationRead:
-        return &_read;
-    case SocketOperationWrite:
-        return &_write;
-    default:
-        assert(false);
-        return 0;
+        case SocketOperationRead:
+            return &_read;
+        case SocketOperationWrite:
+            return &_write;
+        default:
+            assert(false);
+            return 0;
     }
-#elif defined(ICE_OS_UWP)
+#    elif defined(ICE_OS_UWP)
     return &_write;
-#endif
+#    endif
 }
 #endif
 
-SocketOperation
-IceInternal::UdpTransceiver::initialize(Buffer& /*readBuffer*/, Buffer& /*writeBuffer*/)
+SocketOperation IceInternal::UdpTransceiver::initialize(Buffer& /*readBuffer*/, Buffer& /*writeBuffer*/)
 {
     if(_state == StateNeedConnect)
     {
@@ -96,15 +96,13 @@ IceInternal::UdpTransceiver::initialize(Buffer& /*readBuffer*/, Buffer& /*writeB
     return SocketOperationNone;
 }
 
-SocketOperation
-IceInternal::UdpTransceiver::closing(bool, const Ice::LocalException&)
+SocketOperation IceInternal::UdpTransceiver::closing(bool, const Ice::LocalException&)
 {
     // Nothing to do.
     return SocketOperationNone;
 }
 
-void
-IceInternal::UdpTransceiver::close()
+void IceInternal::UdpTransceiver::close()
 {
 #ifdef ICE_OS_UWP
     IceUtil::Mutex::Lock lock(_mutex);
@@ -123,8 +121,7 @@ IceInternal::UdpTransceiver::close()
     closeSocket(fd);
 }
 
-EndpointIPtr
-IceInternal::UdpTransceiver::bind()
+EndpointIPtr IceInternal::UdpTransceiver::bind()
 {
     if(isMulticast(_addr))
     {
@@ -175,8 +172,7 @@ IceInternal::UdpTransceiver::bind()
     return _endpoint;
 }
 
-SocketOperation
-IceInternal::UdpTransceiver::write(Buffer& buf)
+SocketOperation IceInternal::UdpTransceiver::write(Buffer& buf)
 {
     if(buf.i == buf.b.end())
     {
@@ -196,11 +192,11 @@ repeat:
     ssize_t ret;
     if(_state == StateConnected)
     {
-#   ifdef _WIN32
+#    ifdef _WIN32
         ret = ::send(_fd, reinterpret_cast<const char*>(&buf.b[0]), static_cast<int>(buf.b.size()), 0);
-#   else
+#    else
         ret = ::send(_fd, reinterpret_cast<const char*>(&buf.b[0]), buf.b.size(), 0);
-#   endif
+#    endif
     }
     else
     {
@@ -219,13 +215,12 @@ repeat:
             throw SocketException(__FILE__, __LINE__, 0);
         }
 
-#   ifdef _WIN32
-        ret = ::sendto(_fd, reinterpret_cast<const char*>(&buf.b[0]), static_cast<int>(buf.b.size()), 0,
-                       &_peerAddr.sa, len);
-#   else
-        ret = ::sendto(_fd, reinterpret_cast<const char*>(&buf.b[0]), buf.b.size(), 0,
-                       &_peerAddr.sa, len);
-#   endif
+#    ifdef _WIN32
+        ret = ::sendto(_fd, reinterpret_cast<const char*>(&buf.b[0]), static_cast<int>(buf.b.size()), 0, &_peerAddr.sa,
+                       len);
+#    else
+        ret = ::sendto(_fd, reinterpret_cast<const char*>(&buf.b[0]), buf.b.size(), 0, &_peerAddr.sa, len);
+#    endif
     }
 
     if(ret == SOCKET_ERROR)
@@ -249,8 +244,7 @@ repeat:
 #endif
 }
 
-SocketOperation
-IceInternal::UdpTransceiver::read(Buffer& buf)
+SocketOperation IceInternal::UdpTransceiver::read(Buffer& buf)
 {
     if(buf.i == buf.b.end())
     {
@@ -282,8 +276,7 @@ repeat:
         memset(&peerAddr.saStorage, 0, sizeof(sockaddr_storage));
         socklen_t len = static_cast<socklen_t>(sizeof(sockaddr_storage));
 
-        ret = recvfrom(_fd, reinterpret_cast<char*>(&buf.b[0]), packetSize, 0,
-                       &peerAddr.sa, &len);
+        ret = recvfrom(_fd, reinterpret_cast<char*>(&buf.b[0]), packetSize, 0, &peerAddr.sa, &len);
 
         if(ret != SOCKET_ERROR)
         {
@@ -330,12 +323,12 @@ repeat:
         //
         assert(_incoming); // Client connections should always be connected at this point.
 
-#   ifndef NDEBUG
+#    ifndef NDEBUG
         bool connected = doConnect(_fd, _peerAddr, Address());
         assert(connected);
-#   else
+#    else
         doConnect(_fd, _peerAddr, Address());
-#   endif
+#    endif
         _state = StateConnected;
 
         if(_instance->traceLevel() >= 1)
@@ -352,8 +345,7 @@ repeat:
 }
 
 #if defined(ICE_USE_IOCP) || defined(ICE_OS_UWP)
-bool
-IceInternal::UdpTransceiver::startWrite(Buffer& buf)
+bool IceInternal::UdpTransceiver::startWrite(Buffer& buf)
 {
     assert(buf.i == buf.b.begin());
 
@@ -361,7 +353,7 @@ IceInternal::UdpTransceiver::startWrite(Buffer& buf)
     assert(min(_maxPacketSize, _sndSize - _udpOverhead) >= static_cast<int>(buf.b.size()));
     assert(_fd != INVALID_SOCKET);
 
-#ifdef ICE_OS_UWP
+#    ifdef ICE_OS_UWP
     if(_state < StateConnected)
     {
         try
@@ -369,12 +361,11 @@ IceInternal::UdpTransceiver::startWrite(Buffer& buf)
             bool multicast = isMulticast(_addr) || isAddressValid(_mcastAddr);
             if(!multicast)
             {
-                auto operation = safe_cast<DatagramSocket^>(_fd)->ConnectAsync(_addr.host, _addr.port);
+                auto operation = safe_cast<DatagramSocket ^>(_fd)->ConnectAsync(_addr.host, _addr.port);
                 if(!checkIfErrorOrCompleted(SocketOperationConnect, operation, operation->Status))
                 {
                     operation->Completed = ref new AsyncActionCompletedHandler(
-                        [this] (IAsyncAction^ info, Windows::Foundation::AsyncStatus status)
-                        {
+                        [this](IAsyncAction ^ info, Windows::Foundation::AsyncStatus status) {
                             //
                             // COMPILERFIX with VC141 using operator!= and operator== inside
                             // a lambda callback triggers a compiler bug, we move the code to
@@ -386,17 +377,16 @@ IceInternal::UdpTransceiver::startWrite(Buffer& buf)
                 else
                 {
                     _write.count = 0;
-                    _writer = ref new DataWriter(safe_cast<DatagramSocket^>(_fd)->OutputStream);
+                    _writer = ref new DataWriter(safe_cast<DatagramSocket ^>(_fd)->OutputStream);
                 }
             }
             else
             {
-                auto operation = safe_cast<DatagramSocket^>(_fd)->GetOutputStreamAsync(_addr.host, _addr.port);
+                auto operation = safe_cast<DatagramSocket ^>(_fd)->GetOutputStreamAsync(_addr.host, _addr.port);
                 if(!checkIfErrorOrCompleted(SocketOperationConnect, operation, operation->Status))
                 {
-                    operation->Completed = ref new AsyncOperationCompletedHandler<IOutputStream^>(
-                        [=](IAsyncOperation<IOutputStream^>^ info, Windows::Foundation::AsyncStatus status)
-                        {
+                    operation->Completed = ref new AsyncOperationCompletedHandler<IOutputStream ^>(
+                        [=](IAsyncOperation<IOutputStream ^> ^ info, Windows::Foundation::AsyncStatus status) {
                             //
                             // COMPILERFIX with VC141 using operator!= and operator== inside
                             // a lambda callback triggers a compiler bug, we move the code to
@@ -416,7 +406,7 @@ IceInternal::UdpTransceiver::startWrite(Buffer& buf)
                 }
             }
         }
-        catch(Platform::Exception^ ex)
+        catch(Platform::Exception ^ ex)
         {
             checkConnectErrorCode(__FILE__, __LINE__, ex->HResult);
         }
@@ -426,10 +416,9 @@ IceInternal::UdpTransceiver::startWrite(Buffer& buf)
     {
         try
         {
-            DatagramSocket^ fd = safe_cast<DatagramSocket^>(_fd);
-            concurrency::create_task(fd->GetOutputStreamAsync(_peerAddr.host, _peerAddr.port)).then(
-                [=, &buf](concurrency::task<IOutputStream^> task)
-                {
+            DatagramSocket ^ fd = safe_cast<DatagramSocket ^>(_fd);
+            concurrency::create_task(fd->GetOutputStreamAsync(_peerAddr.host, _peerAddr.port))
+                .then([=, &buf](concurrency::task<IOutputStream ^> task) {
                     //
                     // COMPILERFIX with VC141 using operator!= and operator== inside
                     // a lambda callback triggers a compiler bug, we move the code to
@@ -438,7 +427,7 @@ IceInternal::UdpTransceiver::startWrite(Buffer& buf)
                     getOutputStreamCompleted(task, buf);
                 });
         }
-        catch(Platform::Exception^ ex)
+        catch(Platform::Exception ^ ex)
         {
             checkErrorCode(__FILE__, __LINE__, ex->HResult);
         }
@@ -451,13 +440,13 @@ IceInternal::UdpTransceiver::startWrite(Buffer& buf)
             _writer->WriteBytes(ref new Array<unsigned char>(&*buf.i, static_cast<int>(buf.b.size())));
             queueOperation(SocketOperationWrite, _writer->StoreAsync());
         }
-        catch(Platform::Exception^ ex)
+        catch(Platform::Exception ^ ex)
         {
             checkErrorCode(__FILE__, __LINE__, ex->HResult);
         }
         return true;
     }
-#else
+#    else
     _write.buf.len = static_cast<int>(buf.b.size());
     _write.buf.buf = reinterpret_cast<char*>(&*buf.i);
     int err;
@@ -481,8 +470,7 @@ IceInternal::UdpTransceiver::startWrite(Buffer& buf)
             // No peer has sent a datagram yet.
             throw SocketException(__FILE__, __LINE__, 0);
         }
-        err = WSASendTo(_fd, &_write.buf, 1, &_write.count, 0, &_peerAddr.sa,
-                        len, &_write, ICE_NULLPTR);
+        err = WSASendTo(_fd, &_write.buf, 1, &_write.count, 0, &_peerAddr.sa, len, &_write, ICE_NULLPTR);
     }
 
     if(err == SOCKET_ERROR)
@@ -499,14 +487,13 @@ IceInternal::UdpTransceiver::startWrite(Buffer& buf)
             }
         }
     }
-#endif
+#    endif
     return true;
 }
 
-#ifdef ICE_OS_UWP
-void
-IceInternal::UdpTransceiver::connectCompleted(Windows::Foundation::IAsyncAction^ action,
-                                              Windows::Foundation::AsyncStatus status)
+#    ifdef ICE_OS_UWP
+void IceInternal::UdpTransceiver::connectCompleted(Windows::Foundation::IAsyncAction ^ action,
+                                                   Windows::Foundation::AsyncStatus status)
 {
     if(status != Windows::Foundation::AsyncStatus::Completed)
     {
@@ -516,14 +503,13 @@ IceInternal::UdpTransceiver::connectCompleted(Windows::Foundation::IAsyncAction^
     else
     {
         _write.count = 0;
-        _writer = ref new DataWriter(safe_cast<DatagramSocket^>(_fd)->OutputStream);
+        _writer = ref new DataWriter(safe_cast<DatagramSocket ^>(_fd)->OutputStream);
     }
     completed(SocketOperationConnect);
 }
 
-void
-IceInternal::UdpTransceiver::getOutputStreamMcastCompleted(IAsyncOperation<IOutputStream^>^ operation,
-                                                           Windows::Foundation::AsyncStatus status)
+void IceInternal::UdpTransceiver::getOutputStreamMcastCompleted(IAsyncOperation<IOutputStream ^> ^ operation,
+                                                                Windows::Foundation::AsyncStatus status)
 {
     if(status != Windows::Foundation::AsyncStatus::Completed)
     {
@@ -542,17 +528,16 @@ IceInternal::UdpTransceiver::getOutputStreamMcastCompleted(IAsyncOperation<IOutp
     completed(SocketOperationConnect);
 }
 
-void
-IceInternal::UdpTransceiver::getOutputStreamCompleted(concurrency::task<IOutputStream^> task, Buffer& buf)
+void IceInternal::UdpTransceiver::getOutputStreamCompleted(concurrency::task<IOutputStream ^> task, Buffer& buf)
 {
     try
     {
-        DataWriter^ writer = ref new DataWriter(task.get());
+        DataWriter ^ writer = ref new DataWriter(task.get());
         writer->WriteBytes(ref new Array<unsigned char>(&*buf.i, static_cast<int>(buf.b.size())));
-        DataWriterStoreOperation^ operation = writer->StoreAsync();
+        DataWriterStoreOperation ^ operation = writer->StoreAsync();
         queueOperation(SocketOperationWrite, operation);
     }
-    catch(Platform::Exception^ pex)
+    catch(Platform::Exception ^ pex)
     {
         _write.count = SOCKET_ERROR;
         _write.error = pex->HResult;
@@ -560,10 +545,9 @@ IceInternal::UdpTransceiver::getOutputStreamCompleted(concurrency::task<IOutputS
     }
 }
 
-#endif
+#    endif
 
-void
-IceInternal::UdpTransceiver::finishWrite(Buffer& buf)
+void IceInternal::UdpTransceiver::finishWrite(Buffer& buf)
 {
     if(_fd == INVALID_SOCKET || _state < StateConnected)
     {
@@ -572,33 +556,32 @@ IceInternal::UdpTransceiver::finishWrite(Buffer& buf)
 
     if(static_cast<int>(_write.count) == SOCKET_ERROR)
     {
-#ifndef ICE_OS_UWP
+#    ifndef ICE_OS_UWP
         WSASetLastError(_write.error);
         if(connectionLost())
         {
-            throw ConnectionLostException(__FILE__, __LINE__ ,getSocketErrno());
+            throw ConnectionLostException(__FILE__, __LINE__, getSocketErrno());
         }
         else
         {
             throw SocketException(__FILE__, __LINE__, getSocketErrno());
         }
-#else
+#    else
         checkErrorCode(__FILE__, __LINE__, _write.error);
-#endif
+#    endif
     }
 
     assert(_write.count == buf.b.size());
     buf.i = buf.b.end();
 }
 
-void
-IceInternal::UdpTransceiver::startRead(Buffer& buf)
+void IceInternal::UdpTransceiver::startRead(Buffer& buf)
 {
     const int packetSize = min(_maxPacketSize, _rcvSize - _udpOverhead);
     buf.b.resize(packetSize);
     buf.i = buf.b.begin();
     assert(!buf.b.empty() && buf.i != buf.b.end());
-#ifndef ICE_OS_UWP
+#    ifndef ICE_OS_UWP
     _read.buf.len = packetSize;
     _read.buf.buf = reinterpret_cast<char*>(&*buf.i);
     int err;
@@ -611,8 +594,8 @@ IceInternal::UdpTransceiver::startRead(Buffer& buf)
         memset(&_readAddr.saStorage, 0, sizeof(struct sockaddr_storage));
         _readAddrLen = static_cast<socklen_t>(sizeof(sockaddr_storage));
 
-        err = WSARecvFrom(_fd, &_read.buf, 1, &_read.count, &_read.flags,
-                          &_readAddr.sa, &_readAddrLen, &_read, ICE_NULLPTR);
+        err = WSARecvFrom(_fd, &_read.buf, 1, &_read.count, &_read.flags, &_readAddr.sa, &_readAddrLen, &_read,
+                          ICE_NULLPTR);
     }
 
     if(err == SOCKET_ERROR)
@@ -633,7 +616,7 @@ IceInternal::UdpTransceiver::startRead(Buffer& buf)
             }
         }
     }
-#else
+#    else
     IceUtil::Mutex::Lock lock(_mutex);
     assert(!_readPending);
     if(!_received.empty())
@@ -644,13 +627,12 @@ IceInternal::UdpTransceiver::startRead(Buffer& buf)
     {
         _readPending = true;
     }
-#endif
+#    endif
 }
 
-void
-IceInternal::UdpTransceiver::finishRead(Buffer& buf)
+void IceInternal::UdpTransceiver::finishRead(Buffer& buf)
 {
-#ifdef ICE_OS_UWP
+#    ifdef ICE_OS_UWP
     IceUtil::Mutex::Lock lock(_mutex);
     assert(!_readPending && (!_received.empty() || _fd == INVALID_SOCKET));
     if(_fd == INVALID_SOCKET)
@@ -658,17 +640,17 @@ IceInternal::UdpTransceiver::finishRead(Buffer& buf)
         return;
     }
 
-    DatagramSocketMessageReceivedEventArgs^ args = _received.front();
+    DatagramSocketMessageReceivedEventArgs ^ args = _received.front();
     _received.pop_front();
 
     int ret;
     try
     {
-        DataReader^ reader = args->GetDataReader();
+        DataReader ^ reader = args->GetDataReader();
         // Truncate received data if too large.
         ret = min(static_cast<int>(reader->UnconsumedBufferLength), static_cast<int>(buf.b.size()));
 
-        Array<unsigned char>^ data = ref new Array<unsigned char>(ret);
+        Array<unsigned char> ^ data = ref new Array<unsigned char>(ret);
         reader->ReadBytes(data);
         memcpy(&*buf.i, data->Data, ret);
         if(_state == StateNotConnected)
@@ -677,11 +659,11 @@ IceInternal::UdpTransceiver::finishRead(Buffer& buf)
             _peerAddr.port = args->RemotePort;
         }
     }
-    catch(Platform::Exception^ ex)
+    catch(Platform::Exception ^ ex)
     {
         checkErrorCode(__FILE__, __LINE__, ex->HResult);
     }
-#else
+#    else
     if(static_cast<int>(_read.count) == SOCKET_ERROR)
     {
         WSASetLastError(_read.error);
@@ -712,21 +694,19 @@ IceInternal::UdpTransceiver::finishRead(Buffer& buf)
     }
 
     int ret = _read.count;
-#endif
+#    endif
 
     buf.b.resize(ret);
     buf.i = buf.b.end();
 }
 #endif
 
-string
-IceInternal::UdpTransceiver::protocol() const
+string IceInternal::UdpTransceiver::protocol() const
 {
     return _instance->protocol();
 }
 
-string
-IceInternal::UdpTransceiver::toString() const
+string IceInternal::UdpTransceiver::toString() const
 {
     if(_fd == INVALID_SOCKET)
     {
@@ -767,8 +747,7 @@ IceInternal::UdpTransceiver::toString() const
     return s.str();
 }
 
-string
-IceInternal::UdpTransceiver::toDetailedString() const
+string IceInternal::UdpTransceiver::toDetailedString() const
 {
     ostringstream os;
     os << toString();
@@ -789,8 +768,7 @@ IceInternal::UdpTransceiver::toDetailedString() const
     return os.str();
 }
 
-Ice::ConnectionInfoPtr
-IceInternal::UdpTransceiver::getInfo() const
+Ice::ConnectionInfoPtr IceInternal::UdpTransceiver::getInfo() const
 {
     Ice::UDPConnectionInfoPtr info = ICE_MAKE_SHARED(Ice::UDPConnectionInfo);
 #if defined(ICE_OS_UWP)
@@ -840,8 +818,7 @@ IceInternal::UdpTransceiver::getInfo() const
     return info;
 }
 
-void
-IceInternal::UdpTransceiver::checkSendSize(const Buffer& buf)
+void IceInternal::UdpTransceiver::checkSendSize(const Buffer& buf)
 {
     //
     // The maximum packetSize is either the maximum allowable UDP packet size, or
@@ -854,28 +831,21 @@ IceInternal::UdpTransceiver::checkSendSize(const Buffer& buf)
     }
 }
 
-void
-IceInternal::UdpTransceiver::setBufferSize(int rcvSize, int sndSize)
+void IceInternal::UdpTransceiver::setBufferSize(int rcvSize, int sndSize)
 {
     setBufSize(rcvSize, sndSize);
 }
 
-int
-IceInternal::UdpTransceiver::effectivePort() const
+int IceInternal::UdpTransceiver::effectivePort() const
 {
     return getPort(_addr);
 }
 
-IceInternal::UdpTransceiver::UdpTransceiver(const ProtocolInstancePtr& instance,
-                                            const Address& addr,
+IceInternal::UdpTransceiver::UdpTransceiver(const ProtocolInstancePtr& instance, const Address& addr,
 #ifdef ICE_OS_UWP
-                                            const Address&,
-                                            const string&,
-                                            int
+                                            const Address&, const string&, int
 #else
-                                            const Address& sourceAddr,
-                                            const string& mcastInterface,
-                                            int mcastTtl
+                                            const Address& sourceAddr, const string& mcastInterface, int mcastTtl
 #endif
                                             ) :
     _instance(instance),
@@ -884,10 +854,12 @@ IceInternal::UdpTransceiver::UdpTransceiver(const ProtocolInstancePtr& instance,
     _addr(addr),
     _state(StateNeedConnect)
 #if defined(ICE_USE_IOCP)
-    , _read(SocketOperationRead),
+    ,
+    _read(SocketOperationRead),
     _write(SocketOperationWrite)
 #elif defined(ICE_OS_UWP)
-    , _readPending(false)
+    ,
+    _readPending(false)
 #endif
 {
     _fd = createSocket(true, _addr);
@@ -926,21 +898,18 @@ IceInternal::UdpTransceiver::UdpTransceiver(const ProtocolInstancePtr& instance,
         _state = StateConnected;
     }
 #else
-    DatagramSocket^ socket = safe_cast<DatagramSocket^>(_fd);
+    DatagramSocket ^ socket = safe_cast<DatagramSocket ^>(_fd);
     IceUtil::Handle<UdpTransceiver> self(this);
-# if _WIN32_WINNT >= 0x0A00
+#    if _WIN32_WINNT >= 0x0A00
     // On Windows 10, it's necessary to set this property to allow Win32 applications to
     // bind to the same multicast address
     if(isMulticast(_addr))
     {
         socket->Control->MulticastOnly = true;
     }
-# endif
-    socket->MessageReceived += ref new TypedEventHandler<DatagramSocket^, DatagramSocketMessageReceivedEventArgs^>(
-        [=](DatagramSocket^ fd, DatagramSocketMessageReceivedEventArgs^ args)
-        {
-            self->appendMessage(args);
-        });
+#    endif
+    socket->MessageReceived += ref new TypedEventHandler<DatagramSocket ^, DatagramSocketMessageReceivedEventArgs ^>(
+        [=](DatagramSocket ^ fd, DatagramSocketMessageReceivedEventArgs ^ args) { self->appendMessage(args); });
 #endif
 
 #ifdef ICE_USE_IOCP
@@ -965,9 +934,11 @@ IceInternal::UdpTransceiver::UdpTransceiver(const UdpEndpointIPtr& endpoint, con
     _port(port),
     _state(connect ? StateNeedConnect : StateNotConnected)
 #ifdef ICE_OS_UWP
-    , _readPending(false)
+    ,
+    _readPending(false)
 #elif defined(ICE_USE_IOCP)
-    , _read(SocketOperationRead),
+    ,
+    _read(SocketOperationRead),
     _write(SocketOperationWrite)
 #endif
 {
@@ -981,21 +952,18 @@ IceInternal::UdpTransceiver::UdpTransceiver(const UdpEndpointIPtr& endpoint, con
     _peerAddr.saStorage.ss_family = AF_UNSPEC;
     _mcastAddr.saStorage.ss_family = AF_UNSPEC;
 #else
-    DatagramSocket^ socket = safe_cast<DatagramSocket^>(_fd);
-# if _WIN32_WINNT >= 0x0A00
+    DatagramSocket ^ socket = safe_cast<DatagramSocket ^>(_fd);
+#    if _WIN32_WINNT >= 0x0A00
     // On Windows 10, it's necessary to set this property to allow Win32 applications to
     // bind to the same multicast address
     if(isMulticast(_addr))
     {
         socket->Control->MulticastOnly = true;
     }
-# endif
+#    endif
     IceUtil::Handle<UdpTransceiver> self(this);
-    socket->MessageReceived += ref new TypedEventHandler<DatagramSocket^, DatagramSocketMessageReceivedEventArgs^>(
-        [=](DatagramSocket^ fd, DatagramSocketMessageReceivedEventArgs^ args)
-        {
-            self->appendMessage(args);
-        });
+    socket->MessageReceived += ref new TypedEventHandler<DatagramSocket ^, DatagramSocketMessageReceivedEventArgs ^>(
+        [=](DatagramSocket ^ fd, DatagramSocketMessageReceivedEventArgs ^ args) { self->appendMessage(args); });
 #endif
 }
 
@@ -1007,8 +975,7 @@ IceInternal::UdpTransceiver::~UdpTransceiver()
 //
 // Set UDP receive and send buffer sizes.
 //
-void
-IceInternal::UdpTransceiver::setBufSize(int rcvSize, int sndSize)
+void IceInternal::UdpTransceiver::setBufSize(int rcvSize, int sndSize)
 {
     assert(_fd != INVALID_SOCKET);
 
@@ -1095,8 +1062,8 @@ IceInternal::UdpTransceiver::setBufSize(int rcvSize, int sndSize)
                    (!isSnd && (!winfo.rcvWarn || winfo.rcvSize != sizeRequested)))
                 {
                     Warning out(_instance->logger());
-                    out << "UDP " << direction << " buffer size: requested size of "
-                        << sizeRequested << " adjusted to " << *addr;
+                    out << "UDP " << direction << " buffer size: requested size of " << sizeRequested << " adjusted to "
+                        << *addr;
 
                     if(isSnd)
                     {
@@ -1113,8 +1080,7 @@ IceInternal::UdpTransceiver::setBufSize(int rcvSize, int sndSize)
 }
 
 #ifdef ICE_OS_UWP
-void
-IceInternal::UdpTransceiver::appendMessage(DatagramSocketMessageReceivedEventArgs^ args)
+void IceInternal::UdpTransceiver::appendMessage(DatagramSocketMessageReceivedEventArgs ^ args)
 {
     IceUtil::Mutex::Lock lock(_mutex);
     if(_fd == INVALID_SOCKET) // Transceiver was closed.

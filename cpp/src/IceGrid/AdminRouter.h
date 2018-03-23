@@ -15,23 +15,19 @@
 
 namespace IceGrid
 {
+    //
+    // An Admin Router routes requests to an admin object
+    //
+    class AdminRouter : public Ice::BlobjectArrayAsync
+    {
+    protected:
+        AdminRouter(const TraceLevelsPtr&);
 
-//
-// An Admin Router routes requests to an admin object
-//
-class AdminRouter : public Ice::BlobjectArrayAsync
-{
-protected:
+        void invokeOnTarget(const Ice::ObjectPrx&, const Ice::AMD_Object_ice_invokePtr&,
+                            const std::pair<const Ice::Byte*, const Ice::Byte*>&, const Ice::Current&);
 
-    AdminRouter(const TraceLevelsPtr&);
+        const TraceLevelsPtr _traceLevels;
+    };
 
-    void invokeOnTarget(const Ice::ObjectPrx&,
-                        const Ice::AMD_Object_ice_invokePtr&,
-                        const std::pair<const Ice::Byte*, const Ice::Byte*>&,
-                        const Ice::Current&);
-
-    const TraceLevelsPtr _traceLevels;
-};
-
-}
+} // namespace IceGrid
 #endif

@@ -14,8 +14,7 @@
 using namespace std;
 using namespace Test;
 
-void
-allTests(const Ice::CommunicatorPtr& communicator)
+void allTests(const Ice::CommunicatorPtr& communicator)
 {
     cout << "testing equals() for Slice structures... " << flush;
 
@@ -262,16 +261,14 @@ allTests(const Ice::CommunicatorPtr& communicator)
     cout << "ok" << endl;
 }
 
-int
-run(const Ice::CommunicatorPtr& communicator)
+int run(const Ice::CommunicatorPtr& communicator)
 {
     allTests(communicator);
 
     return EXIT_SUCCESS;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
     try
     {
@@ -281,6 +278,6 @@ main(int argc, char* argv[])
     catch(const Ice::Exception& ex)
     {
         cerr << ex << endl;
-        return  EXIT_FAILURE;
+        return EXIT_FAILURE;
     }
 }

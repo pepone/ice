@@ -20,12 +20,10 @@ using namespace Test;
 class CallbackClient : public Application
 {
 public:
-
-    virtual int run(int, char*[]);
+    virtual int run(int, char* []);
 };
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
     //
     // We must disable connection warnings, because we attempt to ping
@@ -40,8 +38,7 @@ main(int argc, char* argv[])
     return app.main(argc, argv, initData);
 }
 
-int
-CallbackClient::run(int, char**)
+int CallbackClient::run(int, char**)
 {
     ObjectPrx routerBase = communicator()->stringToProxy("Glacier2/router:" + getTestEndpoint(communicator(), 50));
     Glacier2::RouterPrx router = Glacier2::RouterPrx::checkedCast(routerBase);
@@ -133,8 +130,7 @@ CallbackClient::run(int, char**)
             test(callbackReceiverImpl->callbackOK(1, 0) == 0);
             count = callbackReceiverImpl->callbackWithPayloadOK(0);
             callbackReceiverImpl->callbackWithPayloadOK(count);
-        }
-        while(count == 10 && nRetry++ < 10);
+        } while(count == 10 && nRetry++ < 10);
         test(count < 10);
 
         oneway->initiateCallbackWithPayload(twowayR);
@@ -206,8 +202,8 @@ CallbackClient::run(int, char**)
         }
 
         communicator()->setDefaultRouter(0);
-        ObjectPrx processBase = communicator()->stringToProxy("Glacier2/admin -f Process:" +
-                                                              getTestEndpoint(communicator(), 51));
+        ObjectPrx processBase =
+            communicator()->stringToProxy("Glacier2/admin -f Process:" + getTestEndpoint(communicator(), 51));
         Ice::ProcessPrx process = Ice::ProcessPrx::checkedCast(processBase);
         process->shutdown();
         try

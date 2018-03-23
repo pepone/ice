@@ -21,240 +21,230 @@ using namespace IceGrid;
 
 namespace
 {
+    const int sleepTime = 100;               // 100ms
+    const int maxRetry = 240000 / sleepTime; // 4 minutes
 
-const int sleepTime = 100; // 100ms
-const int maxRetry = 240000 / sleepTime; // 4 minutes
-
-void
-addProperty(const CommunicatorDescriptorPtr& communicator, const string& name, const string& value)
-{
-    PropertyDescriptor prop;
-    prop.name = name;
-    prop.value = value;
-    communicator->propertySet.properties.push_back(prop);
-}
-
-void
-waitForServerState(const IceGrid::AdminPrx& admin, const std::string& server, bool up)
-{
-    int nRetry = 0;
-    while(nRetry < maxRetry) // One minute
+    void addProperty(const CommunicatorDescriptorPtr& communicator, const string& name, const string& value)
     {
-        if(admin->getServerState(server) == (up ? Active : Inactive))
-        {
-            return;
-        }
-
-        IceUtil::ThreadControl::sleep(IceUtil::Time::milliSeconds(sleepTime));
-        ++nRetry;
+        PropertyDescriptor prop;
+        prop.name = name;
+        prop.value = value;
+        communicator->propertySet.properties.push_back(prop);
     }
-    test(false);
-}
 
-void
-waitForReplicaState(const IceGrid::AdminPrx& admin, const std::string& replica, bool up)
-{
-    int nRetry = 0;
-    while(nRetry < maxRetry)
+    void waitForServerState(const IceGrid::AdminPrx& admin, const std::string& server, bool up)
     {
-        try
+        int nRetry = 0;
+        while(nRetry < maxRetry) // One minute
         {
-            if(admin->pingRegistry(replica) == up)
+            if(admin->getServerState(server) == (up ? Active : Inactive))
             {
                 return;
+            }
+
+            IceUtil::ThreadControl::sleep(IceUtil::Time::milliSeconds(sleepTime));
+            ++nRetry;
+        }
+        test(false);
+    }
+
+    void waitForReplicaState(const IceGrid::AdminPrx& admin, const std::string& replica, bool up)
+    {
+        int nRetry = 0;
+        while(nRetry < maxRetry)
+        {
+            try
+            {
+                if(admin->pingRegistry(replica) == up)
+                {
+                    return;
+                }
+            }
+            catch(const RegistryNotExistException&)
+            {
+                if(!up)
+                {
+                    return;
+                }
+            }
+
+            IceUtil::ThreadControl::sleep(IceUtil::Time::milliSeconds(sleepTime));
+            ++nRetry;
+        }
+
+        try
+        {
+            if(admin->pingRegistry(replica) != up)
+            {
+                cerr << "replica state change timed out:" << endl;
+                cerr << "replica: " << replica << endl;
+                cerr << "state: " << up << endl;
             }
         }
         catch(const RegistryNotExistException&)
         {
-            if(!up)
+            if(up)
             {
-                return;
+                cerr << "replica state change timed out:" << endl;
+                cerr << "replica: " << replica << endl;
+                cerr << "state: " << up << endl;
             }
         }
-
-        IceUtil::ThreadControl::sleep(IceUtil::Time::milliSeconds(sleepTime));
-        ++nRetry;
     }
 
-    try
+    void waitForNodeState(const IceGrid::AdminPrx& admin, const std::string& node, bool up)
     {
-        if(admin->pingRegistry(replica) != up)
+        int nRetry = 0;
+        while(nRetry < maxRetry)
         {
-            cerr << "replica state change timed out:" << endl;
-            cerr << "replica: " << replica << endl;
-            cerr << "state: " << up << endl;
-        }
-    }
-    catch(const RegistryNotExistException&)
-    {
-        if(up)
-        {
-            cerr << "replica state change timed out:" << endl;
-            cerr << "replica: " << replica << endl;
-            cerr << "state: " << up << endl;
-        }
-    }
+            try
+            {
+                if(admin->pingNode(node) == up) // Wait for the node to be removed.
+                {
+                    return;
+                }
+            }
+            catch(const NodeNotExistException&)
+            {
+                if(!up)
+                {
+                    return;
+                }
+            }
 
-}
-
-void
-waitForNodeState(const IceGrid::AdminPrx& admin, const std::string& node, bool up)
-{
-    int nRetry = 0;
-    while(nRetry < maxRetry)
-    {
+            IceUtil::ThreadControl::sleep(IceUtil::Time::milliSeconds(sleepTime));
+            ++nRetry;
+        }
         try
         {
-            if(admin->pingNode(node) == up) // Wait for the node to be removed.
+            if(admin->pingNode(node) != up)
             {
-                return;
+                cerr << "node state change timed out:" << endl;
+                cerr << "node: " << node << endl;
+                cerr << "state: " << up << endl;
             }
         }
         catch(const NodeNotExistException&)
         {
-            if(!up)
+            if(up)
             {
-                return;
+                cerr << "node state change timed out:" << endl;
+                cerr << "node: " << node << endl;
+                cerr << "state: " << up << endl;
             }
         }
-
-        IceUtil::ThreadControl::sleep(IceUtil::Time::milliSeconds(sleepTime));
-        ++nRetry;
     }
-    try
+
+    void instantiateServer(const AdminPrx& admin, const string& templ, const map<string, string>& params)
     {
-        if(admin->pingNode(node) != up)
+        ServerInstanceDescriptor desc;
+        desc._cpp_template = templ;
+        desc.parameterValues = params;
+        NodeUpdateDescriptor nodeUpdate;
+        nodeUpdate.name = "localnode";
+        nodeUpdate.serverInstances.push_back(desc);
+        ApplicationUpdateDescriptor update;
+        update.name = "Test";
+        update.nodes.push_back(nodeUpdate);
+        try
         {
-            cerr << "node state change timed out:" << endl;
-            cerr << "node: " << node << endl;
-            cerr << "state: " << up << endl;
+            admin->updateApplication(update);
+        }
+        catch(const DeploymentException& ex)
+        {
+            cerr << ex.reason << endl;
+            test(false);
+        }
+        catch(const Ice::LocalException& ex)
+        {
+            cerr << ex << endl;
+            test(false);
         }
     }
-    catch(const NodeNotExistException&)
-    {
-        if(up)
-        {
-            cerr << "node state change timed out:" << endl;
-            cerr << "node: " << node << endl;
-            cerr << "state: " << up << endl;
-        }
-    }
-}
 
-void
-instantiateServer(const AdminPrx& admin, const string& templ, const map<string, string>& params)
-{
-    ServerInstanceDescriptor desc;
-    desc._cpp_template = templ;
-    desc.parameterValues = params;
-    NodeUpdateDescriptor nodeUpdate;
-    nodeUpdate.name = "localnode";
-    nodeUpdate.serverInstances.push_back(desc);
-    ApplicationUpdateDescriptor update;
-    update.name = "Test";
-    update.nodes.push_back(nodeUpdate);
-    try
-    {
-        admin->updateApplication(update);
-    }
-    catch(const DeploymentException& ex)
-    {
-        cerr << ex.reason << endl;
-        test(false);
-    }
-    catch(const Ice::LocalException& ex)
-    {
-        cerr << ex << endl;
-        test(false);
-    }
-}
-
-void
-removeServer(const AdminPrx& admin, const string& id)
-{
-    try
-    {
-        admin->stopServer(id);
-    }
-    catch(const ServerStopException&)
-    {
-    }
-    catch(const NodeUnreachableException&)
-    {
-    }
-    catch(const Ice::UserException& ex)
-    {
-        cerr << ex << endl;
-        test(false);
-    }
-
-    NodeUpdateDescriptor nodeUpdate;
-    nodeUpdate.name = "localnode";
-    nodeUpdate.removeServers.push_back(id);
-    ApplicationUpdateDescriptor update;
-    update.name = "Test";
-    update.nodes.push_back(nodeUpdate);
-    try
-    {
-        admin->updateApplication(update);
-    }
-    catch(const DeploymentException& ex)
-    {
-        cerr << ex.reason << endl;
-        test(false);
-    }
-}
-
-bool
-waitAndPing(const Ice::ObjectPrx& obj)
-{
-    int nRetry = 0;
-    while(nRetry < maxRetry)
+    void removeServer(const AdminPrx& admin, const string& id)
     {
         try
         {
-            obj->ice_ping();
-            return true;
+            admin->stopServer(id);
         }
-        catch(const Ice::LocalException&)
+        catch(const ServerStopException&)
         {
-            IceUtil::ThreadControl::sleep(IceUtil::Time::milliSeconds(sleepTime));
-            ++nRetry;
+        }
+        catch(const NodeUnreachableException&)
+        {
+        }
+        catch(const Ice::UserException& ex)
+        {
+            cerr << ex << endl;
+            test(false);
+        }
+
+        NodeUpdateDescriptor nodeUpdate;
+        nodeUpdate.name = "localnode";
+        nodeUpdate.removeServers.push_back(id);
+        ApplicationUpdateDescriptor update;
+        update.name = "Test";
+        update.nodes.push_back(nodeUpdate);
+        try
+        {
+            admin->updateApplication(update);
+        }
+        catch(const DeploymentException& ex)
+        {
+            cerr << ex.reason << endl;
+            test(false);
         }
     }
-    return false;
-}
 
-AdminPrx
-createAdminSession(const Ice::LocatorPrx& locator, const string& replica)
-{
-    test(waitAndPing(locator));
-
-    string registryStr("RepTestIceGrid/Registry");
-    if(!replica.empty() && replica != "Master")
+    bool waitAndPing(const Ice::ObjectPrx& obj)
     {
-        registryStr += "-" + replica;
+        int nRetry = 0;
+        while(nRetry < maxRetry)
+        {
+            try
+            {
+                obj->ice_ping();
+                return true;
+            }
+            catch(const Ice::LocalException&)
+            {
+                IceUtil::ThreadControl::sleep(IceUtil::Time::milliSeconds(sleepTime));
+                ++nRetry;
+            }
+        }
+        return false;
     }
-    Ice::ObjectPrx obj = locator->ice_getCommunicator()->stringToProxy(registryStr)->ice_locator(locator);
-    RegistryPrx registry = RegistryPrx::checkedCast(obj);
-    test(registry);
 
-    AdminSessionPrx session = AdminSessionPrx::checkedCast(registry->createAdminSession("foo", "bar"));
-    test(session);
-    return session->getAdmin();
-}
+    AdminPrx createAdminSession(const Ice::LocatorPrx& locator, const string& replica)
+    {
+        test(waitAndPing(locator));
 
-}
+        string registryStr("RepTestIceGrid/Registry");
+        if(!replica.empty() && replica != "Master")
+        {
+            registryStr += "-" + replica;
+        }
+        Ice::ObjectPrx obj = locator->ice_getCommunicator()->stringToProxy(registryStr)->ice_locator(locator);
+        RegistryPrx registry = RegistryPrx::checkedCast(obj);
+        test(registry);
 
-void
-allTests(const Ice::CommunicatorPtr& comm)
+        AdminSessionPrx session = AdminSessionPrx::checkedCast(registry->createAdminSession("foo", "bar"));
+        test(session);
+        return session->getAdmin();
+    }
+
+} // namespace
+
+void allTests(const Ice::CommunicatorPtr& comm)
 {
     IceGrid::RegistryPrx registry = IceGrid::RegistryPrx::checkedCast(
         comm->stringToProxy(comm->getDefaultLocator()->ice_getIdentity().category + "/Registry"));
 
     AdminSessionPrx session = registry->createAdminSession("foo", "bar");
 
-    session->ice_getConnection()->setACM(registry->getACMTimeout(), IceUtil::None, Ice::ICE_ENUM(ACMHeartbeat, HeartbeatAlways));
+    session->ice_getConnection()->setACM(registry->getACMTimeout(), IceUtil::None,
+                                         Ice::ICE_ENUM(ACMHeartbeat, HeartbeatAlways));
 
     AdminPrx admin = session->getAdmin();
     test(admin);
@@ -413,8 +403,8 @@ allTests(const Ice::CommunicatorPtr& comm)
         // admin session creation for the creation of the admin
         // session above!)
         //
-        RegistryPrx masterRegistry = RegistryPrx::checkedCast(
-            comm->stringToProxy("RepTestIceGrid/Registry")->ice_locator(replicatedLocator));
+        RegistryPrx masterRegistry =
+            RegistryPrx::checkedCast(comm->stringToProxy("RepTestIceGrid/Registry")->ice_locator(replicatedLocator));
         RegistryPrx slave1Registry = RegistryPrx::checkedCast(
             comm->stringToProxy("RepTestIceGrid/Registry-Slave1")->ice_locator(replicatedLocator));
 
@@ -1319,9 +1309,8 @@ allTests(const Ice::CommunicatorPtr& comm)
         admin->startServer("Node2");
         waitForNodeState(masterAdmin, "Node2", true);
 
-        Ice::LocatorPrx slave3Locator =
-            Ice::LocatorPrx::uncheckedCast(
-                comm->stringToProxy("RepTestIceGrid/Locator-Slave3 -e 1.0:default -p 12053"));
+        Ice::LocatorPrx slave3Locator = Ice::LocatorPrx::uncheckedCast(
+            comm->stringToProxy("RepTestIceGrid/Locator-Slave3 -e 1.0:default -p 12053"));
         IceGrid::AdminPrx slave3Admin = createAdminSession(slave3Locator, "Slave3");
         waitForNodeState(slave3Admin, "Node2", true);
 
@@ -1358,13 +1347,16 @@ allTests(const Ice::CommunicatorPtr& comm)
 
         masterAdmin->addApplication(app);
 
-        comm->stringToProxy("test -e 1.0")->ice_locator(
-            masterLocator->ice_encodingVersion(Ice::Encoding_1_0))->ice_locatorCacheTimeout(0)->ice_ping();
-        comm->stringToProxy("test -e 1.0")->ice_locator(
-            slave1Locator->ice_encodingVersion(Ice::Encoding_1_0))->ice_locatorCacheTimeout(0)->ice_ping();
+        comm->stringToProxy("test -e 1.0")
+            ->ice_locator(masterLocator->ice_encodingVersion(Ice::Encoding_1_0))
+            ->ice_locatorCacheTimeout(0)
+            ->ice_ping();
+        comm->stringToProxy("test -e 1.0")
+            ->ice_locator(slave1Locator->ice_encodingVersion(Ice::Encoding_1_0))
+            ->ice_locatorCacheTimeout(0)
+            ->ice_ping();
         comm->stringToProxy("test -e 1.0")->ice_locator(slave3Locator)->ice_locatorCacheTimeout(0)->ice_ping();
         masterAdmin->stopServer("Server");
-
     }
     cout << "ok" << endl;
 

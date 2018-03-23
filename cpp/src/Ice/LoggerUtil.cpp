@@ -18,32 +18,26 @@ using namespace std;
 
 namespace IceUtilInternal
 {
-
-extern bool printStackTraces;
-
+    extern bool printStackTraces;
 }
 
-string
-Ice::LoggerOutputBase::str() const
+string Ice::LoggerOutputBase::str() const
 {
     return _os.str();
 }
 
-ostringstream&
-Ice::LoggerOutputBase::_stream()
+ostringstream& Ice::LoggerOutputBase::_stream()
 {
     return _os;
 }
 
-Ice::LoggerOutputBase&
-Ice::operator<<(Ice::LoggerOutputBase& out, ios_base& (*val)(ios_base&))
+Ice::LoggerOutputBase& Ice::operator<<(Ice::LoggerOutputBase& out, ios_base& (*val)(ios_base&))
 {
     out._stream() << val;
     return out;
 }
 
-Ice::LoggerOutputBase&
-Ice::loggerInsert(Ice::LoggerOutputBase& out, const IceUtil::Exception& ex)
+Ice::LoggerOutputBase& Ice::loggerInsert(Ice::LoggerOutputBase& out, const IceUtil::Exception& ex)
 {
     if(IceUtilInternal::printStackTraces)
     {
@@ -56,9 +50,7 @@ Ice::loggerInsert(Ice::LoggerOutputBase& out, const IceUtil::Exception& ex)
     return out;
 }
 
-Ice::Trace::Trace(const LoggerPtr& logger, const string& category) :
-    _logger(logger),
-    _category(category)
+Ice::Trace::Trace(const LoggerPtr& logger, const string& category) : _logger(logger), _category(category)
 {
 }
 
@@ -67,8 +59,7 @@ Ice::Trace::~Trace()
     flush();
 }
 
-void
-Ice::Trace::flush()
+void Ice::Trace::flush()
 {
     string s = _stream().str();
     if(!s.empty())
@@ -94,12 +85,10 @@ Ice::LoggerPlugin::LoggerPlugin(const CommunicatorPtr& communicator, const Logge
     instance->setLogger(logger);
 }
 
-void
-Ice::LoggerPlugin::initialize()
+void Ice::LoggerPlugin::initialize()
 {
 }
 
-void
-Ice::LoggerPlugin::destroy()
+void Ice::LoggerPlugin::destroy()
 {
 }

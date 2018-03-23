@@ -16,41 +16,37 @@
 
 namespace Glacier2
 {
+    class Blobject : public Ice::BlobjectArrayAsync
+    {
+    public:
+        Blobject(const InstancePtr&, const Ice::ConnectionPtr&, const Ice::Context&);
+        virtual ~Blobject();
 
-class Blobject : public Ice::BlobjectArrayAsync
-{
-public:
+        void destroy();
 
-    Blobject(const InstancePtr&, const Ice::ConnectionPtr&, const Ice::Context&);
-    virtual ~Blobject();
+        virtual void updateObserver(const Glacier2::Instrumentation::SessionObserverPtr&);
 
-    void destroy();
+        void invokeResponse(bool, const std::pair<const Ice::Byte*, const Ice::Byte*>&,
+                            const Ice::AMD_Object_ice_invokePtr&);
+        void invokeSent(bool, const Ice::AMD_Object_ice_invokePtr&);
+        void invokeException(const Ice::Exception&, const Ice::AMD_Object_ice_invokePtr&);
 
-    virtual void updateObserver(const Glacier2::Instrumentation::SessionObserverPtr&);
+    protected:
+        void invoke(Ice::ObjectPrx&, const Ice::AMD_Object_ice_invokePtr&,
+                    const std::pair<const Ice::Byte*, const Ice::Byte*>&, const Ice::Current&);
 
-    void invokeResponse(bool, const std::pair<const Ice::Byte*, const Ice::Byte*>&,
-                        const Ice::AMD_Object_ice_invokePtr&);
-    void invokeSent(bool, const Ice::AMD_Object_ice_invokePtr&);
-    void invokeException(const Ice::Exception&, const Ice::AMD_Object_ice_invokePtr&);
+        const InstancePtr _instance;
+        const Ice::ConnectionPtr _reverseConnection;
 
-protected:
+    private:
+        const bool _forwardContext;
+        const bool _alwaysBatch;
+        const int _requestTraceLevel;
+        const int _overrideTraceLevel;
+        const RequestQueuePtr _requestQueue;
+        const Ice::Context _context;
+    };
 
-    void invoke(Ice::ObjectPrx&, const Ice::AMD_Object_ice_invokePtr&,
-                const std::pair<const Ice::Byte*, const Ice::Byte*>&, const Ice::Current&);
-
-    const InstancePtr _instance;
-    const Ice::ConnectionPtr _reverseConnection;
-
-private:
-
-    const bool _forwardContext;
-    const bool _alwaysBatch;
-    const int _requestTraceLevel;
-    const int _overrideTraceLevel;
-    const RequestQueuePtr _requestQueue;
-    const Ice::Context _context;
-};
-
-}
+} // namespace Glacier2
 
 #endif

@@ -21,8 +21,7 @@ using namespace std;
 using namespace Ice;
 using namespace IceBT;
 
-void
-IceBT::BluetoothException::ice_print(ostream& out) const
+void IceBT::BluetoothException::ice_print(ostream& out) const
 {
     Exception::ice_print(out);
     out << ":\nbluetooth exception: `" << reason << "'";
@@ -33,31 +32,26 @@ IceBT::BluetoothException::ice_print(ostream& out) const
 //
 extern "C"
 {
-
-ICEBT_API Ice::Plugin*
-createIceBT(const CommunicatorPtr& communicator, const string& /*name*/, const StringSeq& /*args*/)
-{
-    return new PluginI(communicator);
-}
-
+    ICEBT_API Ice::Plugin* createIceBT(const CommunicatorPtr& communicator, const string& /*name*/,
+                                       const StringSeq& /*args*/)
+    {
+        return new PluginI(communicator);
+    }
 }
 
 namespace Ice
 {
+    ICEBT_API void registerIceBT(bool loadOnInitialize)
+    {
+        Ice::registerPluginFactory("IceBT", createIceBT, loadOnInitialize);
+    }
 
-ICEBT_API void
-registerIceBT(bool loadOnInitialize)
-{
-    Ice::registerPluginFactory("IceBT", createIceBT, loadOnInitialize);
-}
-
-}
+} // namespace Ice
 
 //
 // Plugin implementation.
 //
-IceBT::PluginI::PluginI(const Ice::CommunicatorPtr& com) :
-    _engine(new Engine(com))
+IceBT::PluginI::PluginI(const Ice::CommunicatorPtr& com) : _engine(new Engine(com))
 {
     IceInternal::ProtocolPluginFacadePtr f = IceInternal::getProtocolPluginFacade(com);
 
@@ -73,14 +67,12 @@ IceBT::PluginI::PluginI(const Ice::CommunicatorPtr& com) :
     f->addEndpointFactory(new IceInternal::UnderlyingEndpointFactory(bts, SSLEndpointType, BTEndpointType));
 }
 
-void
-IceBT::PluginI::initialize()
+void IceBT::PluginI::initialize()
 {
     _engine->initialize();
 }
 
-void
-IceBT::PluginI::destroy()
+void IceBT::PluginI::destroy()
 {
     _engine->destroy();
 }
@@ -95,14 +87,12 @@ IceBT::PluginI::startDiscovery(const string& address, const DiscoveryCallbackPtr
     _engine->startDiscovery(address, cb);
 }
 
-void
-IceBT::PluginI::stopDiscovery(const string& address)
+void IceBT::PluginI::stopDiscovery(const string& address)
 {
     _engine->stopDiscovery(address);
 }
 
-IceBT::DeviceMap
-IceBT::PluginI::getDevices() const
+IceBT::DeviceMap IceBT::PluginI::getDevices() const
 {
     return _engine->getDevices();
 }

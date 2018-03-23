@@ -18,49 +18,41 @@ using namespace IceGrid;
 
 namespace IceGrid
 {
-
-class PatcherFeedbackI : public PatcherFeedback
-{
-public:
-
-    PatcherFeedbackI(const string& node,
-                     const NodeSessionIPtr& session,
-                     const Ice::Identity id,
-                     const PatcherFeedbackAggregatorPtr& aggregator) :
-        _node(node),
-        _session(session),
-        _id(id),
-        _aggregator(aggregator)
+    class PatcherFeedbackI : public PatcherFeedback
     {
-    }
+    public:
+        PatcherFeedbackI(const string& node, const NodeSessionIPtr& session, const Ice::Identity id,
+                         const PatcherFeedbackAggregatorPtr& aggregator) :
+            _node(node),
+            _session(session),
+            _id(id),
+            _aggregator(aggregator)
+        {
+        }
 
-    void finished(const Ice::Current&)
-    {
-        _aggregator->finished(_node);
-        _session->removeFeedback(this, _id);
-    }
+        void finished(const Ice::Current&)
+        {
+            _aggregator->finished(_node);
+            _session->removeFeedback(this, _id);
+        }
 
-    virtual void failed(const string& reason, const Ice::Current& = Ice::Current())
-    {
-        _aggregator->failed(_node, reason);
-        _session->removeFeedback(this, _id);
-    }
+        virtual void failed(const string& reason, const Ice::Current& = Ice::Current())
+        {
+            _aggregator->failed(_node, reason);
+            _session->removeFeedback(this, _id);
+        }
 
-private:
+    private:
+        const std::string _node;
+        const NodeSessionIPtr _session;
+        const Ice::Identity _id;
+        const PatcherFeedbackAggregatorPtr _aggregator;
+    };
 
-    const std::string _node;
-    const NodeSessionIPtr _session;
-    const Ice::Identity _id;
-    const PatcherFeedbackAggregatorPtr _aggregator;
-};
+}; // namespace IceGrid
 
-};
-
-PatcherFeedbackAggregator::PatcherFeedbackAggregator(Ice::Identity id,
-                                                     const TraceLevelsPtr& traceLevels,
-                                                     const string& type,
-                                                     const string& name,
-                                                     int nodeCount) :
+PatcherFeedbackAggregator::PatcherFeedbackAggregator(Ice::Identity id, const TraceLevelsPtr& traceLevels,
+                                                     const string& type, const string& name, int nodeCount) :
     _id(id),
     _traceLevels(traceLevels),
     _type(type),
@@ -73,8 +65,7 @@ PatcherFeedbackAggregator::~PatcherFeedbackAggregator()
 {
 }
 
-void
-PatcherFeedbackAggregator::finished(const string& node)
+void PatcherFeedbackAggregator::finished(const string& node)
 {
     Lock sync(*this);
     if(_successes.find(node) != _successes.end() || _failures.find(node) != _failures.end())
@@ -92,8 +83,7 @@ PatcherFeedbackAggregator::finished(const string& node)
     checkIfDone();
 }
 
-void
-PatcherFeedbackAggregator::failed(const string& node, const string& failure)
+void PatcherFeedbackAggregator::failed(const string& node, const string& failure)
 {
     Lock sync(*this);
     if(_successes.find(node) != _successes.end() || _failures.find(node) != _failures.end())
@@ -104,7 +94,7 @@ PatcherFeedbackAggregator::failed(const string& node, const string& failure)
     if(_traceLevels->patch > 0)
     {
         Ice::Trace out(_traceLevels->logger, _traceLevels->patchCat);
-        out << "patching of " << _type << " `" << _name << "' on node `" << node <<"' failed:\n" << failure;
+        out << "patching of " << _type << " `" << _name << "' on node `" << node << "' failed:\n" << failure;
     }
 
     _failures.insert(node);
@@ -112,8 +102,7 @@ PatcherFeedbackAggregator::failed(const string& node, const string& failure)
     checkIfDone();
 }
 
-void
-PatcherFeedbackAggregator::checkIfDone()
+void PatcherFeedbackAggregator::checkIfDone()
 {
     if(static_cast<int>(_successes.size() + _failures.size()) == _count)
     {
@@ -131,11 +120,8 @@ PatcherFeedbackAggregator::checkIfDone()
     }
 }
 
-NodeSessionI::NodeSessionI(const DatabasePtr& database,
-                           const NodePrx& node,
-                           const InternalNodeInfoPtr& info,
-                           int timeout,
-                           const LoadInfo& load) :
+NodeSessionI::NodeSessionI(const DatabasePtr& database, const NodePrx& node, const InternalNodeInfoPtr& info,
+                           int timeout, const LoadInfo& load) :
     _database(database),
     _traceLevels(database->getTraceLevels()),
     _node(node),
@@ -180,8 +166,7 @@ NodeSessionI::NodeSessionI(const DatabasePtr& database,
     __setNoDelete(false);
 }
 
-void
-NodeSessionI::keepAlive(const LoadInfo& load, const Ice::Current&)
+void NodeSessionI::keepAlive(const LoadInfo& load, const Ice::Current&)
 {
     Lock sync(*this);
     if(_destroy)
@@ -200,8 +185,7 @@ NodeSessionI::keepAlive(const LoadInfo& load, const Ice::Current&)
     }
 }
 
-void
-NodeSessionI::setReplicaObserver(const ReplicaObserverPrx& observer, const Ice::Current&)
+void NodeSessionI::setReplicaObserver(const ReplicaObserverPrx& observer, const Ice::Current&)
 {
     Lock sync(*this);
     if(_destroy)
@@ -218,20 +202,17 @@ NodeSessionI::setReplicaObserver(const ReplicaObserverPrx& observer, const Ice::
     _database->getReplicaCache().subscribe(observer);
 }
 
-int
-NodeSessionI::getTimeout(const Ice::Current&) const
+int NodeSessionI::getTimeout(const Ice::Current&) const
 {
     return _timeout;
 }
 
-NodeObserverPrx
-NodeSessionI::getObserver(const Ice::Current&) const
+NodeObserverPrx NodeSessionI::getObserver(const Ice::Current&) const
 {
     return NodeObserverTopicPtr::dynamicCast(_database->getObserverTopic(NodeObserverTopicName))->getPublisher();
 }
 
-void
-NodeSessionI::loadServers_async(const AMD_NodeSession_loadServersPtr& amdCB, const Ice::Current&) const
+void NodeSessionI::loadServers_async(const AMD_NodeSession_loadServersPtr& amdCB, const Ice::Current&) const
 {
     //
     // No need to wait for the servers to be loaded. If we were
@@ -252,10 +233,9 @@ NodeSessionI::loadServers_async(const AMD_NodeSession_loadServersPtr& amdCB, con
     }
 }
 
-Ice::StringSeq
-NodeSessionI::getServers(const Ice::Current&) const
+Ice::StringSeq NodeSessionI::getServers(const Ice::Current&) const
 {
-    ServerEntrySeq servers =  _database->getNode(_info->name)->getServers();
+    ServerEntrySeq servers = _database->getNode(_info->name)->getServers();
     Ice::StringSeq names;
     for(ServerEntrySeq::const_iterator p = servers.begin(); p != servers.end(); ++p)
     {
@@ -264,23 +244,19 @@ NodeSessionI::getServers(const Ice::Current&) const
     return names;
 }
 
-void
-NodeSessionI::waitForApplicationUpdate_async(const AMD_NodeSession_waitForApplicationUpdatePtr& cb,
-                                             const std::string& application,
-                                             int revision,
-                                             const Ice::Current&) const
+void NodeSessionI::waitForApplicationUpdate_async(const AMD_NodeSession_waitForApplicationUpdatePtr& cb,
+                                                  const std::string& application, int revision,
+                                                  const Ice::Current&) const
 {
     _database->waitForApplicationUpdate(cb, application, revision);
 }
 
-void
-NodeSessionI::destroy(const Ice::Current&)
+void NodeSessionI::destroy(const Ice::Current&)
 {
     destroyImpl(false);
 }
 
-IceUtil::Time
-NodeSessionI::timestamp() const
+IceUtil::Time NodeSessionI::timestamp() const
 {
     Lock sync(*this);
     if(_destroy)
@@ -290,18 +266,13 @@ NodeSessionI::timestamp() const
     return _timestamp;
 }
 
-void
-NodeSessionI::shutdown()
+void NodeSessionI::shutdown()
 {
     destroyImpl(true);
 }
 
-void
-NodeSessionI::patch(const PatcherFeedbackAggregatorPtr& aggregator,
-                    const string& application,
-                    const string& server,
-                    const InternalDistributionDescriptorPtr& dist,
-                    bool shutdown)
+void NodeSessionI::patch(const PatcherFeedbackAggregatorPtr& aggregator, const string& application,
+                         const string& server, const InternalDistributionDescriptorPtr& dist, bool shutdown)
 {
     Ice::Identity id;
     id.category = _database->getInstanceName();
@@ -328,40 +299,34 @@ NodeSessionI::patch(const PatcherFeedbackAggregatorPtr& aggregator,
     }
 }
 
-const NodePrx&
-NodeSessionI::getNode() const
+const NodePrx& NodeSessionI::getNode() const
 {
     return _node;
 }
 
-const InternalNodeInfoPtr&
-NodeSessionI::getInfo() const
+const InternalNodeInfoPtr& NodeSessionI::getInfo() const
 {
     return _info;
 }
 
-const LoadInfo&
-NodeSessionI::getLoadInfo() const
+const LoadInfo& NodeSessionI::getLoadInfo() const
 {
     Lock sync(*this);
     return _load;
 }
 
-NodeSessionPrx
-NodeSessionI::getProxy() const
+NodeSessionPrx NodeSessionI::getProxy() const
 {
     return _proxy;
 }
 
-bool
-NodeSessionI::isDestroyed() const
+bool NodeSessionI::isDestroyed() const
 {
     Lock sync(*this);
     return _destroy;
 }
 
-void
-NodeSessionI::destroyImpl(bool shutdown)
+void NodeSessionI::destroyImpl(bool shutdown)
 {
     {
         Lock sync(*this);
@@ -428,8 +393,7 @@ NodeSessionI::destroyImpl(bool shutdown)
     }
 }
 
-void
-NodeSessionI::removeFeedback(const PatcherFeedbackPtr& feedback, const Ice::Identity& id)
+void NodeSessionI::removeFeedback(const PatcherFeedbackPtr& feedback, const Ice::Identity& id)
 {
     try
     {

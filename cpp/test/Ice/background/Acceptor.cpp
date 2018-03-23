@@ -8,7 +8,7 @@
 // **********************************************************************
 
 #ifndef TEST_API_EXPORTS
-#   define TEST_API_EXPORTS
+#    define TEST_API_EXPORTS
 #endif
 
 #include <Acceptor.h>
@@ -17,59 +17,50 @@
 
 using namespace std;
 
-IceInternal::NativeInfoPtr
-Acceptor::getNativeInfo()
+IceInternal::NativeInfoPtr Acceptor::getNativeInfo()
 {
     return _acceptor->getNativeInfo();
 }
 
-void
-Acceptor::close()
+void Acceptor::close()
 {
     _acceptor->close();
 }
 
-IceInternal::EndpointIPtr
-Acceptor::listen()
+IceInternal::EndpointIPtr Acceptor::listen()
 {
     _endpoint = _endpoint->endpoint(_acceptor->listen());
     return _endpoint;
 }
 
 #ifdef ICE_USE_IOCP
-void
-Acceptor::startAccept()
+void Acceptor::startAccept()
 {
     _acceptor->startAccept();
 }
 
-void
-Acceptor::finishAccept()
+void Acceptor::finishAccept()
 {
     _acceptor->finishAccept();
 }
 #endif
 
-IceInternal::TransceiverPtr
-Acceptor::accept()
+IceInternal::TransceiverPtr Acceptor::accept()
 {
     return new Transceiver(_acceptor->accept());
 }
 
-string
-Acceptor::protocol() const
+string Acceptor::protocol() const
 {
     return _acceptor->protocol();
 }
 
-string
-Acceptor::toString() const
+string Acceptor::toString() const
 {
     return _acceptor->toString();
 }
 
-string
-Acceptor::toDetailedString() const
+string Acceptor::toDetailedString() const
 {
     return _acceptor->toDetailedString();
 }

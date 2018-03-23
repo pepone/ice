@@ -44,7 +44,8 @@ int main(int argc, char* argv[])
     }
     catch(...)
     {
-        consoleErr << argv[0] << ": error:" << "unknown exception" << endl;
+        consoleErr << argv[0] << ": error:"
+                   << "unknown exception" << endl;
         return EXIT_FAILURE;
     }
 }

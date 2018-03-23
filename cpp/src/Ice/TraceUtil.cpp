@@ -26,8 +26,7 @@ using namespace std;
 using namespace Ice;
 using namespace IceInternal;
 
-static void
-printIdentityFacetOperation(ostream& s, InputStream& stream)
+static void printIdentityFacetOperation(ostream& s, InputStream& stream)
 {
     ToStringMode toStringMode = ICE_ENUM(ToStringMode, Unicode);
     if(stream.instance())
@@ -52,8 +51,7 @@ printIdentityFacetOperation(ostream& s, InputStream& stream)
     s << "\noperation = " << operation;
 }
 
-static string
-getMessageTypeAsString(Byte type)
+static string getMessageTypeAsString(Byte type)
 {
     switch(type)
     {
@@ -72,8 +70,7 @@ getMessageTypeAsString(Byte type)
     }
 }
 
-static void
-printRequestHeader(ostream& s, InputStream& stream)
+static void printRequestHeader(ostream& s, InputStream& stream)
 {
     printIdentityFacetOperation(s, stream);
 
@@ -128,11 +125,10 @@ printRequestHeader(ostream& s, InputStream& stream)
     }
 }
 
-static Byte
-printHeader(ostream& s, InputStream& stream)
+static Byte printHeader(ostream& s, InputStream& stream)
 {
     Byte magicNumber;
-    stream.read(magicNumber);   // Don't bother printing the magic number
+    stream.read(magicNumber); // Don't bother printing the magic number
     stream.read(magicNumber);
     stream.read(magicNumber);
     stream.read(magicNumber);
@@ -141,23 +137,23 @@ printHeader(ostream& s, InputStream& stream)
     Byte pMinor;
     stream.read(pMajor);
     stream.read(pMinor);
-//    s << "\nprotocol version = " << static_cast<unsigned>(pMajor)
-//      << "." << static_cast<unsigned>(pMinor);
+    //    s << "\nprotocol version = " << static_cast<unsigned>(pMajor)
+    //      << "." << static_cast<unsigned>(pMinor);
 
     Byte eMajor;
     Byte eMinor;
     stream.read(eMajor);
     stream.read(eMinor);
-//    s << "\nencoding version = " << static_cast<unsigned>(eMajor)
-//      << "." << static_cast<unsigned>(eMinor);
+    //    s << "\nencoding version = " << static_cast<unsigned>(eMajor)
+    //      << "." << static_cast<unsigned>(eMinor);
 
     Byte type;
     stream.read(type);
-    s << "\nmessage type = "  << static_cast<int>(type) << " (" << getMessageTypeAsString(type) << ')';
+    s << "\nmessage type = " << static_cast<int>(type) << " (" << getMessageTypeAsString(type) << ')';
 
     Byte compress;
     stream.read(compress);
-    s << "\ncompression status = "  << static_cast<int>(compress) << ' ';
+    s << "\ncompression status = " << static_cast<int>(compress) << ' ';
 
     switch(compress)
     {
@@ -193,8 +189,7 @@ printHeader(ostream& s, InputStream& stream)
     return type;
 }
 
-static void
-printRequest(ostream& s, InputStream& stream)
+static void printRequest(ostream& s, InputStream& stream)
 {
     Int requestId;
     stream.read(requestId);
@@ -207,8 +202,7 @@ printRequest(ostream& s, InputStream& stream)
     printRequestHeader(s, stream);
 }
 
-static void
-printBatchRequest(ostream& s, InputStream& stream)
+static void printBatchRequest(ostream& s, InputStream& stream)
 {
     int batchRequestNum;
     stream.read(batchRequestNum);
@@ -221,8 +215,7 @@ printBatchRequest(ostream& s, InputStream& stream)
     }
 }
 
-static void
-printReply(ostream& s, InputStream& stream)
+static void printReply(ostream& s, InputStream& stream)
 {
     Int requestId;
     stream.read(requestId);
@@ -233,95 +226,95 @@ printReply(ostream& s, InputStream& stream)
     s << "\nreply status = " << static_cast<int>(replyStatus) << ' ';
     switch(replyStatus)
     {
-    case replyOK:
-    {
-        s << "(ok)";
-        break;
-    }
-
-    case replyUserException:
-    {
-        s << "(user exception)";
-        break;
-    }
-
-    case replyObjectNotExist:
-    case replyFacetNotExist:
-    case replyOperationNotExist:
-    {
-        switch(replyStatus)
+        case replyOK:
         {
+            s << "(ok)";
+            break;
+        }
+
+        case replyUserException:
+        {
+            s << "(user exception)";
+            break;
+        }
+
         case replyObjectNotExist:
-        {
-            s << "(object not exist)";
-            break;
-        }
-
         case replyFacetNotExist:
-        {
-            s << "(facet not exist)";
-            break;
-        }
-
         case replyOperationNotExist:
         {
-            s << "(operation not exist)";
+            switch(replyStatus)
+            {
+                case replyObjectNotExist:
+                {
+                    s << "(object not exist)";
+                    break;
+                }
+
+                case replyFacetNotExist:
+                {
+                    s << "(facet not exist)";
+                    break;
+                }
+
+                case replyOperationNotExist:
+                {
+                    s << "(operation not exist)";
+                    break;
+                }
+
+                default:
+                {
+                    assert(false);
+                    break;
+                }
+            }
+
+            printIdentityFacetOperation(s, stream);
             break;
         }
 
-        default:
-        {
-            assert(false);
-            break;
-        }
-        }
-
-        printIdentityFacetOperation(s, stream);
-        break;
-    }
-
-    case replyUnknownException:
-    case replyUnknownLocalException:
-    case replyUnknownUserException:
-    {
-        switch(replyStatus)
-        {
         case replyUnknownException:
-        {
-            s << "(unknown exception)";
-            break;
-        }
-
         case replyUnknownLocalException:
-        {
-            s << "(unknown local exception)";
-            break;
-        }
-
         case replyUnknownUserException:
         {
-            s << "(unknown user exception)";
+            switch(replyStatus)
+            {
+                case replyUnknownException:
+                {
+                    s << "(unknown exception)";
+                    break;
+                }
+
+                case replyUnknownLocalException:
+                {
+                    s << "(unknown local exception)";
+                    break;
+                }
+
+                case replyUnknownUserException:
+                {
+                    s << "(unknown user exception)";
+                    break;
+                }
+
+                default:
+                {
+                    assert(false);
+                    break;
+                }
+            }
+
+            string unknown;
+            stream.read(unknown, false);
+            s << "\nunknown = " << unknown;
             break;
         }
 
         default:
         {
-            assert(false);
+            s << "(unknown)";
             break;
         }
-        }
-
-        string unknown;
-        stream.read(unknown, false);
-        s << "\nunknown = " << unknown;
-        break;
-    }
-
-    default:
-    {
-        s << "(unknown)";
-        break;
-    }
     }
 
     if(replyStatus == replyOK || replyStatus == replyUserException)
@@ -334,42 +327,41 @@ printReply(ostream& s, InputStream& stream)
     }
 }
 
-static Byte
-printMessage(ostream& s, InputStream& stream)
+static Byte printMessage(ostream& s, InputStream& stream)
 {
     Byte type = printHeader(s, stream);
 
     switch(type)
     {
-    case closeConnectionMsg:
-    case validateConnectionMsg:
-    {
-        // We're done.
-        break;
-    }
+        case closeConnectionMsg:
+        case validateConnectionMsg:
+        {
+            // We're done.
+            break;
+        }
 
-    case requestMsg:
-    {
-        printRequest(s, stream);
-        break;
-    }
+        case requestMsg:
+        {
+            printRequest(s, stream);
+            break;
+        }
 
-    case requestBatchMsg:
-    {
-        printBatchRequest(s, stream);
-        break;
-    }
+        case requestBatchMsg:
+        {
+            printBatchRequest(s, stream);
+            break;
+        }
 
-    case replyMsg:
-    {
-        printReply(s, stream);
-        break;
-    }
+        case replyMsg:
+        {
+            printReply(s, stream);
+            break;
+        }
 
-    default:
-    {
-        break;
-    }
+        default:
+        {
+            break;
+        }
     }
 
     return type;
@@ -377,31 +369,28 @@ printMessage(ostream& s, InputStream& stream)
 
 namespace
 {
+    IceUtil::Mutex* slicingMutex = 0;
 
-IceUtil::Mutex* slicingMutex = 0;
-
-class Init
-{
-public:
-
-    Init()
+    class Init
     {
-        slicingMutex = new IceUtil::Mutex;
-    }
+    public:
+        Init()
+        {
+            slicingMutex = new IceUtil::Mutex;
+        }
 
-    ~Init()
-    {
-        delete slicingMutex;
-        slicingMutex = 0;
-    }
-};
+        ~Init()
+        {
+            delete slicingMutex;
+            slicingMutex = 0;
+        }
+    };
 
-Init init;
+    Init init;
 
-}
+} // namespace
 
-void
-IceInternal::traceSlicing(const char* kind, const string& typeId, const char* slicingCat, const LoggerPtr& logger)
+void IceInternal::traceSlicing(const char* kind, const string& typeId, const char* slicingCat, const LoggerPtr& logger)
 {
     IceUtilInternal::MutexPtrLock<IceUtil::Mutex> lock(slicingMutex);
     static set<string> slicingIds;
@@ -414,8 +403,7 @@ IceInternal::traceSlicing(const char* kind, const string& typeId, const char* sl
     }
 }
 
-void
-IceInternal::traceSend(const OutputStream& str, const LoggerPtr& logger, const TraceLevelsPtr& tl)
+void IceInternal::traceSend(const OutputStream& str, const LoggerPtr& logger, const TraceLevelsPtr& tl)
 {
     if(tl->protocol >= 1)
     {
@@ -430,8 +418,7 @@ IceInternal::traceSend(const OutputStream& str, const LoggerPtr& logger, const T
     }
 }
 
-void
-IceInternal::traceRecv(const InputStream& str, const LoggerPtr& logger, const TraceLevelsPtr& tl)
+void IceInternal::traceRecv(const InputStream& str, const LoggerPtr& logger, const TraceLevelsPtr& tl)
 {
     if(tl->protocol >= 1)
     {
@@ -447,8 +434,7 @@ IceInternal::traceRecv(const InputStream& str, const LoggerPtr& logger, const Tr
     }
 }
 
-void
-IceInternal::trace(const char* heading, const OutputStream& str, const LoggerPtr& logger, const TraceLevelsPtr& tl)
+void IceInternal::trace(const char* heading, const OutputStream& str, const LoggerPtr& logger, const TraceLevelsPtr& tl)
 {
     if(tl->protocol >= 1)
     {
@@ -464,8 +450,7 @@ IceInternal::trace(const char* heading, const OutputStream& str, const LoggerPtr
     }
 }
 
-void
-IceInternal::trace(const char* heading, const InputStream& str, const LoggerPtr& logger, const TraceLevelsPtr& tl)
+void IceInternal::trace(const char* heading, const InputStream& str, const LoggerPtr& logger, const TraceLevelsPtr& tl)
 {
     if(tl->protocol >= 1)
     {

@@ -9,7 +9,7 @@
 
 #include <IceUtil/Config.h>
 #if defined(_WIN32) && !defined(ICE_OS_UWP)
-#   include <winsock2.h>
+#    include <winsock2.h>
 #endif
 
 #include <IceSSL/Util.h>
@@ -33,8 +33,7 @@ using namespace IceSSL;
 
 #if defined(__APPLE__)
 
-std::string
-IceSSL::fromCFString(CFStringRef v)
+std::string IceSSL::fromCFString(CFStringRef v)
 {
     string s;
     if(v)
@@ -56,26 +55,22 @@ IceSSL::CertificateVerifier::CertificateVerifier(std::function<bool(const std::s
 {
 }
 
-bool
-IceSSL::CertificateVerifier::verify(const ConnectionInfoPtr& info)
+bool IceSSL::CertificateVerifier::verify(const ConnectionInfoPtr& info)
 {
     return _verify(info);
 }
 
-IceSSL::PasswordPrompt::PasswordPrompt(std::function<std::string()> p) :
-    _prompt(std::move(p))
+IceSSL::PasswordPrompt::PasswordPrompt(std::function<std::string()> p) : _prompt(std::move(p))
 {
 }
 
-std::string
-IceSSL::PasswordPrompt::getPassword()
+std::string IceSSL::PasswordPrompt::getPassword()
 {
     return _prompt();
 }
 #endif
 
-bool
-IceSSL::parseBytes(const string& arg, vector<unsigned char>& buffer)
+bool IceSSL::parseBytes(const string& arg, vector<unsigned char>& buffer)
 {
     string v = IceUtilInternal::toUpper(arg);
 
@@ -113,8 +108,7 @@ IceSSL::parseBytes(const string& arg, vector<unsigned char>& buffer)
     return true;
 }
 
-void
-IceSSL::readFile(const string& file, vector<char>& buffer)
+void IceSSL::readFile(const string& file, vector<char>& buffer)
 {
     ifstream is(IceUtilInternal::streamFilename(file).c_str(), ios::in | ios::binary);
     if(!is.good())
@@ -136,8 +130,7 @@ IceSSL::readFile(const string& file, vector<char>& buffer)
     }
 }
 
-bool
-IceSSL::checkPath(const string& path, const string& defaultDir, bool dir, string& resolved)
+bool IceSSL::checkPath(const string& path, const string& defaultDir, bool dir, string& resolved)
 {
 #if defined(ICE_USE_SECURE_TRANSPORT_IOS)
     CFBundleRef bundle = CFBundleGetMainBundle();

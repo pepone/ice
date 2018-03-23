@@ -22,7 +22,6 @@ ICE_DEFINE_PTR(BackgroundControllerIPtr, BackgroundControllerI);
 class BackgroundI : public virtual Test::Background
 {
 public:
-
     virtual void op(const Ice::Current&);
     virtual void opWithPayload(ICE_IN(Ice::ByteSeq), const Ice::Current&);
     virtual void shutdown(const Ice::Current&);
@@ -30,14 +29,12 @@ public:
     BackgroundI(const BackgroundControllerIPtr&);
 
 private:
-
     BackgroundControllerIPtr _controller;
 };
 
 class BackgroundControllerI : public Test::BackgroundController, IceUtil::Monitor<IceUtil::Mutex>
 {
 public:
-
     virtual void pauseCall(ICE_IN(std::string), const Ice::Current&);
     virtual void resumeCall(ICE_IN(std::string), const Ice::Current&);
     virtual void checkCallPause(const Ice::Current&);
@@ -59,7 +56,6 @@ public:
     BackgroundControllerI(const Ice::ObjectAdapterPtr&, const ConfigurationPtr&);
 
 private:
-
     Ice::ObjectAdapterPtr _adapter;
     std::set<std::string> _pausedCalls;
     ConfigurationPtr _configuration;

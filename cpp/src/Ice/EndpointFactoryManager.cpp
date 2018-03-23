@@ -22,15 +22,16 @@ using namespace std;
 using namespace Ice;
 using namespace IceInternal;
 
-IceUtil::Shared* IceInternal::upCast(EndpointFactoryManager* p) { return p; }
+IceUtil::Shared* IceInternal::upCast(EndpointFactoryManager* p)
+{
+    return p;
+}
 
-IceInternal::EndpointFactoryManager::EndpointFactoryManager(const InstancePtr& instance)
-    : _instance(instance)
+IceInternal::EndpointFactoryManager::EndpointFactoryManager(const InstancePtr& instance) : _instance(instance)
 {
 }
 
-void
-IceInternal::EndpointFactoryManager::initialize() const
+void IceInternal::EndpointFactoryManager::initialize() const
 {
     for(vector<EndpointFactoryPtr>::size_type i = 0; i < _factories.size(); i++)
     {
@@ -38,8 +39,7 @@ IceInternal::EndpointFactoryManager::initialize() const
     }
 }
 
-void
-IceInternal::EndpointFactoryManager::add(const EndpointFactoryPtr& factory)
+void IceInternal::EndpointFactoryManager::add(const EndpointFactoryPtr& factory)
 {
     IceUtil::Mutex::Lock sync(*this); // TODO: Necessary?
 
@@ -56,8 +56,7 @@ IceInternal::EndpointFactoryManager::add(const EndpointFactoryPtr& factory)
     _factories.push_back(factory);
 }
 
-EndpointFactoryPtr
-IceInternal::EndpointFactoryManager::get(Short type) const
+EndpointFactoryPtr IceInternal::EndpointFactoryManager::get(Short type) const
 {
     IceUtil::Mutex::Lock sync(*this); // TODO: Necessary?
 
@@ -74,8 +73,7 @@ IceInternal::EndpointFactoryManager::get(Short type) const
     return ICE_NULLPTR;
 }
 
-EndpointIPtr
-IceInternal::EndpointFactoryManager::create(const string& str, bool oaEndpoint) const
+EndpointIPtr IceInternal::EndpointFactoryManager::create(const string& str, bool oaEndpoint) const
 {
     vector<string> v;
     bool b = IceUtilInternal::splitString(str, " \t\n\r", v);
@@ -119,8 +117,8 @@ IceInternal::EndpointFactoryManager::create(const string& str, bool oaEndpoint) 
         EndpointIPtr e = factory->create(v, oaEndpoint);
         if(!v.empty())
         {
-            throw EndpointParseException(__FILE__, __LINE__, "unrecognized argument `" + v.front() +
-                                         "' in endpoint `" + str + "'");
+            throw EndpointParseException(__FILE__, __LINE__,
+                                         "unrecognized argument `" + v.front() + "' in endpoint `" + str + "'");
         }
         return e;
 #else
@@ -148,8 +146,8 @@ IceInternal::EndpointFactoryManager::create(const string& str, bool oaEndpoint) 
         EndpointIPtr ue = ICE_MAKE_SHARED(OpaqueEndpointI, v);
         if(!v.empty())
         {
-            throw EndpointParseException(__FILE__, __LINE__, "unrecognized argument `" + v.front() + "' in endpoint `" +
-                                         str + "'");
+            throw EndpointParseException(__FILE__, __LINE__,
+                                         "unrecognized argument `" + v.front() + "' in endpoint `" + str + "'");
         }
         factory = get(ue->type());
         if(factory)
@@ -176,8 +174,7 @@ IceInternal::EndpointFactoryManager::create(const string& str, bool oaEndpoint) 
     return ICE_NULLPTR;
 }
 
-EndpointIPtr
-IceInternal::EndpointFactoryManager::read(InputStream* s) const
+EndpointIPtr IceInternal::EndpointFactoryManager::read(InputStream* s) const
 {
     Short type;
     s->read(type);
@@ -207,8 +204,7 @@ IceInternal::EndpointFactoryManager::read(InputStream* s) const
     return e;
 }
 
-void
-IceInternal::EndpointFactoryManager::destroy()
+void IceInternal::EndpointFactoryManager::destroy()
 {
     for(vector<EndpointFactoryPtr>::size_type i = 0; i < _factories.size(); i++)
     {

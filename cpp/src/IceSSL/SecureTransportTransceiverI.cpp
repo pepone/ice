@@ -24,182 +24,175 @@ using namespace IceSSL::SecureTransport;
 
 namespace
 {
-
-string
-trustResultDescription(SecTrustResultType result)
-{
-    switch(result)
+    string trustResultDescription(SecTrustResultType result)
     {
-        case kSecTrustResultInvalid:
+        switch(result)
         {
-            return "Invalid setting or result";
-        }
-        case kSecTrustResultDeny:
-        {
-            return "The user specified that the certificate should not be trusted";
-        }
-        case kSecTrustResultRecoverableTrustFailure:
-        case kSecTrustResultFatalTrustFailure:
-        {
-            return "Trust denied";
-        }
-        case kSecTrustResultOtherError:
-        {
-            return "Other error internal error";
-        }
-        default:
-        {
-            assert(false);
-            return "";
+            case kSecTrustResultInvalid:
+            {
+                return "Invalid setting or result";
+            }
+            case kSecTrustResultDeny:
+            {
+                return "The user specified that the certificate should not be trusted";
+            }
+            case kSecTrustResultRecoverableTrustFailure:
+            case kSecTrustResultFatalTrustFailure:
+            {
+                return "Trust denied";
+            }
+            case kSecTrustResultOtherError:
+            {
+                return "Other error internal error";
+            }
+            default:
+            {
+                assert(false);
+                return "";
+            }
         }
     }
-}
 
-string
-protocolName(SSLProtocol protocol)
-{
-    switch(protocol)
+    string protocolName(SSLProtocol protocol)
     {
-        case kSSLProtocol2:
-            return "SSL 2.0";
-        case kSSLProtocol3:
-            return "SSL 3.0";
-        case kTLSProtocol1:
-            return "TLS 1.0";
-        case kTLSProtocol11:
-            return "TLS 1.1";
-        case kTLSProtocol12:
-            return "TLS 1.2";
-        default:
-            return "Unknown";
+        switch(protocol)
+        {
+            case kSSLProtocol2:
+                return "SSL 2.0";
+            case kSSLProtocol3:
+                return "SSL 3.0";
+            case kTLSProtocol1:
+                return "TLS 1.0";
+            case kTLSProtocol11:
+                return "TLS 1.1";
+            case kTLSProtocol12:
+                return "TLS 1.2";
+            default:
+                return "Unknown";
+        }
     }
-}
 
-//
-// Socket write callback
-//
-OSStatus
-socketWrite(SSLConnectionRef connection, const void* data, size_t* length)
-{
-    const TransceiverI* transceiver = static_cast<const TransceiverI*>(connection);
-    assert(transceiver);
-    return transceiver->writeRaw(reinterpret_cast<const char*>(data), length);
-}
-
-//
-// Socket read callback
-//
-OSStatus
-socketRead(SSLConnectionRef connection, void* data, size_t* length)
-{
-    const TransceiverI* transceiver = static_cast<const TransceiverI*>(connection);
-    assert(transceiver);
-    return transceiver->readRaw(reinterpret_cast<char*>(data), length);
-}
-
-bool
-checkTrustResult(SecTrustRef trust,
-                 const IceSSL::SecureTransport::SSLEnginePtr& engine,
-                 const IceSSL::InstancePtr& instance,
-                 const string& host)
-{
-    OSStatus err = noErr;
-    SecTrustResultType trustResult = kSecTrustResultOtherError;
-    if(trust)
+    //
+    // Socket write callback
+    //
+    OSStatus socketWrite(SSLConnectionRef connection, const void* data, size_t* length)
     {
-        if((err = SecTrustSetAnchorCertificates(trust, engine->getCertificateAuthorities())))
-        {
-            throw SecurityException(__FILE__, __LINE__, "IceSSL: handshake failure:\n" + sslErrorToString(err));
-        }
+        const TransceiverI* transceiver = static_cast<const TransceiverI*>(connection);
+        assert(transceiver);
+        return transceiver->writeRaw(reinterpret_cast<const char*>(data), length);
+    }
 
-        //
-        // Disable network fetch, we don't want this to block.
-        //
-        if((err = SecTrustSetNetworkFetchAllowed(trust, false)))
-        {
-            throw SecurityException(__FILE__, __LINE__, "IceSSL: handshake failure:\n" + sslErrorToString(err));
-        }
+    //
+    // Socket read callback
+    //
+    OSStatus socketRead(SSLConnectionRef connection, void* data, size_t* length)
+    {
+        const TransceiverI* transceiver = static_cast<const TransceiverI*>(connection);
+        assert(transceiver);
+        return transceiver->readRaw(reinterpret_cast<char*>(data), length);
+    }
 
-        //
-        // Add SSL trust policy if we need to check the certificate name.
-        //
-        if(engine->getCheckCertName() && !host.empty())
+    bool checkTrustResult(SecTrustRef trust, const IceSSL::SecureTransport::SSLEnginePtr& engine,
+                          const IceSSL::InstancePtr& instance, const string& host)
+    {
+        OSStatus err = noErr;
+        SecTrustResultType trustResult = kSecTrustResultOtherError;
+        if(trust)
         {
-            UniqueRef<SecPolicyRef> policy(SecPolicyCreateSSL(false, toCFString(host)));
-            UniqueRef<CFArrayRef> policies;
-            if((err = SecTrustCopyPolicies(trust, &policies.get())))
+            if((err = SecTrustSetAnchorCertificates(trust, engine->getCertificateAuthorities())))
             {
                 throw SecurityException(__FILE__, __LINE__, "IceSSL: handshake failure:\n" + sslErrorToString(err));
             }
-            UniqueRef<CFMutableArrayRef> newPolicies(CFArrayCreateMutableCopy(kCFAllocatorDefault, 0, policies.get()));
-            CFArrayAppendValue(newPolicies.get(), policy.get());
-            if((err = SecTrustSetPolicies(trust, newPolicies.get())))
+
+            //
+            // Disable network fetch, we don't want this to block.
+            //
+            if((err = SecTrustSetNetworkFetchAllowed(trust, false)))
+            {
+                throw SecurityException(__FILE__, __LINE__, "IceSSL: handshake failure:\n" + sslErrorToString(err));
+            }
+
+            //
+            // Add SSL trust policy if we need to check the certificate name.
+            //
+            if(engine->getCheckCertName() && !host.empty())
+            {
+                UniqueRef<SecPolicyRef> policy(SecPolicyCreateSSL(false, toCFString(host)));
+                UniqueRef<CFArrayRef> policies;
+                if((err = SecTrustCopyPolicies(trust, &policies.get())))
+                {
+                    throw SecurityException(__FILE__, __LINE__, "IceSSL: handshake failure:\n" + sslErrorToString(err));
+                }
+                UniqueRef<CFMutableArrayRef> newPolicies(
+                    CFArrayCreateMutableCopy(kCFAllocatorDefault, 0, policies.get()));
+                CFArrayAppendValue(newPolicies.get(), policy.get());
+                if((err = SecTrustSetPolicies(trust, newPolicies.get())))
+                {
+                    throw SecurityException(__FILE__, __LINE__, "IceSSL: handshake failure:\n" + sslErrorToString(err));
+                }
+            }
+
+            //
+            // Evaluate the trust
+            //
+            if((err = SecTrustEvaluate(trust, &trustResult)))
             {
                 throw SecurityException(__FILE__, __LINE__, "IceSSL: handshake failure:\n" + sslErrorToString(err));
             }
         }
 
-        //
-        // Evaluate the trust
-        //
-        if((err = SecTrustEvaluate(trust, &trustResult)))
+        switch(trustResult)
         {
-            throw SecurityException(__FILE__, __LINE__, "IceSSL: handshake failure:\n" + sslErrorToString(err));
-        }
-    }
-
-    switch(trustResult)
-    {
-    case kSecTrustResultUnspecified:
-    case kSecTrustResultProceed:
-    {
-        //
-        // Trust verify success.
-        //
-        return true;
-    }
-    default:
-    // case kSecTrustResultInvalid:
-    // case kSecTrustResultConfirm: // Used in old macOS versions
-    // case kSecTrustResultDeny:
-    // case kSecTrustResultRecoverableTrustFailure:
-    // case kSecTrustResultFatalTrustFailure:
-    // case kSecTrustResultOtherError:
-    {
-        if(engine->getVerifyPeer() == 0)
-        {
-            if(instance->traceLevel() >= 1)
+            case kSecTrustResultUnspecified:
+            case kSecTrustResultProceed:
             {
-                ostringstream os;
-                os << "IceSSL: ignoring certificate verification failure:\n" << trustResultDescription(trustResult);
-                instance->logger()->trace(instance->traceCategory(), os.str());
+                //
+                // Trust verify success.
+                //
+                return true;
             }
-            return false;
-        }
-        else
-        {
-            ostringstream os;
-            os << "IceSSL: certificate verification failure:\n" << trustResultDescription(trustResult);
-            string msg = os.str();
-            if(instance->traceLevel() >= 1)
-            {
-                instance->logger()->trace(instance->traceCategory(), msg);
-            }
-            throw SecurityException(__FILE__, __LINE__, msg);
+            default:
+                // case kSecTrustResultInvalid:
+                // case kSecTrustResultConfirm: // Used in old macOS versions
+                // case kSecTrustResultDeny:
+                // case kSecTrustResultRecoverableTrustFailure:
+                // case kSecTrustResultFatalTrustFailure:
+                // case kSecTrustResultOtherError:
+                {
+                    if(engine->getVerifyPeer() == 0)
+                    {
+                        if(instance->traceLevel() >= 1)
+                        {
+                            ostringstream os;
+                            os << "IceSSL: ignoring certificate verification failure:\n"
+                               << trustResultDescription(trustResult);
+                            instance->logger()->trace(instance->traceCategory(), os.str());
+                        }
+                        return false;
+                    }
+                    else
+                    {
+                        ostringstream os;
+                        os << "IceSSL: certificate verification failure:\n" << trustResultDescription(trustResult);
+                        string msg = os.str();
+                        if(instance->traceLevel() >= 1)
+                        {
+                            instance->logger()->trace(instance->traceCategory(), msg);
+                        }
+                        throw SecurityException(__FILE__, __LINE__, msg);
+                    }
+                }
         }
     }
-    }
-}
-}
+} // namespace
 
-IceInternal::NativeInfoPtr
-IceSSL::SecureTransport::TransceiverI::getNativeInfo()
+IceInternal::NativeInfoPtr IceSSL::SecureTransport::TransceiverI::getNativeInfo()
 {
     return _delegate->getNativeInfo();
 }
 
-IceInternal::SocketOperation
-IceSSL::SecureTransport::TransceiverI::initialize(IceInternal::Buffer& readBuffer, IceInternal::Buffer& writeBuffer)
+IceInternal::SocketOperation IceSSL::SecureTransport::TransceiverI::initialize(IceInternal::Buffer& readBuffer,
+                                                                               IceInternal::Buffer& writeBuffer)
 {
     if(!_connected)
     {
@@ -227,14 +220,14 @@ IceSSL::SecureTransport::TransceiverI::initialize(IceInternal::Buffer& readBuffe
         _ssl.reset(_engine->newContext(_incoming));
         if((err = SSLSetIOFuncs(_ssl.get(), socketRead, socketWrite)))
         {
-            throw SecurityException(__FILE__, __LINE__, "IceSSL: setting IO functions failed\n" +
-                                    sslErrorToString(err));
+            throw SecurityException(__FILE__, __LINE__,
+                                    "IceSSL: setting IO functions failed\n" + sslErrorToString(err));
         }
 
         if((err = SSLSetConnection(_ssl.get(), reinterpret_cast<SSLConnectionRef>(this))))
         {
-            throw SecurityException(__FILE__, __LINE__, "IceSSL: setting SSL connection failed\n" +
-                                    sslErrorToString(err));
+            throw SecurityException(__FILE__, __LINE__,
+                                    "IceSSL: setting SSL connection failed\n" + sslErrorToString(err));
         }
     }
 
@@ -282,7 +275,8 @@ IceSSL::SecureTransport::TransceiverI::initialize(IceInternal::Buffer& readBuffe
 
         ostringstream os;
         os << "IceSSL: ssl error occurred for new " << (_incoming ? "incoming" : "outgoing") << " connection:\n"
-           << _delegate->toString() << "\n" << sslErrorToString(err);
+           << _delegate->toString() << "\n"
+           << sslErrorToString(err);
         throw ProtocolException(__FILE__, __LINE__, os.str());
     }
 
@@ -302,7 +296,6 @@ IceSSL::SecureTransport::TransceiverI::initialize(IceInternal::Buffer& readBuffe
 
     if(_instance->engine()->securityTraceLevel() >= 1)
     {
-
         Trace out(_instance->logger(), _instance->traceCategory());
         out << "SSL summary for " << (_incoming ? "incoming" : "outgoing") << " connection\n";
 
@@ -329,16 +322,14 @@ IceSSL::SecureTransport::TransceiverI::initialize(IceInternal::Buffer& readBuffe
     return IceInternal::SocketOperationNone;
 }
 
-IceInternal::SocketOperation
-IceSSL::SecureTransport::TransceiverI::closing(bool initiator, const Ice::LocalException&)
+IceInternal::SocketOperation IceSSL::SecureTransport::TransceiverI::closing(bool initiator, const Ice::LocalException&)
 {
     // If we are initiating the connection closure, wait for the peer
     // to close the TCP/IP connection. Otherwise, close immediately.
     return initiator ? IceInternal::SocketOperationRead : IceInternal::SocketOperationNone;
 }
 
-void
-IceSSL::SecureTransport::TransceiverI::close()
+void IceSSL::SecureTransport::TransceiverI::close()
 {
     _trust.reset(0);
     if(_ssl)
@@ -350,8 +341,7 @@ IceSSL::SecureTransport::TransceiverI::close()
     _delegate->close();
 }
 
-IceInternal::SocketOperation
-IceSSL::SecureTransport::TransceiverI::write(IceInternal::Buffer& buf)
+IceInternal::SocketOperation IceSSL::SecureTransport::TransceiverI::write(IceInternal::Buffer& buf)
 {
     if(!_connected)
     {
@@ -360,7 +350,7 @@ IceSSL::SecureTransport::TransceiverI::write(IceInternal::Buffer& buf)
 
     if(buf.i == buf.b.end())
     {
-        return  IceInternal::SocketOperationNone;
+        return IceInternal::SocketOperationNone;
     }
 
     //
@@ -429,8 +419,7 @@ IceSSL::SecureTransport::TransceiverI::write(IceInternal::Buffer& buf)
     return IceInternal::SocketOperationNone;
 }
 
-IceInternal::SocketOperation
-IceSSL::SecureTransport::TransceiverI::read(IceInternal::Buffer& buf)
+IceInternal::SocketOperation IceSSL::SecureTransport::TransceiverI::read(IceInternal::Buffer& buf)
 {
     if(!_connected)
     {
@@ -439,7 +428,7 @@ IceSSL::SecureTransport::TransceiverI::read(IceInternal::Buffer& buf)
 
     if(buf.i == buf.b.end())
     {
-        return  IceInternal::SocketOperationNone;
+        return IceInternal::SocketOperationNone;
     }
 
     _delegate->getNativeInfo()->ready(IceInternal::SocketOperationRead, false);
@@ -505,26 +494,22 @@ IceSSL::SecureTransport::TransceiverI::read(IceInternal::Buffer& buf)
     return IceInternal::SocketOperationNone;
 }
 
-string
-IceSSL::SecureTransport::TransceiverI::protocol() const
+string IceSSL::SecureTransport::TransceiverI::protocol() const
 {
     return _instance->protocol();
 }
 
-string
-IceSSL::SecureTransport::TransceiverI::toString() const
+string IceSSL::SecureTransport::TransceiverI::toString() const
 {
     return _delegate->toString();
 }
 
-string
-IceSSL::SecureTransport::TransceiverI::toDetailedString() const
+string IceSSL::SecureTransport::TransceiverI::toDetailedString() const
 {
     return toString();
 }
 
-Ice::ConnectionInfoPtr
-IceSSL::SecureTransport::TransceiverI::getInfo() const
+Ice::ConnectionInfoPtr IceSSL::SecureTransport::TransceiverI::getInfo() const
 {
     IceSSL::ConnectionInfoPtr info = ICE_MAKE_SHARED(IceSSL::ConnectionInfo);
     info->underlying = _delegate->getInfo();
@@ -536,21 +521,18 @@ IceSSL::SecureTransport::TransceiverI::getInfo() const
     return info;
 }
 
-void
-IceSSL::SecureTransport::TransceiverI::checkSendSize(const IceInternal::Buffer&)
+void IceSSL::SecureTransport::TransceiverI::checkSendSize(const IceInternal::Buffer&)
 {
 }
 
-void
-IceSSL::SecureTransport::TransceiverI::setBufferSize(int rcvSize, int sndSize)
+void IceSSL::SecureTransport::TransceiverI::setBufferSize(int rcvSize, int sndSize)
 {
     _delegate->setBufferSize(rcvSize, sndSize);
 }
 
 IceSSL::SecureTransport::TransceiverI::TransceiverI(const IceSSL::InstancePtr& instance,
                                                     const IceInternal::TransceiverPtr& delegate,
-                                                    const string& hostOrAdapterName,
-                                                    bool incoming) :
+                                                    const string& hostOrAdapterName, bool incoming) :
     _instance(instance),
     _engine(IceSSL::SecureTransport::SSLEnginePtr::dynamicCast(instance->engine())),
     _host(incoming ? "" : hostOrAdapterName),
@@ -567,14 +549,14 @@ IceSSL::SecureTransport::TransceiverI::~TransceiverI()
 {
 }
 
-OSStatus
-IceSSL::SecureTransport::TransceiverI::writeRaw(const char* data, size_t* length) const
+OSStatus IceSSL::SecureTransport::TransceiverI::writeRaw(const char* data, size_t* length) const
 {
     _flags &= ~SSLWantWrite;
 
     try
     {
-        IceInternal::Buffer buf(reinterpret_cast<const Ice::Byte*>(data), reinterpret_cast<const Ice::Byte*>(data) + *length);
+        IceInternal::Buffer buf(reinterpret_cast<const Ice::Byte*>(data),
+                                reinterpret_cast<const Ice::Byte*>(data) + *length);
         IceInternal::SocketOperation op = _delegate->write(buf);
         if(op == IceInternal::SocketOperationWrite)
         {
@@ -600,8 +582,7 @@ IceSSL::SecureTransport::TransceiverI::writeRaw(const char* data, size_t* length
     return noErr;
 }
 
-OSStatus
-IceSSL::SecureTransport::TransceiverI::readRaw(char* data, size_t* length) const
+OSStatus IceSSL::SecureTransport::TransceiverI::readRaw(char* data, size_t* length) const
 {
     _flags &= ~SSLWantRead;
 

@@ -19,7 +19,7 @@ using namespace IceInternal;
 class Install : public Application
 {
 public:
-    virtual int run(int, char*[]);
+    virtual int run(int, char* []);
 
     Install();
 
@@ -28,7 +28,6 @@ public:
     bool pause() const;
 
 private:
-
     void usage() const;
 
     bool _debug;
@@ -36,8 +35,7 @@ private:
     bool _pause;
 };
 
-int
-wmain(int argc, wchar_t* argv[])
+int wmain(int argc, wchar_t* argv[])
 {
     Install app;
     InitializationData id;
@@ -53,8 +51,7 @@ wmain(int argc, wchar_t* argv[])
     return status;
 }
 
-int
-Install::run(int argc, char* argv[])
+int Install::run(int argc, char* argv[])
 {
     IceUtilInternal::Options opts;
     opts.addOpt("h", "help");
@@ -153,33 +150,26 @@ Install::run(int argc, char* argv[])
     return EXIT_SUCCESS;
 }
 
-Install::Install() :
-    _pauseEnabled(true),
-    _debug(false),
-    _pause(false)
+Install::Install() : _pauseEnabled(true), _debug(false), _pause(false)
 {
 }
 
-bool
-Install::pauseEnabled() const
+bool Install::pauseEnabled() const
 {
     return _pauseEnabled;
 }
 
-bool
-Install::debug() const
+bool Install::debug() const
 {
     return _debug;
 }
 
-bool
-Install::pause() const
+bool Install::pause() const
 {
     return _pause;
 }
 
-void
-Install::usage() const
+void Install::usage() const
 {
     string defaultImagePath = IceServiceInstaller::getServiceInstallerPath();
     if(defaultImagePath.empty())
@@ -192,37 +182,35 @@ Install::usage() const
 #endif
     defaultImagePath += ".exe";
 
-    consoleErr << "Usage: " << appName()
-         << " [options] service config-file [property] [property]\n";
-    consoleErr <<
-        "Options:\n"
-        "-h, --help           Show this message.\n"
-        "-n, --nopause        Do not call pause after displaying a message.\n"
-        "-v, --version        Display the Ice version.\n"
-        "-u, --uninstall      Uninstall the Windows service.\n"
-        "\n"
-        "service must be icegridregistry, icegridnode or glacier2router.\n"
-        "\n"
-        "config-file          Path to the Ice configuration file for this service.\n"
-        "                     If the path starts with HKLM\\ the configuration will be\n"
-        "                     read from the corresponding Windows registry keyword in\n"
-        "                     HKEY_LOCAL_MACHINE.\n"
-        "\n"
-        "Valid properties:\n"
-        "AutoStart            0 = Manual, 1 = Automatic, 2 = Automatic (Delayed Start)\n"
-        "                     The default value is 1.\n"
-        "Debug                Show diagnostics when installing/uninstalling a service.\n"
-        "DependOnRegistry     If non-zero, the service depends on the IceGrid registry\n"
-        "                     service (the IceGrid registry service name is computed\n"
-        "                     using Ice.Default.Locator in <config-file>).\n"
-        "Description          Description of the service.\n"
-        "DisplayName          Display name of the service.\n"
-        "EventLog             The name of the EventLog used by this service;\n"
-        "                     the default is Application.\n"
-        "ImagePath            Full path to <service>.exe. The default value is\n"
-        "                     " << defaultImagePath << "\n" <<
-        "ObjectName           Account used to run the service. Defaults to\n"
-        "                     NT Authority\\LocalService.\n"
-        "Password             Password for ObjectName.\n"
-        ;
+    consoleErr << "Usage: " << appName() << " [options] service config-file [property] [property]\n";
+    consoleErr << "Options:\n"
+                  "-h, --help           Show this message.\n"
+                  "-n, --nopause        Do not call pause after displaying a message.\n"
+                  "-v, --version        Display the Ice version.\n"
+                  "-u, --uninstall      Uninstall the Windows service.\n"
+                  "\n"
+                  "service must be icegridregistry, icegridnode or glacier2router.\n"
+                  "\n"
+                  "config-file          Path to the Ice configuration file for this service.\n"
+                  "                     If the path starts with HKLM\\ the configuration will be\n"
+                  "                     read from the corresponding Windows registry keyword in\n"
+                  "                     HKEY_LOCAL_MACHINE.\n"
+                  "\n"
+                  "Valid properties:\n"
+                  "AutoStart            0 = Manual, 1 = Automatic, 2 = Automatic (Delayed Start)\n"
+                  "                     The default value is 1.\n"
+                  "Debug                Show diagnostics when installing/uninstalling a service.\n"
+                  "DependOnRegistry     If non-zero, the service depends on the IceGrid registry\n"
+                  "                     service (the IceGrid registry service name is computed\n"
+                  "                     using Ice.Default.Locator in <config-file>).\n"
+                  "Description          Description of the service.\n"
+                  "DisplayName          Display name of the service.\n"
+                  "EventLog             The name of the EventLog used by this service;\n"
+                  "                     the default is Application.\n"
+                  "ImagePath            Full path to <service>.exe. The default value is\n"
+                  "                     "
+               << defaultImagePath << "\n"
+               << "ObjectName           Account used to run the service. Defaults to\n"
+                  "                     NT Authority\\LocalService.\n"
+                  "Password             Password for ObjectName.\n";
 }

@@ -21,7 +21,7 @@ DEFINE_TEST("client")
 //
 // SIGPIPE test
 //
-#   include <signal.h>
+#    include <signal.h>
 #endif
 
 using namespace std;
@@ -29,54 +29,49 @@ using namespace std;
 #if defined(__APPLE__) || defined(ICE_OS_UWP)
 namespace
 {
-
-class App
-{
-public:
-
-    virtual ~App()
+    class App
     {
-        if(_communicator)
+    public:
+        virtual ~App()
         {
-            _communicator->destroy();
+            if(_communicator)
+            {
+                _communicator->destroy();
+            }
         }
-    }
 
-    Ice::CommunicatorPtr communicator()
-    {
-        return _communicator;
-    }
+        Ice::CommunicatorPtr communicator()
+        {
+            return _communicator;
+        }
 
-    virtual int _main(int argc, char** argv)
-    {
-        Ice::InitializationData initData = getTestInitData(argc, argv);
-        initData.properties->setProperty("Ice.Warn.Dispatch", "0");
-        _communicator = Ice::initialize(initData);
-        return run(argc, argv);
-    }
-    virtual int run(int argc, char** argv) = 0;
+        virtual int _main(int argc, char** argv)
+        {
+            Ice::InitializationData initData = getTestInitData(argc, argv);
+            initData.properties->setProperty("Ice.Warn.Dispatch", "0");
+            _communicator = Ice::initialize(initData);
+            return run(argc, argv);
+        }
+        virtual int run(int argc, char** argv) = 0;
 
-private:
+    private:
+        Ice::CommunicatorPtr _communicator;
+    };
 
-    Ice::CommunicatorPtr _communicator;
-};
-
-}
+} // namespace
 #else
 namespace
 {
-typedef Ice::Application App;
+    typedef Ice::Application App;
 }
 #endif
 
 class ClientApp : public App
 {
 public:
-
-    virtual int run(int, char*[]);
+    virtual int run(int, char* []);
 
 private:
-
     int run(const Test::MyObjectPrxPtr&, const InterceptorIPtr&);
     int runAmd(const Test::MyObjectPrxPtr&, const AMDInterceptorIPtr&);
 };
@@ -88,8 +83,7 @@ extern "C" void testAction(int)
 }
 #endif
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
 #ifdef ICE_STATIC_LIBS
     Ice::registerIceSSL(false);
@@ -97,9 +91,9 @@ main(int argc, char* argv[])
 #endif
 
 #ifndef _WIN32
-//
-// Set SIGPIPE action
-//
+    //
+    // Set SIGPIPE action
+    //
     struct sigaction action;
     action.sa_handler = &testAction;
     sigemptyset(&action.sa_mask);
@@ -115,9 +109,9 @@ main(int argc, char* argv[])
 #endif
 
 #ifndef _WIN32
-//
-// Check SIGPIPE was properly reset to old action
-//
+    //
+    // Check SIGPIPE was properly reset to old action
+    //
     struct sigaction newAction;
     sigaction(SIGPIPE, 0, &newAction);
     test(action.sa_handler == &testAction);
@@ -126,14 +120,12 @@ main(int argc, char* argv[])
     return result;
 }
 
-int
-ClientApp::run(int, char*[])
+int ClientApp::run(int, char* [])
 {
-
 #ifndef _WIN32
-//
-// Check SIGPIPE is now SIG_IGN
-//
+    //
+    // Check SIGPIPE is now SIG_IGN
+    //
     struct sigaction action;
     sigaction(SIGPIPE, 0, &action);
     test(action.sa_handler == SIG_IGN);
@@ -184,8 +176,7 @@ ClientApp::run(int, char*[])
     return rs;
 }
 
-int
-ClientApp::run(const Test::MyObjectPrxPtr& prx, const InterceptorIPtr& interceptor)
+int ClientApp::run(const Test::MyObjectPrxPtr& prx, const InterceptorIPtr& interceptor)
 {
     cout << "testing simple interceptor... " << flush;
     test(interceptor->getLastOperation().empty());
@@ -265,8 +256,7 @@ ClientApp::run(const Test::MyObjectPrxPtr& prx, const InterceptorIPtr& intercept
     return EXIT_SUCCESS;
 }
 
-int
-ClientApp::runAmd(const Test::MyObjectPrxPtr& prx, const AMDInterceptorIPtr& interceptor)
+int ClientApp::runAmd(const Test::MyObjectPrxPtr& prx, const AMDInterceptorIPtr& interceptor)
 {
     cout << "testing simple interceptor... " << flush;
     test(interceptor->getLastOperation().empty());

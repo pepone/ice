@@ -20,57 +20,53 @@
 
 namespace IceSSL
 {
+    namespace UWP
+    {
+        class TransceiverI : public IceInternal::Transceiver
+        {
+        public:
+            virtual IceInternal::NativeInfoPtr getNativeInfo();
 
-namespace UWP
-{
+            virtual IceInternal::SocketOperation initialize(IceInternal::Buffer&, IceInternal::Buffer&);
+            virtual IceInternal::SocketOperation closing(bool, const Ice::LocalException&);
+            virtual void close();
+            virtual IceInternal::SocketOperation write(IceInternal::Buffer&);
+            virtual IceInternal::SocketOperation read(IceInternal::Buffer&);
+            virtual bool startWrite(IceInternal::Buffer&);
+            virtual void finishWrite(IceInternal::Buffer&);
+            virtual void startRead(IceInternal::Buffer&);
+            virtual void finishRead(IceInternal::Buffer&);
 
-class TransceiverI : public IceInternal::Transceiver
-{
-public:
+            virtual std::string protocol() const;
+            virtual std::string toString() const;
+            virtual std::string toDetailedString() const;
+            virtual Ice::ConnectionInfoPtr getInfo() const;
+            virtual void checkSendSize(const IceInternal::Buffer&);
+            virtual void setBufferSize(int rcvSize, int sndSize);
 
-    virtual IceInternal::NativeInfoPtr getNativeInfo();
+        private:
+            TransceiverI(const InstancePtr&, const IceInternal::TransceiverPtr&, const std::string&, bool);
+            virtual ~TransceiverI();
 
-    virtual IceInternal::SocketOperation initialize(IceInternal::Buffer&, IceInternal::Buffer&);
-    virtual IceInternal::SocketOperation closing(bool, const Ice::LocalException&);
-    virtual void close();
-    virtual IceInternal::SocketOperation write(IceInternal::Buffer&);
-    virtual IceInternal::SocketOperation read(IceInternal::Buffer&);
-    virtual bool startWrite(IceInternal::Buffer&);
-    virtual void finishWrite(IceInternal::Buffer&);
-    virtual void startRead(IceInternal::Buffer&);
-    virtual void finishRead(IceInternal::Buffer&);
+            friend class SSLEngine;
 
-    virtual std::string protocol() const;
-    virtual std::string toString() const;
-    virtual std::string toDetailedString() const;
-    virtual Ice::ConnectionInfoPtr getInfo() const;
-    virtual void checkSendSize(const IceInternal::Buffer&);
-    virtual void setBufferSize(int rcvSize, int sndSize);
+            const InstancePtr _instance;
+            const SSLEnginePtr _engine;
+            const std::string _host;
+            const std::string _adapterName;
+            const bool _incoming;
+            const IceInternal::TransceiverPtr _delegate;
 
-private:
+            bool _connected;
+            bool _upgraded;
+            std::vector<IceSSL::CertificatePtr> _certs;
+            bool _verified;
+            Windows::Security::Cryptography::Certificates::CertificateChain ^ _chain;
+        };
+        typedef IceUtil::Handle<TransceiverI> TransceiverIPtr;
 
-    TransceiverI(const InstancePtr&, const IceInternal::TransceiverPtr&, const std::string&, bool);
-    virtual ~TransceiverI();
+    } // namespace UWP
 
-    friend class SSLEngine;
-
-    const InstancePtr _instance;
-    const SSLEnginePtr _engine;
-    const std::string _host;
-    const std::string _adapterName;
-    const bool _incoming;
-    const IceInternal::TransceiverPtr _delegate;
-
-    bool _connected;
-    bool _upgraded;
-    std::vector<IceSSL::CertificatePtr> _certs;
-    bool _verified;
-    Windows::Security::Cryptography::Certificates::CertificateChain^ _chain;
-};
-typedef IceUtil::Handle<TransceiverI> TransceiverIPtr;
-
-} // UWP namespace end
-
-} // IceSSL namespace end
+} // namespace IceSSL
 
 #endif

@@ -14,40 +14,37 @@
 
 namespace Ice
 {
+    //
+    // The base class for all ImplicitContext implementations
+    //
+    class ImplicitContextI;
+    ICE_DEFINE_PTR(ImplicitContextIPtr, ImplicitContextI);
 
-//
-// The base class for all ImplicitContext implementations
-//
-class ImplicitContextI;
-ICE_DEFINE_PTR(ImplicitContextIPtr,ImplicitContextI);
-
-class ImplicitContextI : public ImplicitContext
-{
-public:
-
-    static ImplicitContextIPtr create(const std::string&);
+    class ImplicitContextI : public ImplicitContext
+    {
+    public:
+        static ImplicitContextIPtr create(const std::string&);
 
 #ifdef _WIN32
-    static void cleanupThread();
+        static void cleanupThread();
 #endif
 
-    //
-    // Marshals the underlying context plus the given context
-    // (entries in the given context overwrite entries in
-    // the underlying context)
-    //
-    virtual void write(const Context&, ::Ice::OutputStream*) const = 0;
+        //
+        // Marshals the underlying context plus the given context
+        // (entries in the given context overwrite entries in
+        // the underlying context)
+        //
+        virtual void write(const Context&, ::Ice::OutputStream*) const = 0;
 
-    //
-    // Combines the underlying context plus the given context
-    // (entries in the given context overwrite entries in
-    // the underlying context)
-    //
-    virtual void combine(const Context&, Context&) const = 0;
+        //
+        // Combines the underlying context plus the given context
+        // (entries in the given context overwrite entries in
+        // the underlying context)
+        //
+        virtual void combine(const Context&, Context&) const = 0;
+    };
 
-};
+    ICE_DEFINE_PTR(ImplicitContextIPtr, ImplicitContextI);
 
-ICE_DEFINE_PTR(ImplicitContextIPtr, ImplicitContextI);
-
-}
+} // namespace Ice
 #endif

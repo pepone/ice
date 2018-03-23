@@ -15,24 +15,20 @@
 
 namespace IceGrid
 {
+    //
+    // Routes requests to a server's admin object through the Node
+    //
+    class NodeServerAdminRouter : public AdminRouter
+    {
+    public:
+        NodeServerAdminRouter(const NodeIPtr&);
 
-//
-// Routes requests to a server's admin object through the Node
-//
-class NodeServerAdminRouter : public AdminRouter
-{
-public:
+        virtual void ice_invoke_async(const Ice::AMD_Object_ice_invokePtr&,
+                                      const std::pair<const Ice::Byte*, const Ice::Byte*>&, const Ice::Current&);
 
-    NodeServerAdminRouter(const NodeIPtr&);
+    private:
+        NodeIPtr _node;
+    };
 
-    virtual void ice_invoke_async(const Ice::AMD_Object_ice_invokePtr&,
-                                  const std::pair<const Ice::Byte*, const Ice::Byte*>&,
-                                  const Ice::Current&);
-
-private:
-
-    NodeIPtr _node;
-};
-
-}
+} // namespace IceGrid
 #endif

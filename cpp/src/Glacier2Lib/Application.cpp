@@ -23,48 +23,41 @@ string Glacier2::Application::_category;
 namespace
 {
 #ifndef ICE_CPP11_MAPPING // C++98
-class CloseCallbackI : public Ice::CloseCallback
-{
-public:
-
-    CloseCallbackI(Glacier2::Application* app) : _app(app)
+    class CloseCallbackI : public Ice::CloseCallback
     {
-    }
+    public:
+        CloseCallbackI(Glacier2::Application* app) : _app(app)
+        {
+        }
 
-    virtual void
-    closed(const Ice::ConnectionPtr&)
-    {
-        _app->sessionDestroyed();
-    }
+        virtual void closed(const Ice::ConnectionPtr&)
+        {
+            _app->sessionDestroyed();
+        }
 
-private:
-
-    Glacier2::Application* _app;
-};
+    private:
+        Glacier2::Application* _app;
+    };
 #endif
-}
+} // namespace
 
-string
-Glacier2::RestartSessionException::ice_id() const
+string Glacier2::RestartSessionException::ice_id() const
 {
     return "::Glacier2::RestartSessionException";
 }
 
 #ifndef ICE_CPP11_MAPPING
-Glacier2::RestartSessionException*
-Glacier2::RestartSessionException::ice_clone() const
+Glacier2::RestartSessionException* Glacier2::RestartSessionException::ice_clone() const
 {
     return new RestartSessionException(*this);
 }
 #endif
 
-Glacier2::Application::Application(SignalPolicy signalPolicy) :
-    Ice::Application(signalPolicy)
+Glacier2::Application::Application(SignalPolicy signalPolicy) : Ice::Application(signalPolicy)
 {
 }
 
-Ice::ObjectAdapterPtr
-Glacier2::Application::objectAdapter()
+Ice::ObjectAdapterPtr Glacier2::Application::objectAdapter()
 {
     if(!_router)
     {
@@ -80,14 +73,12 @@ Glacier2::Application::objectAdapter()
     return _adapter;
 }
 
-Ice::ObjectPrxPtr
-Glacier2::Application::addWithUUID(const Ice::ObjectPtr& servant)
+Ice::ObjectPrxPtr Glacier2::Application::addWithUUID(const Ice::ObjectPtr& servant)
 {
     return objectAdapter()->add(servant, createCallbackIdentity(Ice::generateUUID()));
 }
 
-Ice::Identity
-Glacier2::Application::createCallbackIdentity(const string& name)
+Ice::Identity Glacier2::Application::createCallbackIdentity(const string& name)
 {
     Ice::Identity id;
     id.name = name;
@@ -95,31 +86,26 @@ Glacier2::Application::createCallbackIdentity(const string& name)
     return id;
 }
 
-void
-Glacier2::Application::sessionDestroyed()
+void Glacier2::Application::sessionDestroyed()
 {
 }
 
-void
-Glacier2::Application::restart()
+void Glacier2::Application::restart()
 {
     throw RestartSessionException();
 }
 
-Glacier2::RouterPrxPtr
-Glacier2::Application::router()
+Glacier2::RouterPrxPtr Glacier2::Application::router()
 {
     return _router;
 }
 
-Glacier2::SessionPrxPtr
-Glacier2::Application::session()
+Glacier2::SessionPrxPtr Glacier2::Application::session()
 {
     return _session;
 }
 
-std::string
-Glacier2::Application::categoryForClient()
+std::string Glacier2::Application::categoryForClient()
 {
     if(!_router)
     {
@@ -128,8 +114,7 @@ Glacier2::Application::categoryForClient()
     return _category;
 }
 
-int
-Glacier2::Application::doMain(int argc, char* argv[], const Ice::InitializationData& initData, int version)
+int Glacier2::Application::doMain(int argc, char* argv[], const Ice::InitializationData& initData, int version)
 {
     // Set the default properties for all Glacier2 applications.
     initData.properties->setProperty("Ice.RetryIntervals", "-1");
@@ -148,13 +133,12 @@ Glacier2::Application::doMain(int argc, char* argv[], const Ice::InitializationD
         Ice::StringSeq args = Ice::argsToStringSeq(argc, argv);
 
         restart = doMain(args, id, ret, version);
-    }
-    while(restart);
+    } while(restart);
     return ret;
 }
 
-bool
-Glacier2::Application::doMain(Ice::StringSeq& args, const Ice::InitializationData& initData, int& status, int version)
+bool Glacier2::Application::doMain(Ice::StringSeq& args, const Ice::InitializationData& initData, int& status,
+                                   int version)
 {
     //
     // Reset internal state variables from Ice.Application. The
@@ -223,11 +207,7 @@ Glacier2::Application::doMain(Ice::StringSeq& args, const Ice::InitializationDat
                     assert(connection);
                     connection->setACM(acmTimeout, IceUtil::None, ICE_ENUM(ACMHeartbeat, HeartbeatAlways));
 #ifdef ICE_CPP11_MAPPING
-                    connection->setCloseCallback(
-                        [this](Ice::ConnectionPtr)
-                        {
-                            sessionDestroyed();
-                        });
+                    connection->setCloseCallback([this](Ice::ConnectionPtr) { sessionDestroyed(); });
 #else
                     connection->setCloseCallback(ICE_MAKE_SHARED(CloseCallbackI, this));
 #endif

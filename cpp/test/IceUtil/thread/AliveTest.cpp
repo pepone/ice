@@ -19,9 +19,7 @@ static const string createTestName("thread alive");
 class CondVar : public IceUtil::Monitor<IceUtil::RecMutex>
 {
 public:
-
-    CondVar() :
-        _done(false)
+    CondVar() : _done(false)
     {
     }
 
@@ -42,16 +40,15 @@ public:
     }
 
 private:
-
     bool _done;
 };
 
 class AliveTestThread : public Thread
 {
 public:
-
     AliveTestThread(CondVar& childCreated, CondVar& parentReady) :
-        _childCreated(childCreated), _parentReady(parentReady)
+        _childCreated(childCreated),
+        _parentReady(parentReady)
     {
     }
 
@@ -59,8 +56,8 @@ public:
     {
         try
         {
-           _childCreated.signal();
-           _parentReady.waitForSignal();
+            _childCreated.signal();
+            _parentReady.waitForSignal();
         }
         catch(const IceUtil::ThreadLockedException&)
         {
@@ -68,20 +65,17 @@ public:
     }
 
 private:
-
     CondVar& _childCreated;
     CondVar& _parentReady;
 };
 
 typedef Handle<AliveTestThread> AliveTestThreadPtr;
 
-AliveTest::AliveTest() :
-    TestBase(createTestName)
+AliveTest::AliveTest() : TestBase(createTestName)
 {
 }
 
-void
-AliveTest::run()
+void AliveTest::run()
 {
     //
     // Check that calling isAlive() returns the correct result for alive and

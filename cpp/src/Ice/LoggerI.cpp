@@ -23,37 +23,34 @@ using namespace IceUtilInternal;
 
 namespace
 {
+    IceUtil::Mutex* outputMutex = 0;
 
-IceUtil::Mutex* outputMutex = 0;
-
-class Init
-{
-public:
-
-    Init()
+    class Init
     {
-        outputMutex = new IceUtil::Mutex;
-    }
+    public:
+        Init()
+        {
+            outputMutex = new IceUtil::Mutex;
+        }
 
-    ~Init()
-    {
-        delete outputMutex;
-        outputMutex = 0;
-    }
-};
+        ~Init()
+        {
+            delete outputMutex;
+            outputMutex = 0;
+        }
+    };
 
-Init init;
+    Init init;
 
-//
-// Timeout in milliseconds after which rename will be attempted
-// in case of failures renaming files. That is set to 5 minutes.
-//
-const IceUtil::Time retryTimeout = IceUtil::Time::seconds(5 * 60);
+    //
+    // Timeout in milliseconds after which rename will be attempted
+    // in case of failures renaming files. That is set to 5 minutes.
+    //
+    const IceUtil::Time retryTimeout = IceUtil::Time::seconds(5 * 60);
 
-}
+} // namespace
 
-Ice::LoggerI::LoggerI(const string& prefix, const string& file,
-                      bool convert, size_t sizeMax) :
+Ice::LoggerI::LoggerI(const string& prefix, const string& file, bool convert, size_t sizeMax) :
     _prefix(prefix),
     _convert(convert),
     _converter(getProcessStringConverter()),
@@ -88,14 +85,12 @@ Ice::LoggerI::~LoggerI()
     }
 }
 
-void
-Ice::LoggerI::print(const string& message)
+void Ice::LoggerI::print(const string& message)
 {
     write(message, false);
 }
 
-void
-Ice::LoggerI::trace(const string& category, const string& message)
+void Ice::LoggerI::trace(const string& category, const string& message)
 {
     string s = "-- " + IceUtil::Time::now().toDateTime() + " " + _formattedPrefix;
     if(!category.empty())
@@ -107,33 +102,28 @@ Ice::LoggerI::trace(const string& category, const string& message)
     write(s, true);
 }
 
-void
-Ice::LoggerI::warning(const string& message)
+void Ice::LoggerI::warning(const string& message)
 {
     write("-! " + IceUtil::Time::now().toDateTime() + " " + _formattedPrefix + "warning: " + message, true);
 }
 
-void
-Ice::LoggerI::error(const string& message)
+void Ice::LoggerI::error(const string& message)
 {
     write("!! " + IceUtil::Time::now().toDateTime() + " " + _formattedPrefix + "error: " + message, true);
 }
 
-string
-Ice::LoggerI::getPrefix()
+string Ice::LoggerI::getPrefix()
 {
     return _prefix;
 }
 
-LoggerPtr
-Ice::LoggerI::cloneWithPrefix(const std::string& prefix)
+LoggerPtr Ice::LoggerI::cloneWithPrefix(const std::string& prefix)
 {
     IceUtilInternal::MutexPtrLock<IceUtil::Mutex> sync(outputMutex); // for _sizeMax
     return ICE_MAKE_SHARED(LoggerI, prefix, _file, _convert, _sizeMax);
 }
 
-void
-Ice::LoggerI::write(const string& message, bool indent)
+void Ice::LoggerI::write(const string& message, bool indent)
 {
     IceUtilInternal::MutexPtrLock<IceUtil::Mutex> sync(outputMutex);
 
@@ -225,7 +215,8 @@ Ice::LoggerI::write(const string& message, bool indent)
                     error("FileLogger: cannot open `" + _file + "':\nlog messages will be sent to stderr");
                     write(message, indent);
                     return;
-                }            }
+                }
+            }
         }
         _out << s << endl;
     }

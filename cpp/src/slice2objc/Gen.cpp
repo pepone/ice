@@ -13,9 +13,9 @@
 #include <limits>
 #include <sys/stat.h>
 #ifndef _WIN32
-#  include <unistd.h>
+#    include <unistd.h>
 #else
-#  include <direct.h>
+#    include <direct.h>
 #endif
 #include <IceUtil/Iterator.h>
 #include <IceUtil/UUID.h>
@@ -30,114 +30,105 @@ using namespace IceUtilInternal;
 
 namespace
 {
-
-string
-sliceModeToIceMode(Operation::Mode opMode)
-{
-    string mode;
-    switch(opMode)
+    string sliceModeToIceMode(Operation::Mode opMode)
     {
-        case Operation::Normal:
+        string mode;
+        switch(opMode)
         {
-            mode = "ICENormal";
-            break;
+            case Operation::Normal:
+            {
+                mode = "ICENormal";
+                break;
+            }
+            case Operation::Nonmutating:
+            {
+                mode = "ICENonmutating";
+                break;
+            }
+            case Operation::Idempotent:
+            {
+                mode = "ICEIdempotent";
+                break;
+            }
+            default:
+            {
+                assert(false);
+                break;
+            }
         }
-        case Operation::Nonmutating:
-        {
-            mode = "ICENonmutating";
-            break;
-        }
-        case Operation::Idempotent:
-        {
-            mode = "ICEIdempotent";
-            break;
-        }
-        default:
-        {
-            assert(false);
-            break;
-        }
-    }
-    return mode;
-}
-
-string
-opFormatTypeToString(const OperationPtr& op)
-{
-    switch(op->format())
-    {
-        case DefaultFormat:
-        {
-            return "ICEDefaultFormat";
-            break;
-        }
-        case CompactFormat:
-        {
-            return "ICECompactFormat";
-            break;
-        }
-        case SlicedFormat:
-        {
-            return "ICESlicedFormat";
-            break;
-        }
-        default:
-        {
-            assert(false);
-        }
+        return mode;
     }
 
-    return "???";
-}
-
-string
-getDeprecateSymbol(const ContainedPtr& p1, const ContainedPtr& p2)
-{
-    string deprecateMetadata, deprecateSymbol;
-    if(p1->findMetaData("deprecate", deprecateMetadata) ||
-       (p2 != 0 && p2->findMetaData("deprecate", deprecateMetadata)))
+    string opFormatTypeToString(const OperationPtr& op)
     {
-        string msg = "is deprecated";
-        if(deprecateMetadata.find("deprecate:") == 0 && deprecateMetadata.size() > 10)
+        switch(op->format())
         {
-            msg = deprecateMetadata.substr(10);
+            case DefaultFormat:
+            {
+                return "ICEDefaultFormat";
+                break;
+            }
+            case CompactFormat:
+            {
+                return "ICECompactFormat";
+                break;
+            }
+            case SlicedFormat:
+            {
+                return "ICESlicedFormat";
+                break;
+            }
+            default:
+            {
+                assert(false);
+            }
         }
-        deprecateSymbol = " ICE_DEPRECATED_API(\"" + msg + "\")";
+
+        return "???";
     }
-    return deprecateSymbol;
-}
 
-string
-getEscapedParamName(const OperationPtr& p, const string& name)
-{
-    ParamDeclList params = p->parameters();
-
-    for(ParamDeclList::const_iterator i = params.begin(); i != params.end(); ++i)
+    string getDeprecateSymbol(const ContainedPtr& p1, const ContainedPtr& p2)
     {
-        if((*i)->name() == name)
+        string deprecateMetadata, deprecateSymbol;
+        if(p1->findMetaData("deprecate", deprecateMetadata) ||
+           (p2 != 0 && p2->findMetaData("deprecate", deprecateMetadata)))
         {
-            return name + "_";
+            string msg = "is deprecated";
+            if(deprecateMetadata.find("deprecate:") == 0 && deprecateMetadata.size() > 10)
+            {
+                msg = deprecateMetadata.substr(10);
+            }
+            deprecateSymbol = " ICE_DEPRECATED_API(\"" + msg + "\")";
         }
+        return deprecateSymbol;
     }
-    return name;
-}
 
-class SortParamDeclByTagFn
-{
-public:
-
-    static bool compare(const ParamDeclPtr& lhs, const ParamDeclPtr& rhs)
+    string getEscapedParamName(const OperationPtr& p, const string& name)
     {
-        return lhs->tag() < rhs->tag();
+        ParamDeclList params = p->parameters();
+
+        for(ParamDeclList::const_iterator i = params.begin(); i != params.end(); ++i)
+        {
+            if((*i)->name() == name)
+            {
+                return name + "_";
+            }
+        }
+        return name;
     }
-};
 
-}
+    class SortParamDeclByTagFn
+    {
+    public:
+        static bool compare(const ParamDeclPtr& lhs, const ParamDeclPtr& rhs)
+        {
+            return lhs->tag() < rhs->tag();
+        }
+    };
 
-Slice::ObjCVisitor::ObjCVisitor(Output& h, Output& m, const string& dllExport) :
-    _H(h),
-    _M(m),
-    _dllExport(dllExport)
+} // namespace
+
+Slice::ObjCVisitor::ObjCVisitor(Output& h, Output& m, const string& dllExport) : _H(h), _M(m), _dllExport(dllExport)
 {
 }
 
@@ -145,9 +136,8 @@ Slice::ObjCVisitor::~ObjCVisitor()
 {
 }
 
-void
-Slice::ObjCVisitor::writeMarshalUnmarshalParams(const ParamDeclList& params, const OperationPtr& op, bool marshal,
-                                                bool reference)
+void Slice::ObjCVisitor::writeMarshalUnmarshalParams(const ParamDeclList& params, const OperationPtr& op, bool marshal,
+                                                     bool reference)
 {
     ParamDeclList optionals;
     for(ParamDeclList::const_iterator p = params.begin(); p != params.end(); ++p)
@@ -198,8 +188,7 @@ Slice::ObjCVisitor::writeMarshalUnmarshalParams(const ParamDeclList& params, con
     }
 }
 
-void
-Slice::ObjCVisitor::writeDispatchAndMarshalling(const ClassDefPtr& p)
+void Slice::ObjCVisitor::writeDispatchAndMarshalling(const ClassDefPtr& p)
 {
     string name = fixName(p);
     string scoped = p->scoped();
@@ -406,8 +395,7 @@ Slice::ObjCVisitor::writeDispatchAndMarshalling(const ClassDefPtr& p)
     _M << eb;
 }
 
-string
-Slice::ObjCVisitor::getName(const OperationPtr& op) const
+string Slice::ObjCVisitor::getName(const OperationPtr& op) const
 {
     if(!op->parameters().empty())
     {
@@ -419,8 +407,7 @@ Slice::ObjCVisitor::getName(const OperationPtr& op) const
     }
 }
 
-string
-Slice::ObjCVisitor::getSelector(const OperationPtr& op) const
+string Slice::ObjCVisitor::getSelector(const OperationPtr& op) const
 {
     string result;
     ParamDeclList paramList = op->parameters();
@@ -438,8 +425,7 @@ Slice::ObjCVisitor::getSelector(const OperationPtr& op) const
     return result;
 }
 
-string
-Slice::ObjCVisitor::getParams(const OperationPtr& op, bool internal) const
+string Slice::ObjCVisitor::getParams(const OperationPtr& op, bool internal) const
 {
     string result;
     ParamDeclList paramList = op->parameters();
@@ -464,8 +450,7 @@ Slice::ObjCVisitor::getParams(const OperationPtr& op, bool internal) const
     return result;
 }
 
-string
-Slice::ObjCVisitor::getBlockParams(const OperationPtr& op) const
+string Slice::ObjCVisitor::getBlockParams(const OperationPtr& op) const
 {
     string result;
     ParamDeclList paramList = op->parameters();
@@ -490,8 +475,7 @@ Slice::ObjCVisitor::getBlockParams(const OperationPtr& op) const
     return result;
 }
 
-string
-Slice::ObjCVisitor::getMarshalParams(const OperationPtr& op, bool internal) const
+string Slice::ObjCVisitor::getMarshalParams(const OperationPtr& op, bool internal) const
 {
     ParamDeclList paramList = op->parameters();
     string result;
@@ -510,8 +494,7 @@ Slice::ObjCVisitor::getMarshalParams(const OperationPtr& op, bool internal) cons
     return result;
 }
 
-string
-Slice::ObjCVisitor::getUnmarshalParams(const OperationPtr& op, bool internal) const
+string Slice::ObjCVisitor::getUnmarshalParams(const OperationPtr& op, bool internal) const
 {
     string result;
     ParamDeclList paramList = op->parameters();
@@ -530,8 +513,7 @@ Slice::ObjCVisitor::getUnmarshalParams(const OperationPtr& op, bool internal) co
     return result;
 }
 
-string
-Slice::ObjCVisitor::getServerParams(const OperationPtr& op) const
+string Slice::ObjCVisitor::getServerParams(const OperationPtr& op) const
 {
     string result;
     ParamDeclList paramList = op->parameters();
@@ -556,8 +538,7 @@ Slice::ObjCVisitor::getServerParams(const OperationPtr& op) const
     return result;
 }
 
-string
-Slice::ObjCVisitor::getResponseCBSig(const OperationPtr& op) const
+string Slice::ObjCVisitor::getResponseCBSig(const OperationPtr& op) const
 {
     string result;
     TypePtr returnType = op->returnType();
@@ -586,8 +567,7 @@ Slice::ObjCVisitor::getResponseCBSig(const OperationPtr& op) const
     return "void(^)(" + result + ")";
 }
 
-string
-Slice::ObjCVisitor::getArgs(const OperationPtr& op) const
+string Slice::ObjCVisitor::getArgs(const OperationPtr& op) const
 {
     string result;
     ParamDeclList paramList = op->parameters();
@@ -602,8 +582,7 @@ Slice::ObjCVisitor::getArgs(const OperationPtr& op) const
     return result;
 }
 
-string
-Slice::ObjCVisitor::getMarshalArgs(const OperationPtr& op) const
+string Slice::ObjCVisitor::getMarshalArgs(const OperationPtr& op) const
 {
     string result;
     ParamDeclList paramList = op->parameters();
@@ -621,8 +600,7 @@ Slice::ObjCVisitor::getMarshalArgs(const OperationPtr& op) const
     return result;
 }
 
-string
-Slice::ObjCVisitor::getUnmarshalArgs(const OperationPtr& op) const
+string Slice::ObjCVisitor::getUnmarshalArgs(const OperationPtr& op) const
 {
     string result;
     ParamDeclList paramList = op->parameters();
@@ -640,8 +618,7 @@ Slice::ObjCVisitor::getUnmarshalArgs(const OperationPtr& op) const
     return result;
 }
 
-string
-Slice::ObjCVisitor::getServerArgs(const OperationPtr& op) const
+string Slice::ObjCVisitor::getServerArgs(const OperationPtr& op) const
 {
     string result;
     ParamDeclList paramList = op->parameters();
@@ -724,8 +701,7 @@ Slice::Gen::~Gen()
     }
 }
 
-bool
-Slice::Gen::operator!() const
+bool Slice::Gen::operator!() const
 {
     if(!_H || !_M)
     {
@@ -734,8 +710,7 @@ Slice::Gen::operator!() const
     return false;
 }
 
-void
-Slice::Gen::generate(const UnitPtr& p)
+void Slice::Gen::generate(const UnitPtr& p)
 {
     ObjCGenerator::validateMetaData(p);
 
@@ -859,38 +834,32 @@ Slice::Gen::generate(const UnitPtr& p)
     p->visit(&HelperVisitor, false);
 }
 
-void
-Slice::Gen::closeOutput()
+void Slice::Gen::closeOutput()
 {
     _H.close();
     _M.close();
 }
 
-void
-Slice::Gen::printHeader(Output& o)
+void Slice::Gen::printHeader(Output& o)
 {
-    static const char* header =
-"// **********************************************************************\n"
-"//\n"
-"// Copyright (c) 2003-2018 ZeroC, Inc. All rights reserved.\n"
-"//\n"
-"// This copy of Ice is licensed to you under the terms described in the\n"
-"// ICE_LICENSE file included in this distribution.\n"
-"//\n"
-"// **********************************************************************\n"
-        ;
+    static const char* header = "// **********************************************************************\n"
+                                "//\n"
+                                "// Copyright (c) 2003-2018 ZeroC, Inc. All rights reserved.\n"
+                                "//\n"
+                                "// This copy of Ice is licensed to you under the terms described in the\n"
+                                "// ICE_LICENSE file included in this distribution.\n"
+                                "//\n"
+                                "// **********************************************************************\n";
 
     o << header;
     o << "\n// Ice version " << ICE_STRING_VERSION;
 }
 
-Slice::Gen::UnitVisitor::UnitVisitor(Output& H, Output& M, const string& dllExport) :
-    ObjCVisitor(H, M, dllExport)
+Slice::Gen::UnitVisitor::UnitVisitor(Output& H, Output& M, const string& dllExport) : ObjCVisitor(H, M, dllExport)
 {
 }
 
-bool
-Slice::Gen::UnitVisitor::visitModuleStart(const ModulePtr& p)
+bool Slice::Gen::UnitVisitor::visitModuleStart(const ModulePtr& p)
 {
     string dummy;
     if(p->findMetaData("objc:prefix", dummy))
@@ -900,8 +869,7 @@ Slice::Gen::UnitVisitor::visitModuleStart(const ModulePtr& p)
     return true;
 }
 
-void
-Slice::Gen::UnitVisitor::visitUnitEnd(const UnitPtr& unit)
+void Slice::Gen::UnitVisitor::visitUnitEnd(const UnitPtr& unit)
 {
     string uuid = IceUtil::generateUUID();
     for(string::size_type pos = 0; pos < uuid.size(); ++pos)
@@ -926,13 +894,12 @@ Slice::Gen::UnitVisitor::visitUnitEnd(const UnitPtr& unit)
     }
 }
 
-Slice::Gen::ObjectDeclVisitor::ObjectDeclVisitor(Output& H, Output& M, const string& dllExport)
-    : ObjCVisitor(H, M, dllExport)
+Slice::Gen::ObjectDeclVisitor::ObjectDeclVisitor(Output& H, Output& M, const string& dllExport) :
+    ObjCVisitor(H, M, dllExport)
 {
 }
 
-void
-Slice::Gen::ObjectDeclVisitor::visitClassDecl(const ClassDeclPtr& p)
+void Slice::Gen::ObjectDeclVisitor::visitClassDecl(const ClassDeclPtr& p)
 {
     if(p->definition() && p->definition()->isDelegate())
     {
@@ -947,13 +914,12 @@ Slice::Gen::ObjectDeclVisitor::visitClassDecl(const ClassDeclPtr& p)
     _H << nl << "@protocol " << fixName(p) << ";";
 }
 
-Slice::Gen::ProxyDeclVisitor::ProxyDeclVisitor(Output& H, Output& M, const string& dllExport)
-    : ObjCVisitor(H, M, dllExport)
+Slice::Gen::ProxyDeclVisitor::ProxyDeclVisitor(Output& H, Output& M, const string& dllExport) :
+    ObjCVisitor(H, M, dllExport)
 {
 }
 
-void
-Slice::Gen::ProxyDeclVisitor::visitClassDecl(const ClassDeclPtr& p)
+void Slice::Gen::ProxyDeclVisitor::visitClassDecl(const ClassDeclPtr& p)
 {
     if(!p->isLocal())
     {
@@ -962,13 +928,11 @@ Slice::Gen::ProxyDeclVisitor::visitClassDecl(const ClassDeclPtr& p)
     }
 }
 
-Slice::Gen::TypesVisitor::TypesVisitor(Output& H, Output& M, const string& dllExport)
-    : ObjCVisitor(H, M, dllExport)
+Slice::Gen::TypesVisitor::TypesVisitor(Output& H, Output& M, const string& dllExport) : ObjCVisitor(H, M, dllExport)
 {
 }
 
-bool
-Slice::Gen::TypesVisitor::visitModuleStart(const ModulePtr& p)
+bool Slice::Gen::TypesVisitor::visitModuleStart(const ModulePtr& p)
 {
     string suffix;
     StringList names = splitScopedName(p->scoped());
@@ -985,13 +949,11 @@ Slice::Gen::TypesVisitor::visitModuleStart(const ModulePtr& p)
     return true;
 }
 
-void
-Slice::Gen::TypesVisitor::visitModuleEnd(const ModulePtr&)
+void Slice::Gen::TypesVisitor::visitModuleEnd(const ModulePtr&)
 {
 }
 
-bool
-Slice::Gen::TypesVisitor::visitClassDefStart(const ClassDefPtr& p)
+bool Slice::Gen::TypesVisitor::visitClassDefStart(const ClassDefPtr& p)
 {
     string name = fixName(p);
     ClassList bases = p->bases();
@@ -1032,8 +994,7 @@ Slice::Gen::TypesVisitor::visitClassDefStart(const ClassDefPtr& p)
     return true;
 }
 
-void
-Slice::Gen::TypesVisitor::visitClassDefEnd(const ClassDefPtr& p)
+void Slice::Gen::TypesVisitor::visitClassDefEnd(const ClassDefPtr& p)
 {
     string name = fixName(p);
     ClassList bases = p->bases();
@@ -1123,8 +1084,7 @@ Slice::Gen::TypesVisitor::visitClassDefEnd(const ClassDefPtr& p)
         for(r = ops.begin(); r != ops.end(); ++r)
         {
             OperationPtr op = *r;
-            _H << nl << "+(void) iceD_" << op->name() << ":(id<" << name
-               << ">)target current:(ICECurrent *)current "
+            _H << nl << "+(void) iceD_" << op->name() << ":(id<" << name << ">)target current:(ICECurrent *)current "
                << "is:(id<ICEInputStream>)istr os:(id<ICEOutputStream>)ostr;";
         }
 
@@ -1134,8 +1094,8 @@ Slice::Gen::TypesVisitor::visitClassDefEnd(const ClassDefPtr& p)
 
         _M << sp << nl << "-(void) iceWriteImpl:(id<ICEOutputStream>)ostr";
         _M << sb;
-        _M << nl << "[ostr startSlice:@\"" << p->scoped() << "\" compactId:" << p->compactId() << " lastSlice:"
-           << (!hasBaseClass ? "YES" : "NO") << "];";
+        _M << nl << "[ostr startSlice:@\"" << p->scoped() << "\" compactId:" << p->compactId()
+           << " lastSlice:" << (!hasBaseClass ? "YES" : "NO") << "];";
         writeMemberMarshal(dataMembers, optionalMembers, BaseTypeObject);
         _M << nl << "[ostr endSlice];";
         if(hasBaseClass)
@@ -1184,8 +1144,7 @@ Slice::Gen::TypesVisitor::visitClassDefEnd(const ClassDefPtr& p)
     _M << nl << "@end";
 }
 
-void
-Slice::Gen::TypesVisitor::visitOperation(const OperationPtr& p)
+void Slice::Gen::TypesVisitor::visitOperation(const OperationPtr& p)
 {
     ContainerPtr container = p->container();
     ClassDefPtr cl = ClassDefPtr::dynamicCast(container);
@@ -1250,8 +1209,7 @@ Slice::Gen::TypesVisitor::visitOperation(const OperationPtr& p)
     }
 }
 
-void
-Slice::Gen::TypesVisitor::visitSequence(const SequencePtr& p)
+void Slice::Gen::TypesVisitor::visitSequence(const SequencePtr& p)
 {
     string prefix = moduleName(findModule(p));
     string name = fixName(p);
@@ -1268,8 +1226,7 @@ Slice::Gen::TypesVisitor::visitSequence(const SequencePtr& p)
     }
 }
 
-bool
-Slice::Gen::TypesVisitor::visitExceptionStart(const ExceptionPtr& p)
+bool Slice::Gen::TypesVisitor::visitExceptionStart(const ExceptionPtr& p)
 {
     string name = fixName(p);
     ExceptionPtr base = p->base();
@@ -1298,8 +1255,7 @@ Slice::Gen::TypesVisitor::visitExceptionStart(const ExceptionPtr& p)
     return true;
 }
 
-void
-Slice::Gen::TypesVisitor::visitExceptionEnd(const ExceptionPtr& p)
+void Slice::Gen::TypesVisitor::visitExceptionEnd(const ExceptionPtr& p)
 {
     string name = fixName(p);
 
@@ -1385,8 +1341,8 @@ Slice::Gen::TypesVisitor::visitExceptionEnd(const ExceptionPtr& p)
     {
         _M << sp << nl << "-(void) iceWriteImpl:(id<ICEOutputStream>)ostr";
         _M << sb;
-        _M << nl << "[ostr startSlice:@\"" << p->scoped() << "\" compactId:-1 lastSlice:"
-           << (!base ? "YES" : "NO") << "];";
+        _M << nl << "[ostr startSlice:@\"" << p->scoped() << "\" compactId:-1 lastSlice:" << (!base ? "YES" : "NO")
+           << "];";
         writeMemberMarshal(dataMembers, optionalMembers, BaseTypeException);
         _M << nl << "[ostr endSlice];";
         if(base)
@@ -1433,8 +1389,7 @@ Slice::Gen::TypesVisitor::visitExceptionEnd(const ExceptionPtr& p)
     _M << nl << "@end";
 }
 
-bool
-Slice::Gen::TypesVisitor::visitStructStart(const StructPtr& p)
+bool Slice::Gen::TypesVisitor::visitStructStart(const StructPtr& p)
 {
     string name = fixName(p);
 
@@ -1450,8 +1405,7 @@ Slice::Gen::TypesVisitor::visitStructStart(const StructPtr& p)
     return true;
 }
 
-void
-Slice::Gen::TypesVisitor::visitStructEnd(const StructPtr& p)
+void Slice::Gen::TypesVisitor::visitStructEnd(const StructPtr& p)
 {
     string name = fixName(p);
     DataMemberList dataMembers = p->dataMembers();
@@ -1524,8 +1478,7 @@ Slice::Gen::TypesVisitor::visitStructEnd(const StructPtr& p)
     _M << nl << "@end";
 }
 
-void
-Slice::Gen::TypesVisitor::visitDictionary(const DictionaryPtr& p)
+void Slice::Gen::TypesVisitor::visitDictionary(const DictionaryPtr& p)
 {
     string prefix = moduleName(findModule(p));
     string name = fixName(p);
@@ -1534,8 +1487,7 @@ Slice::Gen::TypesVisitor::visitDictionary(const DictionaryPtr& p)
     _H << nl << "typedef NSMutableDictionary " << prefix << "Mutable" << p->name() << ";";
 }
 
-void
-Slice::Gen::TypesVisitor::visitEnum(const EnumPtr& p)
+void Slice::Gen::TypesVisitor::visitEnum(const EnumPtr& p)
 {
     string name = fixName(p);
     EnumeratorList enumerators = p->enumerators();
@@ -1570,8 +1522,7 @@ Slice::Gen::TypesVisitor::visitEnum(const EnumPtr& p)
     _H << eb << " " << name << ";";
 }
 
-void
-Slice::Gen::TypesVisitor::visitConst(const ConstPtr& p)
+void Slice::Gen::TypesVisitor::visitConst(const ConstPtr& p)
 {
     _H << sp;
     if(isString(p->type()))
@@ -1587,9 +1538,8 @@ Slice::Gen::TypesVisitor::visitConst(const ConstPtr& p)
     _H << ';';
 }
 
-void
-Slice::Gen::TypesVisitor::writeConstantValue(IceUtilInternal::Output& out, const TypePtr& type,
-                                             const SyntaxTreeBasePtr& valueType, const string& val) const
+void Slice::Gen::TypesVisitor::writeConstantValue(IceUtilInternal::Output& out, const TypePtr& type,
+                                                  const SyntaxTreeBasePtr& valueType, const string& val) const
 {
     if(isString(type))
     {
@@ -1623,10 +1573,9 @@ Slice::Gen::TypesVisitor::writeConstantValue(IceUtilInternal::Output& out, const
     }
 }
 
-void
-Slice::Gen::TypesVisitor::writeInit(const ContainedPtr& p, const DataMemberList& dataMembers,
-                                    const DataMemberList& baseDataMembers, const DataMemberList& allDataMembers,
-                                    bool requiresMemberInit, int baseType, ContainerType ct) const
+void Slice::Gen::TypesVisitor::writeInit(const ContainedPtr& p, const DataMemberList& dataMembers,
+                                         const DataMemberList& baseDataMembers, const DataMemberList& allDataMembers,
+                                         bool requiresMemberInit, int baseType, ContainerType ct) const
 {
     if(dataMembers.empty())
     {
@@ -1669,9 +1618,8 @@ Slice::Gen::TypesVisitor::writeInit(const ContainedPtr& p, const DataMemberList&
     _M << eb;
 }
 
-void
-Slice::Gen::TypesVisitor::writeFactory(const ContainedPtr& p, const DataMemberList& dataMembers, int baseType,
-                                       ContainerType ct) const
+void Slice::Gen::TypesVisitor::writeFactory(const ContainedPtr& p, const DataMemberList& dataMembers, int baseType,
+                                            ContainerType ct) const
 {
     if(!dataMembers.empty())
     {
@@ -1723,9 +1671,8 @@ Slice::Gen::TypesVisitor::writeFactory(const ContainedPtr& p, const DataMemberLi
     }
 }
 
-void
-Slice::Gen::TypesVisitor::writeCopyWithZone(const ContainedPtr& p, const DataMemberList& dataMembers,
-                                            int baseType, ContainerType ct) const
+void Slice::Gen::TypesVisitor::writeCopyWithZone(const ContainedPtr& p, const DataMemberList& dataMembers, int baseType,
+                                                 ContainerType ct) const
 {
     if(dataMembers.empty())
     {
@@ -1746,8 +1693,7 @@ Slice::Gen::TypesVisitor::writeCopyWithZone(const ContainedPtr& p, const DataMem
     _H << nl << "// This class also overrides copyWithZone:";
 }
 
-void
-Slice::Gen::TypesVisitor::writeMembers(const DataMemberList& dataMembers, int baseType) const
+void Slice::Gen::TypesVisitor::writeMembers(const DataMemberList& dataMembers, int baseType) const
 {
     for(DataMemberList::const_iterator q = dataMembers.begin(); q != dataMembers.end(); ++q)
     {
@@ -1777,9 +1723,8 @@ Slice::Gen::TypesVisitor::writeMembers(const DataMemberList& dataMembers, int ba
     }
 }
 
-void
-Slice::Gen::TypesVisitor::writeMemberSignature(const DataMemberList& dataMembers, int baseType,
-                                               ContainerType ct) const
+void Slice::Gen::TypesVisitor::writeMemberSignature(const DataMemberList& dataMembers, int baseType,
+                                                    ContainerType ct) const
 {
     if(ct == LocalException)
     {
@@ -1811,9 +1756,8 @@ Slice::Gen::TypesVisitor::writeMemberSignature(const DataMemberList& dataMembers
     }
 }
 
-void
-Slice::Gen::TypesVisitor::writeMemberCall(const DataMemberList& dataMembers, int baseType,
-                                          ContainerType ct, Escape esc) const
+void Slice::Gen::TypesVisitor::writeMemberCall(const DataMemberList& dataMembers, int baseType, ContainerType ct,
+                                               Escape esc) const
 {
     for(DataMemberList::const_iterator q = dataMembers.begin(); q != dataMembers.end(); ++q)
     {
@@ -1831,11 +1775,13 @@ Slice::Gen::TypesVisitor::writeMemberCall(const DataMemberList& dataMembers, int
             {
                 if(isValueType((*q)->type()))
                 {
-                    _M << ":" << "(self->has_" << name << "__ ? @(self->" << name << ") : ICENone)";
+                    _M << ":"
+                       << "(self->has_" << name << "__ ? @(self->" << name << ") : ICENone)";
                 }
                 else
                 {
-                    _M << ":" << "(self->has_" << name << "__ ? self->" << name << " : ICENone)";
+                    _M << ":"
+                       << "(self->has_" << name << "__ ? self->" << name << " : ICENone)";
                 }
             }
             else
@@ -1850,8 +1796,7 @@ Slice::Gen::TypesVisitor::writeMemberCall(const DataMemberList& dataMembers, int
     }
 }
 
-bool
-Slice::Gen::TypesVisitor::requiresMemberInit(const DataMemberList& members) const
+bool Slice::Gen::TypesVisitor::requiresMemberInit(const DataMemberList& members) const
 {
     for(DataMemberList::const_iterator p = members.begin(); p != members.end(); ++p)
     {
@@ -1875,8 +1820,7 @@ Slice::Gen::TypesVisitor::requiresMemberInit(const DataMemberList& members) cons
     return false;
 }
 
-void
-Slice::Gen::TypesVisitor::writeMemberDefaultValueInit(const DataMemberList& dataMembers, int baseType) const
+void Slice::Gen::TypesVisitor::writeMemberDefaultValueInit(const DataMemberList& dataMembers, int baseType) const
 {
     for(DataMemberList::const_iterator p = dataMembers.begin(); p != dataMembers.end(); ++p)
     {
@@ -1896,14 +1840,14 @@ Slice::Gen::TypesVisitor::writeMemberDefaultValueInit(const DataMemberList& data
             BuiltinPtr builtin = BuiltinPtr::dynamicCast((*p)->type());
             if(builtin && builtin->kind() == Builtin::KindString)
             {
-                _M << nl <<  "self->" << name << " = @\"\";";
+                _M << nl << "self->" << name << " = @\"\";";
             }
 
             EnumPtr en = EnumPtr::dynamicCast((*p)->type());
             if(en)
             {
                 string firstEnum = fixName(en->enumerators().front());
-                _M << nl <<  "self->" << name << " = " << firstEnum << ';';
+                _M << nl << "self->" << name << " = " << firstEnum << ';';
             }
 
             if(!(*p)->optional())
@@ -1911,15 +1855,14 @@ Slice::Gen::TypesVisitor::writeMemberDefaultValueInit(const DataMemberList& data
                 StructPtr st = StructPtr::dynamicCast((*p)->type());
                 if(st)
                 {
-                    _M << nl <<  "self->" << name << " = [[" << typeToString(st) << " alloc] init];";
+                    _M << nl << "self->" << name << " = [[" << typeToString(st) << " alloc] init];";
                 }
             }
         }
     }
 }
 
-void
-Slice::Gen::TypesVisitor::writeMemberInit(const DataMemberList& dataMembers, int baseType) const
+void Slice::Gen::TypesVisitor::writeMemberInit(const DataMemberList& dataMembers, int baseType) const
 {
     for(DataMemberList::const_iterator q = dataMembers.begin(); q != dataMembers.end(); ++q)
     {
@@ -1947,14 +1890,14 @@ Slice::Gen::TypesVisitor::writeMemberInit(const DataMemberList& dataMembers, int
             }
             else
             {
-                _M << nl << "self->" << fixId((*q)->name(), baseType) << " = ICE_RETAIN(" << getParamName(*q, true) << ");";
+                _M << nl << "self->" << fixId((*q)->name(), baseType) << " = ICE_RETAIN(" << getParamName(*q, true)
+                   << ");";
             }
         }
     }
 }
 
-void
-Slice::Gen::TypesVisitor::writeProperties(const DataMemberList& dataMembers, int baseType) const
+void Slice::Gen::TypesVisitor::writeProperties(const DataMemberList& dataMembers, int baseType) const
 {
     for(DataMemberList::const_iterator q = dataMembers.begin(); q != dataMembers.end(); ++q)
     {
@@ -1990,8 +1933,7 @@ Slice::Gen::TypesVisitor::writeProperties(const DataMemberList& dataMembers, int
     }
 }
 
-void
-Slice::Gen::TypesVisitor::writeSynthesize(const DataMemberList& dataMembers, int baseType) const
+void Slice::Gen::TypesVisitor::writeSynthesize(const DataMemberList& dataMembers, int baseType) const
 {
     for(DataMemberList::const_iterator q = dataMembers.begin(); q != dataMembers.end(); ++q)
     {
@@ -2000,8 +1942,7 @@ Slice::Gen::TypesVisitor::writeSynthesize(const DataMemberList& dataMembers, int
     }
 }
 
-void
-Slice::Gen::TypesVisitor::writeOptionalDataMemberSelectors(const DataMemberList& dataMembers, int baseType) const
+void Slice::Gen::TypesVisitor::writeOptionalDataMemberSelectors(const DataMemberList& dataMembers, int baseType) const
 {
     for(DataMemberList::const_iterator q = dataMembers.begin(); q != dataMembers.end(); ++q)
     {
@@ -2055,8 +1996,7 @@ Slice::Gen::TypesVisitor::writeOptionalDataMemberSelectors(const DataMemberList&
     }
 }
 
-void
-Slice::Gen::TypesVisitor::writeMemberHashCode(const DataMemberList& dataMembers, int baseType) const
+void Slice::Gen::TypesVisitor::writeMemberHashCode(const DataMemberList& dataMembers, int baseType) const
 {
     _M << sp << nl << "-(NSUInteger) hash";
     _M << sb;
@@ -2095,7 +2035,7 @@ Slice::Gen::TypesVisitor::writeMemberHashCode(const DataMemberList& dataMembers,
             }
             else
             {
-                 _M << nl << "h_ = ((h_ << 5) + h_) ^ " << name << ";";
+                _M << nl << "h_ = ((h_ << 5) + h_) ^ " << name << ";";
             }
         }
         else
@@ -2107,8 +2047,7 @@ Slice::Gen::TypesVisitor::writeMemberHashCode(const DataMemberList& dataMembers,
     _M << eb;
 }
 
-void
-Slice::Gen::TypesVisitor::writeMemberEquals(const DataMemberList& dataMembers, int baseType) const
+void Slice::Gen::TypesVisitor::writeMemberEquals(const DataMemberList& dataMembers, int baseType) const
 {
     if(!dataMembers.empty())
     {
@@ -2152,8 +2091,8 @@ Slice::Gen::TypesVisitor::writeMemberEquals(const DataMemberList& dataMembers, i
     _M << nl << "return YES;";
 }
 
-void
-Slice::Gen::TypesVisitor::writeMemberDealloc(const DataMemberList& dataMembers, int baseType, const string& slicedData) const
+void Slice::Gen::TypesVisitor::writeMemberDealloc(const DataMemberList& dataMembers, int baseType,
+                                                  const string& slicedData) const
 {
     bool needsDealloc = !slicedData.empty();
     for(DataMemberList::const_iterator q = dataMembers.begin(); q != dataMembers.end(); ++q)
@@ -2194,9 +2133,8 @@ Slice::Gen::TypesVisitor::writeMemberDealloc(const DataMemberList& dataMembers, 
     _H << nl << "// This class also overrides dealloc";
 }
 
-void
-Slice::Gen::TypesVisitor::writeMemberMarshal(const DataMemberList& dataMembers, const DataMemberList& optionalMembers,
-                                             int baseType) const
+void Slice::Gen::TypesVisitor::writeMemberMarshal(const DataMemberList& dataMembers,
+                                                  const DataMemberList& optionalMembers, int baseType) const
 {
     for(DataMemberList::const_iterator q = dataMembers.begin(); q != dataMembers.end(); ++q)
     {
@@ -2209,16 +2147,16 @@ Slice::Gen::TypesVisitor::writeMemberMarshal(const DataMemberList& dataMembers, 
     {
         string name = fixId((*q)->name(), baseType);
         string frmt = getOptionalFormat((*q)->type());
-        _M << nl << "if(self->has_" << name << "__ && [ostr writeOptional:" << (*q)->tag() << " format:" << frmt << "])";
+        _M << nl << "if(self->has_" << name << "__ && [ostr writeOptional:" << (*q)->tag() << " format:" << frmt
+           << "])";
         _M << sb;
         writeOptMemberMarshalUnmarshalCode(_M, (*q)->type(), "self->" + name, true);
         _M << eb;
     }
 }
 
-void
-Slice::Gen::TypesVisitor::writeMemberUnmarshal(const DataMemberList& dataMembers, const DataMemberList& optionalMembers,
-                                               int baseType) const
+void Slice::Gen::TypesVisitor::writeMemberUnmarshal(const DataMemberList& dataMembers,
+                                                    const DataMemberList& optionalMembers, int baseType) const
 {
     for(DataMemberList::const_iterator q = dataMembers.begin(); q != dataMembers.end(); ++q)
     {
@@ -2243,13 +2181,11 @@ Slice::Gen::TypesVisitor::writeMemberUnmarshal(const DataMemberList& dataMembers
     }
 }
 
-Slice::Gen::ProxyVisitor::ProxyVisitor(Output& H, Output& M, const string& dllExport)
-    : ObjCVisitor(H, M, dllExport)
+Slice::Gen::ProxyVisitor::ProxyVisitor(Output& H, Output& M, const string& dllExport) : ObjCVisitor(H, M, dllExport)
 {
 }
 
-bool
-Slice::Gen::ProxyVisitor::visitClassDefStart(const ClassDefPtr& p)
+bool Slice::Gen::ProxyVisitor::visitClassDefStart(const ClassDefPtr& p)
 {
     if(p->isLocal())
     {
@@ -2281,14 +2217,12 @@ Slice::Gen::ProxyVisitor::visitClassDefStart(const ClassDefPtr& p)
     return true;
 }
 
-void
-Slice::Gen::ProxyVisitor::visitClassDefEnd(const ClassDefPtr&)
+void Slice::Gen::ProxyVisitor::visitClassDefEnd(const ClassDefPtr&)
 {
     _H << nl << "@end";
 }
 
-void
-Slice::Gen::ProxyVisitor::visitOperation(const OperationPtr& p)
+void Slice::Gen::ProxyVisitor::visitOperation(const OperationPtr& p)
 {
     string name = getName(p);
     TypePtr returnType = p->returnType();
@@ -2328,7 +2262,7 @@ Slice::Gen::ProxyVisitor::visitOperation(const OperationPtr& p)
     _H << ":(id<ICEAsyncResult>)" << getEscapedParamName(p, "result") << deprecateSymbol << ";";
 
     string responseExceptionDecl = ":(" + getResponseCBSig(p) + ")" + getEscapedParamName(p, "response") +
-        " exception:(void(^)(ICEException*))" + getEscapedParamName(p, "exception");
+                                   " exception:(void(^)(ICEException*))" + getEscapedParamName(p, "exception");
     string responseExceptionSentDecl = responseExceptionDecl + " sent:(void(^)(BOOL))" + getEscapedParamName(p, "sent");
 
     _H << nl << "-(id<ICEAsyncResult>) begin_" << p->name() << marshalParams;
@@ -2362,13 +2296,11 @@ Slice::Gen::ProxyVisitor::visitOperation(const OperationPtr& p)
     _H << " response" << responseExceptionSentDecl << deprecateSymbol << ";";
 }
 
-Slice::Gen::HelperVisitor::HelperVisitor(Output& H, Output& M, const string& dllExport) :
-    ObjCVisitor(H, M, dllExport)
+Slice::Gen::HelperVisitor::HelperVisitor(Output& H, Output& M, const string& dllExport) : ObjCVisitor(H, M, dllExport)
 {
 }
 
-bool
-Slice::Gen::HelperVisitor::visitClassDefStart(const ClassDefPtr& p)
+bool Slice::Gen::HelperVisitor::visitClassDefStart(const ClassDefPtr& p)
 {
     if(p->isLocal())
     {
@@ -2416,8 +2348,7 @@ Slice::Gen::HelperVisitor::visitClassDefStart(const ClassDefPtr& p)
     return false;
 }
 
-void
-Slice::Gen::HelperVisitor::visitEnum(const EnumPtr& p)
+void Slice::Gen::HelperVisitor::visitEnum(const EnumPtr& p)
 {
     if(p->isLocal())
     {
@@ -2441,8 +2372,7 @@ Slice::Gen::HelperVisitor::visitEnum(const EnumPtr& p)
     _M << nl << "@end";
 }
 
-void
-Slice::Gen::HelperVisitor::visitSequence(const SequencePtr& p)
+void Slice::Gen::HelperVisitor::visitSequence(const SequencePtr& p)
 {
     if(p->isLocal())
     {
@@ -2532,8 +2462,7 @@ Slice::Gen::HelperVisitor::visitSequence(const SequencePtr& p)
     _M << nl << "@end";
 }
 
-void
-Slice::Gen::HelperVisitor::visitDictionary(const DictionaryPtr& p)
+void Slice::Gen::HelperVisitor::visitDictionary(const DictionaryPtr& p)
 {
     if(p->isLocal())
     {
@@ -2624,8 +2553,7 @@ Slice::Gen::HelperVisitor::visitDictionary(const DictionaryPtr& p)
     _M << nl << "@end";
 }
 
-bool
-Slice::Gen::HelperVisitor::visitStructStart(const StructPtr& p)
+bool Slice::Gen::HelperVisitor::visitStructStart(const StructPtr& p)
 {
     if(p->isLocal())
     {
@@ -2634,7 +2562,7 @@ Slice::Gen::HelperVisitor::visitStructStart(const StructPtr& p)
 
     string name = fixName(p);
 
-    _H << sp << nl << _dllExport << "@interface " << name  << "Helper : ICEStructHelper";
+    _H << sp << nl << _dllExport << "@interface " << name << "Helper : ICEStructHelper";
     _H << nl << "@end";
 
     _M << sp << nl << "@implementation " << name << "Helper";
@@ -2664,24 +2592,21 @@ Slice::Gen::HelperVisitor::visitStructStart(const StructPtr& p)
     return false;
 }
 
-Slice::Gen::DelegateMVisitor::DelegateMVisitor(Output& H, Output& M, const string& dllExport)
-    : ObjCVisitor(H, M, dllExport)
+Slice::Gen::DelegateMVisitor::DelegateMVisitor(Output& H, Output& M, const string& dllExport) :
+    ObjCVisitor(H, M, dllExport)
 {
 }
 
-bool
-Slice::Gen::DelegateMVisitor::visitModuleStart(const ModulePtr& p)
+bool Slice::Gen::DelegateMVisitor::visitModuleStart(const ModulePtr& p)
 {
     return true;
 }
 
-void
-Slice::Gen::DelegateMVisitor::visitModuleEnd(const ModulePtr&)
+void Slice::Gen::DelegateMVisitor::visitModuleEnd(const ModulePtr&)
 {
 }
 
-bool
-Slice::Gen::DelegateMVisitor::visitClassDefStart(const ClassDefPtr& p)
+bool Slice::Gen::DelegateMVisitor::visitClassDefStart(const ClassDefPtr& p)
 {
     if(p->isLocal())
     {
@@ -2798,9 +2723,9 @@ Slice::Gen::DelegateMVisitor::visitClassDefStart(const ClassDefPtr& p)
             unmarshal = "nil";
         }
 
-        _M << nl << "[self iceInvoke:@\"" << (*r)->name() <<  "\" mode:" << sliceModeToIceMode((*r)->sendMode())
-           << " format:" << opFormatTypeToString(*r) << " marshal:" << marshal
-           << " unmarshal:" << unmarshal << " context:context];";
+        _M << nl << "[self iceInvoke:@\"" << (*r)->name() << "\" mode:" << sliceModeToIceMode((*r)->sendMode())
+           << " format:" << opFormatTypeToString(*r) << " marshal:" << marshal << " unmarshal:" << unmarshal
+           << " context:context];";
         if(returnType)
         {
             _M << nl << "return ret;";
@@ -2828,11 +2753,9 @@ Slice::Gen::DelegateMVisitor::visitClassDefStart(const ClassDefPtr& p)
             _M << "{ [" << className << "Prx iceI_" << (*r)->name() << "_marshal" << marshalArgs;
             _M << (marshalArgs.empty() ? "" : " os") << ":ostr]; };";
         }
-        _M << nl << "return [self iceI_begin_invoke:@\"" << (*r)->name() <<  "\" mode:"
-           << sliceModeToIceMode((*r)->sendMode()) << " format:" << opFormatTypeToString(*r)
-           << " marshal:" << marshal
-           << " returnsData:" << ((*r)->returnsData() ? "YES" : "NO")
-           << " context:context];";
+        _M << nl << "return [self iceI_begin_invoke:@\"" << (*r)->name()
+           << "\" mode:" << sliceModeToIceMode((*r)->sendMode()) << " format:" << opFormatTypeToString(*r)
+           << " marshal:" << marshal << " returnsData:" << ((*r)->returnsData() ? "YES" : "NO") << " context:context];";
         _M << eb;
 
         //
@@ -2988,22 +2911,23 @@ Slice::Gen::DelegateMVisitor::visitClassDefStart(const ClassDefPtr& p)
             _M << eb << ";";
             if(returnType || !outParams.empty())
             {
-                _M << nl << "return [self iceI_begin_invoke:@\"" << (*r)->name() <<  "\" mode:"
-                   << sliceModeToIceMode((*r)->sendMode()) << " format:" << opFormatTypeToString(*r)
+                _M << nl << "return [self iceI_begin_invoke:@\"" << (*r)->name()
+                   << "\" mode:" << sliceModeToIceMode((*r)->sendMode()) << " format:" << opFormatTypeToString(*r)
                    << " marshal:" << marshal
                    << " completed:completed response:(response != nil) exception:exception sent:sent context:context];";
             }
             else
             {
-                _M << nl << "return [self iceI_begin_invoke:@\"" << (*r)->name() <<  "\" mode:"
-                   << sliceModeToIceMode((*r)->sendMode()) << " format:" << opFormatTypeToString(*r)
-                   << " marshal:" << marshal << " completed:completed response:YES exception:exception sent:sent context:context];";
+                _M << nl << "return [self iceI_begin_invoke:@\"" << (*r)->name()
+                   << "\" mode:" << sliceModeToIceMode((*r)->sendMode()) << " format:" << opFormatTypeToString(*r)
+                   << " marshal:" << marshal
+                   << " completed:completed response:YES exception:exception sent:sent context:context];";
             }
         }
         else
         {
-            _M << nl << "return [self iceI_begin_invoke:@\"" << (*r)->name() <<  "\" mode:"
-               << sliceModeToIceMode((*r)->sendMode()) << " format:" << opFormatTypeToString(*r)
+            _M << nl << "return [self iceI_begin_invoke:@\"" << (*r)->name()
+               << "\" mode:" << sliceModeToIceMode((*r)->sendMode()) << " format:" << opFormatTypeToString(*r)
                << " marshal:" << marshal << " response:response exception:exception sent:sent context:context];";
         }
         _M << eb;
@@ -3017,15 +2941,13 @@ Slice::Gen::DelegateMVisitor::visitClassDefStart(const ClassDefPtr& p)
     return true;
 }
 
-void
-Slice::Gen::DelegateMVisitor::visitClassDefEnd(const ClassDefPtr& p)
+void Slice::Gen::DelegateMVisitor::visitClassDefEnd(const ClassDefPtr& p)
 {
     _H << nl << "@end";
     _M << nl << "@end";
 }
 
-void
-Slice::Gen::DelegateMVisitor::visitOperation(const OperationPtr& p)
+void Slice::Gen::DelegateMVisitor::visitOperation(const OperationPtr& p)
 {
     TypePtr returnType = p->returnType();
     string retString = outTypeToString(returnType, p->returnIsOptional());

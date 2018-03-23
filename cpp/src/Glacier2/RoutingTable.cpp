@@ -22,8 +22,7 @@ Glacier2::RoutingTable::RoutingTable(const CommunicatorPtr& communicator, const 
 {
 }
 
-void
-Glacier2::RoutingTable::destroy()
+void Glacier2::RoutingTable::destroy()
 {
     IceUtil::Mutex::Lock sync(*this);
     if(_observer)
@@ -34,8 +33,7 @@ Glacier2::RoutingTable::destroy()
 }
 
 Glacier2::Instrumentation::SessionObserverPtr
-Glacier2::RoutingTable::updateObserver(const Glacier2::Instrumentation::RouterObserverPtr& obsv,
-                                       const string& userId,
+Glacier2::RoutingTable::updateObserver(const Glacier2::Instrumentation::RouterObserverPtr& obsv, const string& userId,
                                        const Ice::ConnectionPtr& connection)
 {
     IceUtil::Mutex::Lock sync(*this);
@@ -43,8 +41,7 @@ Glacier2::RoutingTable::updateObserver(const Glacier2::Instrumentation::RouterOb
     return _observer.get();
 }
 
-ObjectProxySeq
-Glacier2::RoutingTable::add(const ObjectProxySeq& unfiltered, const Current& current)
+ObjectProxySeq Glacier2::RoutingTable::add(const ObjectProxySeq& unfiltered, const Current& current)
 {
     IceUtil::Mutex::Lock sync(*this);
 
@@ -131,8 +128,7 @@ Glacier2::RoutingTable::add(const ObjectProxySeq& unfiltered, const Current& cur
     return evictedProxies;
 }
 
-ObjectPrx
-Glacier2::RoutingTable::get(const Identity& ident)
+ObjectPrx Glacier2::RoutingTable::get(const Identity& ident)
 {
     if(ident.name.empty())
     {

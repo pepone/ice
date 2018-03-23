@@ -24,163 +24,155 @@ using namespace IceGrid;
 
 namespace IceGrid
 {
-
-struct ReplicaLoadComp : binary_function<ServerAdapterEntryPtr&, ServerAdapterEntryPtr&, bool>
-{
-    bool operator()(const pair<float, ServerAdapterEntryPtr>& lhs, const pair<float, ServerAdapterEntryPtr>& rhs)
+    struct ReplicaLoadComp : binary_function<ServerAdapterEntryPtr&, ServerAdapterEntryPtr&, bool>
     {
-        return lhs.first < rhs.first;
-    }
-};
-
-struct ReplicaPriorityComp : binary_function<ServerAdapterEntryPtr&, ServerAdapterEntryPtr&, bool>
-{
-    bool operator()(const ServerAdapterEntryPtr& lhs, const ServerAdapterEntryPtr& rhs)
-    {
-        return lhs->getPriority() < rhs->getPriority();
-    }
-};
-
-struct TransformToReplicaLoad :
-        public unary_function<const ServerAdapterEntryPtr&, pair<float, ServerAdapterEntryPtr> >
-{
-public:
-
-    TransformToReplicaLoad(LoadSample loadSample) : _loadSample(loadSample) { }
-
-    pair<float, ServerAdapterEntryPtr>
-    operator()(const ServerAdapterEntryPtr& value)
-    {
-        return make_pair(value->getLeastLoadedNodeLoad(_loadSample), value);
-    }
-
-    LoadSample _loadSample;
-};
-
-struct TransformToReplica : public unary_function<const pair<string, ServerAdapterEntryPtr>&, ServerAdapterEntryPtr>
-{
-    ServerAdapterEntryPtr
-    operator()(const pair<float, ServerAdapterEntryPtr>& value)
-    {
-        return value.second;
-    }
-};
-
-class ReplicaGroupSyncCallback : public SynchronizationCallback, public IceUtil::Mutex
-{
-public:
-
-    ReplicaGroupSyncCallback(const SynchronizationCallbackPtr& callback, int count, int nReplicas) :
-        _callback(callback),
-        _responseCalled(false),
-        _synchronizeCount(count),
-        _synchronizedCount(0),
-        _nReplicas(nReplicas > count ? count : nReplicas)
-    {
-    }
-
-    bool
-    response()
-    {
-        Lock sync(*this);
-        _responseCalled = true;
-        if(_synchronizedCount >= _nReplicas)
+        bool operator()(const pair<float, ServerAdapterEntryPtr>& lhs, const pair<float, ServerAdapterEntryPtr>& rhs)
         {
-            _callback = 0;
-            return false;
+            return lhs.first < rhs.first;
         }
-        else if(_synchronizeCount == 0)
-        {
-            if(_synchronizedCount == 0 && _exception.get())
-            {
-                _exception->ice_throw();
-            }
-            _callback = 0;
-            return false;
-        }
-        return true;
-    }
+    };
 
-    void
-    synchronized()
+    struct ReplicaPriorityComp : binary_function<ServerAdapterEntryPtr&, ServerAdapterEntryPtr&, bool>
     {
-        SynchronizationCallbackPtr callback;
+        bool operator()(const ServerAdapterEntryPtr& lhs, const ServerAdapterEntryPtr& rhs)
+        {
+            return lhs->getPriority() < rhs->getPriority();
+        }
+    };
+
+    struct TransformToReplicaLoad
+        : public unary_function<const ServerAdapterEntryPtr&, pair<float, ServerAdapterEntryPtr>>
+    {
+    public:
+        TransformToReplicaLoad(LoadSample loadSample) : _loadSample(loadSample)
+        {
+        }
+
+        pair<float, ServerAdapterEntryPtr> operator()(const ServerAdapterEntryPtr& value)
+        {
+            return make_pair(value->getLeastLoadedNodeLoad(_loadSample), value);
+        }
+
+        LoadSample _loadSample;
+    };
+
+    struct TransformToReplica : public unary_function<const pair<string, ServerAdapterEntryPtr>&, ServerAdapterEntryPtr>
+    {
+        ServerAdapterEntryPtr operator()(const pair<float, ServerAdapterEntryPtr>& value)
+        {
+            return value.second;
+        }
+    };
+
+    class ReplicaGroupSyncCallback : public SynchronizationCallback, public IceUtil::Mutex
+    {
+    public:
+        ReplicaGroupSyncCallback(const SynchronizationCallbackPtr& callback, int count, int nReplicas) :
+            _callback(callback),
+            _responseCalled(false),
+            _synchronizeCount(count),
+            _synchronizedCount(0),
+            _nReplicas(nReplicas > count ? count : nReplicas)
+        {
+        }
+
+        bool response()
         {
             Lock sync(*this);
-            ++_synchronizedCount;
-            --_synchronizeCount;
-
-            if(!_responseCalled)
+            _responseCalled = true;
+            if(_synchronizedCount >= _nReplicas)
             {
-                return;
+                _callback = 0;
+                return false;
             }
-
-            if(_synchronizedCount < _nReplicas && _synchronizeCount > 0)
+            else if(_synchronizeCount == 0)
             {
-                return;
+                if(_synchronizedCount == 0 && _exception.get())
+                {
+                    _exception->ice_throw();
+                }
+                _callback = 0;
+                return false;
             }
-
-            callback = _callback;
-            _callback = 0;
+            return true;
         }
 
-        if(callback)
+        void synchronized()
         {
-            callback->synchronized();
-        }
-    }
+            SynchronizationCallbackPtr callback;
+            {
+                Lock sync(*this);
+                ++_synchronizedCount;
+                --_synchronizeCount;
 
-    void
-    synchronized(const Ice::Exception& ex)
-    {
-        SynchronizationCallbackPtr callback;
+                if(!_responseCalled)
+                {
+                    return;
+                }
+
+                if(_synchronizedCount < _nReplicas && _synchronizeCount > 0)
+                {
+                    return;
+                }
+
+                callback = _callback;
+                _callback = 0;
+            }
+
+            if(callback)
+            {
+                callback->synchronized();
+            }
+        }
+
+        void synchronized(const Ice::Exception& ex)
         {
-            Lock sync(*this);
-            if(!_exception.get())
+            SynchronizationCallbackPtr callback;
             {
-                _exception.reset(ex.ice_clone());
+                Lock sync(*this);
+                if(!_exception.get())
+                {
+                    _exception.reset(ex.ice_clone());
+                }
+
+                --_synchronizeCount;
+                if(!_responseCalled)
+                {
+                    return;
+                }
+
+                if(_synchronizeCount > 0)
+                {
+                    return;
+                }
+
+                callback = _callback;
+                _callback = 0;
             }
 
-            --_synchronizeCount;
-            if(!_responseCalled)
+            if(callback)
             {
-                return;
+                callback->synchronized(ex);
             }
-
-            if(_synchronizeCount > 0)
-            {
-                return;
-            }
-
-            callback = _callback;
-            _callback = 0;
         }
 
-        if(callback)
-        {
-            callback->synchronized(ex);
-        }
-    }
+    private:
+        SynchronizationCallbackPtr _callback;
+        bool _responseCalled;
+        int _synchronizeCount;
+        int _synchronizedCount;
+        int _nReplicas;
+        IceInternal::UniquePtr<Ice::Exception> _exception;
+    };
+    typedef IceUtil::Handle<ReplicaGroupSyncCallback> ReplicaGroupSyncCallbackPtr;
 
-private:
-
-    SynchronizationCallbackPtr _callback;
-    bool _responseCalled;
-    int _synchronizeCount;
-    int _synchronizedCount;
-    int _nReplicas;
-    IceInternal::UniquePtr<Ice::Exception> _exception;
-};
-typedef IceUtil::Handle<ReplicaGroupSyncCallback> ReplicaGroupSyncCallbackPtr;
-
-}
+} // namespace IceGrid
 
 AdapterCache::AdapterCache(const Ice::CommunicatorPtr& communicator) : _communicator(communicator)
 {
 }
 
-void
-AdapterCache::addServerAdapter(const AdapterDescriptor& desc, const ServerEntryPtr& server, const string& app)
+void AdapterCache::addServerAdapter(const AdapterDescriptor& desc, const ServerEntryPtr& server, const string& app)
 {
     Lock sync(*this);
     if(getImpl(desc.id))
@@ -213,8 +205,7 @@ AdapterCache::addServerAdapter(const AdapterDescriptor& desc, const ServerEntryP
     }
 }
 
-void
-AdapterCache::addReplicaGroup(const ReplicaGroupDescriptor& desc, const string& app)
+void AdapterCache::addReplicaGroup(const ReplicaGroupDescriptor& desc, const string& app)
 {
     Lock sync(*this);
     ReplicaGroupEntryPtr repEntry = ReplicaGroupEntryPtr::dynamicCast(getImpl(desc.id));
@@ -238,8 +229,7 @@ AdapterCache::addReplicaGroup(const ReplicaGroupDescriptor& desc, const string& 
     addImpl(desc.id, new ReplicaGroupEntry(*this, desc.id, app, desc.loadBalancing, desc.filter));
 }
 
-AdapterEntryPtr
-AdapterCache::get(const string& id) const
+AdapterEntryPtr AdapterCache::get(const string& id) const
 {
     Lock sync(*this);
     AdapterEntryPtr entry = getImpl(id);
@@ -250,8 +240,7 @@ AdapterCache::get(const string& id) const
     return entry;
 }
 
-void
-AdapterCache::removeServerAdapter(const string& id)
+void AdapterCache::removeServerAdapter(const string& id)
 {
     Lock sync(*this);
 
@@ -286,8 +275,7 @@ AdapterCache::removeServerAdapter(const string& id)
     }
 }
 
-void
-AdapterCache::removeReplicaGroup(const string& id)
+void AdapterCache::removeReplicaGroup(const string& id)
 {
     Lock sync(*this);
     ReplicaGroupEntryPtr entry = ReplicaGroupEntryPtr::dynamicCast(getImpl(id));
@@ -300,8 +288,7 @@ AdapterCache::removeReplicaGroup(const string& id)
     removeImpl(id);
 }
 
-AdapterEntryPtr
-AdapterCache::addImpl(const string& id, const AdapterEntryPtr& entry)
+AdapterEntryPtr AdapterCache::addImpl(const string& id, const AdapterEntryPtr& entry)
 {
     if(_traceLevels && _traceLevels->adapter > 0)
     {
@@ -311,8 +298,7 @@ AdapterCache::addImpl(const string& id, const AdapterEntryPtr& entry)
     return Cache<string, AdapterEntry>::addImpl(id, entry);
 }
 
-void
-AdapterCache::removeImpl(const string& id)
+void AdapterCache::removeImpl(const string& id)
 {
     if(_traceLevels && _traceLevels->adapter > 0)
     {
@@ -329,30 +315,23 @@ AdapterEntry::AdapterEntry(AdapterCache& cache, const string& id, const string& 
 {
 }
 
-bool
-AdapterEntry::canRemove()
+bool AdapterEntry::canRemove()
 {
     return true;
 }
 
-string
-AdapterEntry::getId() const
+string AdapterEntry::getId() const
 {
     return _id;
 }
 
-string
-AdapterEntry::getApplication() const
+string AdapterEntry::getApplication() const
 {
     return _application;
 }
 
-ServerAdapterEntry::ServerAdapterEntry(AdapterCache& cache,
-                                       const string& id,
-                                       const string& application,
-                                       const string& replicaGroupId,
-                                       int priority,
-                                       const ServerEntryPtr& server) :
+ServerAdapterEntry::ServerAdapterEntry(AdapterCache& cache, const string& id, const string& application,
+                                       const string& replicaGroupId, int priority, const ServerEntryPtr& server) :
     AdapterEntry(cache, id, application),
     _replicaGroupId(replicaGroupId),
     _priority(priority),
@@ -360,8 +339,7 @@ ServerAdapterEntry::ServerAdapterEntry(AdapterCache& cache,
 {
 }
 
-bool
-ServerAdapterEntry::addSyncCallback(const SynchronizationCallbackPtr& callback, const set<string>&)
+bool ServerAdapterEntry::addSyncCallback(const SynchronizationCallbackPtr& callback, const set<string>&)
 {
     try
     {
@@ -373,9 +351,8 @@ ServerAdapterEntry::addSyncCallback(const SynchronizationCallbackPtr& callback, 
     }
 }
 
-void
-ServerAdapterEntry::getLocatorAdapterInfo(LocatorAdapterInfoSeq& adapters, int& nReplicas, bool& replicaGroup,
-                                          bool& roundRobin, string& filter, const set<string>&)
+void ServerAdapterEntry::getLocatorAdapterInfo(LocatorAdapterInfoSeq& adapters, int& nReplicas, bool& replicaGroup,
+                                               bool& roundRobin, string& filter, const set<string>&)
 {
     nReplicas = 1;
     replicaGroup = false;
@@ -383,8 +360,7 @@ ServerAdapterEntry::getLocatorAdapterInfo(LocatorAdapterInfoSeq& adapters, int& 
     getLocatorAdapterInfo(adapters);
 }
 
-float
-ServerAdapterEntry::getLeastLoadedNodeLoad(LoadSample loadSample) const
+float ServerAdapterEntry::getLeastLoadedNodeLoad(LoadSample loadSample) const
 {
     try
     {
@@ -409,8 +385,7 @@ ServerAdapterEntry::getLeastLoadedNodeLoad(LoadSample loadSample) const
     return 999.9f;
 }
 
-AdapterInfoSeq
-ServerAdapterEntry::getAdapterInfo() const
+AdapterInfoSeq ServerAdapterEntry::getAdapterInfo() const
 {
     AdapterInfo info;
     info.id = _id;
@@ -430,8 +405,7 @@ ServerAdapterEntry::getAdapterInfo() const
     return infos;
 }
 
-AdapterPrx
-ServerAdapterEntry::getProxy(const string& replicaGroupId, bool upToDate) const
+AdapterPrx ServerAdapterEntry::getProxy(const string& replicaGroupId, bool upToDate) const
 {
     if(replicaGroupId.empty())
     {
@@ -447,8 +421,7 @@ ServerAdapterEntry::getProxy(const string& replicaGroupId, bool upToDate) const
     }
 }
 
-void
-ServerAdapterEntry::getLocatorAdapterInfo(LocatorAdapterInfoSeq& adapters) const
+void ServerAdapterEntry::getLocatorAdapterInfo(LocatorAdapterInfoSeq& adapters) const
 {
     LocatorAdapterInfo info;
     info.id = _id;
@@ -456,20 +429,17 @@ ServerAdapterEntry::getLocatorAdapterInfo(LocatorAdapterInfoSeq& adapters) const
     adapters.push_back(info);
 }
 
-int
-ServerAdapterEntry::getPriority() const
+int ServerAdapterEntry::getPriority() const
 {
     return _priority;
 }
 
-string
-ServerAdapterEntry::getServerId() const
+string ServerAdapterEntry::getServerId() const
 {
     return _server->getId();
 }
 
-string
-ServerAdapterEntry::getNodeName() const
+string ServerAdapterEntry::getNodeName() const
 {
     try
     {
@@ -481,11 +451,8 @@ ServerAdapterEntry::getNodeName() const
     }
 }
 
-ReplicaGroupEntry::ReplicaGroupEntry(AdapterCache& cache,
-                                     const string& id,
-                                     const string& application,
-                                     const LoadBalancingPolicyPtr& policy,
-                                     const string& filter) :
+ReplicaGroupEntry::ReplicaGroupEntry(AdapterCache& cache, const string& id, const string& application,
+                                     const LoadBalancingPolicyPtr& policy, const string& filter) :
     AdapterEntry(cache, id, application),
     _lastReplica(0),
     _requestInProgress(false)
@@ -493,8 +460,7 @@ ReplicaGroupEntry::ReplicaGroupEntry(AdapterCache& cache,
     update(application, policy, filter);
 }
 
-bool
-ReplicaGroupEntry::addSyncCallback(const SynchronizationCallbackPtr& callback, const set<string>& excludes)
+bool ReplicaGroupEntry::addSyncCallback(const SynchronizationCallbackPtr& callback, const set<string>& excludes)
 {
     vector<ServerAdapterEntryPtr> replicas;
     int nReplicas;
@@ -524,9 +490,8 @@ ReplicaGroupEntry::addSyncCallback(const SynchronizationCallbackPtr& callback, c
         }
     }
 
-    ReplicaGroupSyncCallbackPtr cb = new ReplicaGroupSyncCallback(callback,
-                                                                  static_cast<int>(replicas.size()),
-                                                                  nReplicas);
+    ReplicaGroupSyncCallbackPtr cb =
+        new ReplicaGroupSyncCallback(callback, static_cast<int>(replicas.size()), nReplicas);
     set<string> emptyExcludes;
     for(vector<ServerAdapterEntryPtr>::const_iterator p = replicas.begin(); p != replicas.end(); ++p)
     {
@@ -545,15 +510,13 @@ ReplicaGroupEntry::addSyncCallback(const SynchronizationCallbackPtr& callback, c
     return cb->response();
 }
 
-void
-ReplicaGroupEntry::addReplica(const string& /*replicaId*/, const ServerAdapterEntryPtr& adapter)
+void ReplicaGroupEntry::addReplica(const string& /*replicaId*/, const ServerAdapterEntryPtr& adapter)
 {
     Lock sync(*this);
     _replicas.push_back(adapter);
 }
 
-bool
-ReplicaGroupEntry::removeReplica(const string& replicaId)
+bool ReplicaGroupEntry::removeReplica(const string& replicaId)
 {
     Lock sync(*this);
     for(vector<ServerAdapterEntryPtr>::iterator p = _replicas.begin(); p != _replicas.end(); ++p)
@@ -571,8 +534,7 @@ ReplicaGroupEntry::removeReplica(const string& replicaId)
     return _replicas.empty() && _application.empty();
 }
 
-void
-ReplicaGroupEntry::update(const string& application, const LoadBalancingPolicyPtr& policy, const string& filter)
+void ReplicaGroupEntry::update(const string& application, const LoadBalancingPolicyPtr& policy, const string& filter)
 {
     Lock sync(*this);
     assert(policy);
@@ -607,9 +569,8 @@ ReplicaGroupEntry::update(const string& application, const LoadBalancingPolicyPt
     }
 }
 
-void
-ReplicaGroupEntry::getLocatorAdapterInfo(LocatorAdapterInfoSeq& adapters, int& nReplicas, bool& replicaGroup,
-                                         bool& roundRobin, string& filter, const set<string>& excludes)
+void ReplicaGroupEntry::getLocatorAdapterInfo(LocatorAdapterInfoSeq& adapters, int& nReplicas, bool& replicaGroup,
+                                              bool& roundRobin, string& filter, const set<string>& excludes)
 {
     vector<ServerAdapterEntryPtr> replicas;
     bool adaptive = false;
@@ -676,7 +637,7 @@ ReplicaGroupEntry::getLocatorAdapterInfo(LocatorAdapterInfoSeq& adapters, int& n
             // server adapter is not stable so we first take a snapshot of
             // each adapter and sort the snapshot.
             //
-            vector<pair<float, ServerAdapterEntryPtr> > rl;
+            vector<pair<float, ServerAdapterEntryPtr>> rl;
             transform(replicas.begin(), replicas.end(), back_inserter(rl), TransformToReplicaLoad(loadSample));
             sort(rl.begin(), rl.end(), ReplicaLoadComp());
             replicas.clear();
@@ -743,8 +704,7 @@ ReplicaGroupEntry::getLocatorAdapterInfo(LocatorAdapterInfoSeq& adapters, int& n
     }
 }
 
-float
-ReplicaGroupEntry::getLeastLoadedNodeLoad(LoadSample loadSample) const
+float ReplicaGroupEntry::getLeastLoadedNodeLoad(LoadSample loadSample) const
 {
     vector<ServerAdapterEntryPtr> replicas;
     {
@@ -764,14 +724,13 @@ ReplicaGroupEntry::getLeastLoadedNodeLoad(LoadSample loadSample) const
     {
         RandomNumberGenerator rng;
         random_shuffle(replicas.begin(), replicas.end(), rng);
-        vector<pair<float, ServerAdapterEntryPtr> > rl;
+        vector<pair<float, ServerAdapterEntryPtr>> rl;
         transform(replicas.begin(), replicas.end(), back_inserter(rl), TransformToReplicaLoad(loadSample));
         return min_element(rl.begin(), rl.end(), ReplicaLoadComp())->first;
     }
 }
 
-AdapterInfoSeq
-ReplicaGroupEntry::getAdapterInfo() const
+AdapterInfoSeq ReplicaGroupEntry::getAdapterInfo() const
 {
     //
     // This method is called with the database locked so we're sure
@@ -793,8 +752,7 @@ ReplicaGroupEntry::getAdapterInfo() const
     return infos;
 }
 
-bool
-ReplicaGroupEntry::hasAdaptersFromOtherApplications() const
+bool ReplicaGroupEntry::hasAdaptersFromOtherApplications() const
 {
     vector<ServerAdapterEntryPtr> replicas;
     {

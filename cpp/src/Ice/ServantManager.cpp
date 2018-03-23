@@ -18,10 +18,12 @@ using namespace std;
 using namespace Ice;
 using namespace IceInternal;
 
-ICE_API IceUtil::Shared* IceInternal::upCast(ServantManager* p) { return p; }
+ICE_API IceUtil::Shared* IceInternal::upCast(ServantManager* p)
+{
+    return p;
+}
 
-void
-IceInternal::ServantManager::addServant(const ObjectPtr& object, const Identity& ident, const string& facet)
+void IceInternal::ServantManager::addServant(const ObjectPtr& object, const Identity& ident, const string& facet)
 {
     IceUtil::Mutex::Lock sync(*this);
 
@@ -58,8 +60,7 @@ IceInternal::ServantManager::addServant(const ObjectPtr& object, const Identity&
     p->second.insert(pair<const string, ObjectPtr>(facet, object));
 }
 
-void
-IceInternal::ServantManager::addDefaultServant(const ObjectPtr& object, const string& category)
+void IceInternal::ServantManager::addDefaultServant(const ObjectPtr& object, const string& category)
 {
     IceUtil::Mutex::Lock sync(*this);
 
@@ -74,8 +75,7 @@ IceInternal::ServantManager::addDefaultServant(const ObjectPtr& object, const st
     _defaultServantMap.insert(pair<const string, ObjectPtr>(category, object));
 }
 
-ObjectPtr
-IceInternal::ServantManager::removeServant(const Identity& ident, const string& facet)
+ObjectPtr IceInternal::ServantManager::removeServant(const Identity& ident, const string& facet)
 {
     //
     // We return the removed servant to avoid releasing the last reference count
@@ -126,8 +126,7 @@ IceInternal::ServantManager::removeServant(const Identity& ident, const string& 
     return servant;
 }
 
-ObjectPtr
-IceInternal::ServantManager::removeDefaultServant(const string& category)
+ObjectPtr IceInternal::ServantManager::removeDefaultServant(const string& category)
 {
     //
     // We return the removed servant to avoid releasing the last reference count
@@ -152,8 +151,7 @@ IceInternal::ServantManager::removeDefaultServant(const string& category)
     return servant;
 }
 
-FacetMap
-IceInternal::ServantManager::removeAllFacets(const Identity& ident)
+FacetMap IceInternal::ServantManager::removeAllFacets(const Identity& ident)
 {
     IceUtil::Mutex::Lock sync(*this);
 
@@ -187,8 +185,7 @@ IceInternal::ServantManager::removeAllFacets(const Identity& ident)
     return result;
 }
 
-ObjectPtr
-IceInternal::ServantManager::findServant(const Identity& ident, const string& facet) const
+ObjectPtr IceInternal::ServantManager::findServant(const Identity& ident, const string& facet) const
 {
     IceUtil::Mutex::Lock sync(*this);
 
@@ -198,7 +195,7 @@ IceInternal::ServantManager::findServant(const Identity& ident, const string& fa
     // requests are received over the bidir connection after the
     // adapter was deactivated.
     //
-    //assert(_instance); // Must not be called after destruction.
+    // assert(_instance); // Must not be called after destruction.
 
     ServantMapMap::iterator p = _servantMapMapHint;
     FacetMap::iterator q;
@@ -237,8 +234,7 @@ IceInternal::ServantManager::findServant(const Identity& ident, const string& fa
     }
 }
 
-ObjectPtr
-IceInternal::ServantManager::findDefaultServant(const string& category) const
+ObjectPtr IceInternal::ServantManager::findDefaultServant(const string& category) const
 {
     IceUtil::Mutex::Lock sync(*this);
 
@@ -253,8 +249,7 @@ IceInternal::ServantManager::findDefaultServant(const string& category) const
     }
 }
 
-FacetMap
-IceInternal::ServantManager::findAllFacets(const Identity& ident) const
+FacetMap IceInternal::ServantManager::findAllFacets(const Identity& ident) const
 {
     IceUtil::Mutex::Lock sync(*this);
 
@@ -280,8 +275,7 @@ IceInternal::ServantManager::findAllFacets(const Identity& ident) const
     }
 }
 
-bool
-IceInternal::ServantManager::hasServant(const Identity& ident) const
+bool IceInternal::ServantManager::hasServant(const Identity& ident) const
 {
     IceUtil::Mutex::Lock sync(*this);
 
@@ -291,7 +285,7 @@ IceInternal::ServantManager::hasServant(const Identity& ident) const
     // requests are received over the bidir connection after the
     // adapter was deactivated.
     //
-    //assert(_instance); // Must not be called after destruction.
+    // assert(_instance); // Must not be called after destruction.
 
     ServantMapMap::iterator p = _servantMapMapHint;
     ServantMapMap& servantMapMap = const_cast<ServantMapMap&>(_servantMapMap);
@@ -313,15 +307,14 @@ IceInternal::ServantManager::hasServant(const Identity& ident) const
     }
 }
 
-void
-IceInternal::ServantManager::addServantLocator(const ServantLocatorPtr& locator, const string& category)
+void IceInternal::ServantManager::addServantLocator(const ServantLocatorPtr& locator, const string& category)
 {
     IceUtil::Mutex::Lock sync(*this);
 
     assert(_instance); // Must not be called after destruction.
 
-    if((_locatorMapHint != _locatorMap.end() && _locatorMapHint->first == category)
-       || _locatorMap.find(category) != _locatorMap.end())
+    if((_locatorMapHint != _locatorMap.end() && _locatorMapHint->first == category) ||
+       _locatorMap.find(category) != _locatorMap.end())
     {
         throw AlreadyRegisteredException(__FILE__, __LINE__, "servant locator", category);
     }
@@ -329,8 +322,7 @@ IceInternal::ServantManager::addServantLocator(const ServantLocatorPtr& locator,
     _locatorMapHint = _locatorMap.insert(_locatorMapHint, pair<const string, ServantLocatorPtr>(category, locator));
 }
 
-ServantLocatorPtr
-IceInternal::ServantManager::removeServantLocator(const string& category)
+ServantLocatorPtr IceInternal::ServantManager::removeServantLocator(const string& category)
 {
     IceUtil::Mutex::Lock sync(*this);
 
@@ -361,8 +353,7 @@ IceInternal::ServantManager::removeServantLocator(const string& category)
     return locator;
 }
 
-ServantLocatorPtr
-IceInternal::ServantManager::findServantLocator(const string& category) const
+ServantLocatorPtr IceInternal::ServantManager::findServantLocator(const string& category) const
 {
     IceUtil::Mutex::Lock sync(*this);
 
@@ -372,10 +363,9 @@ IceInternal::ServantManager::findServantLocator(const string& category) const
     // requests are received over the bidir connection after the
     // adapter was deactivated.
     //
-    //assert(_instance); // Must not be called after destruction.
+    // assert(_instance); // Must not be called after destruction.
 
-    map<string, ServantLocatorPtr>& locatorMap =
-        const_cast<map<string, ServantLocatorPtr>&>(_locatorMap);
+    map<string, ServantLocatorPtr>& locatorMap = const_cast<map<string, ServantLocatorPtr>&>(_locatorMap);
 
     map<string, ServantLocatorPtr>::iterator p = locatorMap.end();
     if(_locatorMapHint != locatorMap.end())
@@ -402,11 +392,11 @@ IceInternal::ServantManager::findServantLocator(const string& category) const
     }
 }
 
-IceInternal::ServantManager::ServantManager(const InstancePtr& instance, const string& adapterName)
-    : _instance(instance),
-      _adapterName(adapterName),
-      _servantMapMapHint(_servantMapMap.end()),
-      _locatorMapHint(_locatorMap.end())
+IceInternal::ServantManager::ServantManager(const InstancePtr& instance, const string& adapterName) :
+    _instance(instance),
+    _adapterName(adapterName),
+    _servantMapMapHint(_servantMapMap.end()),
+    _locatorMapHint(_locatorMap.end())
 {
 }
 
@@ -417,11 +407,10 @@ IceInternal::ServantManager::~ServantManager()
     // not been called if the associated object adapter was not
     // properly deactivated.
     //
-    //assert(!_instance);
+    // assert(!_instance);
 }
 
-void
-IceInternal::ServantManager::destroy()
+void IceInternal::ServantManager::destroy()
 {
     ServantMapMap servantMapMap;
     DefaultServantMap defaultServantMap;

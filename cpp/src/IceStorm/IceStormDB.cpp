@@ -25,20 +25,17 @@ using namespace IceStormElection;
 class Client : public Ice::Application
 {
 public:
-
     void usage();
-    virtual int run(int, char*[]);
+    virtual int run(int, char* []);
 };
 
 #ifdef _WIN32
 
-int
-wmain(int argc, wchar_t* argv[])
+int wmain(int argc, wchar_t* argv[])
 
 #else
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 
 #endif
 {
@@ -46,25 +43,21 @@ main(int argc, char* argv[])
     return app.main(argc, argv);
 }
 
-void
-Client::usage()
+void Client::usage()
 {
     consoleErr << "Usage: " << appName() << " <options>\n";
-    consoleErr <<
-        "Options:\n"
-        "-h, --help             Show this message.\n"
-        "-v, --version          Display version.\n"
-        "--import FILE          Import database from FILE.\n"
-        "--export FILE          Export database to FILE.\n"
-        "--dbhome DIR           Source or target database environment.\n"
-        "--dbpath DIR           Source or target database environment.\n"
-        "--mapsize VALUE        Set LMDB map size in MB (optional, import only).\n"
-        "-d, --debug            Print debug messages.\n"
-        ;
+    consoleErr << "Options:\n"
+                  "-h, --help             Show this message.\n"
+                  "-v, --version          Display version.\n"
+                  "--import FILE          Import database from FILE.\n"
+                  "--export FILE          Export database to FILE.\n"
+                  "--dbhome DIR           Source or target database environment.\n"
+                  "--dbpath DIR           Source or target database environment.\n"
+                  "--mapsize VALUE        Set LMDB map size in MB (optional, import only).\n"
+                  "-d, --debug            Print debug messages.\n";
 }
 
-int
-Client::run(int argc, char* argv[])
+int Client::run(int argc, char* argv[])
 {
     IceUtilInternal::Options opts;
     opts.addOpt("h", "help");
@@ -209,8 +202,8 @@ Client::run(int argc, char* argv[])
                     consoleOut << "Writing LLU Map:" << endl;
                 }
 
-                IceDB::Dbi<string, LogUpdate, IceDB::IceContext, Ice::OutputStream>
-                    lluMap(txn, "llu", dbContext, MDB_CREATE);
+                IceDB::Dbi<string, LogUpdate, IceDB::IceContext, Ice::OutputStream> lluMap(txn, "llu", dbContext,
+                                                                                           MDB_CREATE);
 
                 for(StringLogUpdateDict::const_iterator p = data.llus.begin(); p != data.llus.end(); ++p)
                 {
@@ -226,15 +219,15 @@ Client::run(int argc, char* argv[])
                     consoleOut << "Writing Subscriber Map:" << endl;
                 }
 
-                IceDB::Dbi<SubscriberRecordKey, SubscriberRecord, IceDB::IceContext, Ice::OutputStream>
-                    subscriberMap(txn, "subscribers", dbContext, MDB_CREATE);
+                IceDB::Dbi<SubscriberRecordKey, SubscriberRecord, IceDB::IceContext, Ice::OutputStream> subscriberMap(
+                    txn, "subscribers", dbContext, MDB_CREATE);
 
                 for(SubscriberRecordDict::const_iterator q = data.subscribers.begin(); q != data.subscribers.end(); ++q)
                 {
                     if(debug)
                     {
-                        consoleOut << "  KEY = TOPIC(" << communicator()->identityToString(q->first.topic)
-                                   << ") ID(" << communicator()->identityToString(q->first.id) << ")" << endl;
+                        consoleOut << "  KEY = TOPIC(" << communicator()->identityToString(q->first.topic) << ") ID("
+                                   << communicator()->identityToString(q->first.id) << ")" << endl;
                     }
                     subscriberMap.put(txn, q->first, q->second);
                 }
@@ -256,8 +249,7 @@ Client::run(int argc, char* argv[])
                     consoleOut << "Reading LLU Map:" << endl;
                 }
 
-                IceDB::Dbi<string, LogUpdate, IceDB::IceContext, Ice::OutputStream>
-                    lluMap(txn, "llu", dbContext, 0);
+                IceDB::Dbi<string, LogUpdate, IceDB::IceContext, Ice::OutputStream> lluMap(txn, "llu", dbContext, 0);
 
                 string s;
                 LogUpdate llu;
@@ -277,8 +269,8 @@ Client::run(int argc, char* argv[])
                     consoleOut << "Reading Subscriber Map:" << endl;
                 }
 
-                IceDB::Dbi<SubscriberRecordKey, SubscriberRecord, IceDB::IceContext, Ice::OutputStream>
-                    subscriberMap(txn, "subscribers", dbContext, 0);
+                IceDB::Dbi<SubscriberRecordKey, SubscriberRecord, IceDB::IceContext, Ice::OutputStream> subscriberMap(
+                    txn, "subscribers", dbContext, 0);
 
                 SubscriberRecordKey key;
                 SubscriberRecord record;
@@ -288,8 +280,8 @@ Client::run(int argc, char* argv[])
                 {
                     if(debug)
                     {
-                        consoleOut << "  KEY = TOPIC(" << communicator()->identityToString(key.topic)
-                                   << ") ID(" << communicator()->identityToString(key.id) << ")" << endl;
+                        consoleOut << "  KEY = TOPIC(" << communicator()->identityToString(key.topic) << ") ID("
+                                   << communicator()->identityToString(key.id) << ")" << endl;
                     }
                     data.subscribers.insert(std::make_pair(key, record));
                 }

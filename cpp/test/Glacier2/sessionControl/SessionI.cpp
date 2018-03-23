@@ -17,33 +17,28 @@ using namespace Test;
 class DestroyCB : public virtual IceUtil::Shared
 {
 public:
-
     DestroyCB(const Test::AMD_Session_destroyFromClientPtr& cb) : _cb(cb)
     {
     }
 
-    void
-    response()
+    void response()
     {
         _cb->ice_response();
     }
 
-    void
-    exception(const IceUtil::Exception&)
+    void exception(const IceUtil::Exception&)
     {
         test(false);
     }
 
 private:
-
     Test::AMD_Session_destroyFromClientPtr _cb;
 };
 
 typedef IceUtil::Handle<DestroyCB> DestroyCBPtr;
 
-Glacier2::SessionPrx
-SessionManagerI::create(const string& userId, const Glacier2::SessionControlPrx& sessionControl,
-                        const Ice::Current& current)
+Glacier2::SessionPrx SessionManagerI::create(const string& userId, const Glacier2::SessionControlPrx& sessionControl,
+                                             const Ice::Current& current)
 {
     if(userId == "rejectme")
     {
@@ -56,30 +51,25 @@ SessionManagerI::create(const string& userId, const Glacier2::SessionControlPrx&
     return Glacier2::SessionPrx::uncheckedCast(current.adapter->addWithUUID(new SessionI(sessionControl)));
 }
 
-SessionI::SessionI(const Glacier2::SessionControlPrx& sessionControl) :
-    _sessionControl(sessionControl)
+SessionI::SessionI(const Glacier2::SessionControlPrx& sessionControl) : _sessionControl(sessionControl)
 {
     assert(sessionControl);
 }
 
-void
-SessionI::destroyFromClient_async(const Test::AMD_Session_destroyFromClientPtr& cb, const Ice::Current&)
+void SessionI::destroyFromClient_async(const Test::AMD_Session_destroyFromClientPtr& cb, const Ice::Current&)
 {
     DestroyCBPtr asyncCB = new DestroyCB(cb);
-    Glacier2::Callback_SessionControl_destroyPtr amiCB = Glacier2::newCallback_SessionControl_destroy(asyncCB,
-                                                 &DestroyCB::response,
-                                                 &DestroyCB::exception);
+    Glacier2::Callback_SessionControl_destroyPtr amiCB =
+        Glacier2::newCallback_SessionControl_destroy(asyncCB, &DestroyCB::response, &DestroyCB::exception);
     _sessionControl->begin_destroy(amiCB);
 }
 
-void
-SessionI::shutdown(const Ice::Current& current)
+void SessionI::shutdown(const Ice::Current& current)
 {
     current.adapter->getCommunicator()->shutdown();
 }
 
-void
-SessionI::destroy(const Ice::Current& current)
+void SessionI::destroy(const Ice::Current& current)
 {
     current.adapter->remove(current.id);
 }

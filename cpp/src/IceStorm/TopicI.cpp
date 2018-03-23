@@ -24,325 +24,310 @@ using namespace IceStormInternal;
 
 namespace
 {
-
-void
-logError(const Ice::CommunicatorPtr& com, const IceDB::LMDBException& ex)
-{
-    Ice::Error error(com->getLogger());
-    error << "LMDB error: " << ex;
-}
-
-//
-// The servant has a 1-1 association with a topic. It is used to
-// receive events from Publishers.
-//
-class PublisherI : public Ice::BlobjectArray
-{
-public:
-
-    PublisherI(const TopicImplPtr& topic, const PersistentInstancePtr& instance) :
-        _topic(topic), _instance(instance)
+    void logError(const Ice::CommunicatorPtr& com, const IceDB::LMDBException& ex)
     {
+        Ice::Error error(com->getLogger());
+        error << "LMDB error: " << ex;
     }
 
-    virtual bool
-    ice_invoke(const pair<const Ice::Byte*, const Ice::Byte*>& inParams,
-               Ice::ByteSeq&,
-               const Ice::Current& current)
+    //
+    // The servant has a 1-1 association with a topic. It is used to
+    // receive events from Publishers.
+    //
+    class PublisherI : public Ice::BlobjectArray
     {
-        // The publish call does a cached read.
-        EventDataPtr event = new EventData(current.operation, current.mode, Ice::ByteSeq(), current.ctx);
-
-        //
-        // COMPILERBUG: gcc 4.0.1 doesn't like this.
-        //
-        //event->data.swap(Ice::ByteSeq(inParams.first, inParams.second));
-        Ice::ByteSeq data(inParams.first, inParams.second);
-        event->data.swap(data);
-
-        EventDataSeq v;
-        v.push_back(event);
-        _topic->publish(false, v);
-
-        return true;
-    }
-
-private:
-
-    const TopicImplPtr _topic;
-    const PersistentInstancePtr _instance;
-};
-
-//
-// The servant has a 1-1 association with a topic. It is used to
-// receive events from linked Topics.
-//
-class TopicLinkI : public TopicLink
-{
-public:
-
-    TopicLinkI(const TopicImplPtr& impl, const PersistentInstancePtr& instance) :
-        _impl(impl), _instance(instance)
-    {
-    }
-
-    virtual void
-    forward(const EventDataSeq& v, const Ice::Current& /*current*/)
-    {
-        // The publish call does a cached read.
-        _impl->publish(true, v);
-    }
-
-private:
-
-    const TopicImplPtr _impl;
-    const PersistentInstancePtr _instance;
-};
-
-class TopicI : public TopicInternal
-{
-public:
-
-    TopicI(const TopicImplPtr& impl, const PersistentInstancePtr& instance) :
-        _impl(impl), _instance(instance)
-    {
-    }
-
-    virtual string getName(const Ice::Current&) const
-    {
-        // Use cached reads.
-        CachedReadHelper unlock(_instance->node(), __FILE__, __LINE__);
-        return _impl->getName();
-    }
-
-    virtual Ice::ObjectPrx getPublisher(const Ice::Current&) const
-    {
-        // Use cached reads.
-        CachedReadHelper unlock(_instance->node(), __FILE__, __LINE__);
-        return _impl->getPublisher();
-    }
-
-    virtual Ice::ObjectPrx getNonReplicatedPublisher(const Ice::Current&) const
-    {
-        // Use cached reads.
-        CachedReadHelper unlock(_instance->node(), __FILE__, __LINE__);
-        return _impl->getNonReplicatedPublisher();
-    }
-
-    virtual Ice::ObjectPrx subscribeAndGetPublisher(const QoS& qos, const Ice::ObjectPrx& obj,
-                                                    const Ice::Current& current)
-    {
-        while(true)
+    public:
+        PublisherI(const TopicImplPtr& topic, const PersistentInstancePtr& instance) :
+            _topic(topic),
+            _instance(instance)
         {
-            Ice::Long generation = -1;
-            TopicPrx master = getMasterFor(current, generation, __FILE__, __LINE__);
-            if(master)
+        }
+
+        virtual bool ice_invoke(const pair<const Ice::Byte*, const Ice::Byte*>& inParams, Ice::ByteSeq&,
+                                const Ice::Current& current)
+        {
+            // The publish call does a cached read.
+            EventDataPtr event = new EventData(current.operation, current.mode, Ice::ByteSeq(), current.ctx);
+
+            //
+            // COMPILERBUG: gcc 4.0.1 doesn't like this.
+            //
+            // event->data.swap(Ice::ByteSeq(inParams.first, inParams.second));
+            Ice::ByteSeq data(inParams.first, inParams.second);
+            event->data.swap(data);
+
+            EventDataSeq v;
+            v.push_back(event);
+            _topic->publish(false, v);
+
+            return true;
+        }
+
+    private:
+        const TopicImplPtr _topic;
+        const PersistentInstancePtr _instance;
+    };
+
+    //
+    // The servant has a 1-1 association with a topic. It is used to
+    // receive events from linked Topics.
+    //
+    class TopicLinkI : public TopicLink
+    {
+    public:
+        TopicLinkI(const TopicImplPtr& impl, const PersistentInstancePtr& instance) : _impl(impl), _instance(instance)
+        {
+        }
+
+        virtual void forward(const EventDataSeq& v, const Ice::Current& /*current*/)
+        {
+            // The publish call does a cached read.
+            _impl->publish(true, v);
+        }
+
+    private:
+        const TopicImplPtr _impl;
+        const PersistentInstancePtr _instance;
+    };
+
+    class TopicI : public TopicInternal
+    {
+    public:
+        TopicI(const TopicImplPtr& impl, const PersistentInstancePtr& instance) : _impl(impl), _instance(instance)
+        {
+        }
+
+        virtual string getName(const Ice::Current&) const
+        {
+            // Use cached reads.
+            CachedReadHelper unlock(_instance->node(), __FILE__, __LINE__);
+            return _impl->getName();
+        }
+
+        virtual Ice::ObjectPrx getPublisher(const Ice::Current&) const
+        {
+            // Use cached reads.
+            CachedReadHelper unlock(_instance->node(), __FILE__, __LINE__);
+            return _impl->getPublisher();
+        }
+
+        virtual Ice::ObjectPrx getNonReplicatedPublisher(const Ice::Current&) const
+        {
+            // Use cached reads.
+            CachedReadHelper unlock(_instance->node(), __FILE__, __LINE__);
+            return _impl->getNonReplicatedPublisher();
+        }
+
+        virtual Ice::ObjectPrx subscribeAndGetPublisher(const QoS& qos, const Ice::ObjectPrx& obj,
+                                                        const Ice::Current& current)
+        {
+            while(true)
             {
-                try
+                Ice::Long generation = -1;
+                TopicPrx master = getMasterFor(current, generation, __FILE__, __LINE__);
+                if(master)
                 {
-                    return master->subscribeAndGetPublisher(qos, obj);
+                    try
+                    {
+                        return master->subscribeAndGetPublisher(qos, obj);
+                    }
+                    catch(const Ice::ConnectFailedException&)
+                    {
+                        _instance->node()->recovery(generation);
+                        continue;
+                    }
+                    catch(const Ice::TimeoutException&)
+                    {
+                        _instance->node()->recovery(generation);
+                        continue;
+                    }
                 }
-                catch(const Ice::ConnectFailedException&)
+                else
                 {
-                    _instance->node()->recovery(generation);
-                    continue;
+                    FinishUpdateHelper unlock(_instance->node());
+                    return _impl->subscribeAndGetPublisher(qos, obj);
                 }
-                catch(const Ice::TimeoutException&)
-                {
-                    _instance->node()->recovery(generation);
-                    continue;
-                }
-            }
-            else
-            {
-                FinishUpdateHelper unlock(_instance->node());
-                return _impl->subscribeAndGetPublisher(qos, obj);
             }
         }
-    }
 
-    virtual void unsubscribe(const Ice::ObjectPrx& subscriber, const Ice::Current& current)
-    {
-        while(true)
+        virtual void unsubscribe(const Ice::ObjectPrx& subscriber, const Ice::Current& current)
         {
-            Ice::Long generation = -1;
-            TopicPrx master = getMasterFor(current, generation, __FILE__, __LINE__);
-            if(master)
+            while(true)
             {
-                try
+                Ice::Long generation = -1;
+                TopicPrx master = getMasterFor(current, generation, __FILE__, __LINE__);
+                if(master)
                 {
-                    master->unsubscribe(subscriber);
+                    try
+                    {
+                        master->unsubscribe(subscriber);
+                    }
+                    catch(const Ice::ConnectFailedException&)
+                    {
+                        _instance->node()->recovery(generation);
+                        continue;
+                    }
+                    catch(const Ice::TimeoutException&)
+                    {
+                        _instance->node()->recovery(generation);
+                        continue;
+                    }
                 }
-                catch(const Ice::ConnectFailedException&)
+                else
                 {
-                    _instance->node()->recovery(generation);
-                    continue;
+                    FinishUpdateHelper unlock(_instance->node());
+                    _impl->unsubscribe(subscriber);
                 }
-                catch(const Ice::TimeoutException&)
-                {
-                    _instance->node()->recovery(generation);
-                    continue;
-                }
+                break;
             }
-            else
-            {
-                FinishUpdateHelper unlock(_instance->node());
-                _impl->unsubscribe(subscriber);
-            }
-            break;
         }
-    }
 
-    virtual TopicLinkPrx getLinkProxy(const Ice::Current&)
-    {
-        // Use cached reads.
-        CachedReadHelper unlock(_instance->node(), __FILE__, __LINE__);
-        return _impl->getLinkProxy();
-    }
-
-    virtual void reap(const Ice::IdentitySeq& ids, const Ice::Current& /*current*/)
-    {
-        NodeIPtr node = _instance->node();
-        if(!node->updateMaster(__FILE__, __LINE__))
+        virtual TopicLinkPrx getLinkProxy(const Ice::Current&)
         {
-            throw ReapWouldBlock();
+            // Use cached reads.
+            CachedReadHelper unlock(_instance->node(), __FILE__, __LINE__);
+            return _impl->getLinkProxy();
         }
-        FinishUpdateHelper unlock(node);
-        _impl->reap(ids);
-    }
 
-    virtual void link(const TopicPrx& topic, Ice::Int cost, const Ice::Current& current)
-    {
-        while(true)
+        virtual void reap(const Ice::IdentitySeq& ids, const Ice::Current& /*current*/)
         {
-            Ice::Long generation = -1;
-            TopicPrx master = getMasterFor(current, generation, __FILE__, __LINE__);
-            if(master)
+            NodeIPtr node = _instance->node();
+            if(!node->updateMaster(__FILE__, __LINE__))
             {
-                try
-                {
-                    master->link(topic, cost);
-                }
-                catch(const Ice::ConnectFailedException&)
-                {
-                    _instance->node()->recovery(generation);
-                    continue;
-                }
-                catch(const Ice::TimeoutException&)
-                {
-                    _instance->node()->recovery(generation);
-                    continue;
-                }
+                throw ReapWouldBlock();
             }
-            else
-            {
-                FinishUpdateHelper unlock(_instance->node());
-                _impl->link(topic, cost);
-            }
-            break;
+            FinishUpdateHelper unlock(node);
+            _impl->reap(ids);
         }
-    }
 
-    virtual void unlink(const TopicPrx& topic, const Ice::Current& current)
-    {
-        while(true)
+        virtual void link(const TopicPrx& topic, Ice::Int cost, const Ice::Current& current)
         {
-            Ice::Long generation = -1;
-            TopicPrx master = getMasterFor(current, generation, __FILE__, __LINE__);
-            if(master)
+            while(true)
             {
-                try
+                Ice::Long generation = -1;
+                TopicPrx master = getMasterFor(current, generation, __FILE__, __LINE__);
+                if(master)
                 {
-                    master->unlink(topic);
+                    try
+                    {
+                        master->link(topic, cost);
+                    }
+                    catch(const Ice::ConnectFailedException&)
+                    {
+                        _instance->node()->recovery(generation);
+                        continue;
+                    }
+                    catch(const Ice::TimeoutException&)
+                    {
+                        _instance->node()->recovery(generation);
+                        continue;
+                    }
                 }
-                catch(const Ice::ConnectFailedException&)
+                else
                 {
-                    _instance->node()->recovery(generation);
-                    continue;
+                    FinishUpdateHelper unlock(_instance->node());
+                    _impl->link(topic, cost);
                 }
-                catch(const Ice::TimeoutException&)
-                {
-                    _instance->node()->recovery(generation);
-                    continue;
-                }
+                break;
             }
-            else
-            {
-                FinishUpdateHelper unlock(_instance->node());
-                _impl->unlink(topic);
-            }
-            break;
         }
-    }
 
-    virtual LinkInfoSeq getLinkInfoSeq(const Ice::Current&) const
-    {
-        // Use cached reads.
-        CachedReadHelper unlock(_instance->node(), __FILE__, __LINE__);
-        return _impl->getLinkInfoSeq();
-    }
-
-    virtual Ice::IdentitySeq getSubscribers(const Ice::Current&) const
-    {
-        return _impl->getSubscribers();
-    }
-
-    virtual void destroy(const Ice::Current& current)
-    {
-        while(true)
+        virtual void unlink(const TopicPrx& topic, const Ice::Current& current)
         {
-            Ice::Long generation = -1;
-            TopicPrx master = getMasterFor(current, generation, __FILE__, __LINE__);
-            if(master)
+            while(true)
             {
-                try
+                Ice::Long generation = -1;
+                TopicPrx master = getMasterFor(current, generation, __FILE__, __LINE__);
+                if(master)
                 {
-                    master->destroy();
+                    try
+                    {
+                        master->unlink(topic);
+                    }
+                    catch(const Ice::ConnectFailedException&)
+                    {
+                        _instance->node()->recovery(generation);
+                        continue;
+                    }
+                    catch(const Ice::TimeoutException&)
+                    {
+                        _instance->node()->recovery(generation);
+                        continue;
+                    }
                 }
-                catch(const Ice::ConnectFailedException&)
+                else
                 {
-                    _instance->node()->recovery(generation);
-                    continue;
+                    FinishUpdateHelper unlock(_instance->node());
+                    _impl->unlink(topic);
                 }
-                catch(const Ice::TimeoutException&)
-                {
-                    _instance->node()->recovery(generation);
-                    continue;
-                }
+                break;
             }
-            else
-            {
-                FinishUpdateHelper unlock(_instance->node());
-                _impl->destroy();
-            }
-            break;
         }
-    }
 
-private:
-
-    TopicPrx getMasterFor(const Ice::Current& cur, Ice::Long& generation, const char* file, int line) const
-    {
-        NodeIPtr node = _instance->node();
-        Ice::ObjectPrx master;
-        if(node)
+        virtual LinkInfoSeq getLinkInfoSeq(const Ice::Current&) const
         {
-            master = _instance->node()->startUpdate(generation, file, line);
+            // Use cached reads.
+            CachedReadHelper unlock(_instance->node(), __FILE__, __LINE__);
+            return _impl->getLinkInfoSeq();
         }
-        return (master) ? TopicPrx::uncheckedCast(master->ice_identity(cur.id)) : TopicPrx();
-    }
 
-    const TopicImplPtr _impl;
-    const PersistentInstancePtr _instance;
-};
+        virtual Ice::IdentitySeq getSubscribers(const Ice::Current&) const
+        {
+            return _impl->getSubscribers();
+        }
 
-}
+        virtual void destroy(const Ice::Current& current)
+        {
+            while(true)
+            {
+                Ice::Long generation = -1;
+                TopicPrx master = getMasterFor(current, generation, __FILE__, __LINE__);
+                if(master)
+                {
+                    try
+                    {
+                        master->destroy();
+                    }
+                    catch(const Ice::ConnectFailedException&)
+                    {
+                        _instance->node()->recovery(generation);
+                        continue;
+                    }
+                    catch(const Ice::TimeoutException&)
+                    {
+                        _instance->node()->recovery(generation);
+                        continue;
+                    }
+                }
+                else
+                {
+                    FinishUpdateHelper unlock(_instance->node());
+                    _impl->destroy();
+                }
+                break;
+            }
+        }
 
-TopicImpl::TopicImpl(
-    const PersistentInstancePtr& instance,
-    const string& name,
-    const Ice::Identity& id,
-    const SubscriberRecordSeq& subscribers) :
+    private:
+        TopicPrx getMasterFor(const Ice::Current& cur, Ice::Long& generation, const char* file, int line) const
+        {
+            NodeIPtr node = _instance->node();
+            Ice::ObjectPrx master;
+            if(node)
+            {
+                master = _instance->node()->startUpdate(generation, file, line);
+            }
+            return (master) ? TopicPrx::uncheckedCast(master->ice_identity(cur.id)) : TopicPrx();
+        }
+
+        const TopicImplPtr _impl;
+        const PersistentInstancePtr _instance;
+    };
+
+} // namespace
+
+TopicImpl::TopicImpl(const PersistentInstancePtr& instance, const string& name, const Ice::Identity& id,
+                     const SubscriberRecordSeq& subscribers) :
     _instance(instance),
     _name(name),
     _id(id),
@@ -386,8 +371,8 @@ TopicImpl::TopicImpl(
         }
 
         _publisherPrx = _instance->publishAdapter()->add(new PublisherI(this, instance), pubid);
-        _linkPrx = TopicLinkPrx::uncheckedCast(
-            _instance->publishAdapter()->add(new TopicLinkI(this, instance), linkid));
+        _linkPrx =
+            TopicLinkPrx::uncheckedCast(_instance->publishAdapter()->add(new TopicLinkI(this, instance), linkid));
 
         //
         // Re-establish subscribers.
@@ -441,15 +426,13 @@ TopicImpl::TopicImpl(
     __setNoDelete(false);
 }
 
-string
-TopicImpl::getName() const
+string TopicImpl::getName() const
 {
     // Immutable
     return _name;
 }
 
-Ice::ObjectPrx
-TopicImpl::getPublisher() const
+Ice::ObjectPrx TopicImpl::getPublisher() const
 {
     // Immutable
     if(_instance->publisherReplicaProxy())
@@ -459,8 +442,7 @@ TopicImpl::getPublisher() const
     return _publisherPrx;
 }
 
-Ice::ObjectPrx
-TopicImpl::getNonReplicatedPublisher() const
+Ice::ObjectPrx TopicImpl::getNonReplicatedPublisher() const
 {
     // If there is an adapter id configured then we're using icegrid
     // so create an indirect proxy, otherwise create a direct proxy.
@@ -476,24 +458,22 @@ TopicImpl::getNonReplicatedPublisher() const
 
 namespace
 {
-void
-trace(Ice::Trace& out, const PersistentInstancePtr& instance, const vector<SubscriberPtr>& s)
-{
-    out << '[';
-    for(vector<SubscriberPtr>::const_iterator p = s.begin(); p != s.end(); ++p)
+    void trace(Ice::Trace& out, const PersistentInstancePtr& instance, const vector<SubscriberPtr>& s)
     {
-        if(p != s.begin())
+        out << '[';
+        for(vector<SubscriberPtr>::const_iterator p = s.begin(); p != s.end(); ++p)
         {
-            out << ",";
+            if(p != s.begin())
+            {
+                out << ",";
+            }
+            out << instance->communicator()->identityToString((*p)->id());
         }
-        out << instance->communicator()->identityToString((*p)->id());
+        out << "]";
     }
-    out << "]";
-}
-}
+} // namespace
 
-Ice::ObjectPrx
-TopicImpl::subscribeAndGetPublisher(const QoS& qos, const Ice::ObjectPrx& obj)
+Ice::ObjectPrx TopicImpl::subscribeAndGetPublisher(const QoS& qos, const Ice::ObjectPrx& obj)
 {
     if(!obj)
     {
@@ -515,15 +495,13 @@ TopicImpl::subscribeAndGetPublisher(const QoS& qos, const Ice::ObjectPrx& obj)
 
         if(traceLevels->topic > 1)
         {
-            out << " endpoints: " << IceStormInternal::describeEndpoints(obj)
-                << " QoS: ";
-            for(QoS::const_iterator p = qos.begin(); p != qos.end() ; ++p)
+            out << " endpoints: " << IceStormInternal::describeEndpoints(obj) << " QoS: ";
+            for(QoS::const_iterator p = qos.begin(); p != qos.end(); ++p)
             {
                 if(p != qos.begin())
                 {
                     out << ',';
                 }
-
             }
             out << " subscriptions: ";
             trace(out, _instance, _subscribers);
@@ -576,8 +554,7 @@ TopicImpl::subscribeAndGetPublisher(const QoS& qos, const Ice::ObjectPrx& obj)
     return subscriber->proxy();
 }
 
-void
-TopicImpl::unsubscribe(const Ice::ObjectPrx& subscriber)
+void TopicImpl::unsubscribe(const Ice::ObjectPrx& subscriber)
 {
     TraceLevelsPtr traceLevels = _instance->traceLevels();
     if(!subscriber)
@@ -610,20 +587,18 @@ TopicImpl::unsubscribe(const Ice::ObjectPrx& subscriber)
     removeSubscribers(ids);
 }
 
-TopicLinkPrx
-TopicImpl::getLinkProxy()
+TopicLinkPrx TopicImpl::getLinkProxy()
 {
     // immutable
     if(_instance->publisherReplicaProxy())
     {
-        return TopicLinkPrx::uncheckedCast(_instance->publisherReplicaProxy()->ice_identity(
-                                               _linkPrx->ice_getIdentity()));
+        return TopicLinkPrx::uncheckedCast(
+            _instance->publisherReplicaProxy()->ice_identity(_linkPrx->ice_getIdentity()));
     }
     return _linkPrx;
 }
 
-void
-TopicImpl::link(const TopicPrx& topic, Ice::Int cost)
+void TopicImpl::link(const TopicPrx& topic, Ice::Int cost)
 {
     TopicInternalPrx internal = TopicInternalPrx::uncheckedCast(topic);
     TopicLinkPrx link = internal->getLinkProxy();
@@ -632,8 +607,8 @@ TopicImpl::link(const TopicPrx& topic, Ice::Int cost)
     if(traceLevels->topic > 0)
     {
         Ice::Trace out(traceLevels->logger, traceLevels->topicCat);
-        out << _name << ": link " << _instance->communicator()->identityToString(topic->ice_getIdentity())
-            << " cost " << cost;
+        out << _name << ": link " << _instance->communicator()->identityToString(topic->ice_getIdentity()) << " cost "
+            << cost;
     }
 
     IceUtil::Mutex::Lock sync(_subscribersMutex);
@@ -684,8 +659,7 @@ TopicImpl::link(const TopicPrx& topic, Ice::Int cost)
     _instance->observers()->addSubscriber(llu, _name, record);
 }
 
-void
-TopicImpl::unlink(const TopicPrx& topic)
+void TopicImpl::unlink(const TopicPrx& topic)
 {
     IceUtil::Mutex::Lock sync(_subscribersMutex);
     if(_destroyed)
@@ -721,8 +695,7 @@ TopicImpl::unlink(const TopicPrx& topic)
     removeSubscribers(ids);
 }
 
-void
-TopicImpl::reap(const Ice::IdentitySeq& ids)
+void TopicImpl::reap(const Ice::IdentitySeq& ids)
 {
     IceUtil::Mutex::Lock sync(_subscribersMutex);
 
@@ -731,7 +704,7 @@ TopicImpl::reap(const Ice::IdentitySeq& ids)
     {
         Ice::Trace out(traceLevels->logger, traceLevels->topicCat);
         out << _name << ": reap ";
-        for(Ice::IdentitySeq::const_iterator p = ids.begin(); p != ids.end() ; ++p)
+        for(Ice::IdentitySeq::const_iterator p = ids.begin(); p != ids.end(); ++p)
         {
             if(p != ids.begin())
             {
@@ -744,8 +717,7 @@ TopicImpl::reap(const Ice::IdentitySeq& ids)
     removeSubscribers(ids);
 }
 
-void
-TopicImpl::shutdown()
+void TopicImpl::shutdown()
 {
     IceUtil::Mutex::Lock sync(_subscribersMutex);
     _servant = 0;
@@ -759,8 +731,7 @@ TopicImpl::shutdown()
     _observer.detach();
 }
 
-LinkInfoSeq
-TopicImpl::getLinkInfoSeq() const
+LinkInfoSeq TopicImpl::getLinkInfoSeq() const
 {
     IceUtil::Mutex::Lock sync(_subscribersMutex);
 
@@ -780,8 +751,7 @@ TopicImpl::getLinkInfoSeq() const
     return seq;
 }
 
-Ice::IdentitySeq
-TopicImpl::getSubscribers() const
+Ice::IdentitySeq TopicImpl::getSubscribers() const
 {
     IceUtil::Mutex::Lock sync(_subscribersMutex);
 
@@ -793,8 +763,7 @@ TopicImpl::getSubscribers() const
     return subscribers;
 }
 
-void
-TopicImpl::destroy()
+void TopicImpl::destroy()
 {
     IceUtil::Mutex::Lock sync(_subscribersMutex);
 
@@ -812,14 +781,13 @@ TopicImpl::destroy()
     }
 
     // destroyInternal clears out the topic content.
-    LogUpdate llu = {0,0};
+    LogUpdate llu = {0, 0};
     _instance->observers()->destroyTopic(destroyInternal(llu, true), _name);
 
     _observer.detach();
 }
 
-TopicContent
-TopicImpl::getContent() const
+TopicContent TopicImpl::getContent() const
 {
     IceUtil::Mutex::Lock sync(_subscribersMutex);
 
@@ -838,8 +806,7 @@ TopicImpl::getContent() const
     return content;
 }
 
-void
-TopicImpl::update(const SubscriberRecordSeq& records)
+void TopicImpl::update(const SubscriberRecordSeq& records)
 {
     IceUtil::Mutex::Lock sync(_subscribersMutex);
 
@@ -894,22 +861,19 @@ TopicImpl::update(const SubscriberRecordSeq& records)
     }
 }
 
-bool
-TopicImpl::destroyed() const
+bool TopicImpl::destroyed() const
 {
     IceUtil::Mutex::Lock sync(_subscribersMutex);
     return _destroyed;
 }
 
-Ice::Identity
-TopicImpl::id() const
+Ice::Identity TopicImpl::id() const
 {
     // immutable
     return _id;
 }
 
-TopicPrx
-TopicImpl::proxy() const
+TopicPrx TopicImpl::proxy() const
 {
     // immutable
     Ice::ObjectPrx prx;
@@ -926,37 +890,34 @@ TopicImpl::proxy() const
 
 namespace
 {
-
-class TopicInternalReapCB : public IceUtil::Shared
-{
-public:
-
-    TopicInternalReapCB(const PersistentInstancePtr& instance, Ice::Long generation) :
-        _instance(instance), _generation(generation)
+    class TopicInternalReapCB : public IceUtil::Shared
     {
-    }
-
-    virtual void exception(const Ice::Exception& ex)
-    {
-        TraceLevelsPtr traceLevels = _instance->traceLevels();
-        if(traceLevels->topic > 0)
+    public:
+        TopicInternalReapCB(const PersistentInstancePtr& instance, Ice::Long generation) :
+            _instance(instance),
+            _generation(generation)
         {
-            Ice::Trace out(traceLevels->logger, traceLevels->topicCat);
-            out << "exception when calling `reap' on the master replica: " << ex;
         }
-        _instance->node()->recovery(_generation);
-    }
 
-private:
+        virtual void exception(const Ice::Exception& ex)
+        {
+            TraceLevelsPtr traceLevels = _instance->traceLevels();
+            if(traceLevels->topic > 0)
+            {
+                Ice::Trace out(traceLevels->logger, traceLevels->topicCat);
+                out << "exception when calling `reap' on the master replica: " << ex;
+            }
+            _instance->node()->recovery(_generation);
+        }
 
-    const PersistentInstancePtr _instance;
-    const Ice::Long _generation;
-};
+    private:
+        const PersistentInstancePtr _instance;
+        const Ice::Long _generation;
+    };
 
-}
+} // namespace
 
-void
-TopicImpl::publish(bool forwarded, const EventDataSeq& events)
+void TopicImpl::publish(bool forwarded, const EventDataSeq& events)
 {
     TopicInternalPrx masterInternal;
     Ice::Long generation = -1;
@@ -1026,8 +987,7 @@ TopicImpl::publish(bool forwarded, const EventDataSeq& events)
                                                                     &TopicInternalReapCB::exception));
 }
 
-void
-TopicImpl::observerAddSubscriber(const LogUpdate& llu, const SubscriberRecord& record)
+void TopicImpl::observerAddSubscriber(const LogUpdate& llu, const SubscriberRecord& record)
 {
     IceUtil::Mutex::Lock sync(_subscribersMutex);
 
@@ -1039,9 +999,8 @@ TopicImpl::observerAddSubscriber(const LogUpdate& llu, const SubscriberRecord& r
 
         if(traceLevels->topic > 1)
         {
-            out << " endpoints: " << IceStormInternal::describeEndpoints(record.obj)
-                << " QoS: ";
-            for(QoS::const_iterator p = record.theQoS.begin(); p != record.theQoS.end() ; ++p)
+            out << " endpoints: " << IceStormInternal::describeEndpoints(record.obj) << " QoS: ";
+            for(QoS::const_iterator p = record.theQoS.begin(); p != record.theQoS.end(); ++p)
             {
                 if(p != record.theQoS.begin())
                 {
@@ -1092,8 +1051,7 @@ TopicImpl::observerAddSubscriber(const LogUpdate& llu, const SubscriberRecord& r
     _subscribers.push_back(subscriber);
 }
 
-void
-TopicImpl::observerRemoveSubscriber(const LogUpdate& llu, const Ice::IdentitySeq& ids)
+void TopicImpl::observerRemoveSubscriber(const LogUpdate& llu, const Ice::IdentitySeq& ids)
 {
     TraceLevelsPtr traceLevels = _instance->traceLevels();
     if(traceLevels->topic > 0)
@@ -1151,8 +1109,7 @@ TopicImpl::observerRemoveSubscriber(const LogUpdate& llu, const Ice::IdentitySeq
     }
 }
 
-void
-TopicImpl::observerDestroyTopic(const LogUpdate& llu)
+void TopicImpl::observerDestroyTopic(const LogUpdate& llu)
 {
     IceUtil::Mutex::Lock sync(_subscribersMutex);
 
@@ -1172,14 +1129,12 @@ TopicImpl::observerDestroyTopic(const LogUpdate& llu)
     destroyInternal(llu, false);
 }
 
-Ice::ObjectPtr
-TopicImpl::getServant() const
+Ice::ObjectPtr TopicImpl::getServant() const
 {
     return _servant;
 }
 
-void
-TopicImpl::updateObserver()
+void TopicImpl::updateObserver()
 {
     IceUtil::Mutex::Lock sync(_subscribersMutex);
     if(_instance->observer())
@@ -1188,8 +1143,7 @@ TopicImpl::updateObserver()
     }
 }
 
-void
-TopicImpl::updateSubscriberObservers()
+void TopicImpl::updateSubscriberObservers()
 {
     IceUtil::Mutex::Lock sync(_subscribersMutex);
     for(vector<SubscriberPtr>::const_iterator p = _subscribers.begin(); p != _subscribers.end(); ++p)
@@ -1198,10 +1152,8 @@ TopicImpl::updateSubscriberObservers()
     }
 }
 
-LogUpdate
-TopicImpl::destroyInternal(const LogUpdate& origLLU, bool master)
+LogUpdate TopicImpl::destroyInternal(const LogUpdate& origLLU, bool master)
 {
-
     // Clear out the database records related to this topic.
     LogUpdate llu;
     try
@@ -1262,8 +1214,7 @@ TopicImpl::destroyInternal(const LogUpdate& origLLU, bool master)
     return llu;
 }
 
-void
-TopicImpl::removeSubscribers(const Ice::IdentitySeq& ids)
+void TopicImpl::removeSubscribers(const Ice::IdentitySeq& ids)
 {
     // First update the database
 

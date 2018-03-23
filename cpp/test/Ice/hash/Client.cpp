@@ -13,7 +13,7 @@
 #include <TestCommon.h>
 
 #if defined(__GNUC__)
-#   pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#    pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
 using namespace std;
@@ -46,7 +46,7 @@ int main(int argc, char** argv)
     {
         ostringstream os;
         os << i << ":tcp -p " << IceUtilInternal::random(65536) << " -t 10" << IceUtilInternal::random(1000000)
-                << ":udp -p " << IceUtilInternal::random(65536) << " -h " << IceUtilInternal::random(100);
+           << ":udp -p " << IceUtilInternal::random(65536) << " -h " << IceUtilInternal::random(100);
 
         Ice::ObjectPrxPtr obj = communicator->stringToProxy(os.str());
         Ice::EndpointSeq endpoints = obj->ice_getEndpoints();
@@ -84,16 +84,18 @@ int main(int argc, char** argv)
     proxyMap["prx9"] = prx9->_hash();
     proxyMap["prx10"] = prx10->_hash();
 
-    test( communicator->stringToProxy("Glacier2/router:tcp -p 10010")->_hash() == proxyMap["prx1"]);
-    test( communicator->stringToProxy("Glacier2/router:ssl -p 10011")->_hash() == proxyMap["prx2"]);
-    test( communicator->stringToProxy("Glacier2/router:udp -p 10012")->_hash() == proxyMap["prx3"]);
-    test( communicator->stringToProxy("Glacier2/router:tcp -h zeroc.com -p 10010")->_hash() == proxyMap["prx4"]);
-    test( communicator->stringToProxy("Glacier2/router:ssl -h zeroc.com -p 10011")->_hash() == proxyMap["prx5"]);
-    test( communicator->stringToProxy("Glacier2/router:udp -h zeroc.com -p 10012")->_hash() == proxyMap["prx6"]);
-    test( communicator->stringToProxy("Glacier2/router:tcp -p 10010 -t 10000")->_hash() == proxyMap["prx7"]);
-    test( communicator->stringToProxy("Glacier2/router:ssl -p 10011 -t 10000")->_hash() == proxyMap["prx8"]);
-    test( communicator->stringToProxy("Glacier2/router:tcp -h zeroc.com -p 10010 -t 10000")->_hash() == proxyMap["prx9"]);
-    test( communicator->stringToProxy("Glacier2/router:ssl -h zeroc.com -p 10011 -t 10000")->_hash() == proxyMap["prx10"]);
+    test(communicator->stringToProxy("Glacier2/router:tcp -p 10010")->_hash() == proxyMap["prx1"]);
+    test(communicator->stringToProxy("Glacier2/router:ssl -p 10011")->_hash() == proxyMap["prx2"]);
+    test(communicator->stringToProxy("Glacier2/router:udp -p 10012")->_hash() == proxyMap["prx3"]);
+    test(communicator->stringToProxy("Glacier2/router:tcp -h zeroc.com -p 10010")->_hash() == proxyMap["prx4"]);
+    test(communicator->stringToProxy("Glacier2/router:ssl -h zeroc.com -p 10011")->_hash() == proxyMap["prx5"]);
+    test(communicator->stringToProxy("Glacier2/router:udp -h zeroc.com -p 10012")->_hash() == proxyMap["prx6"]);
+    test(communicator->stringToProxy("Glacier2/router:tcp -p 10010 -t 10000")->_hash() == proxyMap["prx7"]);
+    test(communicator->stringToProxy("Glacier2/router:ssl -p 10011 -t 10000")->_hash() == proxyMap["prx8"]);
+    test(communicator->stringToProxy("Glacier2/router:tcp -h zeroc.com -p 10010 -t 10000")->_hash() ==
+         proxyMap["prx9"]);
+    test(communicator->stringToProxy("Glacier2/router:ssl -h zeroc.com -p 10011 -t 10000")->_hash() ==
+         proxyMap["prx10"]);
 
     cerr << "ok" << endl;
 

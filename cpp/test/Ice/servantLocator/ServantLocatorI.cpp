@@ -9,9 +9,9 @@
 
 #include <ServantLocatorI.h>
 #ifdef ICE_AMD_TEST
-#   include <TestAMD.h>
+#    include <TestAMD.h>
 #else
-#   include <Test.h>
+#    include <Test.h>
 #endif
 #include <TestCommon.h>
 
@@ -21,10 +21,7 @@ using namespace std;
 using namespace Ice;
 using namespace Test;
 
-ServantLocatorI::ServantLocatorI(const string& category) :
-    _category(category),
-    _deactivated(false),
-    _requestId(-1)
+ServantLocatorI::ServantLocatorI(const string& category) : _category(category), _deactivated(false), _requestId(-1)
 {
 }
 
@@ -80,7 +77,7 @@ ServantLocatorI::finished(const Ice::Current& current, const Ice::ObjectPtr&,
     test(_requestId == current.requestId);
     _requestId = -1;
 
-    test(current.id.category == _category  || _category.empty());
+    test(current.id.category == _category || _category.empty());
     test(current.id.name == "locate" || current.id.name == "finished");
 
     if(current.id.name == "finished")
@@ -91,16 +88,14 @@ ServantLocatorI::finished(const Ice::Current& current, const Ice::ObjectPtr&,
     checkCookie(cookie);
 }
 
-void
-ServantLocatorI::deactivate(const string&)
+void ServantLocatorI::deactivate(const string&)
 {
     test(!_deactivated);
 
     _deactivated = true;
 }
 
-void
-ServantLocatorI::exception(const Ice::Current& current)
+void ServantLocatorI::exception(const Ice::Current& current)
 {
     if(current.operation == "ice_ids")
     {

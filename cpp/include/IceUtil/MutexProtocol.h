@@ -14,14 +14,13 @@
 
 namespace IceUtil
 {
+    enum MutexProtocol
+    {
+        PrioInherit,
+        PrioNone
+    };
 
-enum MutexProtocol
-{
-    PrioInherit,
-    PrioNone
-};
-
-ICE_API MutexProtocol getDefaultMutexProtocol();
+    ICE_API MutexProtocol getDefaultMutexProtocol();
 
 } // End namespace IceUtil
 

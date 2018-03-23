@@ -23,81 +23,64 @@ using namespace std;
 
 namespace
 {
-
-//
-// The servant has a 1-1 association with a topic. It is used to
-// receive events from Publishers.
-//
-class TransientPublisherI : public Ice::BlobjectArray
-{
-public:
-
-    TransientPublisherI(const TransientTopicImplPtr& impl) :
-        _impl(impl)
+    //
+    // The servant has a 1-1 association with a topic. It is used to
+    // receive events from Publishers.
+    //
+    class TransientPublisherI : public Ice::BlobjectArray
     {
-    }
+    public:
+        TransientPublisherI(const TransientTopicImplPtr& impl) : _impl(impl)
+        {
+        }
 
-    virtual bool
-    ice_invoke(const pair<const Ice::Byte*, const Ice::Byte*>& inParams,
-               Ice::ByteSeq&,
-               const Ice::Current& current)
+        virtual bool ice_invoke(const pair<const Ice::Byte*, const Ice::Byte*>& inParams, Ice::ByteSeq&,
+                                const Ice::Current& current)
+        {
+            // Use cached reads.
+            EventDataPtr event = new EventData(current.operation, current.mode, Ice::ByteSeq(), current.ctx);
+
+            //
+            // COMPILERBUG: gcc 4.0.1 doesn't like this.
+            //
+            // event->data.swap(Ice::ByteSeq(inParams.first, inParams.second));
+            Ice::ByteSeq data(inParams.first, inParams.second);
+            event->data.swap(data);
+
+            EventDataSeq v;
+            v.push_back(event);
+            _impl->publish(false, v);
+
+            return true;
+        }
+
+    private:
+        const TransientTopicImplPtr _impl;
+    };
+
+    //
+    // The servant has a 1-1 association with a topic. It is used to
+    // receive events from linked Topics.
+    //
+    class TransientTopicLinkI : public TopicLink
     {
-        // Use cached reads.
-        EventDataPtr event = new EventData(
-            current.operation,
-            current.mode,
-            Ice::ByteSeq(),
-            current.ctx);
+    public:
+        TransientTopicLinkI(const TransientTopicImplPtr& impl) : _impl(impl)
+        {
+        }
 
-        //
-        // COMPILERBUG: gcc 4.0.1 doesn't like this.
-        //
-        //event->data.swap(Ice::ByteSeq(inParams.first, inParams.second));
-        Ice::ByteSeq data(inParams.first, inParams.second);
-        event->data.swap(data);
+        virtual void forward(const EventDataSeq& v, const Ice::Current& /*current*/)
+        {
+            _impl->publish(true, v);
+        }
 
-        EventDataSeq v;
-        v.push_back(event);
-        _impl->publish(false, v);
+    private:
+        const TransientTopicImplPtr _impl;
+    };
 
-        return true;
-    }
+} // namespace
 
-private:
-
-    const TransientTopicImplPtr _impl;
-};
-
-//
-// The servant has a 1-1 association with a topic. It is used to
-// receive events from linked Topics.
-//
-class TransientTopicLinkI : public TopicLink
-{
-public:
-
-    TransientTopicLinkI(const TransientTopicImplPtr& impl) :
-        _impl(impl)
-    {
-    }
-
-    virtual void
-    forward(const EventDataSeq& v, const Ice::Current& /*current*/)
-    {
-        _impl->publish(true, v);
-    }
-
-private:
-
-    const TransientTopicImplPtr _impl;
-};
-
-}
-
-TransientTopicImpl::TransientTopicImpl(
-    const InstancePtr& instance,
-    const string& name,
-    const Ice::Identity& id) :
+TransientTopicImpl::TransientTopicImpl(const InstancePtr& instance, const string& name, const Ice::Identity& id) :
     _instance(instance),
     _name(name),
     _id(id),
@@ -138,29 +121,25 @@ TransientTopicImpl::~TransientTopicImpl()
 {
 }
 
-string
-TransientTopicImpl::getName(const Ice::Current&) const
+string TransientTopicImpl::getName(const Ice::Current&) const
 {
     // Immutable
     return _name;
 }
 
-Ice::ObjectPrx
-TransientTopicImpl::getPublisher(const Ice::Current&) const
+Ice::ObjectPrx TransientTopicImpl::getPublisher(const Ice::Current&) const
 {
     // Immutable
     return _publisherPrx;
 }
 
-Ice::ObjectPrx
-TransientTopicImpl::getNonReplicatedPublisher(const Ice::Current&) const
+Ice::ObjectPrx TransientTopicImpl::getNonReplicatedPublisher(const Ice::Current&) const
 {
     // Immutable
     return _publisherPrx;
 }
 
-void
-TransientTopicImpl::subscribe(const QoS& origQoS, const Ice::ObjectPrx& obj, const Ice::Current&)
+void TransientTopicImpl::subscribe(const QoS& origQoS, const Ice::ObjectPrx& obj, const Ice::Current&)
 {
     if(!obj)
     {
@@ -182,9 +161,8 @@ TransientTopicImpl::subscribe(const QoS& origQoS, const Ice::ObjectPrx& obj, con
 
         if(traceLevels->topic > 1)
         {
-            out << " endpoints: " << IceStormInternal::describeEndpoints(obj)
-                << " QoS: ";
-            for(QoS::const_iterator p = qos.begin(); p != qos.end() ; ++p)
+            out << " endpoints: " << IceStormInternal::describeEndpoints(obj) << " QoS: ";
+            for(QoS::const_iterator p = qos.begin(); p != qos.end(); ++p)
             {
                 if(p != qos.begin())
                 {
@@ -231,7 +209,7 @@ TransientTopicImpl::subscribe(const QoS& origQoS, const Ice::ObjectPrx& obj, con
         if(reliability != "oneway" && traceLevels->subscriber > 0)
         {
             Ice::Trace out(traceLevels->logger, traceLevels->subscriberCat);
-            out << reliability <<" mode not understood.";
+            out << reliability << " mode not understood.";
         }
         if(!newObj->ice_isDatagram())
         {
@@ -261,8 +239,8 @@ TransientTopicImpl::subscribe(const QoS& origQoS, const Ice::ObjectPrx& obj, con
     _subscribers.push_back(subscriber);
 }
 
-Ice::ObjectPrx
-TransientTopicImpl::subscribeAndGetPublisher(const QoS& qos, const Ice::ObjectPrx& obj, const Ice::Current&)
+Ice::ObjectPrx TransientTopicImpl::subscribeAndGetPublisher(const QoS& qos, const Ice::ObjectPrx& obj,
+                                                            const Ice::Current&)
 {
     if(!obj)
     {
@@ -284,15 +262,13 @@ TransientTopicImpl::subscribeAndGetPublisher(const QoS& qos, const Ice::ObjectPr
 
         if(traceLevels->topic > 1)
         {
-            out << " endpoints: " << IceStormInternal::describeEndpoints(obj)
-                << " QoS: ";
-            for(QoS::const_iterator p = qos.begin(); p != qos.end() ; ++p)
+            out << " endpoints: " << IceStormInternal::describeEndpoints(obj) << " QoS: ";
+            for(QoS::const_iterator p = qos.begin(); p != qos.end(); ++p)
             {
                 if(p != qos.begin())
                 {
                     out << ',';
                 }
-
             }
         }
     }
@@ -319,8 +295,7 @@ TransientTopicImpl::subscribeAndGetPublisher(const QoS& qos, const Ice::ObjectPr
     return subscriber->proxy();
 }
 
-void
-TransientTopicImpl::unsubscribe(const Ice::ObjectPrx& subscriber, const Ice::Current&)
+void TransientTopicImpl::unsubscribe(const Ice::ObjectPrx& subscriber, const Ice::Current&)
 {
     TraceLevelsPtr traceLevels = _instance->traceLevels();
     if(!subscriber)
@@ -357,15 +332,13 @@ TransientTopicImpl::unsubscribe(const Ice::ObjectPrx& subscriber, const Ice::Cur
     }
 }
 
-TopicLinkPrx
-TransientTopicImpl::getLinkProxy(const Ice::Current&)
+TopicLinkPrx TransientTopicImpl::getLinkProxy(const Ice::Current&)
 {
     // immutable
     return _linkPrx;
 }
 
-void
-TransientTopicImpl::link(const TopicPrx& topic, Ice::Int cost, const Ice::Current&)
+void TransientTopicImpl::link(const TopicPrx& topic, Ice::Int cost, const Ice::Current&)
 {
     TopicInternalPrx internal = TopicInternalPrx::uncheckedCast(topic);
     TopicLinkPrx link = internal->getLinkProxy();
@@ -374,8 +347,8 @@ TransientTopicImpl::link(const TopicPrx& topic, Ice::Int cost, const Ice::Curren
     if(traceLevels->topic > 0)
     {
         Ice::Trace out(traceLevels->logger, traceLevels->topicCat);
-        out << _name << ": link " << _instance->communicator()->identityToString(topic->ice_getIdentity())
-            << " cost " << cost;
+        out << _name << ": link " << _instance->communicator()->identityToString(topic->ice_getIdentity()) << " cost "
+            << cost;
     }
 
     Lock sync(*this);
@@ -400,8 +373,7 @@ TransientTopicImpl::link(const TopicPrx& topic, Ice::Int cost, const Ice::Curren
     _subscribers.push_back(subscriber);
 }
 
-void
-TransientTopicImpl::unlink(const TopicPrx& topic, const Ice::Current&)
+void TransientTopicImpl::unlink(const TopicPrx& topic, const Ice::Current&)
 {
     Lock sync(*this);
     if(_destroyed)
@@ -442,8 +414,7 @@ TransientTopicImpl::unlink(const TopicPrx& topic, const Ice::Current&)
     }
 }
 
-LinkInfoSeq
-TransientTopicImpl::getLinkInfoSeq(const Ice::Current&) const
+LinkInfoSeq TransientTopicImpl::getLinkInfoSeq(const Ice::Current&) const
 {
     Lock sync(*this);
     LinkInfoSeq seq;
@@ -462,8 +433,7 @@ TransientTopicImpl::getLinkInfoSeq(const Ice::Current&) const
     return seq;
 }
 
-Ice::IdentitySeq
-TransientTopicImpl::getSubscribers(const Ice::Current&) const
+Ice::IdentitySeq TransientTopicImpl::getSubscribers(const Ice::Current&) const
 {
     IceUtil::Mutex::Lock sync(*this);
 
@@ -475,8 +445,7 @@ TransientTopicImpl::getSubscribers(const Ice::Current&) const
     return subscribers;
 }
 
-void
-TransientTopicImpl::destroy(const Ice::Current&)
+void TransientTopicImpl::destroy(const Ice::Current&)
 {
     Lock sync(*this);
 
@@ -511,27 +480,23 @@ TransientTopicImpl::destroy(const Ice::Current&)
     _subscribers.clear();
 }
 
-void
-TransientTopicImpl::reap(const Ice::IdentitySeq&, const Ice::Current&)
+void TransientTopicImpl::reap(const Ice::IdentitySeq&, const Ice::Current&)
 {
 }
 
-bool
-TransientTopicImpl::destroyed() const
+bool TransientTopicImpl::destroyed() const
 {
     Lock sync(*this);
     return _destroyed;
 }
 
-Ice::Identity
-TransientTopicImpl::id() const
+Ice::Identity TransientTopicImpl::id() const
 {
     // immutable
     return _id;
 }
 
-void
-TransientTopicImpl::publish(bool forwarded, const EventDataSeq& events)
+void TransientTopicImpl::publish(bool forwarded, const EventDataSeq& events)
 {
     //
     // Copy of the subscriber list so that event publishing can occur
@@ -593,8 +558,7 @@ TransientTopicImpl::publish(bool forwarded, const EventDataSeq& events)
     }
 }
 
-void
-TransientTopicImpl::shutdown()
+void TransientTopicImpl::shutdown()
 {
     Lock sync(*this);
 

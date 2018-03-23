@@ -26,43 +26,37 @@ Slice::FileException::~FileException() throw()
 }
 #endif
 
-string
-Slice::FileException::ice_id() const
+string Slice::FileException::ice_id() const
 {
     return "::Slice::FileException";
 }
 
-void
-Slice::FileException::ice_print(ostream& out) const
+void Slice::FileException::ice_print(ostream& out) const
 {
     IceUtil::Exception::ice_print(out);
     out << ": " << _reason;
 }
 
 #ifndef ICE_CPP11_MAPPING
-Slice::FileException*
-Slice::FileException::ice_clone() const
+Slice::FileException* Slice::FileException::ice_clone() const
 {
     return new FileException(*this);
 }
 #endif
 
-void
-Slice::FileException::ice_throw() const
+void Slice::FileException::ice_throw() const
 {
     throw *this;
 }
 
-string
-Slice::FileException::reason() const
+string Slice::FileException::reason() const
 {
     return _reason;
 }
 
 static Slice::FileTrackerPtr Instance;
 
-Slice::FileTracker::FileTracker() :
-    _curr(_generated.end())
+Slice::FileTracker::FileTracker() : _curr(_generated.end())
 {
 }
 
@@ -71,8 +65,7 @@ Slice::FileTracker::~FileTracker()
 }
 
 // The file tracker is not supposed to be thread safe.
-Slice::FileTrackerPtr
-Slice::FileTracker::instance()
+Slice::FileTrackerPtr Slice::FileTracker::instance()
 {
     if(!Instance)
     {
@@ -81,25 +74,22 @@ Slice::FileTracker::instance()
     return Instance;
 }
 
-void
-Slice::FileTracker::setSource(const string& source)
+void Slice::FileTracker::setSource(const string& source)
 {
     _source = source;
-    pair<map<string, list<string> >::iterator, bool> p = _generated.insert(make_pair(source, list<string>()));
+    pair<map<string, list<string>>::iterator, bool> p = _generated.insert(make_pair(source, list<string>()));
     assert(p.second);
     _curr = p.first;
 }
 
-void
-Slice::FileTracker::error()
+void Slice::FileTracker::error()
 {
     assert(_curr != _generated.end());
     _generated.erase(_curr);
     _curr = _generated.end();
 }
 
-void
-Slice::FileTracker::addFile(const string& file)
+void Slice::FileTracker::addFile(const string& file)
 {
     _files.push_front(make_pair(file, false));
     if(_curr != _generated.end())
@@ -108,16 +98,14 @@ Slice::FileTracker::addFile(const string& file)
     }
 }
 
-void
-Slice::FileTracker::addDirectory(const string& dir)
+void Slice::FileTracker::addDirectory(const string& dir)
 {
     _files.push_front(make_pair(dir, true));
 }
 
-void
-Slice::FileTracker::cleanup()
+void Slice::FileTracker::cleanup()
 {
-    for(list<pair<string, bool> >::const_iterator p = _files.begin(); p != _files.end(); ++p)
+    for(list<pair<string, bool>>::const_iterator p = _files.begin(); p != _files.end(); ++p)
     {
         if(!p->second)
         {
@@ -130,12 +118,11 @@ Slice::FileTracker::cleanup()
     }
 }
 
-void
-Slice::FileTracker::dumpxml()
+void Slice::FileTracker::dumpxml()
 {
     consoleOut << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << endl;
     consoleOut << "<generated>";
-    for(map<string, list<string> >::const_iterator p = _generated.begin(); p != _generated.end(); ++p)
+    for(map<string, list<string>>::const_iterator p = _generated.begin(); p != _generated.end(); ++p)
     {
         if(!p->second.empty())
         {

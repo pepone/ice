@@ -32,9 +32,7 @@ using namespace IceInternal;
 
 namespace IceUtilInternal
 {
-
-extern bool printStackTraces;
-
+    extern bool printStackTraces;
 }
 
 #ifdef ICE_CPP11_MAPPING
@@ -48,8 +46,8 @@ Ice::MarshaledResult::MarshaledResult(const Ice::Current& current) :
 #endif
 
 IceInternal::IncomingBase::IncomingBase(Instance* instance, ResponseHandler* responseHandler,
-                                        Ice::Connection* connection, const ObjectAdapterPtr& adapter,
-                                        bool response, Byte compress, Int requestId) :
+                                        Ice::Connection* connection, const ObjectAdapterPtr& adapter, bool response,
+                                        Byte compress, Int requestId) :
     _response(response),
     _compress(compress),
     _format(Ice::ICE_ENUM(FormatType, DefaultFormat)),
@@ -81,8 +79,7 @@ IceInternal::IncomingBase::IncomingBase(IncomingBase& other) :
     _observer.adopt(other._observer);
 }
 
-OutputStream*
-IncomingBase::startWriteParams()
+OutputStream* IncomingBase::startWriteParams()
 {
     if(!_response)
     {
@@ -98,8 +95,7 @@ IncomingBase::startWriteParams()
     return &_os;
 }
 
-void
-IncomingBase::endWriteParams()
+void IncomingBase::endWriteParams()
 {
     if(_response)
     {
@@ -107,8 +103,7 @@ IncomingBase::endWriteParams()
     }
 }
 
-void
-IncomingBase::writeEmptyParams()
+void IncomingBase::writeEmptyParams()
 {
     if(_response)
     {
@@ -120,8 +115,7 @@ IncomingBase::writeEmptyParams()
     }
 }
 
-void
-IncomingBase::writeParamEncaps(const Byte* v, Ice::Int sz, bool ok)
+void IncomingBase::writeParamEncaps(const Byte* v, Ice::Int sz, bool ok)
 {
     if(!ok)
     {
@@ -146,15 +140,13 @@ IncomingBase::writeParamEncaps(const Byte* v, Ice::Int sz, bool ok)
 }
 
 #ifdef ICE_CPP11_MAPPING
-void
-IceInternal::IncomingBase::setMarshaledResult(const Ice::MarshaledResult& result)
+void IceInternal::IncomingBase::setMarshaledResult(const Ice::MarshaledResult& result)
 {
     result.getOutputStream()->swap(_os);
 }
 #endif
 
-void
-IceInternal::IncomingBase::response(bool amd)
+void IceInternal::IncomingBase::response(bool amd)
 {
     try
     {
@@ -183,8 +175,7 @@ IceInternal::IncomingBase::response(bool amd)
     _responseHandler = 0;
 }
 
-void
-IceInternal::IncomingBase::exception(const std::exception& exc, bool amd)
+void IceInternal::IncomingBase::exception(const std::exception& exc, bool amd)
 {
     try
     {
@@ -196,12 +187,11 @@ IceInternal::IncomingBase::exception(const std::exception& exc, bool amd)
     }
     catch(const LocalException& ex)
     {
-        _responseHandler->invokeException(_current.requestId, ex, 1, amd);  // Fatal invocation exception
+        _responseHandler->invokeException(_current.requestId, ex, 1, amd); // Fatal invocation exception
     }
 }
 
-void
-IceInternal::IncomingBase::exception(const string& msg, bool amd)
+void IceInternal::IncomingBase::exception(const string& msg, bool amd)
 {
     try
     {
@@ -213,12 +203,11 @@ IceInternal::IncomingBase::exception(const string& msg, bool amd)
     }
     catch(const LocalException& ex)
     {
-        _responseHandler->invokeException(_current.requestId, ex, 1, amd);  // Fatal invocation exception
+        _responseHandler->invokeException(_current.requestId, ex, 1, amd); // Fatal invocation exception
     }
 }
 
-void
-IceInternal::IncomingBase::warning(const Exception& ex) const
+void IceInternal::IncomingBase::warning(const Exception& ex) const
 {
     Warning out(_os.instance()->initializationData().logger);
 
@@ -251,8 +240,7 @@ IceInternal::IncomingBase::warning(const Exception& ex) const
     }
 }
 
-void
-IceInternal::IncomingBase::warning(const string& msg) const
+void IceInternal::IncomingBase::warning(const string& msg) const
 {
     Warning out(_os.instance()->initializationData().logger);
     ToStringMode toStringMode = _os.instance()->toStringMode();
@@ -276,8 +264,7 @@ IceInternal::IncomingBase::warning(const string& msg) const
     }
 }
 
-bool
-IceInternal::IncomingBase::servantLocatorFinished(bool amd)
+bool IceInternal::IncomingBase::servantLocatorFinished(bool amd)
 {
     assert(_locator && _servant);
     try
@@ -296,8 +283,7 @@ IceInternal::IncomingBase::servantLocatorFinished(bool amd)
     return false;
 }
 
-void
-IceInternal::IncomingBase::handleException(const std::exception& exc, bool amd)
+void IceInternal::IncomingBase::handleException(const std::exception& exc, bool amd)
 {
     assert(_responseHandler);
 
@@ -450,7 +436,7 @@ IceInternal::IncomingBase::handleException(const std::exception& exc, bool amd)
                 str << *le;
                 if(IceUtilInternal::printStackTraces)
                 {
-                    str <<  '\n' << ex->ice_stackTrace();
+                    str << '\n' << ex->ice_stackTrace();
                 }
                 _os.write(str.str(), false);
             }
@@ -461,7 +447,7 @@ IceInternal::IncomingBase::handleException(const std::exception& exc, bool amd)
                 str << *ue;
                 if(IceUtilInternal::printStackTraces)
                 {
-                    str <<  '\n' << ex->ice_stackTrace();
+                    str << '\n' << ex->ice_stackTrace();
                 }
                 _os.write(str.str(), false);
             }
@@ -472,7 +458,7 @@ IceInternal::IncomingBase::handleException(const std::exception& exc, bool amd)
                 str << *ex;
                 if(IceUtilInternal::printStackTraces)
                 {
-                    str <<  '\n' << ex->ice_stackTrace();
+                    str << '\n' << ex->ice_stackTrace();
                 }
                 _os.write(str.str(), false);
             }
@@ -519,8 +505,7 @@ IceInternal::IncomingBase::handleException(const std::exception& exc, bool amd)
     _responseHandler = 0;
 }
 
-void
-IceInternal::IncomingBase::handleException(const string& msg, bool amd)
+void IceInternal::IncomingBase::handleException(const string& msg, bool amd)
 {
     if(_os.instance()->initializationData().properties->getPropertyAsIntWithDefault("Ice.Warn.Dispatch", 1) > 0)
     {
@@ -566,27 +551,23 @@ IceInternal::Incoming::Incoming(Instance* instance, ResponseHandler* responseHan
 }
 
 #ifdef ICE_CPP11_MAPPING
-void
-IceInternal::Incoming::push(function<bool()> response, function<bool(exception_ptr)> exception)
+void IceInternal::Incoming::push(function<bool()> response, function<bool(exception_ptr)> exception)
 {
     _interceptorCBs.push_front(make_pair(response, exception));
 }
 #else
-void
-IceInternal::Incoming::push(const Ice::DispatchInterceptorAsyncCallbackPtr& cb)
+void IceInternal::Incoming::push(const Ice::DispatchInterceptorAsyncCallbackPtr& cb)
 {
     _interceptorCBs.push_front(cb);
 }
 #endif
 
-void
-IceInternal::Incoming::pop()
+void IceInternal::Incoming::pop()
 {
     _interceptorCBs.pop_front();
 }
 
-void
-IceInternal::Incoming::startOver()
+void IceInternal::Incoming::startOver()
 {
     if(_inParamPos == 0)
     {
@@ -610,8 +591,7 @@ IceInternal::Incoming::startOver()
     }
 }
 
-void
-IceInternal::Incoming::invoke(const ServantManagerPtr& servantManager, InputStream* stream)
+void IceInternal::Incoming::invoke(const ServantManagerPtr& servantManager, InputStream* stream)
 {
     _is = stream;
 
@@ -790,8 +770,7 @@ IceInternal::Incoming::invoke(const ServantManagerPtr& servantManager, InputStre
     }
 }
 
-const Current&
-IceInternal::IncomingRequest::getCurrent()
+const Current& IceInternal::IncomingRequest::getCurrent()
 {
     return _in.getCurrent();
 }

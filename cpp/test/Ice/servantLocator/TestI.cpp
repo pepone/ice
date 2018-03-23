@@ -14,54 +14,44 @@
 using namespace std;
 using namespace Ice;
 
-void
-TestI::requestFailedException(const Current&)
+void TestI::requestFailedException(const Current&)
 {
 }
 
-void
-TestI::unknownUserException(const Current&)
+void TestI::unknownUserException(const Current&)
 {
 }
 
-void
-TestI::unknownLocalException(const Current&)
+void TestI::unknownLocalException(const Current&)
 {
 }
 
-void
-TestI::unknownException(const Current&)
+void TestI::unknownException(const Current&)
 {
 }
 
-void
-TestI::userException(const Current&)
+void TestI::userException(const Current&)
 {
 }
 
-void
-TestI::localException(const Current&)
+void TestI::localException(const Current&)
 {
 }
 
-void
-TestI::stdException(const Current&)
+void TestI::stdException(const Current&)
 {
 }
 
-void
-TestI::cppException(const Current&)
+void TestI::cppException(const Current&)
 {
 }
 
-void
-TestI::unknownExceptionWithServantException(const Current&)
+void TestI::unknownExceptionWithServantException(const Current&)
 {
     throw Ice::ObjectNotExistException(__FILE__, __LINE__);
 }
 
-string
-TestI::impossibleException(bool _cpp_throw, const Current&)
+string TestI::impossibleException(bool _cpp_throw, const Current&)
 {
     if(_cpp_throw)
     {
@@ -74,8 +64,7 @@ TestI::impossibleException(bool _cpp_throw, const Current&)
     return "Hello";
 }
 
-string
-TestI::intfUserException(bool _cpp_throw, const Current&)
+string TestI::intfUserException(bool _cpp_throw, const Current&)
 {
     if(_cpp_throw)
     {
@@ -88,30 +77,26 @@ TestI::intfUserException(bool _cpp_throw, const Current&)
     return "Hello";
 }
 
-void
-TestI::asyncResponse(const Current&)
+void TestI::asyncResponse(const Current&)
 {
     //
     // Only relevant for AMD.
     //
 }
 
-void
-TestI::asyncException(const Current&)
+void TestI::asyncException(const Current&)
 {
     //
     // Only relevant for AMD.
     //
 }
 
-void
-TestI::shutdown(const Current& current)
+void TestI::shutdown(const Current& current)
 {
     current.adapter->deactivate();
 }
 
-string
-CookieI::message() const
+string CookieI::message() const
 {
     return "blahblah";
 }

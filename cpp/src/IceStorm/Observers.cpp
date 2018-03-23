@@ -15,20 +15,16 @@ using namespace std;
 using namespace IceStorm;
 using namespace IceStormElection;
 
-Observers::Observers(const InstancePtr& instance) :
-    _traceLevels(instance->traceLevels()),
-    _majority(0)
+Observers::Observers(const InstancePtr& instance) : _traceLevels(instance->traceLevels()), _majority(0)
 {
 }
 
-void
-Observers::setMajority(unsigned int majority)
+void Observers::setMajority(unsigned int majority)
 {
     _majority = majority;
 }
 
-bool
-Observers::check()
+bool Observers::check()
 {
     Lock sync(*this);
     if(_observers.size() >= _majority)
@@ -51,7 +47,7 @@ Observers::check()
                 p = _observers.erase(p);
 
                 // COMPILERFIX: Just using following causes double unlock with C++Builder 2007
-                //IceUtil::Mutex::Lock sync(_reapedMutex);
+                // IceUtil::Mutex::Lock sync(_reapedMutex);
                 _reapedMutex.lock();
                 _reaped.push_back(id);
                 _reapedMutex.unlock();
@@ -63,22 +59,19 @@ Observers::check()
     return _majority == 0 || _observers.size() >= _majority;
 }
 
-void
-Observers::clear()
+void Observers::clear()
 {
     Lock sync(*this);
     _observers.clear();
 }
 
-void
-Observers::getReapedSlaves(std::vector<int>& d)
+void Observers::getReapedSlaves(std::vector<int>& d)
 {
     IceUtil::Mutex::Lock sync(_reapedMutex);
     d.swap(_reaped);
 }
 
-void
-Observers::init(const set<GroupNodeInfo>& slaves, const LogUpdate& llu, const TopicContentSeq& content)
+void Observers::init(const set<GroupNodeInfo>& slaves, const LogUpdate& llu, const TopicContentSeq& content)
 {
     {
         IceUtil::Mutex::Lock sync(_reapedMutex);
@@ -133,8 +126,7 @@ Observers::init(const set<GroupNodeInfo>& slaves, const LogUpdate& llu, const To
     _observers.swap(observers);
 }
 
-void
-Observers::createTopic(const LogUpdate& llu, const string& name)
+void Observers::createTopic(const LogUpdate& llu, const string& name)
 {
     Lock sync(*this);
     for(vector<ObserverInfo>::iterator p = _observers.begin(); p != _observers.end(); ++p)
@@ -144,8 +136,7 @@ Observers::createTopic(const LogUpdate& llu, const string& name)
     wait("createTopic");
 }
 
-void
-Observers::destroyTopic(const LogUpdate& llu, const string& id)
+void Observers::destroyTopic(const LogUpdate& llu, const string& id)
 {
     Lock sync(*this);
     for(vector<ObserverInfo>::iterator p = _observers.begin(); p != _observers.end(); ++p)
@@ -155,8 +146,7 @@ Observers::destroyTopic(const LogUpdate& llu, const string& id)
     wait("destroyTopic");
 }
 
-void
-Observers::addSubscriber(const LogUpdate& llu, const string& name, const SubscriberRecord& rec)
+void Observers::addSubscriber(const LogUpdate& llu, const string& name, const SubscriberRecord& rec)
 {
     Lock sync(*this);
     for(vector<ObserverInfo>::iterator p = _observers.begin(); p != _observers.end(); ++p)
@@ -166,8 +156,7 @@ Observers::addSubscriber(const LogUpdate& llu, const string& name, const Subscri
     wait("addSubscriber");
 }
 
-void
-Observers::removeSubscriber(const LogUpdate& llu, const string& name, const Ice::IdentitySeq& id)
+void Observers::removeSubscriber(const LogUpdate& llu, const string& name, const Ice::IdentitySeq& id)
 {
     Lock sync(*this);
     for(vector<ObserverInfo>::iterator p = _observers.begin(); p != _observers.end(); ++p)
@@ -177,8 +166,7 @@ Observers::removeSubscriber(const LogUpdate& llu, const string& name, const Ice:
     wait("removeSubscriber");
 }
 
-void
-Observers::wait(const string& op)
+void Observers::wait(const string& op)
 {
     vector<ObserverInfo>::iterator p = _observers.begin();
     while(p != _observers.end())
@@ -208,8 +196,8 @@ Observers::wait(const string& op)
     if(_observers.size() < _majority)
     {
         // TODO: Trace here?
-        //Ice::Trace out(_traceLevels->logger, _traceLevels->replicationCat);
-        //out << op;
+        // Ice::Trace out(_traceLevels->logger, _traceLevels->replicationCat);
+        // out << op;
         throw Ice::UnknownException(__FILE__, __LINE__);
     }
 }

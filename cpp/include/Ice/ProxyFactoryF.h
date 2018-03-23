@@ -16,11 +16,10 @@
 
 namespace IceInternal
 {
+    class ProxyFactory;
+    IceUtil::Shared* upCast(ProxyFactory*);
+    typedef IceInternal::Handle<ProxyFactory> ProxyFactoryPtr;
 
-class ProxyFactory;
-IceUtil::Shared* upCast(ProxyFactory*);
-typedef IceInternal::Handle<ProxyFactory> ProxyFactoryPtr;
-
-}
+} // namespace IceInternal
 
 #endif

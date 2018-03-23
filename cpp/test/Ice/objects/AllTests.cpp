@@ -13,12 +13,12 @@
 
 #ifdef _MSC_VER
 // For 'Ice::Communicator::addObjectFactory()' deprecation
-#pragma warning( disable : 4996 )
+#    pragma warning(disable : 4996)
 #endif
 
 #if defined(__GNUC__)
 // For 'Ice::Communicator::addObjectFactory()' deprecation
-#   pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#    pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
 using namespace std;
@@ -26,97 +26,90 @@ using namespace Test;
 
 namespace
 {
-
-class AbstractBaseI : public AbstractBase
-{
-public:
-
-    virtual void op(const Ice::Current&)
+    class AbstractBaseI : public AbstractBase
     {
-    }
-};
+    public:
+        virtual void op(const Ice::Current&)
+        {
+        }
+    };
 
-void
-testUOE(const Ice::CommunicatorPtr& communicator)
-{
-    string ref = "uoet:" + getTestEndpoint(communicator, 0);
-    Ice::ObjectPrxPtr base = communicator->stringToProxy(ref);
-    test(base);
-    UnexpectedObjectExceptionTestPrxPtr uoet = ICE_UNCHECKED_CAST(UnexpectedObjectExceptionTestPrx, base);
-    test(uoet);
-    try
+    void testUOE(const Ice::CommunicatorPtr& communicator)
     {
-        uoet->op();
-        test(false);
+        string ref = "uoet:" + getTestEndpoint(communicator, 0);
+        Ice::ObjectPrxPtr base = communicator->stringToProxy(ref);
+        test(base);
+        UnexpectedObjectExceptionTestPrxPtr uoet = ICE_UNCHECKED_CAST(UnexpectedObjectExceptionTestPrx, base);
+        test(uoet);
+        try
+        {
+            uoet->op();
+            test(false);
+        }
+        catch(const Ice::UnexpectedObjectException& ex)
+        {
+            test(ex.type == "::Test::AlsoEmpty");
+            test(ex.expectedType == "::Test::Empty");
+        }
+        catch(const Ice::Exception& ex)
+        {
+            cout << ex << endl;
+            test(false);
+        }
+        catch(...)
+        {
+            test(false);
+        }
     }
-    catch(const Ice::UnexpectedObjectException& ex)
-    {
-        test(ex.type == "::Test::AlsoEmpty");
-        test(ex.expectedType == "::Test::Empty");
-    }
-    catch(const Ice::Exception& ex)
-    {
-        cout << ex << endl;
-        test(false);
-    }
-    catch(...)
-    {
-        test(false);
-    }
-}
 
-void clear(const CPtr&);
+    void clear(const CPtr&);
 
-void
-clear(const BPtr& b)
-{
+    void clear(const BPtr& b)
+    {
 #ifdef ICE_CPP11_MAPPING
-    // No GC with the C++11 mapping
-    if(dynamic_pointer_cast<B>(b->theA))
-    {
-        auto tmp = b->theA;
-        b->theA = nullptr;
-        clear(dynamic_pointer_cast<B>(tmp));
-    }
-    if(b->theB)
-    {
-        auto tmp = b->theB;
-        b->theB = nullptr;
-        clear(dynamic_pointer_cast<B>(tmp));
-    }
-    b->theC = nullptr;
+        // No GC with the C++11 mapping
+        if(dynamic_pointer_cast<B>(b->theA))
+        {
+            auto tmp = b->theA;
+            b->theA = nullptr;
+            clear(dynamic_pointer_cast<B>(tmp));
+        }
+        if(b->theB)
+        {
+            auto tmp = b->theB;
+            b->theB = nullptr;
+            clear(dynamic_pointer_cast<B>(tmp));
+        }
+        b->theC = nullptr;
 #endif
-}
+    }
 
-void
-clear(const CPtr& c)
-{
+    void clear(const CPtr& c)
+    {
 #ifdef ICE_CPP11_MAPPING
-    // No GC with the C++11 mapping
-    clear(c->theB);
-    c->theB = nullptr;
+        // No GC with the C++11 mapping
+        clear(c->theB);
+        c->theB = nullptr;
 #endif
-}
-
-void
-clear(const DPtr& d)
-{
-#ifdef ICE_CPP11_MAPPING
-    // No GC with the C++11 mapping
-    if(dynamic_pointer_cast<B>(d->theA))
-    {
-        clear(dynamic_pointer_cast<B>(d->theA));
     }
-    d->theA = nullptr;
-    clear(d->theB);
-    d->theB = nullptr;
+
+    void clear(const DPtr& d)
+    {
+#ifdef ICE_CPP11_MAPPING
+        // No GC with the C++11 mapping
+        if(dynamic_pointer_cast<B>(d->theA))
+        {
+            clear(dynamic_pointer_cast<B>(d->theA));
+        }
+        d->theA = nullptr;
+        clear(d->theB);
+        d->theB = nullptr;
 #endif
-}
+    }
 
-}
+} // namespace
 
-InitialPrxPtr
-allTests(const Ice::CommunicatorPtr& communicator)
+InitialPrxPtr allTests(const Ice::CommunicatorPtr& communicator)
 {
     cout << "testing stringToProxy... " << flush;
     string ref = "initial:" + getTestEndpoint(communicator, 0);
@@ -343,10 +336,7 @@ allTests(const Ice::CommunicatorPtr& communicator)
     cout << "ok" << endl;
 
     cout << "getting D1... " << flush;
-    D1Ptr d1 = ICE_MAKE_SHARED(D1,
-                               ICE_MAKE_SHARED(A1, "a1"),
-                               ICE_MAKE_SHARED(A1, "a2"),
-                               ICE_MAKE_SHARED(A1, "a3"),
+    D1Ptr d1 = ICE_MAKE_SHARED(D1, ICE_MAKE_SHARED(A1, "a1"), ICE_MAKE_SHARED(A1, "a2"), ICE_MAKE_SHARED(A1, "a3"),
                                ICE_MAKE_SHARED(A1, "a4"));
     d1 = initial->getD1(d1);
     test(d1->a1->name == "a1");
@@ -413,10 +403,8 @@ allTests(const Ice::CommunicatorPtr& communicator)
         {
             p->v = ICE_MAKE_SHARED(Recursive);
             p = p->v;
-            if((depth < 10 && (depth % 10) == 0) ||
-               (depth < 1000 && (depth % 100) == 0) ||
-               (depth < 10000 && (depth % 1000) == 0) ||
-               (depth % 10000) == 0)
+            if((depth < 10 && (depth % 10) == 0) || (depth < 1000 && (depth % 100) == 0) ||
+               (depth < 10000 && (depth % 1000) == 0) || (depth % 10000) == 0)
             {
                 initial->setRecursive(top);
             }
@@ -471,8 +459,8 @@ allTests(const Ice::CommunicatorPtr& communicator)
 
     try
     {
-        TestIntfPrxPtr p = ICE_CHECKED_CAST(TestIntfPrx,
-                                            communicator->stringToProxy("test:" + getTestEndpoint(communicator, 0)));
+        TestIntfPrxPtr p =
+            ICE_CHECKED_CAST(TestIntfPrx, communicator->stringToProxy("test:" + getTestEndpoint(communicator, 0)));
 
         cout << "testing Object factory registration... " << flush;
         {

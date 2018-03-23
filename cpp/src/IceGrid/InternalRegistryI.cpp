@@ -26,10 +26,8 @@
 using namespace std;
 using namespace IceGrid;
 
-InternalRegistryI::InternalRegistryI(const RegistryIPtr& registry,
-                                     const DatabasePtr& database,
-                                     const ReapThreadPtr& reaper,
-                                     const WellKnownObjectsManagerPtr& wellKnownObjects,
+InternalRegistryI::InternalRegistryI(const RegistryIPtr& registry, const DatabasePtr& database,
+                                     const ReapThreadPtr& reaper, const WellKnownObjectsManagerPtr& wellKnownObjects,
                                      ReplicaSessionManager& session) :
     _registry(registry),
     _database(database),
@@ -49,11 +47,8 @@ InternalRegistryI::~InternalRegistryI()
 {
 }
 
-NodeSessionPrx
-InternalRegistryI::registerNode(const InternalNodeInfoPtr& info,
-                                const NodePrx& node,
-                                const LoadInfo& load,
-                                const Ice::Current& current)
+NodeSessionPrx InternalRegistryI::registerNode(const InternalNodeInfoPtr& info, const NodePrx& node,
+                                               const LoadInfo& load, const Ice::Current& current)
 {
     const TraceLevelsPtr traceLevels = _database->getTraceLevels();
     const Ice::LoggerPtr logger = traceLevels->logger;
@@ -69,8 +64,7 @@ InternalRegistryI::registerNode(const InternalNodeInfoPtr& info,
             IceSSL::ConnectionInfoPtr sslConnInfo = IceSSL::ConnectionInfoPtr::dynamicCast(current.con->getInfo());
             if(sslConnInfo)
             {
-                if (sslConnInfo->certs.empty() ||
-                    !sslConnInfo->certs[0]->getSubjectDN().match("CN=" + info->name))
+                if(sslConnInfo->certs.empty() || !sslConnInfo->certs[0]->getSubjectDN().match("CN=" + info->name))
                 {
                     if(traceLevels->node > 0)
                     {
@@ -117,10 +111,8 @@ InternalRegistryI::registerNode(const InternalNodeInfoPtr& info,
     }
 }
 
-ReplicaSessionPrx
-InternalRegistryI::registerReplica(const InternalReplicaInfoPtr& info,
-                                   const InternalRegistryPrx& prx,
-                                   const Ice::Current& current)
+ReplicaSessionPrx InternalRegistryI::registerReplica(const InternalReplicaInfoPtr& info, const InternalRegistryPrx& prx,
+                                                     const Ice::Current& current)
 {
     const TraceLevelsPtr traceLevels = _database->getTraceLevels();
     const Ice::LoggerPtr logger = traceLevels->logger;
@@ -136,8 +128,7 @@ InternalRegistryI::registerReplica(const InternalReplicaInfoPtr& info,
             IceSSL::ConnectionInfoPtr sslConnInfo = IceSSL::ConnectionInfoPtr::dynamicCast(current.con->getInfo());
             if(sslConnInfo)
             {
-                if (sslConnInfo->certs.empty() ||
-                    !sslConnInfo->certs[0]->getSubjectDN().match("CN=" + info->name))
+                if(sslConnInfo->certs.empty() || !sslConnInfo->certs[0]->getSubjectDN().match("CN=" + info->name))
                 {
                     if(traceLevels->replica > 0)
                     {
@@ -184,14 +175,12 @@ InternalRegistryI::registerReplica(const InternalReplicaInfoPtr& info,
     }
 }
 
-void
-InternalRegistryI::registerWithReplica(const InternalRegistryPrx& replica, const Ice::Current&)
+void InternalRegistryI::registerWithReplica(const InternalRegistryPrx& replica, const Ice::Current&)
 {
     _session.create(replica);
 }
 
-NodePrxSeq
-InternalRegistryI::getNodes(const Ice::Current&) const
+NodePrxSeq InternalRegistryI::getNodes(const Ice::Current&) const
 {
     NodePrxSeq nodes;
     Ice::ObjectProxySeq proxies = _database->getInternalObjectsByType(Node::ice_staticId());
@@ -202,8 +191,7 @@ InternalRegistryI::getNodes(const Ice::Current&) const
     return nodes;
 }
 
-InternalRegistryPrxSeq
-InternalRegistryI::getReplicas(const Ice::Current&) const
+InternalRegistryPrxSeq InternalRegistryI::getReplicas(const Ice::Current&) const
 {
     InternalRegistryPrxSeq replicas;
     Ice::ObjectProxySeq proxies = _database->getObjectsByType(InternalRegistry::ice_staticId());
@@ -214,45 +202,38 @@ InternalRegistryI::getReplicas(const Ice::Current&) const
     return replicas;
 }
 
-ApplicationInfoSeq
-InternalRegistryI::getApplications(Ice::Long& serial, const Ice::Current&) const
+ApplicationInfoSeq InternalRegistryI::getApplications(Ice::Long& serial, const Ice::Current&) const
 {
     return _database->getApplications(serial);
 }
 
-AdapterInfoSeq
-InternalRegistryI::getAdapters(Ice::Long& serial, const Ice::Current&) const
+AdapterInfoSeq InternalRegistryI::getAdapters(Ice::Long& serial, const Ice::Current&) const
 {
     return _database->getAdapters(serial);
 }
 
-ObjectInfoSeq
-InternalRegistryI::getObjects(Ice::Long& serial, const Ice::Current&) const
+ObjectInfoSeq InternalRegistryI::getObjects(Ice::Long& serial, const Ice::Current&) const
 {
     return _database->getObjects(serial);
 }
 
-void
-InternalRegistryI::shutdown(const Ice::Current& /*current*/) const
+void InternalRegistryI::shutdown(const Ice::Current& /*current*/) const
 {
     _registry->shutdown();
 }
 
-Ice::Long
-InternalRegistryI::getOffsetFromEnd(const string& filename, int count, const Ice::Current&) const
+Ice::Long InternalRegistryI::getOffsetFromEnd(const string& filename, int count, const Ice::Current&) const
 {
     return _fileCache->getOffsetFromEnd(getFilePath(filename), count);
 }
 
-bool
-InternalRegistryI::read(const string& filename, Ice::Long pos, int size, Ice::Long& newPos, Ice::StringSeq& lines,
-                        const Ice::Current&) const
+bool InternalRegistryI::read(const string& filename, Ice::Long pos, int size, Ice::Long& newPos, Ice::StringSeq& lines,
+                             const Ice::Current&) const
 {
     return _fileCache->read(getFilePath(filename), pos, size, newPos, lines);
 }
 
-string
-InternalRegistryI::getFilePath(const string& filename) const
+string InternalRegistryI::getFilePath(const string& filename) const
 {
     string file;
     if(filename == "stderr")

@@ -14,8 +14,7 @@
 using namespace std;
 using namespace Test;
 
-TestIntfPrxPtr
-allTests(const Ice::CommunicatorPtr& communicator)
+TestIntfPrxPtr allTests(const Ice::CommunicatorPtr& communicator)
 {
     string ref = "test:" + getTestEndpoint(communicator, 0);
     Ice::ObjectPrxPtr obj = communicator->stringToProxy(ref);
@@ -137,20 +136,10 @@ allTests(const Ice::CommunicatorPtr& communicator)
     cout << "testing enum sequences operations... " << flush;
 
     {
-        ByteEnum values[] =
-        {
-            ICE_ENUM(ByteEnum, benum1),
-            ICE_ENUM(ByteEnum, benum2),
-            ICE_ENUM(ByteEnum, benum3),
-            ICE_ENUM(ByteEnum, benum4),
-            ICE_ENUM(ByteEnum, benum5),
-            ICE_ENUM(ByteEnum, benum6),
-            ICE_ENUM(ByteEnum, benum7),
-            ICE_ENUM(ByteEnum, benum8),
-            ICE_ENUM(ByteEnum, benum9),
-            ICE_ENUM(ByteEnum, benum10),
-            ICE_ENUM(ByteEnum, benum11)
-        };
+        ByteEnum values[] = {ICE_ENUM(ByteEnum, benum1),  ICE_ENUM(ByteEnum, benum2), ICE_ENUM(ByteEnum, benum3),
+                             ICE_ENUM(ByteEnum, benum4),  ICE_ENUM(ByteEnum, benum5), ICE_ENUM(ByteEnum, benum6),
+                             ICE_ENUM(ByteEnum, benum7),  ICE_ENUM(ByteEnum, benum8), ICE_ENUM(ByteEnum, benum9),
+                             ICE_ENUM(ByteEnum, benum10), ICE_ENUM(ByteEnum, benum11)};
         ByteEnumSeq b1(&values[0], &values[0] + sizeof(values) / sizeof(ByteEnum));
 
         ByteEnumSeq b2;
@@ -164,20 +153,10 @@ allTests(const Ice::CommunicatorPtr& communicator)
     }
 
     {
-        ShortEnum values[] =
-        {
-            ICE_ENUM(ShortEnum, senum1),
-            ICE_ENUM(ShortEnum, senum2),
-            ICE_ENUM(ShortEnum, senum3),
-            ICE_ENUM(ShortEnum, senum4),
-            ICE_ENUM(ShortEnum, senum5),
-            ICE_ENUM(ShortEnum, senum6),
-            ICE_ENUM(ShortEnum, senum7),
-            ICE_ENUM(ShortEnum, senum8),
-            ICE_ENUM(ShortEnum, senum9),
-            ICE_ENUM(ShortEnum, senum10),
-            ICE_ENUM(ShortEnum, senum11)
-        };
+        ShortEnum values[] = {ICE_ENUM(ShortEnum, senum1),  ICE_ENUM(ShortEnum, senum2), ICE_ENUM(ShortEnum, senum3),
+                              ICE_ENUM(ShortEnum, senum4),  ICE_ENUM(ShortEnum, senum5), ICE_ENUM(ShortEnum, senum6),
+                              ICE_ENUM(ShortEnum, senum7),  ICE_ENUM(ShortEnum, senum8), ICE_ENUM(ShortEnum, senum9),
+                              ICE_ENUM(ShortEnum, senum10), ICE_ENUM(ShortEnum, senum11)};
         ShortEnumSeq s1(&values[0], &values[0] + sizeof(values) / sizeof(ShortEnum));
 
         ShortEnumSeq s2;
@@ -191,20 +170,10 @@ allTests(const Ice::CommunicatorPtr& communicator)
     }
 
     {
-        IntEnum values[] =
-        {
-            ICE_ENUM(IntEnum, ienum1),
-            ICE_ENUM(IntEnum, ienum2),
-            ICE_ENUM(IntEnum, ienum3),
-            ICE_ENUM(IntEnum, ienum4),
-            ICE_ENUM(IntEnum, ienum5),
-            ICE_ENUM(IntEnum, ienum6),
-            ICE_ENUM(IntEnum, ienum7),
-            ICE_ENUM(IntEnum, ienum8),
-            ICE_ENUM(IntEnum, ienum9),
-            ICE_ENUM(IntEnum, ienum10),
-            ICE_ENUM(IntEnum, ienum11)
-        };
+        IntEnum values[] = {ICE_ENUM(IntEnum, ienum1),  ICE_ENUM(IntEnum, ienum2), ICE_ENUM(IntEnum, ienum3),
+                            ICE_ENUM(IntEnum, ienum4),  ICE_ENUM(IntEnum, ienum5), ICE_ENUM(IntEnum, ienum6),
+                            ICE_ENUM(IntEnum, ienum7),  ICE_ENUM(IntEnum, ienum8), ICE_ENUM(IntEnum, ienum9),
+                            ICE_ENUM(IntEnum, ienum10), ICE_ENUM(IntEnum, ienum11)};
         IntEnumSeq i1(&values[0], &values[0] + sizeof(values) / sizeof(IntEnum));
 
         IntEnumSeq i2;
@@ -218,12 +187,7 @@ allTests(const Ice::CommunicatorPtr& communicator)
     }
 
     {
-        SimpleEnum values[] =
-        {
-            ICE_ENUM(SimpleEnum, red),
-            ICE_ENUM(SimpleEnum, green),
-            ICE_ENUM(SimpleEnum, blue)
-        };
+        SimpleEnum values[] = {ICE_ENUM(SimpleEnum, red), ICE_ENUM(SimpleEnum, green), ICE_ENUM(SimpleEnum, blue)};
         SimpleEnumSeq s1(&values[0], &values[0] + sizeof(values) / sizeof(SimpleEnum));
 
         SimpleEnumSeq s2;

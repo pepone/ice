@@ -21,46 +21,41 @@ using namespace Test;
 
 namespace
 {
+    int num = 0;
+    ::IceUtil::Mutex* numMutex = 0;
 
-int num = 0;
-::IceUtil::Mutex* numMutex = 0;
-
-class Init
-{
-public:
-
-    Init()
+    class Init
     {
-        numMutex = new IceUtil::Mutex;
-    }
+    public:
+        Init()
+        {
+            numMutex = new IceUtil::Mutex;
+        }
 
-    ~Init()
-    {
-        delete numMutex;
-        numMutex = 0;
-    }
-};
+        ~Init()
+        {
+            delete numMutex;
+            numMutex = 0;
+        }
+    };
 
-Init init;
+    Init init;
 
-}
+} // namespace
 
-static void
-incNum()
+static void incNum()
 {
     IceUtilInternal::MutexPtrLock<IceUtil::Mutex> lock(numMutex);
     ++num;
 }
 
-static void
-decNum()
+static void decNum()
 {
     IceUtilInternal::MutexPtrLock<IceUtil::Mutex> lock(numMutex);
     --num;
 }
 
-static int
-getNum()
+static int getNum()
 {
     IceUtilInternal::MutexPtrLock<IceUtil::Mutex> lock(numMutex);
     return num;
@@ -129,7 +124,6 @@ typedef ::IceInternal::Handle<NL> NLPtr;
 class TestHaveCycles : public IceInternal::GCVisitor
 {
 public:
-
     virtual bool visit(IceInternal::GCObject* obj)
     {
         if(obj->__hasFlag(IceInternal::GCObject::Visiting))
@@ -148,18 +142,15 @@ public:
 class MyApplication : public Ice::Application
 {
 public:
-
     MyApplication();
     virtual int run(int, char* []);
 };
 
-MyApplication::MyApplication()
-    : Ice::Application(Ice::ICE_ENUM(SignalPolicy, NoSignalHandling))
+MyApplication::MyApplication() : Ice::Application(Ice::ICE_ENUM(SignalPolicy, NoSignalHandling))
 {
 }
 
-int
-MyApplication::run(int argc, char* argv[])
+int MyApplication::run(int argc, char* argv[])
 {
     cout << "testing single instance... " << flush;
     {
@@ -531,8 +522,7 @@ MyApplication::run(int argc, char* argv[])
     return 0;
 }
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
 #ifdef ICE_STATIC_LIBS
     Ice::registerIceSSL(false);

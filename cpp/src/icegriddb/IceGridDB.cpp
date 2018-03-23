@@ -25,79 +25,67 @@ using namespace IceGrid;
 
 namespace
 {
+    bool skipReplicaGroupFilter = false;
 
-bool skipReplicaGroupFilter = false;
-
-class ServerDescriptorI : public IceGrid::ServerDescriptor
-{
-public:
-
-    ServerDescriptorI(const string& serverVersion) :
-        _serverVersion(serverVersion)
+    class ServerDescriptorI : public IceGrid::ServerDescriptor
     {
-    }
-
-protected:
-
-    virtual void ice_postUnmarshal()
-    {
-        iceVersion = _serverVersion;
-    }
-
-private:
-
-    string _serverVersion;
-};
-
-class IceBoxDescriptorI : public IceGrid::IceBoxDescriptor
-{
-public:
-
-    IceBoxDescriptorI(const string& serverVersion) :
-        _serverVersion(serverVersion)
-    {
-    }
-
-protected:
-
-    virtual void ice_postUnmarshal()
-    {
-        iceVersion = _serverVersion;
-    }
-
-private:
-
-    string _serverVersion;
-};
-
-class ValueFactoryI : public Ice::ValueFactory
-{
-public:
-
-    ValueFactoryI(const string& serverVersion) :
-        _serverVersion(serverVersion)
-    {
-    }
-
-    virtual ObjectPtr create(const string& type)
-    {
-        if(type == "::IceGrid::ServerDescriptor")
+    public:
+        ServerDescriptorI(const string& serverVersion) : _serverVersion(serverVersion)
         {
-            return new ServerDescriptorI(_serverVersion);
         }
-        else if(type == "::IceGrid::IceBoxDescriptor")
+
+    protected:
+        virtual void ice_postUnmarshal()
         {
-            return new IceBoxDescriptorI(_serverVersion);
+            iceVersion = _serverVersion;
         }
-        return 0;
-    }
 
-private:
+    private:
+        string _serverVersion;
+    };
 
-    string _serverVersion;
-};
+    class IceBoxDescriptorI : public IceGrid::IceBoxDescriptor
+    {
+    public:
+        IceBoxDescriptorI(const string& serverVersion) : _serverVersion(serverVersion)
+        {
+        }
 
-}
+    protected:
+        virtual void ice_postUnmarshal()
+        {
+            iceVersion = _serverVersion;
+        }
+
+    private:
+        string _serverVersion;
+    };
+
+    class ValueFactoryI : public Ice::ValueFactory
+    {
+    public:
+        ValueFactoryI(const string& serverVersion) : _serverVersion(serverVersion)
+        {
+        }
+
+        virtual ObjectPtr create(const string& type)
+        {
+            if(type == "::IceGrid::ServerDescriptor")
+            {
+                return new ServerDescriptorI(_serverVersion);
+            }
+            else if(type == "::IceGrid::IceBoxDescriptor")
+            {
+                return new IceBoxDescriptorI(_serverVersion);
+            }
+            return 0;
+        }
+
+    private:
+        string _serverVersion;
+    };
+
+} // namespace
 
 //
 // This custom version of the StreamReader allows us to customize the
@@ -105,42 +93,37 @@ private:
 //
 namespace Ice
 {
-
-template<>
-struct StreamReader<IceGrid::ReplicaGroupDescriptor, Ice::InputStream>
-{
-    static void read(Ice::InputStream* is, IceGrid::ReplicaGroupDescriptor& v)
+    template<> struct StreamReader<IceGrid::ReplicaGroupDescriptor, Ice::InputStream>
     {
-        is->read(v.id);
-        is->read(v.loadBalancing);
-        is->read(v.proxyOptions);
-        is->read(v.objects);
-        is->read(v.description);
-        if(!skipReplicaGroupFilter)
+        static void read(Ice::InputStream* is, IceGrid::ReplicaGroupDescriptor& v)
         {
-            is->read(v.filter);
+            is->read(v.id);
+            is->read(v.loadBalancing);
+            is->read(v.proxyOptions);
+            is->read(v.objects);
+            is->read(v.description);
+            if(!skipReplicaGroupFilter)
+            {
+                is->read(v.filter);
+            }
         }
-    }
-};
-}
+    };
+} // namespace Ice
 
 class Client : public Ice::Application
 {
 public:
-
     void usage();
-    virtual int run(int, char*[]);
+    virtual int run(int, char* []);
 };
 
 #ifdef _WIN32
 
-int
-wmain(int argc, wchar_t* argv[])
+int wmain(int argc, wchar_t* argv[])
 
 #else
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 
 #endif
 {
@@ -148,26 +131,22 @@ main(int argc, char* argv[])
     return app.main(argc, argv);
 }
 
-void
-Client::usage()
+void Client::usage()
 {
     consoleErr << "Usage: " << appName() << " <options>\n";
-    consoleErr <<
-        "Options:\n"
-        "-h, --help             Show this message.\n"
-        "-v, --version          Display version.\n"
-        "--import FILE          Import database from FILE.\n"
-        "--export FILE          Export database to FILE.\n"
-        "--dbhome DIR           Source or target database environment.\n"
-        "--dbpath DIR           Source or target database environment.\n"
-        "--mapsize VALUE        Set LMDB map size in MB (optional, import only).\n"
-        "--server-version VER   Set Ice version for IceGrid servers (optional, import only).\n"
-        "-d, --debug            Print debug messages.\n"
-        ;
+    consoleErr << "Options:\n"
+                  "-h, --help             Show this message.\n"
+                  "-v, --version          Display version.\n"
+                  "--import FILE          Import database from FILE.\n"
+                  "--export FILE          Export database to FILE.\n"
+                  "--dbhome DIR           Source or target database environment.\n"
+                  "--dbpath DIR           Source or target database environment.\n"
+                  "--mapsize VALUE        Set LMDB map size in MB (optional, import only).\n"
+                  "--server-version VER   Set Ice version for IceGrid servers (optional, import only).\n"
+                  "-d, --debug            Print debug messages.\n";
 }
 
-int
-Client::run(int argc, char* argv[])
+int Client::run(int argc, char* argv[])
 {
     IceUtilInternal::Options opts;
     opts.addOpt("h", "help");
@@ -252,8 +231,7 @@ Client::run(int argc, char* argv[])
 
         if(import)
         {
-            consoleOut << "Importing database to directory `" << dbPath << "' from file `" << dbFile << "'"
-                       << endl;
+            consoleOut << "Importing database to directory `" << dbPath << "' from file `" << dbFile << "'" << endl;
 
             if(!IceUtilInternal::directoryExists(dbPath))
             {
@@ -331,8 +309,8 @@ Client::run(int argc, char* argv[])
                     consoleOut << "Writing Applications Map:" << endl;
                 }
 
-                IceDB::Dbi<string, ApplicationInfo, IceDB::IceContext, Ice::OutputStream>
-                    apps(txn, "applications", dbContext, MDB_CREATE);
+                IceDB::Dbi<string, ApplicationInfo, IceDB::IceContext, Ice::OutputStream> apps(txn, "applications",
+                                                                                               dbContext, MDB_CREATE);
 
                 for(ApplicationInfoSeq::const_iterator p = data.applications.begin(); p != data.applications.end(); ++p)
                 {
@@ -348,8 +326,8 @@ Client::run(int argc, char* argv[])
                     consoleOut << "Writing Adapters Map:" << endl;
                 }
 
-                IceDB::Dbi<string, AdapterInfo, IceDB::IceContext, Ice::OutputStream>
-                    adpts(txn, "adapters", dbContext, MDB_CREATE);
+                IceDB::Dbi<string, AdapterInfo, IceDB::IceContext, Ice::OutputStream> adpts(txn, "adapters", dbContext,
+                                                                                            MDB_CREATE);
 
                 for(AdapterInfoSeq::const_iterator p = data.adapters.begin(); p != data.adapters.end(); ++p)
                 {
@@ -365,8 +343,8 @@ Client::run(int argc, char* argv[])
                     consoleOut << "Writing Objects Map:" << endl;
                 }
 
-                IceDB::Dbi<Identity, ObjectInfo, IceDB::IceContext, Ice::OutputStream>
-                    objs(txn, "objects", dbContext, MDB_CREATE);
+                IceDB::Dbi<Identity, ObjectInfo, IceDB::IceContext, Ice::OutputStream> objs(txn, "objects", dbContext,
+                                                                                            MDB_CREATE);
 
                 for(ObjectInfoSeq::const_iterator p = data.objects.begin(); p != data.objects.end(); ++p)
                 {
@@ -383,8 +361,8 @@ Client::run(int argc, char* argv[])
                     consoleOut << "Writing Internal Objects Map:" << endl;
                 }
 
-                IceDB::Dbi<Identity, ObjectInfo, IceDB::IceContext, Ice::OutputStream>
-                    internalObjs(txn, "internal-objects", dbContext, MDB_CREATE);
+                IceDB::Dbi<Identity, ObjectInfo, IceDB::IceContext, Ice::OutputStream> internalObjs(
+                    txn, "internal-objects", dbContext, MDB_CREATE);
 
                 for(ObjectInfoSeq::const_iterator p = data.internalObjects.begin(); p != data.internalObjects.end();
                     ++p)
@@ -402,8 +380,8 @@ Client::run(int argc, char* argv[])
                     consoleOut << "Writing Serials Map:" << endl;
                 }
 
-                IceDB::Dbi<string, Long, IceDB::IceContext, Ice::OutputStream>
-                    srls(txn, "serials", dbContext, MDB_CREATE);
+                IceDB::Dbi<string, Long, IceDB::IceContext, Ice::OutputStream> srls(txn, "serials", dbContext,
+                                                                                    MDB_CREATE);
 
                 for(StringLongDict::const_iterator p = data.serials.begin(); p != data.serials.end(); ++p)
                 {
@@ -420,8 +398,7 @@ Client::run(int argc, char* argv[])
         }
         else
         {
-            consoleOut << "Exporting database from directory `" << dbPath << "' to file `" << dbFile << "'"
-                       << endl;
+            consoleOut << "Exporting database from directory `" << dbPath << "' to file `" << dbFile << "'" << endl;
 
             {
                 IceDB::Env env(dbPath, 5);
@@ -432,13 +409,13 @@ Client::run(int argc, char* argv[])
                     consoleOut << "Reading Application Map:" << endl;
                 }
 
-                IceDB::Dbi<string, IceGrid::ApplicationInfo, IceDB::IceContext, Ice::OutputStream>
-                    applications(txn, "applications", dbContext, 0);
+                IceDB::Dbi<string, IceGrid::ApplicationInfo, IceDB::IceContext, Ice::OutputStream> applications(
+                    txn, "applications", dbContext, 0);
 
                 string name;
                 ApplicationInfo application;
-                IceDB::ReadOnlyCursor<string, IceGrid::ApplicationInfo, IceDB::IceContext, Ice::OutputStream>
-                    appCursor(applications, txn);
+                IceDB::ReadOnlyCursor<string, IceGrid::ApplicationInfo, IceDB::IceContext, Ice::OutputStream> appCursor(
+                    applications, txn);
                 while(appCursor.get(name, application, MDB_NEXT))
                 {
                     if(debug)
@@ -454,12 +431,12 @@ Client::run(int argc, char* argv[])
                     consoleOut << "Reading Adapter Map:" << endl;
                 }
 
-                IceDB::Dbi<string, IceGrid::AdapterInfo, IceDB::IceContext, Ice::OutputStream>
-                    adapters(txn, "adapters", dbContext, 0);
+                IceDB::Dbi<string, IceGrid::AdapterInfo, IceDB::IceContext, Ice::OutputStream> adapters(txn, "adapters",
+                                                                                                        dbContext, 0);
 
                 AdapterInfo adapter;
-                IceDB::ReadOnlyCursor<string, IceGrid::AdapterInfo, IceDB::IceContext, Ice::OutputStream>
-                    adapterCursor(adapters, txn);
+                IceDB::ReadOnlyCursor<string, IceGrid::AdapterInfo, IceDB::IceContext, Ice::OutputStream> adapterCursor(
+                    adapters, txn);
                 while(adapterCursor.get(name, adapter, MDB_NEXT))
                 {
                     if(debug)
@@ -475,13 +452,13 @@ Client::run(int argc, char* argv[])
                     consoleOut << "Reading Object Map:" << endl;
                 }
 
-                IceDB::Dbi<Identity, IceGrid::ObjectInfo, IceDB::IceContext, Ice::OutputStream>
-                    objects(txn, "objects", dbContext, 0);
+                IceDB::Dbi<Identity, IceGrid::ObjectInfo, IceDB::IceContext, Ice::OutputStream> objects(txn, "objects",
+                                                                                                        dbContext, 0);
 
                 Identity id;
                 ObjectInfo object;
-                IceDB::ReadOnlyCursor<Identity, IceGrid::ObjectInfo, IceDB::IceContext, Ice::OutputStream>
-                    objCursor(objects, txn);
+                IceDB::ReadOnlyCursor<Identity, IceGrid::ObjectInfo, IceDB::IceContext, Ice::OutputStream> objCursor(
+                    objects, txn);
                 while(objCursor.get(id, object, MDB_NEXT))
                 {
                     if(debug)
@@ -497,11 +474,11 @@ Client::run(int argc, char* argv[])
                     consoleOut << "Reading Internal Object Map:" << endl;
                 }
 
-                IceDB::Dbi<Identity, IceGrid::ObjectInfo, IceDB::IceContext, Ice::OutputStream>
-                    internalObjects(txn, "internal-objects", dbContext, 0);
+                IceDB::Dbi<Identity, IceGrid::ObjectInfo, IceDB::IceContext, Ice::OutputStream> internalObjects(
+                    txn, "internal-objects", dbContext, 0);
 
-                IceDB::ReadOnlyCursor<Identity, IceGrid::ObjectInfo, IceDB::IceContext, Ice::OutputStream>
-                    iobjCursor(internalObjects, txn);
+                IceDB::ReadOnlyCursor<Identity, IceGrid::ObjectInfo, IceDB::IceContext, Ice::OutputStream> iobjCursor(
+                    internalObjects, txn);
                 while(iobjCursor.get(id, object, MDB_NEXT))
                 {
                     if(debug)
@@ -517,12 +494,10 @@ Client::run(int argc, char* argv[])
                     consoleOut << "Reading Serials Map:" << endl;
                 }
 
-                IceDB::Dbi<string, Long, IceDB::IceContext, Ice::OutputStream>
-                    serials(txn, "serials", dbContext, 0);
+                IceDB::Dbi<string, Long, IceDB::IceContext, Ice::OutputStream> serials(txn, "serials", dbContext, 0);
 
                 Long serial;
-                IceDB::ReadOnlyCursor<string, Long, IceDB::IceContext, Ice::OutputStream>
-                    serialCursor(serials, txn);
+                IceDB::ReadOnlyCursor<string, Long, IceDB::IceContext, Ice::OutputStream> serialCursor(serials, txn);
                 while(serialCursor.get(name, serial, MDB_NEXT))
                 {
                     if(debug)
