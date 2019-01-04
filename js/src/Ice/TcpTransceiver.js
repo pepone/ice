@@ -5,6 +5,8 @@
 // **********************************************************************
 
 const net = require("net");
+const tls = require("tls");
+const fs = require("fs");
 
 const Ice = require("../Ice/ModuleRegistry").Ice;
 Ice._ModuleRegistry.require(module,
@@ -49,7 +51,23 @@ class TcpTransceiver
         this._logger = instance.logger();
         this._readBuffers = [];
         this._readPosition = 0;
-        this._maxSendPacketSize = instance.properties().getPropertyAsIntWithDefault("Ice.TCP.SndSize", 512 * 1024);
+        const properties = instance.properties();
+        this._maxSendPacketSize = properties.getPropertyAsIntWithDefault("Ice.TCP.SndSize", 512 * 1024);
+        this._secure = instance.secure();
+        if(this._secure)
+        {
+            const certAuthFile = properties.getProperty("IceSSL.CAs");
+            if(certAuthFile)
+            {
+                this._ca = [fs.readFileSync(certAuthFile)];
+            }
+            const certFile = properties.getProperty("IceSSL.CertFile");
+            if(certFile)
+            {
+                this._certFile = fs.readFileSync(certFile);
+            }
+            this._password = properties.getProperty("IceSSL.Password");
+        }
     }
 
     setCallbacks(connectedCallback, bytesAvailableCallback, bytesWrittenCallback)
@@ -74,12 +92,27 @@ class TcpTransceiver
             if(this._state === StateNeedConnect)
             {
                 this._state = StateConnectPending;
-                this._fd = net.createConnection(
-                    {
-                        port: this._addr.port,
-                        host: this._addr.host,
-                        localAddress: this._sourceAddr
-                    });
+                if(this._secure)
+                {
+                    this._fd = tls.connect(
+                        {
+                            port: this._addr.port,
+                            host: this._addr.host,
+                            checkServerIdentity: () => { return undefined },
+                            ca: this._ca,
+                            pfx: this._certFile,
+                            passphrase: this._password
+                        });
+                }
+                else
+                {
+                    this._fd = net.createConnection(
+                        {
+                            port: this._addr.port,
+                            host: this._addr.host,
+                            localAddress: this._sourceAddr
+                        });
+                }
 
                 this._fd.on("connect", () => this.socketConnected());
                 this._fd.on("data", buf => this.socketBytesAvailable(buf));
@@ -280,7 +313,7 @@ class TcpTransceiver
 
     type()
     {
-        return "tcp";
+        return this._secure ? "ssl" : "tcp";
     }
 
     getInfo()

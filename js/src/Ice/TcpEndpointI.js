@@ -123,15 +123,13 @@ class TcpEndpointI extends Ice.IPEndpointI
     connectable()
     {
         //
-        // TCP endpoints are not connectable when running in a browser, SSL
-        // isn't currently supported.
+        // TCP endpoints are not connectable when running in a browser.
         //
-        return TcpTransceiver !== null && !this.secure();
+        return TcpTransceiver !== null;
     }
 
     connect()
     {
-        Debug.assert(!this.secure());
         return TcpTransceiver.createOutgoing(this._instance, this.getAddress(), this._sourceAddr);
     }
 
