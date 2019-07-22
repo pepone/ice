@@ -572,8 +572,9 @@ allTests(const CommunicatorPtr& communicator, const string& testDir, bool p12, b
             server->noCert();
             test(IceSSL::ConnectionInfoPtr::dynamicCast(server->ice_getConnection()->getInfo())->verified);
         }
-        catch(const LocalException&)
+        catch(const LocalException& ex)
         {
+            cerr << ex << endl;
             test(false);
         }
         fact->destroyServer(server);
@@ -1337,6 +1338,10 @@ allTests(const CommunicatorPtr& communicator, const string& testDir, bool p12, b
             server->ice_ping();
             test(false);
         }
+        catch(const Ice::SecurityException&)
+        {
+            // Expected on some platforms.
+        }
         catch(const ProtocolException&)
         {
             // Expected on some platforms.
@@ -1345,8 +1350,9 @@ allTests(const CommunicatorPtr& communicator, const string& testDir, bool p12, b
         {
             // Expected on some platforms.
         }
-        catch(const LocalException&)
+        catch(const LocalException& ex)
         {
+            cerr << ex << endl;
             test(false);
         }
         fact->destroyServer(server);
@@ -2996,8 +3002,8 @@ allTests(const CommunicatorPtr& communicator, const string& testDir, bool p12, b
             "SUBJECTDN:'CN=Client, OU=Ice, O=\"ZeroC, Inc.\", L=Jupiter, S=Florida, C=US, E=info@zeroc.com'",
             "ISSUER:'ZeroC, Inc.' SUBJECT:Client SERIAL:02",
             "ISSUERDN:'CN=ZeroC Test CA 1, OU=Ice, O=\"ZeroC, Inc.\",L=Jupiter, S=Florida, C=US,E=info@zeroc.com' SUBJECT:Client",
-            "THUMBPRINT:'82 30 1E 35 9E 39 C1 D0 63 0D 67 3D 12 DD D4 96 90 1E EF 54'",
-            "SUBJECTKEYID:'FC 5D 4F AB F0 6C 03 11 B8 F3 68 CF 89 54 92 3F F9 79 2A 06'",
+            "THUMBPRINT:'98 BE 99 3C F5 1B F7 4D C2 E7 2A C5 CF 51 4C A6 96 56 C9 46'",
+            "SUBJECTKEYID:'17 4A 04 3B 65 58 52 53 F0 56 45 C1 AA F7 4A D3 4C BA 15 19'",
             0
         };
 
@@ -3006,8 +3012,8 @@ allTests(const CommunicatorPtr& communicator, const string& testDir, bool p12, b
             "SUBJECTDN:'CN=Server, OU=Ice, O=\"ZeroC, Inc.\", L=Jupiter, S=Florida, C=US, E=info@zeroc.com'",
             "ISSUER:'ZeroC, Inc.' SUBJECT:Server SERIAL:01",
             "ISSUERDN:'CN=ZeroC Test CA 1, OU=Ice, O=\"ZeroC, Inc.\", L=Jupiter, S=Florida, C=US,E=info@zeroc.com' SUBJECT:Server",
-            "THUMBPRINT:'C0 01 FF 9C C9 DA C8 0D 34 F6 2F DE 09 FB 28 0D 69 AB 78 BA'",
-            "SUBJECTKEYID:'47 84 AE F9 F2 85 3D 99 30 6A 03 38 41 1A B9 EB C3 9C B5 4D'",
+            "THUMBPRINT:'79 48 AC 56 1D 2B A9 38 D7 54 0D 1E E7 31 59 A4 C3 94 14 1A'",
+            "SUBJECTKEYID:'1D 0F 23 95 D8 CC 27 3F BA 68 4A 00 3F EE 56 A3 9F 16 7D BC'",
             0
         };
 
@@ -3129,7 +3135,7 @@ allTests(const CommunicatorPtr& communicator, const string& testDir, bool p12, b
         {
             "SUBJECT:Client",
             "LABEL:'Client'",
-            "SUBJECTKEYID:'FC 5D 4F AB F0 6C 03 11 B8 F3 68 CF 89 54 92 3F F9 79 2A 06'",
+            "SUBJECTKEYID:'17 4A 04 3B 65 58 52 53 F0 56 45 C1 AA F7 4A D3 4C BA 15 19'",
             "SERIAL:02",
             "SERIAL:02 LABEL:Client",
             0
@@ -3139,7 +3145,7 @@ allTests(const CommunicatorPtr& communicator, const string& testDir, bool p12, b
         {
             "SUBJECT:Server",
             "LABEL:'Server'",
-            "SUBJECTKEYID:'47 84 AE F9 F2 85 3D 99 30 6A 03 38 41 1A B9 EB C3 9C B5 4D'",
+            "SUBJECTKEYID:'1D 0F 23 95 D8 CC 27 3F BA 68 4A 00 3F EE 56 A3 9F 16 7D BC'",
             "SERIAL:01",
             "SERIAL:01 LABEL:Server",
             0
