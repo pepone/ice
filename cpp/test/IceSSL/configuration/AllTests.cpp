@@ -1323,14 +1323,14 @@ allTests(const CommunicatorPtr& communicator, const string& testDir, bool p12, b
         InitializationData initData;
         initData.properties = createClientProps(defaultProps, defaultDir, defaultHost, p12, "c_rsa_ca1", "cacert1");
         initData.properties->setProperty("IceSSL.VerifyPeer", "0");
-        initData.properties->setProperty("IceSSL.Protocols", "tls1_1");
+        initData.properties->setProperty("IceSSL.Protocols", "tls1_2");
         CommunicatorPtr comm = initialize(initData);
 
         Test::ServerFactoryPrx fact = Test::ServerFactoryPrx::checkedCast(comm->stringToProxy(factoryRef));
         test(fact);
         Test::Properties d = createServerProps(defaultProps, defaultDir, defaultHost, p12, "s_rsa_ca1", "cacert1");
         d["IceSSL.VerifyPeer"] = "0";
-        d["IceSSL.Protocols"] = "tls1_2";
+        d["IceSSL.Protocols"] = "tls1_1";
         Test::ServerPrx server = fact->createServer(d);
         try
         {
@@ -1368,18 +1368,16 @@ allTests(const CommunicatorPtr& communicator, const string& testDir, bool p12, b
         }
         catch(const LocalException& ex)
         {
-            //
-            // OpenSSL < 1.0 doesn't support tls 1.1 so it will also fail, we ignore in this
-            // case.
-            //
-#if defined(ICE_USE_SCHANNEL) || (defined(OPENSSL_VERSION_NUMBER) && OPENSSL_VERSION_NUMBER >= 0x10000000L)
             cerr << ex << endl;
             test(false);
-#endif
         }
         fact->destroyServer(server);
         comm->destroy();
 
+        //
+        // Skip the test if OpenSSL was build without SSL3 support
+        //
+#if !defined(OPENSSL_NO_SSL3_METHOD)
         //
         // This should fail because the client only accept SSLv3 and the server
         // use the default protocol set that disables SSLv3
@@ -1416,7 +1414,7 @@ allTests(const CommunicatorPtr& communicator, const string& testDir, bool p12, b
             fact->destroyServer(server);
             comm->destroy();
         }
-
+#endif
         //
         // SSLv3 is now disabled by default with some SSL implementations.
         //
@@ -1820,6 +1818,13 @@ allTests(const CommunicatorPtr& communicator, const string& testDir, bool p12, b
         initData.properties = createClientProps(defaultProps, defaultDir, defaultHost, p12);
 #  ifdef ICE_USE_OPENSSL
         initData.properties->setProperty("IceSSL.Ciphers", anonCiphers);
+#       if defined(OPENSSL_VERSION_NUMBER) && OPENSSL_VERSION_NUMBER >= 0x1010100fL
+        //
+        // With OpenSSL 1.1 disable tls1.3 so that client and server negotiate
+        // an anon cipher
+        //
+        initData.properties->setProperty("IceSSL.Protocols", "tls1_2,tls1_1");
+#       endif
 #  else
         initData.properties->setProperty("IceSSL.Ciphers", "(DH_anon*)");
 #  endif
@@ -1895,6 +1900,7 @@ allTests(const CommunicatorPtr& communicator, const string& testDir, bool p12, b
         cerr << ex << endl;
         test(false);
     }
+
     fact->destroyServer(server);
     comm->destroy();
 
@@ -2061,14 +2067,19 @@ allTests(const CommunicatorPtr& communicator, const string& testDir, bool p12, b
         //
         // First try a client with a DSA certificate.
         //
+#if defined(OPENSSL_VERSION_NUMBER) && OPENSSL_VERSION_NUMBER >= 0x10100000L
+        const string ciphers = "DHE:DSS:@SECLEVEL=0";
+#else
+        const string ciphers = "DHE:DSS";
+#endif
         InitializationData initData;
         initData.properties = createClientProps(defaultProps, defaultDir, defaultHost, p12, "c_dsa_ca1", "cacert1");
-        initData.properties->setProperty("IceSSL.Ciphers", "DHE:DSS");
+        initData.properties->setProperty("IceSSL.Ciphers", ciphers);
         CommunicatorPtr comm = initialize(initData);
         Test::ServerFactoryPrx fact = Test::ServerFactoryPrx::checkedCast(comm->stringToProxy(factoryRef));
         test(fact);
         Test::Properties d = createServerProps(defaultProps, defaultDir, defaultHost, p12, "s_dsa_ca1", "cacert1");
-        d["IceSSL.Ciphers"] = "DHE:DSS";
+        d["IceSSL.Ciphers"] = ciphers;
         d["IceSSL.VerifyPeer"] = "1";
 
         Test::ServerPrx server = fact->createServer(d);
@@ -2076,8 +2087,9 @@ allTests(const CommunicatorPtr& communicator, const string& testDir, bool p12, b
         {
             server->ice_ping();
         }
-        catch(const LocalException&)
+        catch(const LocalException& ex)
         {
+            cerr << ex << endl;
             test(false);
         }
         fact->destroyServer(server);
@@ -2119,6 +2131,13 @@ allTests(const CommunicatorPtr& communicator, const string& testDir, bool p12, b
         //
         initData.properties = createClientProps(defaultProps, defaultDir, defaultHost, p12);
         initData.properties->setProperty("IceSSL.Ciphers", "ADH");
+#if defined(OPENSSL_VERSION_NUMBER) && OPENSSL_VERSION_NUMBER >= 0x1010100fL
+        //
+        // With OpenSSL 1.1 disable tls1.3 so that client and server negotiate
+        // an anon cipher
+        //
+        initData.properties->setProperty("IceSSL.Protocols", "tls1_2,tls1_1");
+#endif
         comm = initialize(initData);
         fact = Test::ServerFactoryPrx::checkedCast(comm->stringToProxy(factoryRef));
         test(fact);
