@@ -165,6 +165,40 @@ fixIds(const StringList& ids)
 }
 
 string
+Slice::JsGenerator::getDefinedInMetadata(const ContainedPtr& p)
+{
+    string result;
+    StringList metaData = p->getMetaData();
+    for(StringList::const_iterator i = metaData.begin(); i != metaData.end(); ++i)
+    {
+        static const string prefix = "js:defined-in:";
+        if(i->find(prefix) == 0)
+        {
+            result = i->substr(prefix.size());
+            break;
+        }
+    }
+    return result;
+}
+
+string
+Slice::JsGenerator::getDefinedIn(const ContainedPtr& p)
+{
+    string definedIn = getDefinedInMetadata(p);
+    if(!definedIn.empty())
+    {
+        string base = p->definitionContext()->filename();
+        string::size_type pos = base.find_last_of("/\\");
+        if(pos != string::npos)
+        {
+            base = base.erase(pos);
+        }
+        return fullPath(base + "/" + definedIn);
+    }
+    return "";
+}
+
+string
 Slice::JsGenerator::getModuleMetadata(const TypePtr& type)
 {
     static const char* builtinModuleTable[] =
@@ -267,7 +301,14 @@ Slice::JsGenerator::importPrefix(const TypePtr& type,
     else if(ProxyPtr::dynamicCast(type))
     {
         ProxyPtr proxy = ProxyPtr::dynamicCast(type);
-        return importPrefix(ContainedPtr::dynamicCast(proxy->_class()), toplevel, imports);
+        if(proxy->_class()->definition())
+        {
+            return importPrefix(ContainedPtr::dynamicCast(proxy->_class()->definition()), toplevel, imports);
+        }
+        else
+        {
+            return importPrefix(ContainedPtr::dynamicCast(proxy->_class()), toplevel, imports);
+        }
     }
     else if(ContainedPtr::dynamicCast(type))
     {
@@ -288,6 +329,10 @@ Slice::JsGenerator::importPrefix(const TypePtr& type,
         if(cl && cl->isInterface() && !local)
         {
             return "iceNS0.";
+        }
+        else if(cl && cl->definition())
+        {
+            return importPrefix(ContainedPtr::dynamicCast(cl->definition()), toplevel, imports);
         }
         else
         {
@@ -339,7 +384,6 @@ Slice::JsGenerator::importPrefix(const ContainedPtr& contained,
             }
         }
     }
-
     return "";
 }
 
@@ -467,13 +511,25 @@ Slice::JsGenerator::typeToString(const TypePtr& type,
         ostringstream os;
         if(typescript)
         {
+            if(cl->definition() == 0 && !getDefinedIn(cl).empty())
+            {
+                return getLocalScope(cl->scoped(), "_");
+            }
+
             if(cl->isInterface() && !local)
             {
                 prefix = importPrefix("Ice.Value", toplevel);
             }
             else
             {
-                prefix = importPrefix(ContainedPtr::dynamicCast(cl), toplevel, imports);
+                if(cl->definition())
+                {
+                    prefix = importPrefix(ContainedPtr::dynamicCast(cl->definition()), toplevel, imports);
+                }
+                else
+                {
+                    prefix = importPrefix(ContainedPtr::dynamicCast(cl), toplevel, imports);
+                }
             }
         }
         os << prefix;
@@ -505,7 +561,14 @@ Slice::JsGenerator::typeToString(const TypePtr& type,
             string prefix;
             if(typescript)
             {
-                prefix = importPrefix(ContainedPtr::dynamicCast(proxy->_class()), toplevel, imports);
+                if(def)
+                {
+                    prefix = importPrefix(ContainedPtr::dynamicCast(def), toplevel, imports);
+                }
+                else if(!getDefinedIn(proxy->_class()).empty())
+                {
+                    return getLocalScope(proxy->_class()->scope(), "_") + "_" + proxy->_class()->name() + "Prx";
+                }
                 os << prefix;
             }
 

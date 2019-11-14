@@ -16,10 +16,13 @@ public:
 
     JsVisitor(::IceUtilInternal::Output&,
               const std::vector<std::pair<std::string, std::string> >& imports =
+                    std::vector<std::pair<std::string, std::string> >(),
+              const std::vector<std::pair<std::string, std::string> >& forwards =
                     std::vector<std::pair<std::string, std::string> >());
     virtual ~JsVisitor();
 
     std::vector<std::pair<std::string, std::string> > imports() const;
+    std::vector<std::pair<std::string, std::string> > forwards() const;
 
 protected:
 
@@ -37,6 +40,7 @@ protected:
     ::IceUtilInternal::Output& _out;
 
     std::vector<std::pair<std::string, std::string> > _imports;
+    std::vector<std::pair<std::string, std::string> > _forwards;
 };
 
 class Gen : public JsGenerator
@@ -159,7 +163,7 @@ private:
 
         void addImport(const TypePtr&, const ContainedPtr&);
         void addImport(const ContainedPtr&, const ContainedPtr&);
-        void addImport(const std::string&, const std::string&, const std::string&, const std::string&);
+        std::string addImport(const std::string&, const std::string&, const std::string&, const std::string&);
 
         std::string nextImportPrefix();
 
@@ -195,6 +199,7 @@ private:
     public:
 
         TypeScriptVisitor(::IceUtilInternal::Output&,
+                          const std::vector<std::pair<std::string, std::string> >&,
                           const std::vector<std::pair<std::string, std::string> >&);
 
         virtual bool visitModuleStart(const ModulePtr&);

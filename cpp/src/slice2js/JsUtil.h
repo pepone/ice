@@ -20,6 +20,8 @@ public:
     virtual ~JsGenerator() {};
 
     static bool isClassType(const TypePtr&);
+    static std::string getDefinedInMetadata(const ContainedPtr&);
+    static std::string getDefinedIn(const ContainedPtr&);
     static std::string getModuleMetadata(const TypePtr&);
     static std::string getModuleMetadata(const ContainedPtr&);
     static std::string fixId(const std::string&);

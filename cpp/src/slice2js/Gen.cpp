@@ -359,9 +359,12 @@ writeOpDocSummary(Output& out, const OperationPtr& op, const CommentPtr& doc, Op
 
 }
 
-Slice::JsVisitor::JsVisitor(Output& out, const vector<pair<string, string> >& imports) :
+Slice::JsVisitor::JsVisitor(Output& out,
+                            const vector<pair<string, string> >& imports,
+                            const vector<pair<string, string> >& forwards) :
     _out(out),
-    _imports(imports)
+    _imports(imports),
+    _forwards(forwards)
 {
 }
 
@@ -373,6 +376,12 @@ vector<pair<string, string> >
 Slice::JsVisitor::imports() const
 {
     return _imports;
+}
+
+vector<pair<string, string> >
+Slice::JsVisitor::forwards() const
+{
+    return _forwards;
 }
 
 void
@@ -812,7 +821,7 @@ Slice::Gen::generate(const UnitPtr& p)
         p->visit(&aliasVisitor, false);
         aliasVisitor.writeAlias(p);
 
-        TypeScriptVisitor typeScriptVisitor(_tsout, requireVisitor.imports());
+        TypeScriptVisitor typeScriptVisitor(_tsout, requireVisitor.imports(), requireVisitor.forwards());
         p->visit(&typeScriptVisitor, false);
 
         if(_useStdout)
@@ -2293,12 +2302,41 @@ Slice::Gen::TypeScriptRequireVisitor::addImport(const TypePtr& definition, const
 {
     if(!BuiltinPtr::dynamicCast(definition))
     {
-        const string m1 = getModuleMetadata(definition);
+        string m1 = getModuleMetadata(definition);
         const string m2 = getModuleMetadata(toplevel);
 
-        const string p1 = definition->definitionContext()->filename();
+        string p1 = definition->definitionContext()->filename();
         const string p2 = toplevel->definitionContext()->filename();
 
+        ClassDeclPtr c = ClassDeclPtr::dynamicCast(definition);
+        ProxyPtr p = ProxyPtr::dynamicCast(definition);
+        if(p)
+        {
+            c = p->_class();
+        }
+
+        if(c)
+        {
+            if(c->definition() == 0)
+            {
+                string definedIn = getDefinedIn(c);
+                if(!definedIn.empty())
+                {
+                    string scoped = getLocalScope(c->scope(), ".") + "." + fixId(c->name() + (p ? "Prx" : ""));
+                    for(vector<pair<string, string> >::const_iterator i = _forwards.begin(); i != _forwards.end(); ++i)
+                    {
+                        if(i->first == scoped)
+                        {
+                            return;
+                        }
+                    }
+                    _forwards.push_back(make_pair(scoped, addImport(m1, m2, definedIn, p2)));
+                }
+                return;
+            }
+            m1 = getModuleMetadata(ContainedPtr::dynamicCast(c->definition()));
+            p1 = c->definition()->definitionContext()->filename();
+        }
         addImport(m1, m2, p1, p2);
     }
 }
@@ -2315,10 +2353,11 @@ Slice::Gen::TypeScriptRequireVisitor::addImport(const ContainedPtr& definition, 
     addImport(m1, m2, p1, p2);
 }
 
-void
+string
 Slice::Gen::TypeScriptRequireVisitor::addImport(const string& m1, const string& m2,
                                                 const string& p1, const string& p2)
 {
+    string prefix;
     //
     // Generate an import for a definition that is outside a JS module and comes from
     // a different definition context or for a definition defined in a module different
@@ -2340,10 +2379,11 @@ Slice::Gen::TypeScriptRequireVisitor::addImport(const string& m1, const string& 
             {
                 if(i->first == relpath)
                 {
-                    return;
+                    return i->second;
                 }
             }
-            _imports.push_back(make_pair(relpath, nextImportPrefix()));
+            prefix = nextImportPrefix();
+            _imports.push_back(make_pair(relpath, prefix));
         }
     }
     else if(m1 != m2)
@@ -2352,11 +2392,13 @@ Slice::Gen::TypeScriptRequireVisitor::addImport(const string& m1, const string& 
         {
             if(i->first == m1)
             {
-                return;
+                return i->second;
             }
         }
-        _imports.push_back(make_pair(m1, nextImportPrefix()));
+        prefix = nextImportPrefix();
+        _imports.push_back(make_pair(m1, prefix));
     }
+    return prefix;
 }
 
 bool
@@ -2662,8 +2704,9 @@ Slice::Gen::TypeScriptAliasVisitor::writeAlias(const UnitPtr&)
 }
 
 Slice::Gen::TypeScriptVisitor::TypeScriptVisitor(::IceUtilInternal::Output& out,
-                                                 const vector<pair<string, string> >& imports) :
-    JsVisitor(out, imports),
+                                                 const vector<pair<string, string> >& imports,
+                                                 const vector<pair<string, string> >& forwards) :
+    JsVisitor(out, imports, forwards),
     _wroteImports(false)
 {
 }
@@ -2677,6 +2720,13 @@ Slice::Gen::TypeScriptVisitor::writeImports()
         {
             _out << nl << "import * as " << i->second << " from \"" << i->first << "\"";
         }
+        _out << sp;
+        for(vector<pair<string, string> >::const_iterator i = _forwards.begin(); i != _forwards.end(); ++i)
+        {
+            string alias = i->first;
+            replace(alias.begin(), alias.end(), '.', '_');
+            _out << nl << "type " << alias << " = " << i->second + "." + i->first;
+        }
         _wroteImports = true;
     }
 }
@@ -2687,8 +2737,8 @@ Slice::Gen::TypeScriptVisitor::visitModuleStart(const ModulePtr& p)
     UnitPtr unit = UnitPtr::dynamicCast(p->container());
     if(unit)
     {
-        _out << sp;
         writeImports();
+        _out << sp;
         _out << nl << "export namespace " << fixId(p->name()) << sb;
     }
     else
