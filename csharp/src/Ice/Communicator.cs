@@ -410,7 +410,7 @@ namespace Ice
                     DefaultEncoding = Encoding.Latest;
                 }
 
-                var endpointSelection = GetProperty("Ice.Default.EndpointSelection") ?? "Random";
+                string endpointSelection = GetProperty("Ice.Default.EndpointSelection") ?? "Random";
                 DefaultEndpointSelection = endpointSelection switch
                 {
                     "Random" => EndpointSelectionType.Random,
@@ -1403,7 +1403,7 @@ namespace Ice
             _transportToEndpointFactory.TryGetValue(transport, out IEndpointFactory? factory) ? factory : null;
 
          // Finds an endpoint factory previously registered using AddEndpointFactory.
-         internal IEndpointFactory? FindEndpointFactory(EndpointType type) =>
+        internal IEndpointFactory? FindEndpointFactory(EndpointType type) =>
             _typeToEndpointFactory.TryGetValue(type, out IEndpointFactory? factory) ? factory : null;
 
         internal BufSizeWarnInfo GetBufSizeWarn(EndpointType type)

@@ -142,7 +142,7 @@ namespace IceSSL
                         }
                     }
 
-                    List<RFC2253.RDNPair> dn = RFC2253.parseStrict(subjectName);
+                    List<RFC2253.RDNPair> dn = RFC2253.ParseStrict(subjectName);
 
                     //
                     // Unescape the DN. Note that this isn't done in
@@ -152,7 +152,7 @@ namespace IceSSL
                     for (int i = 0; i < dn.Count; ++i)
                     {
                         RFC2253.RDNPair p = dn[i];
-                        p.value = RFC2253.unescape(p.value);
+                        p.Value = RFC2253.Unescape(p.Value);
                         dn[i] = p;
                     }
 
@@ -224,10 +224,10 @@ namespace IceSSL
                 bool found = false;
                 foreach (RFC2253.RDNPair subjectRDN in subject)
                 {
-                    if (matchRDN.key.Equals(subjectRDN.key))
+                    if (matchRDN.Key.Equals(subjectRDN.Key))
                     {
                         found = true;
-                        if (!matchRDN.value.Equals(subjectRDN.value))
+                        if (!matchRDN.Value.Equals(subjectRDN.Value))
                         {
                             return false;
                         }
@@ -250,33 +250,33 @@ namespace IceSSL
             // the user's input form. Therefore we need to normalize the
             // data to match the C# forms.
             //
-            List<RFC2253.RDNEntry> l = RFC2253.parse(value);
+            List<RFC2253.RDNEntry> l = RFC2253.Parse(value);
             for (int i = 0; i < l.Count; ++i)
             {
-                List<RFC2253.RDNPair> dn = l[i].rdn;
+                List<RFC2253.RDNPair> dn = l[i].Rdn;
                 for (int j = 0; j < dn.Count; ++j)
                 {
                     RFC2253.RDNPair pair = dn[j];
                     // Normalize the RDN key.
-                    if (pair.key == "emailAddress")
+                    if (pair.Key == "emailAddress")
                     {
-                        pair.key = "E";
+                        pair.Key = "E";
                     }
-                    else if (pair.key == "ST")
+                    else if (pair.Key == "ST")
                     {
-                        pair.key = "S";
+                        pair.Key = "S";
                     }
                     // Unescape the value.
-                    pair.value = RFC2253.unescape(pair.value);
+                    pair.Value = RFC2253.Unescape(pair.Value);
                     dn[j] = pair;
                 }
-                if (l[i].negate)
+                if (l[i].Negate)
                 {
-                    reject.Add(l[i].rdn);
+                    reject.Add(l[i].Rdn);
                 }
                 else
                 {
-                    accept.Add(l[i].rdn);
+                    accept.Add(l[i].Rdn);
                 }
             }
         }
@@ -299,9 +299,9 @@ namespace IceSSL
                         s.Append(',');
                     }
                     addComma = true;
-                    s.Append(rdn.key);
+                    s.Append(rdn.Key);
                     s.Append('=');
-                    s.Append(rdn.value);
+                    s.Append(rdn.Value);
                 }
             }
         }
