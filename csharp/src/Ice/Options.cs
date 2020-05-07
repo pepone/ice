@@ -11,7 +11,13 @@ namespace IceUtilInternal
 {
     public sealed class Options
     {
-        public enum State { Normal, DoubleQuote, SingleQuote, ANSIQuote };
+        public enum State
+        {
+            Normal,
+            DoubleQuote,
+            SingleQuote,
+            ANSIQuote
+        }
 
         public static string[]
         Split(string line)
@@ -88,8 +94,8 @@ namespace IceUtilInternal
                                     {
                                         if (i < l.Length - 1 && l[i + 1] == '\'')
                                         {
-                                            state = State.ANSIQuote; // Bash uses $'<text>' to allow ANSI escape sequences
-                                                                     // within <text>.
+                                            // Bash uses $'<text>' to allow ANSI escape sequences within <text>
+                                            state = State.ANSIQuote;
                                             ++i;
                                         }
                                         else
@@ -306,9 +312,9 @@ namespace IceUtilInternal
                                             case 'c':
                                                 {
                                                     c = l[++i];
-                                                    if ((char.ToUpper(c, CultureInfo.InvariantCulture) >= 'A' && char.ToUpper(c, CultureInfo.InvariantCulture) <= 'Z') ||
-                                                       c == '@' ||
-                                                       (c >= '[' && c <= '_'))
+                                                    if ((char.ToUpper(c, CultureInfo.InvariantCulture) >= 'A' &&
+                                                         char.ToUpper(c, CultureInfo.InvariantCulture) <= 'Z') ||
+                                                        c == '@' || (c >= '[' && c <= '_'))
                                                     {
                                                         arg += (char)(char.ToUpper(c, CultureInfo.InvariantCulture) - '@');
                                                     }

@@ -2,11 +2,11 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using System;
 
 namespace IceSSL
 {
@@ -37,6 +37,7 @@ namespace IceSSL
                     {
                         _rejectServer[name] = reject;
                     }
+
                     if (accept.Count > 0)
                     {
                         _acceptServer[name] = accept;

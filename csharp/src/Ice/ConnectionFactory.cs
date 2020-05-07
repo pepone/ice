@@ -1231,7 +1231,7 @@ namespace IceInternal
         {
             lock (this)
             {
-                Debug.Assert (_state == State.Closed);
+                Debug.Assert(_state == State.Closed);
                 SetState(State.Finished);
             }
         }
@@ -1422,5 +1422,4 @@ namespace IceInternal
         private readonly ITransceiver? _transceiver;
         private readonly bool _warn;
     }
-
 }
