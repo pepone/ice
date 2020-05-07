@@ -22,7 +22,7 @@ namespace IceUtilInternal
         public static string[]
         Split(string line)
         {
-            string IFS = " \t\n";
+            string inputFieldSeparator = " \t\n";
 
             string l = line.Trim();
             if (l.Length == 0)
@@ -106,7 +106,7 @@ namespace IceUtilInternal
                                     }
                                 default:
                                     {
-                                        if (IFS.IndexOf(l[i]) != -1)
+                                        if (inputFieldSeparator.IndexOf(l[i]) != -1)
                                         {
                                             vec.Add(arg);
                                             arg = "";
@@ -114,7 +114,7 @@ namespace IceUtilInternal
                                             //
                                             // Move to start of next argument.
                                             //
-                                            while (++i < l.Length && IFS.IndexOf(l[i]) != -1)
+                                            while (++i < l.Length && inputFieldSeparator.IndexOf(l[i]) != -1)
                                             {
                                                 ;
                                             }
