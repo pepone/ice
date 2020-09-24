@@ -33,7 +33,6 @@
       <Rule Id="CA1822" Action="None" Condition="'$(TestProject)' == 'true'" /> <!-- Member CreateTestProperties does not access instance data and can be marked as static -->
   </Rules>
   <Rules AnalyzerId="StyleCop.Analyzers" RuleNamespace="StyleCop.Analyzers">
-      <Rule Id="SA1005" Action="None" /> <!-- TODO enable - Single line comment should begin with a space. -->
       <Rule Id="SA1009" Action="None" /> <!-- Closing parenthesis should not be followed by a spac -->
       <Rule Id="SA1013" Action="None" /> <!-- Closing brace should not be preceded by a space -->
       <Rule Id="SA1101" Action="None" /> <!-- Prefix local calls with this -->
@@ -41,7 +40,6 @@
       <Rule Id="SA1108" Action="None" /> <!-- TODO enable - Block statements should not contain embedded comments -->
       <Rule Id="SA1116" Action="None" /> <!-- TODO enable - The parameters should begin on the line after the declaration, whenever the parameter span across multiple lines -->
       <Rule Id="SA1118" Action="None" /> <!-- The parameter spans multiple lines -->
-
       <Rule Id="SA1122" Action="None" /> <!-- Use string.Empty for empty strings -->
       <Rule Id="SA1127" Action="None" /> <!-- Generic type constraints should be on their own line -->
       <Rule Id="SA1128" Action="None" /> <!-- TODO enable - Put constructor initializers on their own line -->
