@@ -78,8 +78,8 @@ namespace ZeroC.Ice
             throw new NotImplementedException("cannot write the options of an opaque endpoint");
         }
 
-        public override ValueTask<IEnumerable<IConnector>> ConnectorsAsync(CancellationToken cancel) =>
-            new ValueTask<IEnumerable<IConnector>>(new List<IConnector>());
+        public override ValueTask<IReadOnlyList<IConnector>> GetConnectorsAsync(CancellationToken cancel) =>
+            throw new NotImplementedException(); // TODO do we need to implement this for Opaque endpoints?
 
         public override Connection CreateDatagramServerConnection(ObjectAdapter adapter) =>
             throw new InvalidOperationException();

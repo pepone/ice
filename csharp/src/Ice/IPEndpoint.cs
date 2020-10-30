@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
@@ -87,7 +88,7 @@ namespace ZeroC.Ice
             ostr.WriteInt(Port);
         }
 
-        public override async ValueTask<IEnumerable<IConnector>> ConnectorsAsync(CancellationToken cancel)
+        public override async ValueTask<IReadOnlyList<IConnector>> GetConnectorsAsync(CancellationToken cancel)
         {
             Instrumentation.IObserver? observer = Communicator.Observer?.GetEndpointLookupObserver(this);
             observer?.Attach();
@@ -104,7 +105,13 @@ namespace ZeroC.Ice
                                                                      Port,
                                                                      networkProxy?.IPVersion ?? Network.EnableBoth,
                                                                      cancel).ConfigureAwait(false);
-                return addrs.Select(item => CreateConnector(item, networkProxy));
+
+                // Order connectors so that connectors associated with recent transport failures are tried last.
+                IReadOnlyDictionary<IConnector, DateTime>? transportFailues =
+                    Communicator.OutgoingConnectionFactory.GetTransportFailuresByConnector();
+
+                return addrs.Select(item => CreateConnector(item, networkProxy)).OrderBy(
+                    item => transportFailues.TryGetValue(item, out DateTime value) ? value : default).ToImmutableList();
             }
             catch (Exception ex)
             {

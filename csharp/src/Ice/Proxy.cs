@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -202,10 +203,55 @@ namespace ZeroC.Ice
         /// <summary>Returns the Connection for this proxy. If the proxy does not yet have an established connection,
         /// it first attempts to create a connection.</summary>
         /// <returns>The Connection for this proxy or null if colocation optimization is used.</returns>
-        public static ValueTask<Connection> GetConnectionAsync(
+        public static async ValueTask<Connection> GetConnectionAsync(
             this IObjectPrx prx,
-            CancellationToken cancel = default) =>
-            prx.IceReference.GetConnectionAsync(ImmutableList<IConnector>.Empty, cancel);
+            CancellationToken cancel = default)
+        {
+            Reference reference = prx.IceReference;
+            Connection? connection = reference.GetActiveConnection();
+            if (connection != null)
+            {
+                // We have an active connection return it
+                return connection;
+            }
+            else
+            {
+                // Go throw the list of endpoints connectors in order and return the first connection we found or create.
+                (IReadOnlyList<Endpoint>? endpoints, _) =
+                    await reference.GetEndpointsAsync(cancel).ConfigureAwait(false);
+                Debug.Assert(endpoints.Count > 0);
+
+                TransportException? lastException = null;
+                foreach (Endpoint endpoint in endpoints)
+                {
+                    try
+                    {
+                        IReadOnlyList<IConnector>? connectors =
+                            await endpoint.GetConnectorsAsync(cancel).ConfigureAwait(false);
+                        foreach (IConnector connector in connectors)
+                        {
+                            try
+                            {
+                                // Get the connection, this will eventually establish a connection if needed.
+                                return await reference.GetOrCreateConnectionAsync(endpoint,
+                                                                                  connector,
+                                                                                  cancel).ConfigureAwait(false);
+                            }
+                            catch (TransportException ex)
+                            {
+                                lastException = ex;
+                            }
+                        }
+                    }
+                    catch (TransportException ex)
+                    {
+                        lastException = ex;
+                    }
+                }
+                Debug.Assert(lastException != null);
+                throw ExceptionUtil.Throw(lastException);
+            }
+         }
 
         /// <summary>Forwards an incoming request to another Ice object represented by the <paramref name="proxy"/>
         /// parameter.</summary>
@@ -303,25 +349,98 @@ namespace ZeroC.Ice
                     requestSize > reference.Communicator.RetryRequestSizeMax ||
                     !reference.Communicator.IncRetryBufferSize(requestSize);
                 bool clearedLocatorCache = false;
+
                 try
                 {
                     IncomingResponseFrame? response = null;
                     Exception? lastException = null;
+
+                    int nextEndpoint = 0;
+                    IReadOnlyList<Endpoint>? endpoints = null;
+                    bool cachedEndpoints = false;
+
+                    int nextConnector = 0;
+                    IReadOnlyList<IConnector>? connectors = null;
                     List<IConnector>? excludedConnectors = null;
+
                     IConnector? connector = null;
+                    Endpoint? endpoint = null;
                     while (true)
                     {
-                        Connection? connection = null;
                         bool sent = false;
                         RetryPolicy retryPolicy = RetryPolicy.NoRetry;
                         IChildInvocationObserver? childObserver = null;
+                        Connection? connection = reference.GetActiveConnection();
                         try
                         {
-                            // Get the connection, this will eventually establish a connection if needed.
-                            connection = await reference.GetConnectionAsync(
-                                excludedConnectors ?? (IReadOnlyList<IConnector>)ImmutableList<IConnector>.Empty,
-                                cancel).ConfigureAwait(false);
-                            connector = connection.Connector;
+                            if (connection == null)
+                            {
+                                if (endpoints == null)
+                                {
+                                    // Get the reference endpoints, endpoints associated with recent transport failures are
+                                    // always last, throw NoEndpointException if it cannot obtain an endpoint.
+                                    (endpoints, cachedEndpoints) = await reference.GetEndpointsAsync(cancel).ConfigureAwait(false);
+                                    Debug.Assert(endpoints.Count > 0);
+                                }
+
+                                int firstEndpoint = nextEndpoint;
+                                int firstConnector = nextConnector;
+                                do
+                                {
+                                    endpoint = endpoints[nextEndpoint];
+
+                                    // Get the connectors for the next endpoint, connectors associated with recent
+                                    // transport failures are always last, throw DNSException if failed to resolve
+                                    // the endpoint host.
+                                    if (connectors == null)
+                                    {
+                                        Debug.Assert(connectors == null);
+                                        connectors = await endpoints[nextEndpoint].GetConnectorsAsync(cancel).ConfigureAwait(false);
+                                    }
+
+                                    Debug.Assert(connectors.Count > 0);
+                                    Debug.Assert(nextConnector < connectors.Count);
+                                    connector = connectors[nextConnector];
+
+                                    if (excludedConnectors != null)
+                                    {
+                                        while (excludedConnectors.Contains(connector))
+                                        {
+                                            if (++nextConnector == connectors.Count)
+                                            {
+                                                // This is the last connector try the next endpoint or start over
+                                                nextConnector = 0;
+                                                connectors = null;
+                                                if (++nextEndpoint == endpoints.Count)
+                                                {
+                                                    // This is the last endpoint start over
+                                                    nextEndpoint = 0;
+                                                }
+
+                                                if (nextEndpoint == firstEndpoint && nextConnector == firstConnector)
+                                                {
+                                                    // We went over all endpoint connectors and did not find any connector
+                                                    // that is not excluded
+                                                    throw new NoEndpointException();
+                                                }
+                                                break;
+                                            }
+
+                                            Debug.Assert(connectors.Count > 0);
+                                            Debug.Assert(nextConnector < connectors.Count);
+                                            connector = connectors[nextConnector];
+                                        }
+                                    }
+                                }
+                                while (connectors == null);
+
+                                // Get the connection, this will eventually establish a connection if needed.
+                                connection = await reference.GetOrCreateConnectionAsync(endpoint, connector, cancel).ConfigureAwait(false);
+                            }
+                            else
+                            {
+                                connector = connection.Connector;
+                            }
                             cancel.ThrowIfCancellationRequested();
 
                             // Create the outgoing stream.
@@ -468,8 +587,10 @@ namespace ZeroC.Ice
                         }
                         else
                         {
+                            // Retry
                             Debug.Assert(attempt <= reference.Communicator.RetryMaxAttempts &&
-                                         retryPolicy != RetryPolicy.NoRetry);
+                                         retryPolicy != RetryPolicy.NoRetry,
+                                         $"attempt: {attempt} retry-policy: {retryPolicy}");
                             if (retryPolicy == RetryPolicy.OtherReplica)
                             {
                                 Debug.Assert(connector != null);
@@ -489,10 +610,31 @@ namespace ZeroC.Ice
 
                             // If we get a remote exception using an indirect reference clear the locator cache once
                             // per retry sequence to ensure we are not using any stale endpoints.
-                            if (reference.IsIndirect && !clearedLocatorCache && response != null)
+                            if (cachedEndpoints && reference.IsIndirect && !clearedLocatorCache && response != null)
                             {
                                 reference.LocatorInfo?.ClearCache(reference);
                                 clearedLocatorCache = true;
+                                endpoints = null;
+                                connectors = null;
+                                nextConnector = 0;
+                                nextEndpoint = 0;
+                            }
+                            else if (endpoints != null)
+                            {
+                                // Skip to the next usable endpoint connector
+                                if (connectors == null || ++nextConnector == connectors.Count)
+                                {
+                                    // If we don't have more connectors move to the next endpoint
+                                    nextConnector = 0;
+                                    Debug.Assert(endpoints != null);
+                                    if (++nextEndpoint == endpoints.Count)
+                                    {
+                                        // If we tried all endpoints and the retry policy doesn't require a new replica
+                                        // we start over
+                                        nextEndpoint = 0;
+                                        connectors = null;
+                                    }
+                                }
                             }
 
                             if (reference.Communicator.TraceLevels.Retry >= 1)
