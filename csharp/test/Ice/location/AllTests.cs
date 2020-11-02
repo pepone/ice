@@ -106,9 +106,9 @@ namespace ZeroC.Ice.Test.Location
             {
                 obj2.IcePing();
             }
-            catch
+            catch (Exception ex)
             {
-                TestHelper.Assert(false);
+                TestHelper.Assert(false, ex.ToString());
             }
             output.WriteLine("ok");
 

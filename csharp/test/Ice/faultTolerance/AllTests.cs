@@ -20,14 +20,14 @@ namespace ZeroC.Ice.Test.FaultTolerance
 
             // Build a multi-endpoint proxy by hand.
             // TODO: should the TestHelper help with that?
-            string refString = helper.GetTestProxy("test", 0);
+            string refString = helper.GetTestProxy("test", ports[0]);
             if (ports.Count > 1)
             {
                 var sb = new StringBuilder(refString);
                 if (helper.Protocol == Protocol.Ice1)
                 {
                     string transport = helper.Transport;
-                    for (int i = 0; i < ports.Count; ++i)
+                    for (int i = 1; i < ports.Count; ++i)
                     {
                         sb.Append($": {transport} -h ");
                         sb.Append(helper.Host.Contains(":") ? $"\"{helper.Host}\"" : helper.Host);
@@ -38,7 +38,7 @@ namespace ZeroC.Ice.Test.FaultTolerance
                 else
                 {
                     sb.Append("?alt-endpoint=");
-                    for (int i = 0; i < ports.Count; ++i)
+                    for (int i = 1; i < ports.Count; ++i)
                     {
                         if (i > 0)
                         {
@@ -52,7 +52,8 @@ namespace ZeroC.Ice.Test.FaultTolerance
                 refString = sb.ToString();
             }
 
-            var obj = ITestIntfPrx.Parse(refString, communicator);
+            ITestIntfPrx obj = ITestIntfPrx.Parse(refString, communicator);
+
             output.WriteLine("ok");
 
             int oldPid = 0;
@@ -69,7 +70,7 @@ namespace ZeroC.Ice.Test.FaultTolerance
                 {
                     output.Write($"shutting down server #{i}... ");
                     output.Flush();
-                    obj.Clone(invocationTimeout: TimeSpan.FromMilliseconds(100)).Shutdown();
+                    obj.Shutdown();
                     output.WriteLine("ok");
                 }
                 else
@@ -78,7 +79,7 @@ namespace ZeroC.Ice.Test.FaultTolerance
                     output.Flush();
                     try
                     {
-                        obj.Clone(invocationTimeout: TimeSpan.FromMilliseconds(100)).Abort();
+                        obj.Abort();
                         TestHelper.Assert(false);
                     }
                     catch (ConnectionLostException)
@@ -100,7 +101,7 @@ namespace ZeroC.Ice.Test.FaultTolerance
             output.Flush();
             try
             {
-                obj.Clone(invocationTimeout: TimeSpan.FromMilliseconds(100)).IcePing();
+                obj.IcePing();
                 TestHelper.Assert(false);
             }
             catch

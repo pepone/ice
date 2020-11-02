@@ -81,16 +81,23 @@ namespace ZeroC.Ice
             AcmMonitor = new ConnectionFactoryAcmMonitor(communicator, communicator.ClientAcm);
         }
 
-        internal void AddTransportFailure(Endpoint endpoint) =>
-            _transportFailuresByEndpoint[endpoint] = DateTime.Now;
+        internal void AddTransportFailure(Endpoint? endpoint, IConnector? connector)
+        {
+            if (endpoint != null)
+            {
+                _transportFailuresByEndpoint[endpoint] = DateTime.Now;
+            }
 
-        internal void AddTransportFailure(IConnector connector) =>
-                    _transportFailuresByConnector[connector] = DateTime.Now;
+            if (connector != null)
+            {
+                _transportFailuresByConnector[connector] = DateTime.Now;
+            }
+        }
 
         internal IReadOnlyDictionary<IConnector, DateTime> GetTransportFailuresByConnector()
         {
             // Purge expired hint failures
-            DateTime expirationDate = DateTime.Now - TimeSpan.FromSeconds(5);
+            DateTime expirationDate = DateTime.Now - TimeSpan.FromSeconds(10);
             foreach ((IConnector connector, DateTime date) in _transportFailuresByConnector)
             {
                 if (date <= expirationDate)
@@ -104,7 +111,7 @@ namespace ZeroC.Ice
         internal IReadOnlyDictionary<Endpoint, DateTime> GetTransportFailuresByEndpoint()
         {
             // Purge expired hint failures
-            DateTime expirationDate = DateTime.Now - TimeSpan.FromSeconds(5);
+            DateTime expirationDate = DateTime.Now - TimeSpan.FromSeconds(10);
             foreach ((Endpoint endpoint, DateTime date) in _transportFailuresByEndpoint)
             {
                 if (date <= expirationDate)
