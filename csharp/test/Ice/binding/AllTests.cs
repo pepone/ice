@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Test;
 
 namespace ZeroC.Ice.Test.Binding
@@ -217,12 +218,14 @@ namespace ZeroC.Ice.Test.Binding
                     }
 
                     adapters.Add(com.CreateObjectAdapterWithEndpoints("Adapter65", endpoints[1].ToString()));
+                    Thread.Sleep(TimeSpan.FromSeconds(5)); // Ensure transport failures are clear before we try
                     for (int i = 0; i < 3; i++)
                     {
                         TestHelper.Assert(obj.GetAdapterName() == "Adapter65");
                     }
 
                     adapters.Add(com.CreateObjectAdapterWithEndpoints("Adapter64", endpoints[0].ToString()));
+                    Thread.Sleep(TimeSpan.FromSeconds(5)); // Ensure transport failures are clear before we try
                     for (int i = 0; i < 3; i++)
                     {
                         TestHelper.Assert(obj.GetAdapterName() == "Adapter64");

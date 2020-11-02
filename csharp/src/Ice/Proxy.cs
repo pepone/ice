@@ -213,43 +213,49 @@ namespace ZeroC.Ice
                 // We have an active connection return it
                 return connection;
             }
-            else
-            {
-                // Go throw the list of endpoints connectors in order and return the first connection we found or create.
-                (IReadOnlyList<Endpoint>? endpoints, _) =
-                    await reference.GetEndpointsAsync(cancel).ConfigureAwait(false);
-                Debug.Assert(endpoints.Count > 0);
+            // Go throw the list of endpoints connectors in order and return the first connection we found or create.
+            (IReadOnlyList<Endpoint>? endpoints, _) =
+                await reference.GetEndpointsAsync(cancel).ConfigureAwait(false);
+            Debug.Assert(endpoints.Count > 0);
 
-                TransportException? lastException = null;
-                foreach (Endpoint endpoint in endpoints)
+            if (reference.IsConnectionCached)
+            {
+                connection = reference.GetConnectionByEndpoint(endpoints, ImmutableList<IConnector>.Empty);
+                if (connection != null)
                 {
-                    try
+                    return connection;
+                }
+            }
+
+            TransportException? lastException = null;
+            foreach (Endpoint endpoint in endpoints)
+            {
+                try
+                {
+                    IReadOnlyList<IConnector>? connectors =
+                        await endpoint.GetConnectorsAsync(cancel).ConfigureAwait(false);
+                    foreach (IConnector connector in connectors)
                     {
-                        IReadOnlyList<IConnector>? connectors =
-                            await endpoint.GetConnectorsAsync(cancel).ConfigureAwait(false);
-                        foreach (IConnector connector in connectors)
+                        try
                         {
-                            try
-                            {
-                                // Get the connection, this will eventually establish a connection if needed.
-                                return await reference.GetOrCreateConnectionAsync(endpoint,
-                                                                                  connector,
-                                                                                  cancel).ConfigureAwait(false);
-                            }
-                            catch (TransportException ex)
-                            {
-                                lastException = ex;
-                            }
+                            // Get the connection, this will eventually establish a connection if needed.
+                            return await reference.GetOrCreateConnectionAsync(endpoint,
+                                                                              connector,
+                                                                              cancel).ConfigureAwait(false);
+                        }
+                        catch (TransportException ex)
+                        {
+                            lastException = ex;
                         }
                     }
-                    catch (TransportException ex)
-                    {
-                        lastException = ex;
-                    }
                 }
-                Debug.Assert(lastException != null);
-                throw ExceptionUtil.Throw(lastException);
+                catch (TransportException ex)
+                {
+                    lastException = ex;
+                }
             }
+            Debug.Assert(lastException != null);
+            throw ExceptionUtil.Throw(lastException);
          }
 
         /// <summary>Forwards an incoming request to another Ice object represented by the <paramref name="proxy"/>
@@ -351,6 +357,7 @@ namespace ZeroC.Ice
 
                 try
                 {
+                    OutgoingConnectionFactory factory = reference.Communicator.OutgoingConnectionFactory;
                     IncomingResponseFrame? response = null;
                     Exception? lastException = null;
 
@@ -383,9 +390,17 @@ namespace ZeroC.Ice
                                     nextEndpoint = 0;
                                 }
                                 firstEndpoint = nextEndpoint;
-
                                 Debug.Assert(endpoints.Count > 0);
-                                do
+
+                                if (reference.IsConnectionCached)
+                                {
+                                    // Check if there is a connection already established to any of the proxy endpoints
+                                    connection = reference.GetConnectionByEndpoint(
+                                        endpoints,
+                                        excludedConnectors ?? (IReadOnlyList<IConnector>)ImmutableList<IConnector>.Empty);
+                                }
+
+                                while (connection == null)
                                 {
                                     endpoint = endpoints[nextEndpoint++];
                                     if (nextEndpoint == endpoints.Count)
@@ -402,10 +417,10 @@ namespace ZeroC.Ice
                                         if (excludedConnectors != null)
                                         {
                                             connectors = connectors.Except(excludedConnectors).ToImmutableList();
-                                        }
-                                        if (connectors.Count == 0)
-                                        {
-                                            throw new NoEndpointException();
+                                            if (connectors.Count == 0)
+                                            {
+                                                throw new NoEndpointException();
+                                            }
                                         }
 
                                         for (int i = 0; i < connectors.Count;)
@@ -452,7 +467,6 @@ namespace ZeroC.Ice
                                         }
                                     }
                                 }
-                                while (connection == null);
                             }
                             connector ??= connection.Connector;
 

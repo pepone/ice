@@ -979,6 +979,22 @@ namespace ZeroC.Ice
             return connection;
         }
 
+        internal Connection? GetConnectionByEndpoint(
+            IReadOnlyList<Endpoint> endpoints,
+            IReadOnlyList<IConnector> excludedConnectors)
+        {
+            // Check if there is a connection already established to any of the proxy endpoints
+            Connection? connection = Communicator.OutgoingConnectionFactory.GetConnectionByEndpoint(
+                ConnectionId,
+                endpoints,
+                excludedConnectors ?? ImmutableList<IConnector>.Empty);
+            if (IsConnectionCached)
+            {
+                _connection = connection;
+            }
+            return connection;
+        }
+
         internal async ValueTask<(IReadOnlyList<Endpoint> Endpoints, bool Cached)> GetEndpointsAsync(CancellationToken cancel)
         {
             Debug.Assert(!IsFixed);

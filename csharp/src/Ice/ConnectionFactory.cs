@@ -97,7 +97,7 @@ namespace ZeroC.Ice
         internal IReadOnlyDictionary<IConnector, DateTime> GetTransportFailuresByConnector()
         {
             // Purge expired hint failures
-            DateTime expirationDate = DateTime.Now - TimeSpan.FromSeconds(10);
+            DateTime expirationDate = DateTime.Now - TimeSpan.FromSeconds(5);
             foreach ((IConnector connector, DateTime date) in _transportFailuresByConnector)
             {
                 if (date <= expirationDate)
@@ -111,7 +111,7 @@ namespace ZeroC.Ice
         internal IReadOnlyDictionary<Endpoint, DateTime> GetTransportFailuresByEndpoint()
         {
             // Purge expired hint failures
-            DateTime expirationDate = DateTime.Now - TimeSpan.FromSeconds(10);
+            DateTime expirationDate = DateTime.Now - TimeSpan.FromSeconds(5);
             foreach ((Endpoint endpoint, DateTime date) in _transportFailuresByEndpoint)
             {
                 if (date <= expirationDate)
@@ -120,6 +120,35 @@ namespace ZeroC.Ice
                 }
             }
             return _transportFailuresByEndpoint;
+        }
+
+        internal Connection? GetConnectionByEndpoint(
+            string connectionId,
+            IReadOnlyList<Endpoint> endpoints,
+            IReadOnlyList<IConnector> excluded)
+        {
+            lock (_mutex)
+            {
+                if (_disposeTask != null)
+                {
+                    throw new CommunicatorDisposedException();
+                }
+
+                foreach (Endpoint endpoint in endpoints)
+                {
+                    if (_connectionsByEndpoint.TryGetValue((endpoint, connectionId),
+                        out ICollection<Connection>? connections))
+                    {
+                        Connection? connection = connections.FirstOrDefault(
+                            connection => connection.IsActive && !excluded.Contains(connection.Connector));
+                        if (connection != null)
+                        {
+                            return connection;
+                        }
+                    }
+                }
+                return null;
+            }
         }
 
         internal async ValueTask<Connection> GetOrCreateAsync(
