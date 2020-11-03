@@ -371,15 +371,14 @@ namespace ZeroC.Ice
 
                     IConnector? connector = null;
                     Endpoint? endpoint = null;
+                    Connection? connection = reference.GetActiveConnection();
                     while (true)
                     {
                         bool sent = false;
                         RetryPolicy retryPolicy = RetryPolicy.NoRetry;
                         IChildInvocationObserver? childObserver = null;
-                        Connection? connection = null;
                         try
                         {
-                            connection = reference.GetActiveConnection();
                             if (connection == null)
                             {
                                 if (endpoints == null)
