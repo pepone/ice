@@ -41,9 +41,13 @@ namespace ZeroC.Ice.Test.AdapterDeactivation
 
                 // Use a different port than the first adapter to avoid an "address already in use" error.
                 {
-                    await using var adapter = communicator.CreateObjectAdapterWithEndpoints(
+                    var adapter = communicator.CreateObjectAdapterWithEndpoints(
                         "TransientTestAdapter",
                         helper.GetTestEndpoint(2));
+
+                    TestHelper.Assert(!adapter.ShutdownComplete.IsCompleted);
+                    await adapter.DisposeAsync();
+                    TestHelper.Assert(adapter.ShutdownComplete.IsCompletedSuccessfully);
                 }
                 output.WriteLine("ok");
             }
@@ -59,7 +63,7 @@ namespace ZeroC.Ice.Test.AdapterDeactivation
                 output.Flush();
                 for (int i = 0; i < 10; ++i)
                 {
-                    using var comm = new Communicator(communicator.GetProperties());
+                    await using var comm = new Communicator(communicator.GetProperties());
                     _ = IObjectPrx.Parse(helper.GetTestProxy("test", 0), communicator).IcePingAsync();
                 }
                 output.WriteLine("ok");
@@ -151,8 +155,7 @@ namespace ZeroC.Ice.Test.AdapterDeactivation
             }
             output.WriteLine("ok");
 
-            Connection? connection = obj.GetConnection();
-            if (connection != null)
+            Connection connection = await obj.GetConnectionAsync();
             {
                 output.Write("testing object adapter with bi-dir connection... ");
                 output.Flush();

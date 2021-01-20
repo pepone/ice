@@ -4,8 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-
-using Test;
+using ZeroC.Test;
 
 namespace ZeroC.Ice.Test.Proxy
 {
@@ -22,7 +21,7 @@ namespace ZeroC.Ice.Test.Proxy
         public ValueTask ShutdownAsync(Current current, CancellationToken cancel)
         {
             current.Communicator.ShutdownAsync();
-            return new(Task.CompletedTask);
+            return default;
         }
 
         public ValueTask<IReadOnlyDictionary<string, string>> GetContextAsync(
@@ -30,10 +29,10 @@ namespace ZeroC.Ice.Test.Proxy
             CancellationToken cancel) =>
             new(_ctx!);
 
-        public bool IceIsA(string typeId, Current current, CancellationToken cancel)
+        public ValueTask<bool> IceIsAAsync(string typeId, Current current, CancellationToken cancel)
         {
             _ctx = current.Context;
-            return typeof(IMyDerivedClass).GetAllIceTypeIds().Contains(typeId);
+            return new(typeof(IMyDerivedClass).GetAllIceTypeIds().Contains(typeId));
         }
 
         public async ValueTask<IRelativeTestPrx> OpRelativeAsync(

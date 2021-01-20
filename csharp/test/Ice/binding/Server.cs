@@ -18,13 +18,14 @@ namespace ZeroC.Ice.Test.Binding
             await adapter.ActivateAsync();
 
             ServerReady();
-            await Communicator.WaitForShutdownAsync();
+            await Communicator.ShutdownComplete;
         }
 
         public static async Task<int> Main(string[] args)
         {
             Dictionary<string, string> properties = CreateTestProperties(ref args);
             properties["Ice.ServerIdleTime"] = "30";
+
             await using var communicator = CreateCommunicator(properties);
             return await RunTestAsync<Server>(communicator, args);
         }

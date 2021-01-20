@@ -5,7 +5,7 @@ using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Test;
+using ZeroC.Test;
 
 namespace ZeroC.Ice.Test.UDP
 {
@@ -61,8 +61,8 @@ namespace ZeroC.Ice.Test.UDP
 
         public static async Task RunAsync(TestHelper helper)
         {
-            Communicator? communicator = helper.Communicator;
-            TestHelper.Assert(communicator != null);
+            Communicator communicator = helper.Communicator;
+
             communicator.SetProperty("ReplyAdapter.Endpoints", helper.GetTestEndpoint(0, "udp", true));
             communicator.SetProperty("ReplyAdapter.AcceptNonSecure", "Always");
             ObjectAdapter adapter = communicator.CreateObjectAdapter("ReplyAdapter");
@@ -126,7 +126,7 @@ namespace ZeroC.Ice.Test.UDP
                 // TransportException will be thrown when we try to send a larger packet.
                 TestHelper.Assert(seq.Length > 16384);
             }
-            _ = obj.GetConnection().GoAwayAsync();
+            _ = (await obj.GetConnectionAsync()).GoAwayAsync();
             communicator.SetProperty("Ice.UDP.SndSize", "64K");
             seq = new byte[50000];
             try
@@ -202,7 +202,7 @@ namespace ZeroC.Ice.Test.UDP
             {
                 Console.Out.Write("testing udp bi-dir connection... ");
                 Console.Out.Flush();
-                obj.GetConnection().Adapter = adapter;
+                (await obj.GetConnectionAsync()).Adapter = adapter;
                 nRetry = 5;
                 while (nRetry-- > 0)
                 {

@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Test;
+using ZeroC.Test;
 
 namespace ZeroC.Ice.Test.Operations
 {
@@ -43,24 +43,28 @@ namespace ZeroC.Ice.Test.Operations
         }
 
         // Override the Object "pseudo" operations to verify the operation mode.
-        public bool IceIsA(string id, Current current, CancellationToken cancel)
+        public ValueTask<bool> IceIsAAsync(string id, Current current, CancellationToken cancel)
         {
             TestHelper.Assert(current.IsIdempotent);
-            return typeof(IMyDerivedClass).GetAllIceTypeIds().Contains(id);
+            return new(typeof(IMyDerivedClass).GetAllIceTypeIds().Contains(id));
         }
 
-        public void IcePing(Current current, CancellationToken cancel) => TestHelper.Assert(current.IsIdempotent);
-
-        public IEnumerable<string> IceIds(Current current, CancellationToken cancel)
+        public ValueTask IcePingAsync(Current current, CancellationToken cancel)
         {
             TestHelper.Assert(current.IsIdempotent);
-            return typeof(IMyDerivedClass).GetAllIceTypeIds();
+            return default;
         }
 
-        public string IceId(Current current, CancellationToken cancel)
+        public ValueTask<IEnumerable<string>> IceIdsAsync(Current current, CancellationToken cancel)
         {
             TestHelper.Assert(current.IsIdempotent);
-            return typeof(IMyDerivedClass).GetIceTypeId()!;
+            return new(typeof(IMyDerivedClass).GetAllIceTypeIds());
+        }
+
+        public ValueTask<string> IceIdAsync(Current current, CancellationToken cancel)
+        {
+            TestHelper.Assert(current.IsIdempotent);
+            return new(typeof(IMyDerivedClass).GetIceTypeId()!);
         }
 
         public ValueTask ShutdownAsync(Current current, CancellationToken cancel)
@@ -72,7 +76,7 @@ namespace ZeroC.Ice.Test.Operations
             }
 
             current.Communicator.ShutdownAsync();
-            return new(Task.CompletedTask);
+            return default;
         }
 
         public ValueTask<bool> SupportsCompressAsync(Current current, CancellationToken cancel) =>
@@ -718,7 +722,7 @@ namespace ZeroC.Ice.Test.Operations
             {
                 ++_opByteSOnewayCallCount;
             }
-            return new(Task.CompletedTask);
+            return default;
         }
 
         public ValueTask<int> OpByteSOnewayCallCountAsync(Current current, CancellationToken cancel)
@@ -739,7 +743,7 @@ namespace ZeroC.Ice.Test.Operations
             {
                 TestHelper.Assert(p2[i] == d);
             }
-            return new(Task.CompletedTask);
+            return default;
         }
 
         public ValueTask<(IEnumerable<string>, IEnumerable<string>)> OpStringSAsync(
@@ -814,7 +818,7 @@ namespace ZeroC.Ice.Test.Operations
         public ValueTask OpIdempotentAsync(Current current, CancellationToken cancel)
         {
             TestHelper.Assert(current.IsIdempotent);
-            return new(Task.CompletedTask);
+            return default;
         }
 
         // "return" exception when called two-way, otherwise succeeds.
@@ -823,8 +827,7 @@ namespace ZeroC.Ice.Test.Operations
         // "return" exception when called two-way, otherwise succeeds.
         public ValueTask OpOnewayMetadataAsync(Current current, CancellationToken cancel) => throw new SomeException();
 
-        public ValueTask OpDerivedAsync(Current current, CancellationToken cancel) =>
-            new(Task.CompletedTask);
+        public ValueTask OpDerivedAsync(Current current, CancellationToken cancel) => default;
 
         public ValueTask<byte> OpByte1Async(byte value, Current current, CancellationToken cancel) =>
             new(value);

@@ -3,20 +3,21 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Test;
+using System.Threading.Tasks;
+using ZeroC.Test;
 
 namespace ZeroC.Ice.Test.Timeout
 {
     public static class AllTests
     {
-        public static void Run(TestHelper helper)
+        public static async Task RunAsync(TestHelper helper)
         {
-            Communicator? communicator = helper.Communicator;
-            TestHelper.Assert(communicator != null);
+            Communicator communicator = helper.Communicator;
+
             var controller = IControllerPrx.Parse(helper.GetTestProxy("controller", 1), communicator);
             try
             {
-                RunWithController(helper, controller);
+                await RunWithControllerAsync(helper, controller);
             }
             catch
             {
@@ -27,10 +28,10 @@ namespace ZeroC.Ice.Test.Timeout
             }
         }
 
-        public static void RunWithController(TestHelper helper, IControllerPrx controller)
+        public static async Task RunWithControllerAsync(TestHelper helper, IControllerPrx controller)
         {
-            Communicator? communicator = helper.Communicator;
-            TestHelper.Assert(communicator != null);
+            Communicator communicator = helper.Communicator;
+
             bool ice1 = TestHelper.GetTestProtocol(communicator.GetProperties()) == Protocol.Ice1;
 
             var timeout = ITimeoutPrx.Parse(helper.GetTestProxy("timeout", 0), communicator);
@@ -39,9 +40,9 @@ namespace ZeroC.Ice.Test.Timeout
             output.Write("testing connect timeout... ");
             output.Flush();
             {
-                Dictionary<string, string>? properties = communicator.GetProperties();
+                Dictionary<string, string> properties = communicator.GetProperties();
                 properties["Ice.ConnectTimeout"] = "100ms";
-                using var comm = new Communicator(properties);
+                await using var comm = new Communicator(properties);
 
                 var to = ITimeoutPrx.Parse(helper.GetTestProxy("timeout", 0), comm);
 
@@ -70,7 +71,7 @@ namespace ZeroC.Ice.Test.Timeout
             output.Flush();
             {
                 timeout.IcePing(); // Makes sure a working connection is associated with the proxy
-                Connection? connection = timeout.GetConnection();
+                Connection connection = await timeout.GetConnectionAsync();
                 try
                 {
                     timeout.Clone(invocationTimeout: TimeSpan.FromMilliseconds(100)).SleepAsync(1000).Wait();
@@ -81,7 +82,7 @@ namespace ZeroC.Ice.Test.Timeout
                 }
                 timeout.IcePing();
 
-                TestHelper.Assert(connection == timeout.GetConnection());
+                TestHelper.Assert(connection == await timeout.GetConnectionAsync());
                 try
                 {
                     timeout.Clone(invocationTimeout: TimeSpan.FromMilliseconds(1000)).SleepAsync(100).Wait();
@@ -90,7 +91,7 @@ namespace ZeroC.Ice.Test.Timeout
                 {
                     TestHelper.Assert(false);
                 }
-                TestHelper.Assert(connection == timeout.GetConnection());
+                TestHelper.Assert(connection == await timeout.GetConnectionAsync());
 
                 try
                 {
@@ -108,12 +109,12 @@ namespace ZeroC.Ice.Test.Timeout
             {
                 Dictionary<string, string> properties = communicator.GetProperties();
                 properties["Ice.CloseTimeout"] = "100ms";
-                using var comm = new Communicator(properties);
+                await using var comm = new Communicator(properties);
 
                 var to = ITimeoutPrx.Parse(helper.GetTestProxy("timeout", 0), comm);
 
-                Connection? connection = to.GetConnection();
-                Connection? connection2 = timeout.GetConnection(); // No close timeout
+                Connection connection = await to.GetConnectionAsync();
+                Connection connection2 = await timeout.GetConnectionAsync(); // No close timeout
 
                 TestHelper.Assert(connection != null && connection2 != null);
 
@@ -125,11 +126,11 @@ namespace ZeroC.Ice.Test.Timeout
 
                 var semaphore = new System.Threading.SemaphoreSlim(0);
                 connection.Closed += (sender, args) => semaphore.Release();
-                connection.GoAwayAsync();
+                _ = connection.GoAwayAsync();
                 TestHelper.Assert(semaphore.Wait(500));
 
                 connection2.Closed += (sender, args) => semaphore.Release();
-                connection2.GoAwayAsync();
+                _ = connection2.GoAwayAsync();
                 TestHelper.Assert(!semaphore.Wait(500));
 
                 controller.ResumeAdapter();

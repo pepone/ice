@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Authentication;
 using System.Threading.Tasks;
-using Test;
+using ZeroC.Test;
 
 namespace ZeroC.Ice.Test.Info
 {
@@ -14,8 +14,8 @@ namespace ZeroC.Ice.Test.Info
     {
         public static async Task RunAsync(TestHelper helper)
         {
-            Communicator? communicator = helper.Communicator;
-            TestHelper.Assert(communicator != null);
+            Communicator communicator = helper.Communicator;
+
             bool ice1 = helper.Protocol == Protocol.Ice1;
             string transport = helper.Transport;
             TextWriter output = helper.Output;
@@ -141,7 +141,7 @@ namespace ZeroC.Ice.Test.Info
             output.Write("test connection endpoint information... ");
             output.Flush();
             {
-                Endpoint tcpEndpoint = testIntf.GetConnection()!.Endpoint;
+                Endpoint tcpEndpoint = (await testIntf.GetConnectionAsync()).Endpoint;
                 TestHelper.Assert(tcpEndpoint.Port == endpointPort);
 
                 TestHelper.Assert(tcpEndpoint["compress"] == null);
@@ -156,8 +156,8 @@ namespace ZeroC.Ice.Test.Info
                 if (ice1)
                 {
                     Endpoint udpEndpoint =
-                        testIntf.Clone(invocationMode: InvocationMode.Datagram,
-                                       preferNonSecure: NonSecure.Always).GetConnection()!.Endpoint;
+                        (await testIntf.Clone(invocationMode: InvocationMode.Datagram,
+                                       preferNonSecure: NonSecure.Always).GetConnectionAsync()).Endpoint;
                     TestHelper.Assert(udpEndpoint.Port == endpointPort);
                     TestHelper.Assert(udpEndpoint.Host == defaultHost);
                 }
@@ -167,7 +167,7 @@ namespace ZeroC.Ice.Test.Info
             output.Write("testing connection information... ");
             output.Flush();
             {
-                var connection = (IPConnection)testIntf.GetConnection()!;
+                var connection = (IPConnection)await testIntf.GetConnectionAsync();
 
                 TestHelper.Assert(!connection.IsIncoming);
                 TestHelper.Assert(connection.Adapter == null);
@@ -238,8 +238,9 @@ namespace ZeroC.Ice.Test.Info
 
                 if (ice1)
                 {
-                    connection = (IPConnection)testIntf.Clone(invocationMode: InvocationMode.Datagram,
-                                                              preferNonSecure: NonSecure.Always).GetConnection()!;
+                    connection = (IPConnection)await testIntf.Clone(
+                        invocationMode: InvocationMode.Datagram,
+                        preferNonSecure: NonSecure.Always).GetConnectionAsync();
 
                     var udpConnection = connection as UdpConnection;
                     TestHelper.Assert(udpConnection != null);
