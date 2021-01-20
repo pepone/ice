@@ -13,6 +13,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.Extensions.Logging;
+
 namespace ZeroC.Ice
 {
     internal sealed class BufWarnSizeInfo
@@ -278,19 +280,19 @@ namespace ZeroC.Ice
 
         /// <summary>Constructs a new communicator.</summary>
         /// <param name="properties">The properties of the new communicator.</param>
-        /// <param name="logger">The logger used by the new communicator.</param>
+        /// <param name="loggerFactory">The logger factory used by the new communicator.</param>
         /// <param name="observer">The communicator observer used by the new communicator.</param>
         /// <param name="tlsClientOptions">Client side configuration for TLS connections.</param>
         /// <param name="tlsServerOptions">Server side configuration for TLS connections.</param>
         public Communicator(
             IReadOnlyDictionary<string, string> properties,
-            ILogger? logger = null,
+            ILoggerFactory? loggerFactory = null,
             Instrumentation.ICommunicatorObserver? observer = null,
             TlsClientOptions? tlsClientOptions = null,
             TlsServerOptions? tlsServerOptions = null)
             : this(ref _emptyArgs,
                    appSettings: null,
-                   logger,
+                   loggerFactory,
                    observer,
                    properties,
                    tlsClientOptions,
@@ -301,20 +303,20 @@ namespace ZeroC.Ice
         /// <summary>Constructs a new communicator.</summary>
         /// <param name="args">An array of command-line arguments used to set or override Ice.* properties.</param>
         /// <param name="properties">The properties of the new communicator.</param>
-        /// <param name="logger">The logger used by the new communicator.</param>
+        /// <param name="loggerFactory">The logger used by the new communicator.</param>
         /// <param name="observer">The communicator observer used by the new communicator.</param>
         /// <param name="tlsClientOptions">Client side configuration for TLS connections.</param>
         /// <param name="tlsServerOptions">Server side configuration for TLS connections.</param>
         public Communicator(
             ref string[] args,
             IReadOnlyDictionary<string, string> properties,
-            ILogger? logger = null,
+            ILoggerFactory? loggerFactory = null,
             Instrumentation.ICommunicatorObserver? observer = null,
             TlsClientOptions? tlsClientOptions = null,
             TlsServerOptions? tlsServerOptions = null)
             : this(ref args,
                    appSettings: null,
-                   logger,
+                   loggerFactory,
                    observer,
                    properties,
                    tlsClientOptions,
@@ -325,21 +327,21 @@ namespace ZeroC.Ice
         /// <summary>Constructs a new communicator.</summary>
         /// <param name="appSettings">Collection of settings to configure the new communicator properties. The
         /// appSettings param has precedence over the properties param.</param>
-        /// <param name="logger">The logger used by the new communicator.</param>
+        /// <param name="loggerFactory">The logger used by the new communicator.</param>
         /// <param name="observer">The communicator observer used by the Ice run-time.</param>
         /// <param name="properties">The properties of the new communicator.</param>
         /// <param name="tlsClientOptions">Client side configuration for TLS connections.</param>
         /// <param name="tlsServerOptions">Server side configuration for TLS connections.</param>
         public Communicator(
             NameValueCollection? appSettings = null,
-            ILogger? logger = null,
+            ILoggerFactory? loggerFactory = null,
             Instrumentation.ICommunicatorObserver? observer = null,
             IReadOnlyDictionary<string, string>? properties = null,
             TlsClientOptions? tlsClientOptions = null,
             TlsServerOptions? tlsServerOptions = null)
             : this(ref _emptyArgs,
                    appSettings,
-                   logger,
+                   loggerFactory,
                    observer,
                    properties,
                    tlsClientOptions,
@@ -351,7 +353,7 @@ namespace ZeroC.Ice
         /// <param name="args">An array of command-line arguments used to set or override Ice.* properties.</param>
         /// <param name="appSettings">Collection of settings to configure the new communicator properties. The
         /// appSettings param has precedence over the properties param.</param>
-        /// <param name="logger">The logger used by the new communicator.</param>
+        /// <param name="loggerFactory">The logger used by the new communicator.</param>
         /// <param name="observer">The communicator observer used by the new communicator.</param>
         /// <param name="properties">The properties of the new communicator.</param>
         /// <param name="tlsClientOptions">Client side configuration for TLS connections.</param>
@@ -359,13 +361,13 @@ namespace ZeroC.Ice
         public Communicator(
             ref string[] args,
             NameValueCollection? appSettings = null,
-            ILogger? logger = null,
+            ILoggerFactory? loggerFactory = null,
             Instrumentation.ICommunicatorObserver? observer = null,
             IReadOnlyDictionary<string, string>? properties = null,
             TlsClientOptions? tlsClientOptions = null,
             TlsServerOptions? tlsServerOptions = null)
         {
-            _logger = logger ?? Runtime.Logger;
+            _logger = loggerFactory ?? Runtime.Logger;
             Observer = observer;
 
             // clone properties as we don't want to modify the properties given to this constructor
@@ -441,23 +443,6 @@ namespace ZeroC.Ice
                         UriParser.RegisterCommon();
                         _oneOffDone = true;
                     }
-                }
-
-                if (logger == null)
-                {
-                    string? logfile = GetProperty("Ice.LogFile");
-                    string? programName = GetProperty("Ice.ProgramName");
-                    Debug.Assert(programName != null);
-                    if (logfile != null)
-                    {
-                        Logger = new FileLogger(programName, logfile);
-                    }
-                    else if (Runtime.Logger is Logger)
-                    {
-                        // Ice.ConsoleListener is enabled by default.
-                        Logger = new TraceLogger(programName, this.GetPropertyAsBool("Ice.ConsoleListener") ?? true);
-                    }
-                    // else already set to process logger
                 }
 
                 TraceLevels = new TraceLevels(this);
@@ -644,15 +629,6 @@ namespace ZeroC.Ice
                         _adminFacets.Add(processFacetName, new Process(this));
                     }
 
-                    // Logger facet
-                    string loggerFacetName = "Logger";
-                    if (_adminFacetFilter.Count == 0 || _adminFacetFilter.Contains(loggerFacetName))
-                    {
-                        var loggerAdminLogger = new LoggerAdminLogger(this, Logger);
-                        Logger = loggerAdminLogger;
-                        _adminFacets.Add(loggerFacetName, loggerAdminLogger.GetFacet());
-                    }
-
                     // Properties facet
                     string propertiesFacetName = "Properties";
                     PropertiesAdmin? propsAdmin = null;
@@ -666,7 +642,7 @@ namespace ZeroC.Ice
                     string metricsFacetName = "Metrics";
                     if (_adminFacetFilter.Count == 0 || _adminFacetFilter.Contains(metricsFacetName))
                     {
-                        var communicatorObserver = new CommunicatorObserver(this, Logger);
+                        var communicatorObserver = new CommunicatorObserver(this);
                         Observer = communicatorObserver;
                         _adminFacets.Add(metricsFacetName, communicatorObserver.AdminFacet);
 
@@ -895,11 +871,6 @@ namespace ZeroC.Ice
 
                 Observer?.SetObserverUpdater(null);
 
-                if (Logger is LoggerAdminLogger adminLogger)
-                {
-                    await adminLogger.DisposeAsync().ConfigureAwait(false);
-                }
-
                 if (this.GetPropertyAsBool("Ice.Warn.UnusedProperties") ?? false)
                 {
                     List<string> unusedProperties = GetUnusedProperties();
@@ -928,10 +899,6 @@ namespace ZeroC.Ice
                     }
                 }
 
-                if (Logger is FileLogger fileLogger)
-                {
-                    fileLogger.Dispose();
-                }
                 _currentContext.Dispose();
                 _cancellationTokenSource.Dispose();
             }
@@ -1429,9 +1396,9 @@ namespace ZeroC.Ice
                 }
                 catch (Exception ex)
                 {
-                    if (TraceLevels.Locator >= 1)
+                    if (Logger.IsEnabled(LogLevel.Error))
                     {
-                        Logger.Trace(TraceLevels.LocatorCategory, $"failed to retrieve locator registry:\n{ex}");
+                        Logger.TraceGetLocatorRegistryFailure(ex);
                     }
                     return;
                 }
@@ -1451,19 +1418,16 @@ namespace ZeroC.Ice
                 }
                 catch (Exception ex)
                 {
-                    if (TraceLevels.Locator >= 1)
+                    if (Logger.IsEnabled(LogLevel.Error))
                     {
-                        Logger.Trace(
-                            TraceLevels.LocatorCategory,
-                            $"could not register server `{serverId}' with the locator registry:\n{ex}");
+                        Logger.TraceSetServerProcessProxyFailure(serverId, ex);
                     }
                     throw;
                 }
 
-                if (TraceLevels.Locator >= 1)
+                if (Logger.IsEnabled(LogLevel.Information))
                 {
-                    Logger.Trace(TraceLevels.LocatorCategory,
-                                 $"registered server `{serverId}' with the locator registry");
+                    Logger.TraceSetServerProcessProxy(serverId);
                 }
             }
         }

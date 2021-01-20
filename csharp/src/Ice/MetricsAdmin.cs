@@ -419,8 +419,6 @@ namespace ZeroC.Ice
 
     internal class MetricsAdmin : IMetricsAdmin
     {
-        internal ILogger Logger { get; }
-
         private static readonly string[] _suffixes =
             {
                 "Disabled",
@@ -551,9 +549,8 @@ namespace ZeroC.Ice
             }
         }
 
-        internal MetricsAdmin(Communicator communicator, ILogger logger)
+        internal MetricsAdmin(Communicator communicator)
         {
-            Logger = logger;
             _communicator = communicator;
             UpdateViews();
         }

@@ -4,6 +4,10 @@ namespace ZeroC.Ice
 {
     internal sealed class TraceLevels
     {
+        internal static int GetLocatorRegistryFailure = 1000;
+        internal static int SetServerProcessProxyFailure = 1001;
+        internal static int SetServerProcessProxy = 1002;
+
         internal const string LocatorCategory = "Ice.Trace.Locator";
         internal const string ProtocolCategory = "Ice.Trace.Protocol";
         internal const string RetryCategory = "Ice.Trace.Retry";

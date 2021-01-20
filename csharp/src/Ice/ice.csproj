@@ -36,6 +36,6 @@
         <Compile Update="generated\Router.cs">
           <SliceCompileSource>..\..\..\slice\Ice\Router.ice</SliceCompileSource>
         </Compile>
+        <PackageReference Include="Microsoft.Extensions.Logging" Version="5.0.0" PrivateAssets="All"/>
     </ItemGroup>
-    <ItemGroup />
 </Project>

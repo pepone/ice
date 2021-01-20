@@ -47,9 +47,9 @@ namespace ZeroC.Ice
         private readonly ObserverFactoryWithDelegate<InvocationMetrics, InvocationObserver,
             IInvocationObserver> _invocations;
 
-        internal CommunicatorObserver(Communicator communicator, ILogger logger)
+        internal CommunicatorObserver(Communicator communicator)
         {
-            AdminFacet = new MetricsAdmin(communicator, logger);
+            AdminFacet = new MetricsAdmin(communicator);
             _delegate = communicator.Observer;
             _connections = new ObserverFactoryWithDelegate<ConnectionMetrics, ConnectionObserver,
                 IConnectionObserver>(AdminFacet, "Connection");
