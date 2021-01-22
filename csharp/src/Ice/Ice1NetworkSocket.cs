@@ -1,5 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -40,7 +41,10 @@ namespace ZeroC.Ice
                     buffer = await _socket.ReceiveDatagramAsync(cancel).ConfigureAwait(false);
                     if (buffer.Count < Ice1Definitions.HeaderSize)
                     {
-                        ReceivedInvalidData($"received datagram with {buffer.Count} bytes");
+                        if (Endpoint.Communicator.Logger.IsEnabled(LogLevel.Warning))
+                        {
+                            Endpoint.Communicator.Logger.LogReceivedInvalidDatagram(buffer.Count);
+                        }
                         continue;
                     }
                     Received(buffer.Count);

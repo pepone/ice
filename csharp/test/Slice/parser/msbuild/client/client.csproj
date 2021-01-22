@@ -13,9 +13,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <Compile Include="../../Client.cs" />
+    <Compile Include="generated\CircularA.cs" />
     <SliceCompile Include="../../Circular*.ice" />
     <Compile Update="generated/CircularA.cs">
-       <SliceCompileSource>../../CircularA.ice</SliceCompileSource>
+       <SliceCompileSource>..\..\CircularA.ice</SliceCompileSource>
     </Compile>
     <Compile Update="generated/CircularB.cs">
       <SliceCompileSource>../../CircularB.ice</SliceCompileSource>

@@ -1,5 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -79,9 +80,18 @@ namespace ZeroC.Ice
                 throw new TransportException(ex, RetryPolicy.OtherReplica);
             }
 
-            if (_engine.SecurityTraceLevel >= 1)
+            if (_communicator.Logger.IsEnabled(LogLevel.Debug))
             {
-                _engine.TraceStream(_sslStream, ToString());
+                _communicator.Logger.LogTlsConnectionCreated(ToString(), new Dictionary<string, string>()
+                    {
+                        { "authenticated", $"{_sslStream.IsAuthenticated}" },
+                        { "encrypted", $"{_sslStream.IsEncrypted}" },
+                        { "signed", $"{_sslStream.IsSigned}" },
+                        { "mutually authenticated", $"{_sslStream.IsMutuallyAuthenticated}" },
+                        { "hash", $"{_sslStream.HashAlgorithm}/{_sslStream.HashStrength}" },
+                        { "cipher", $"{_sslStream.CipherAlgorithm}/{_sslStream.CipherStrength}" },
+                        { "protocol", $"{_sslStream.SslProtocol}" }
+                    });
             }
 
             // Use a buffered stream for writes. This ensures that small requests which are composed of multiple
@@ -224,36 +234,33 @@ namespace ZeroC.Ice
             X509Chain? chain,
             SslPolicyErrors errors)
         {
-            var message = new StringBuilder();
-
             if ((errors & SslPolicyErrors.RemoteCertificateNotAvailable) > 0)
             {
                 // For an outgoing connection the peer must always provide a certificate, for an incoming connection
                 // the certificate is only required if the RequireClientCertificate option was set.
                 if (!_incoming || _engine.TlsServerOptions.RequireClientCertificate)
                 {
-                    if (_engine.SecurityTraceLevel >= 1)
+                    if (_communicator.Logger.IsEnabled(LogLevel.Error))
                     {
-                        _communicator.Logger.Trace(
-                            SslEngine.SecurityTraceCategory,
-                            "SSL certificate validation failed - remote certificate not provided");
+                        _communicator.Logger.LogTlsRemoteCertificateNotProvided();
                     }
                     return false;
                 }
                 else
                 {
                     errors ^= SslPolicyErrors.RemoteCertificateNotAvailable;
-                    message.Append("\nremote certificate not provided (ignored)");
+                    if (_communicator.Logger.IsEnabled(LogLevel.Debug))
+                    {
+                        _communicator.Logger.LogTlsRemoteCertificateNotProvidedIgnored();
+                    }
                 }
             }
 
             if ((errors & SslPolicyErrors.RemoteCertificateNameMismatch) > 0)
             {
-                if (_engine.SecurityTraceLevel >= 1)
+                if (_communicator.Logger.IsEnabled(LogLevel.Error))
                 {
-                    _communicator.Logger.Trace(
-                        SslEngine.SecurityTraceCategory,
-                        "SSL certificate validation failed - Hostname mismatch");
+                    _communicator.Logger.LogTlsHostnameMismatch();
                 }
                 return false;
             }
@@ -316,8 +323,10 @@ namespace ZeroC.Ice
                     {
                         if (status.Status != X509ChainStatusFlags.NoError)
                         {
-                            message.Append("\ncertificate chain error: ");
-                            message.Append(status.Status);
+                            if (_communicator.Logger.IsEnabled(LogLevel.Error))
+                            {
+                                _communicator.Logger.LogTlsCertificateChainError(status.Status);
+                            }
                             errors |= SslPolicyErrors.RemoteCertificateChainErrors;
                         }
                     }
@@ -333,20 +342,11 @@ namespace ZeroC.Ice
 
             if (errors > 0)
             {
-                if (_engine.SecurityTraceLevel >= 1)
+                if (_communicator.Logger.IsEnabled(LogLevel.Error))
                 {
-                    _communicator.Logger.Trace(
-                        SslEngine.SecurityTraceCategory,
-                        message.Length > 0 ?
-                            $"SSL certificate validation failed: {message}" : "SSL certificate validation failed");
+                    _communicator.Logger.LogTlsCertificateValidationFailed();
                 }
                 return false;
-            }
-
-            if (message.Length > 0 && _engine.SecurityTraceLevel >= 1)
-            {
-                _communicator.Logger.Trace(SslEngine.SecurityTraceCategory,
-                    $"SSL certificate validation status: {message}");
             }
             return true;
         }

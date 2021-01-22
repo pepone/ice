@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using ZeroC.IceMX;
 
 namespace ZeroC.Ice
@@ -622,7 +623,7 @@ namespace ZeroC.Ice
                     message.Append("\n    ");
                     message.Append(p);
                 }
-                Runtime.Logger.Warning(message.ToString());
+                Logger.Warning(message.ToString());
             }
         }
 
