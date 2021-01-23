@@ -279,24 +279,81 @@ namespace ZeroC.Ice
 
     internal static class TransportLoggerExtensions
     {
-        private static readonly Action<ILogger, int, Exception> _receivedInvalidDatagram = LoggerMessage.Define<int>(
+        private static readonly Action<ILogger, string, WSSocket, Exception> _httpUpgradeRequestAccepted = LoggerMessage.Define<string, WSSocket>(
             LogLevel.Error,
-            GetEventId(TransportEvent.ReceivedInvalidDatagram),
-            "maximum datagram size of { buffer.Count } exceeded");
+            GetEventId(TransportEvent.HttpUpgradeRequestFailed),
+            "accepted {Transport} connection HTTP upgrade request");
+
+        private static readonly Action<ILogger, string, WSSocket, Exception> _httpUpgradeRequestFailed = LoggerMessage.Define<string, WSSocket>(
+            LogLevel.Error,
+            GetEventId(TransportEvent.HttpUpgradeRequestFailed),
+            "{Transport} connection HTTP upgrade request failed {Socket}");
+
+        private static readonly Action<ILogger, int, Exception> _maxDatagramSizeExceed = LoggerMessage.Define<int>(
+            LogLevel.Error,
+            GetEventId(TransportEvent.MaxDatagramSizeExceed),
+            "maximum datagram size of {MaxSize} exceeded");
+        
         private static readonly Action<ILogger, int, Exception> _receivedInvalidDatagram = LoggerMessage.Define<int>(
             LogLevel.Error,
             GetEventId(TransportEvent.ReceivedInvalidDatagram),
             "received datagram with {Bytes} bytes");
 
+        private static readonly Action<ILogger, string, OpCode, int, WSSocket, Exception> _sendingWebSocketFrame = LoggerMessage.Define<string, OpCode, int, WSSocket,>(
+            LogLevel.Error,
+            GetEventId(TransportEvent.ReceivedWebSocketFrame),
+            "received {Transport} {OpCode} frame with {Size} bytes payload {Socket}");
+
+        private static readonly Action<ILogger, string, OpCode, int, WSSocket, Exception> _sendingWebSocketFrame = LoggerMessage.Define<string, OpCode, int, WSSocket,>(
+            LogLevel.Error,
+            GetEventId(TransportEvent.SendingWebSocketFrame),
+            "sending {Transport} {OpCode} frame with {Size} bytes payload {Socket}");
+
+        internal static void LogHttpUpgradeRequestAccepted(
+            this ILogger logger,
+            string transport,
+            WSSocket socket) =>
+            _httpUpgradeRequestAccepted(logger, transport, socket, ex);
+
+        internal static void LogHttpUpgradeRequestFailed(
+            this ILogger logger,
+            string transport,
+            WSSocket socket,
+            Exception ex) =>
+            _httpUpgradeRequestFailed(logger, transport, socket, ex);
+
+        internal static void LogMaxDatagramSizeExceed(this ILogger logger, int bytes) =>
+            _maxDatagramSizeExceed(logger, bytes, null!);
+
         internal static void LogReceivedInvalidDatagram(this ILogger logger, int bytes) =>
             _receivedInvalidDatagram(logger, bytes, null!);
+
+        internal static void LogReceivedWebSocketFrame(
+            this ILogger logger,
+            string transport,
+            OpCode opCode,
+            int size,
+            WSSocket socket) =>
+            _sendingWebSocketFrame(logger, transport, opCode, size, socket, null!);
+
+        internal static void LogSendingWebSocketFrame(
+            this ILogger logger,
+            string transport,
+            OpCode opCode,
+            int size,
+            WSSocket socket) =>
+            _sendingWebSocketFrame(logger, transport, opCode, size, socket, null!);
 
         private static EventId GetEventId(TransportEvent e) => new EventId((int)e, e.ToString());
 
         private enum TransportEvent
         {
+            HttpUpgradeRequestAccepted,
+            HttpUpgradeRequestFailed,
             MaxDatagramSizeExceed,
-            ReceivedInvalidDatagram
+            ReceivedInvalidDatagram,
+            ReceivedWebSocketFrame,
+            SendingWebSocketFrame,
         }
     }
 }

@@ -48,6 +48,7 @@ namespace ZeroC.Ice
         private readonly bool _incoming;
         private readonly string _host;
         private string _key;
+        private ILogger _logger;
         private readonly HttpParser _parser;
         private readonly object _mutex = new object();
         private readonly BufferedReceiveOverSingleStreamSocket _underlying;
@@ -192,20 +193,18 @@ namespace ZeroC.Ice
             }
             catch (Exception ex)
             {
-                if (_communicator.TraceLevels.Transport >= 2)
+                if (_communicator.Logger.IsEnabled(LogLevel.Error))
                 {
-                    _communicator.Logger.Trace(TraceLevels.TransportCategory,
-                        $"{_transportName} connection HTTP upgrade request failed\n{this}\n{ex}");
+                    _communicator.Logger.LogHttpUpgradeRequestFailedt(_transportName, this, ex);
                 }
                 throw;
             }
 
-            if (_communicator.TraceLevels.Transport >= 1)
+            if (_logger.IsEnabled(LogLevel.Debug))
             {
                 if (_incoming)
                 {
-                    _communicator.Logger.Trace(TraceLevels.TransportCategory,
-                        $"accepted {_transportName} connection HTTP upgrade request\n{this}");
+                    _logger.LogHttpUpgradeRequestFailed(_transportName, this);
                 }
                 else
                 {
@@ -266,6 +265,7 @@ namespace ZeroC.Ice
         internal WSSocket(Communicator communicator, SingleStreamSocket underlying)
         {
             _communicator = communicator;
+            _logger = communicator.Logger;
             _underlying = new BufferedReceiveOverSingleStreamSocket(underlying);
             _parser = new HttpParser();
             _receiveLastFrame = true;
@@ -379,10 +379,9 @@ namespace ZeroC.Ice
                     (await _underlying.ReceiveAsync(4, cancel).ConfigureAwait(false)).CopyTo(_receiveMask);
                 }
 
-                if (_communicator.TraceLevels.Transport >= 3)
+                if (_logger.IsEnabled(LogLevel.Debug))
                 {
-                    _communicator.Logger.Trace(TraceLevels.TransportCategory,
-                        $"received {_transportName} {opCode} frame with {payloadLength} bytes payload\n{this}");
+                    _logger.LogReceivedWebSocketFrame(_transportName, opCode, payloadLength, this);
                 }
 
                 switch (opCode)
@@ -652,10 +651,9 @@ namespace ZeroC.Ice
                 Debug.Assert(_sendBuffer.Count == 0);
                 int size = buffers.GetByteCount();
                 _sendBuffer.Add(PrepareHeaderForSend(opCode, size));
-                if (_communicator.TraceLevels.Transport >= 3)
+                if (_logger.IsEnabled(LogLevel.Debug))
                 {
-                    _communicator.Logger.Trace(TraceLevels.TransportCategory,
-                        $"sending {_transportName} {opCode} frame with {size} bytes payload\n{this}");
+                    _logger.LogSendingWebSocketFrame(_transportName, opCode, size, this);
                 }
 
                 if (_incoming || opCode == OpCode.Pong)

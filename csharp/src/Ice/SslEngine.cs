@@ -12,7 +12,6 @@ namespace ZeroC.Ice
 {
     internal class SslEngine
     {
-        internal ILogger Logger { get; }
         // TLS Client side configuration
         internal TlsClientOptions TlsClientOptions { get; }
 
@@ -24,8 +23,6 @@ namespace ZeroC.Ice
             TlsClientOptions? tlsClientOptions,
             TlsServerOptions? tlsServerOptions)
         {
-            Logger = communicator.Logger;
-
             TlsClientOptions = new TlsClientOptions();
             TlsServerOptions = new TlsServerOptions();
 
