@@ -118,6 +118,10 @@ convertGeneralNames(GENERAL_NAMES* gens)
                 }
                 p.second = ostr.str();
             }
+            else
+            {
+                continue; // TODO IPv6
+            }
             break;
         }
         case GEN_OTHERNAME:
