@@ -66,7 +66,15 @@ if clean:
 # Create 2 CAs, the DSA ca is actually ca1 but with a different the DSA key generation algorithm.
 # ca2 is also used as a server. The serverAuth extension is required on some OSs (macOS Catalina)
 #
-ca1 = IceCertUtils.CertificateFactory(home=homeca1, cn="ZeroC Test CA 1", ip="127.0.0.1", email="issuer@zeroc.com")
+ca1 = IceCertUtils.CertificateFactory(
+    home=homeca1,
+    cn="ZeroC Test CA 1",
+    ip="127.0.0.1",
+    email="issuer@zeroc.com",
+    crlDistributionPoints="http://127.0.0.1:20001",
+    authorityInfoAccess="http://127.0.0.1:20002",
+    extendedKeyUsage="OCSPSigning")
+
 ca2 = IceCertUtils.CertificateFactory(home=homeca2, cn="ZeroC Test CA 2", ip="127.0.0.1", email="issuer@zeroc.com",
                                       extendedKeyUsage="serverAuth")
 dsaca = IceCertUtils.OpenSSLCertificateFactory(home=ca1.home, keyalg="dsa", keysize=2048)
@@ -89,12 +97,26 @@ if force or not os.path.exists("cacert2_priv.pem"): ca2.getCA().saveKey("cacert2
 if force or not os.path.exists("cacert2.p12"): ca2.getCA().save("cacert2.p12", addkey=True)
 
 # Create intermediate CAs
-cai1 = ca1.getIntermediateFactory("intermediate1")
+cai1 = ca1.getIntermediateFactory("intermediate1",
+                                  extendedKeyUsage="OCSPSigning",
+                                  crlDistributionPoints="http://127.0.0.1:20003",
+                                  authorityInfoAccess="http://127.0.0.1:20004")
 if not cai1:
-    cai1 = ca1.createIntermediateFactory("intermediate1", cn = "ZeroC Test Intermediate CA 1")
-cai2 = cai1.getIntermediateFactory("intermediate1")
+    cai1 = ca1.createIntermediateFactory("intermediate1",
+                                         cn = "ZeroC Test Intermediate CA 1",
+                                         extendedKeyUsage="OCSPSigning",
+                                         crlDistributionPoints="http://127.0.0.1:20005",
+                                         authorityInfoAccess="http://127.0.0.1:20006",)
+cai2 = cai1.getIntermediateFactory("intermediate1",
+                                   extendedKeyUsage="OCSPSigning",
+                                   crlDistributionPoints="http://127.0.0.1:20007",
+                                   authorityInfoAccess="http://127.0.0.1:20008")
 if not cai2:
-    cai2 = cai1.createIntermediateFactory("intermediate1", cn = "ZeroC Test Intermediate CA 2")
+    cai2 = cai1.createIntermediateFactory("intermediate1",
+                                          cn = "ZeroC Test Intermediate CA 2",
+                                          extendedKeyUsage="OCSPSigning",
+                                          crlDistributionPoints="http://127.0.0.1:20007",
+                                          authorityInfoAccess="http://127.0.0.1:20008")
 
 #
 # Create certificates (CA, alias, { creation parameters passed to ca.create(...) })
@@ -116,6 +138,9 @@ certs = [
     (ca1, "s_rsa_ca1_cn9",   { "cn": "127.0.0.1", "ip": ["127.0.0.1", "::1"] }),
     (ca1, "s_rsa_ca1_cn10",   { "cn": "127.0.0.1", "dns": ["host1", "host2"] }),
     (ca1, "s_rsa_ca1_cn11",   { "cn": "127.0.0.1", "ip": ["127.0.0.1", "127.0.0.2"], "dns": ["host1", "host2"] }),
+
+    (ca1, "s_rsa_revoked1", { "cn": "127.0.0.1",
+                              "ip": "127.0.0.1"}),
 
     (ca2, "s_rsa_ca2",       { "cn": "Server", "ip": "127.0.0.1", "dns": "server" }),
     (ca2, "c_rsa_ca2",       { "cn": "Client", "ip": "127.0.0.1", "dns": "client" }),
