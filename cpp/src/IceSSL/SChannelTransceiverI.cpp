@@ -771,12 +771,13 @@ SChannel::TransceiverI::initialize(IceInternal::Buffer& readBuffer, IceInternal:
         {
             if(_engine->getRevocationCheckCacheOnly())
             {
-                dwFlags |= CERT_CHAIN_REVOCATION_CHECK_CACHE_ONLY;
+                // Disable network I/O for revocation checks.
+                dwFlags = CERT_CHAIN_REVOCATION_CHECK_CACHE_ONLY | CERT_CHAIN_DISABLE_AIA;
             }
 
             dwFlags |= (revocationCheck == 1 ?
                         CERT_CHAIN_REVOCATION_CHECK_END_CERT :
-                        CERT_CHAIN_REVOCATION_CHECK_CHAIN);
+                        CERT_CHAIN_REVOCATION_CHECK_CHAIN_EXCLUDE_ROOT);
         }
 
         if(!CertGetCertificateChain(_engine->chainEngine(), cert, 0, cert->hCertStore, &chainP, dwFlags, 0, &certChain))
