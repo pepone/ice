@@ -101,11 +101,11 @@ dsaca = IceCertUtils.OpenSSLCertificateFactory(home=ca1.home, keyalg="dsa", keys
 #
 # Export CA certificates
 #
-for ca in ["cacert1", "cacert2", "cacert3", "cacert4"]:
-    pem = "{}.pem".format(ca)
-    if force or not os.path.exists(pem): ca1.getCA().save(pem)
-    der = "{}.der".format(ca)
-    if force or not os.path.exists(der): ca3.getCA().save(der)
+for ca, name in [(ca1, "cacert1"), (ca2, "cacert2"), (ca3, "cacert3"), (ca4, "cacert4")]:
+    pem = "{}.pem".format(name)
+    if force or not os.path.exists(pem): ca.getCA().save(pem)
+    der = "{}.der".format(name)
+    if force or not os.path.exists(der): ca.getCA().save(der)
 
 if force or not os.path.exists("cacerts.pem"):
     pem = ""
@@ -314,25 +314,25 @@ def revokeCertificates(ca, cadir, certs):
         "openssl ca -config {ca}.cnf -gencrl -out {ca}.crl.pem -crldays 825 -passin pass:password".format(ca=ca))
     runCommands(commands)
 
-revokeCertificates("ca3", "db/ca3", ["s_rsa_ca3_revoked.pem",
-                                     "c_rsa_ca3_revoked.pem",
-                                     "intermediate1/ca.pem"])
-revokeCertificates("cai3", "db/ca3/intermediate1", ["s_rsa_cai3_revoked.pem", "c_rsa_cai3_revoked.pem"])
-
-revokeCertificates("ca4", "db/ca4", ["s_rsa_ca4_revoked.pem",
-                                     "c_rsa_ca4_revoked.pem",
-                                     "intermediate1/ca.pem"])
-revokeCertificates("cai4", "db/ca4/intermediate1", ["s_rsa_cai4_revoked.pem", "c_rsa_cai4_revoked.pem"])
-
-
-# Concatenate CRL files
-
 crlfile = "ca.crl.pem"
-if os.path.exists(crlfile):
-    os.unlink(crlfile)
+if force or not os.path.exists(crlfile):
+    revokeCertificates("ca3", "db/ca3", ["s_rsa_ca3_revoked.pem",
+                                         "c_rsa_ca3_revoked.pem",
+                                         "intermediate1/ca.pem"])
+    revokeCertificates("cai3", "db/ca3/intermediate1", ["s_rsa_cai3_revoked.pem", "c_rsa_cai3_revoked.pem"])
 
-with open(crlfile, "w") as outfile:
-    for ca in ["ca3", "cai3"]:
-        with open("{}.crl.pem".format(ca), "r") as infile:
-            outfile.write(infile.read())
-        outfile.write("\n")
+    revokeCertificates("ca4", "db/ca4", ["s_rsa_ca4_revoked.pem",
+                                         "c_rsa_ca4_revoked.pem",
+                                         "intermediate1/ca.pem"])
+    revokeCertificates("cai4", "db/ca4/intermediate1", ["s_rsa_cai4_revoked.pem", "c_rsa_cai4_revoked.pem"])
+
+
+    # Concatenate CRL files
+    if os.path.exists(crlfile):
+        os.unlink(crlfile)
+
+    with open(crlfile, "w") as outfile:
+        for ca in ["ca3", "cai3"]:
+            with open("{}.crl.pem".format(ca), "r") as infile:
+                outfile.write(infile.read())
+            outfile.write("\n")
