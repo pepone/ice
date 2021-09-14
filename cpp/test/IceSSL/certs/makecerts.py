@@ -135,8 +135,8 @@ if not cai3:
                                          cn="ZeroC Test Intermediate CA 1",
                                          crlDistributionPoints="http://127.0.0.1:20001/ca.crl.pem")
 
-if force or not os.path.exists("cai3.pem"): ca3.getCA().save("cai3.pem")
-if force or not os.path.exists("cai3.der"): ca3.getCA().save("cai3.der")
+if force or not os.path.exists("cai3.pem"): cai3.getCA().save("cai3.pem")
+if force or not os.path.exists("cai3.der"): cai3.getCA().save("cai3.der")
 
 cai4 = ca4.getIntermediateFactory("intermediate1")
 if not cai4:
@@ -145,8 +145,8 @@ if not cai4:
                                          ocspResponder="http://127.0.0.1:20002/cai4",
                                          caIssuers="http://127.0.0.1:20001/cai4.der")
 
-if force or not os.path.exists("cai4.pem"): ca3.getCA().save("cai4.pem")
-if force or not os.path.exists("cai4.der"): ca3.getCA().save("cai4.der")
+if force or not os.path.exists("cai4.pem"): ca4.getCA().save("cai4.pem")
+if force or not os.path.exists("cai4.der"): ca4.getCA().save("cai4.der")
 
 #
 # Create certificates (CA, alias, { creation parameters passed to ca.create(...) })
