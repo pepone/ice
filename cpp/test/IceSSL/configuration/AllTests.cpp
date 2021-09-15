@@ -4205,6 +4205,7 @@ allTests(Test::TestHelper* helper, const string& /*testDir*/, bool p12)
         server->ice_ping();
         info = ICE_DYNAMIC_CAST(IceSSL::ConnectionInfo, server->ice_getConnection()->getInfo());
         test(getTrustError(info) == IceSSL::ICE_ENUM(TrustError, NoError));
+        test(info->verified);
         fact->destroyServer(server);
         comm->destroy();
 
