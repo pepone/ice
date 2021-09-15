@@ -81,12 +81,10 @@ trustStatusToTrustError(DWORD status)
     }
     if (status & CERT_TRUST_IS_OFFLINE_REVOCATION)
     {
-        cerr << "CERT_TRUST_IS_OFFLINE_REVOCATION" << endl;
         return IceSSL::ICE_ENUM(TrustError, RevocationStatusUnknown);
     }
     if (status & CERT_TRUST_REVOCATION_STATUS_UNKNOWN)
     {
-        cerr << "CERT_TRUST_REVOCATION_STATUS_UNKNOWN" << endl;
         return IceSSL::ICE_ENUM(TrustError, RevocationStatusUnknown);
     }
     if (status & CERT_TRUST_INVALID_EXTENSION)
