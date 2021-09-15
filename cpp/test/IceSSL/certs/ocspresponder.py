@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 import asn1crypto
 import http.server
 import urllib.parse
@@ -9,7 +10,11 @@ import os
 
 db = {}
 
-for name, ca_dir  in [("cacert4", "db/ca4"), ("cai4", "db/ca4/intermediate1")]:
+for name, ca_dir, certs  in [("cacert4", "db/ca4", ["s_rsa_ca4.pem",
+                                                    "s_rsa_ca4_revoked.pem",
+                                                    "intermediate1/ca.pem"]),
+                             ("cai4", "db/ca4/intermediate1", ["s_rsa_cai4.pem",
+                                                               "s_rsa_cai4_revoked.pem"])]:
     print("loading {}.der".format(name))
     issuer_cert = asymmetric.load_certificate("{}.der".format(name))
     issuer_key =  asymmetric.load_private_key("{}/ca_key.pem".format(ca_dir), "password")
@@ -21,10 +26,10 @@ for name, ca_dir  in [("cacert4", "db/ca4"), ("cai4", "db/ca4/intermediate1")]:
     db[issuerSha1]['issuer_key'] = issuer_key
 
     certificates = {}
-    for filename in os.listdir(ca_dir):
-        if filename.endswith(".pem") and not (filename.endswith("_key.pem") or filename == "ca.pem"):
-            cert = asymmetric.load_certificate(os.path.join(ca_dir, filename))
-            certificates[cert.asn1.serial_number] = cert
+    for filename in certs:
+        cert = asymmetric.load_certificate(os.path.join(ca_dir, filename))
+        print("load {} serial {}".format(filename, cert.asn1.serial_number))
+        certificates[cert.asn1.serial_number] = cert
     db[issuerSha1]['certificates'] = certificates
 
     with open("{}/index.txt".format(ca_dir)) as index:
@@ -68,10 +73,12 @@ class OCSPHandler(http.server.BaseHTTPRequestHandler):
                 issuer_key = issuer.get('issuer_key')
                 subject_cert = issuer.get('certificates').get(serial.native)
                 if subject_cert == None:
+                    print("UNAUTHORIZED 1 ------------->")
                     builder = OCSPResponseBuilder('unauthorized')
                 else:
                     cert_info = issuer.get('revocations').get(serial.native)
                     if cert_info == None or cert_info['status'] == 'V':
+                        print("GOOD ------------->")
                         builder = OCSPResponseBuilder('successful', subject_cert, 'good')
                     elif cert_info['status'] == 'R':
                         print("REVOKED ------------->")
@@ -80,14 +87,22 @@ class OCSPHandler(http.server.BaseHTTPRequestHandler):
                                                       'revoked',
                                                       cert_info['revocation_date'].native)
                     else:
+                        print("UNKNOWN ------------->")
                         builder = OCSPResponseBuilder('successful', subject_cert, 'unknown')
                 ocsp_response = builder.build(issuer_key, issuer_cert)
             else:
+                print("UNAUTHORIZED 2 ------------->")
+                print("issuer: ")
+                print(issuer_key_hash.native)
+                print(req_cert["hash_algorithm"].native)
                 ocsp_response = OCSPResponseBuilder('unauthorized').build()
         except Exception as e:
+            print("ERROR ------------->")
             print(e)
             ocsp_response = OCSPResponseBuilder('internal_error').build()
 
+        ocsp_response.this_update = datetime.utcnow()
+        ocsp_response.next_update = datetime.utcnow() + timedelta(0, 60)
         self.send_response(200)
         self.send_header("Content-Type", "application/ocsp-response")
         self.end_headers()
