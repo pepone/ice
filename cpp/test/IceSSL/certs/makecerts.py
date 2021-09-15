@@ -93,7 +93,7 @@ ca4 = IceCertUtils.CertificateFactory(
     cn="ZeroC Test CA 4",
     ip="127.0.0.1",
     email="issuer@zeroc.com",
-    ocspResponder="http://127.0.0.1:20002/cacert4",
+    ocspResponder="http://127.0.0.1:20002",
     caIssuers="http://127.0.0.1:20001/cacert4.der")
 
 dsaca = IceCertUtils.OpenSSLCertificateFactory(home=ca1.home, keyalg="dsa", keysize=2048)
@@ -142,7 +142,7 @@ cai4 = ca4.getIntermediateFactory("intermediate1")
 if not cai4:
     cai4 = ca4.createIntermediateFactory("intermediate1",
                                          cn="ZeroC Test Intermediate CA 1",
-                                         ocspResponder="http://127.0.0.1:20002/cai4",
+                                         ocspResponder="http://127.0.0.1:20002",
                                          caIssuers="http://127.0.0.1:20001/cai4.der")
 
 if force or not os.path.exists("cai4.pem"): cai4.getCA().save("cai4.pem")
