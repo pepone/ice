@@ -4027,8 +4027,9 @@ allTests(Test::TestHelper* helper, const string& /*testDir*/, bool p12)
 
         // First test with non revoked certificate that include CRL distribution point
         initData.properties = createClientProps(defaultProps, p12, "", "cacert3");
-        initData.properties->setProperty("IceSSL.RevocationCheck", "1");
         initData.properties->setProperty("IceSSL.CertificateRevocationListFiles", "ca.crl.pem");
+        initData.properties->setProperty("IceSSL.RevocationCheck", "1");
+        initData.properties->setProperty("IceSSL.RevocationCheckCacheOnly", "0");
         initData.properties->setProperty("IceSSL.VerifyPeer", "0");
         comm = initialize(initData);
         Test::ServerFactoryPrxPtr fact = ICE_CHECKED_CAST(Test::ServerFactoryPrx, comm->stringToProxy(factoryRef));
@@ -4040,14 +4041,14 @@ allTests(Test::TestHelper* helper, const string& /*testDir*/, bool p12)
 
         server->ice_ping();
         info = ICE_DYNAMIC_CAST(IceSSL::ConnectionInfo, server->ice_getConnection()->getInfo());
-        cerr << "CRL RevocationCheck=1 VerifyPeer=0 status=" << getTrustErrorDescription(getTrustError(info)) << endl;
         fact->destroyServer(server);
         comm->destroy();
 
         // Repeat with RevoactionCheck=2 to check whole chain
         initData.properties = createClientProps(defaultProps, p12, "", "cacert3");
-        initData.properties->setProperty("IceSSL.RevocationCheck", "2");
         initData.properties->setProperty("IceSSL.CertificateRevocationListFiles", "ca.crl.pem");
+        initData.properties->setProperty("IceSSL.RevocationCheck", "2");
+        initData.properties->setProperty("IceSSL.RevocationCheckCacheOnly", "0");
         initData.properties->setProperty("IceSSL.VerifyPeer", "0");
         comm = initialize(initData);
         fact = ICE_CHECKED_CAST(Test::ServerFactoryPrx, comm->stringToProxy(factoryRef));
@@ -4059,7 +4060,6 @@ allTests(Test::TestHelper* helper, const string& /*testDir*/, bool p12)
 
         server->ice_ping();
         info = ICE_DYNAMIC_CAST(IceSSL::ConnectionInfo, server->ice_getConnection()->getInfo());
-        cerr << "CRL RevocationCheck=2 VerifyPeer=0 status=" << getTrustErrorDescription(getTrustError(info)) << endl;
         fact->destroyServer(server);
         comm->destroy();
 
@@ -4144,7 +4144,6 @@ allTests(Test::TestHelper* helper, const string& /*testDir*/, bool p12)
         server->ice_ping();
         info = ICE_DYNAMIC_CAST(IceSSL::ConnectionInfo, server->ice_getConnection()->getInfo());
         test(!info->verified);
-        cerr << getTrustErrorDescription(getTrustError(info)) << endl;
 #   if defined(ICE_USE_SCHANNEL)
         test(getTrustError(info) == IceSSL::ICE_ENUM(TrustError, RevocationStatusUnknown));
 #   else
@@ -4193,6 +4192,7 @@ allTests(Test::TestHelper* helper, const string& /*testDir*/, bool p12)
         // First test with non revoked certificate that include AIA info
         initData.properties = createClientProps(defaultProps, p12, "", "cacert4");
         initData.properties->setProperty("IceSSL.RevocationCheck", "1");
+        initData.properties->setProperty("IceSSL.RevocationCheckCacheOnly", "0");
         initData.properties->setProperty("IceSSL.VerifyPeer", "0");
         comm = initialize(initData);
         Test::ServerFactoryPrxPtr fact = ICE_CHECKED_CAST(Test::ServerFactoryPrx, comm->stringToProxy(factoryRef));
@@ -4212,6 +4212,7 @@ allTests(Test::TestHelper* helper, const string& /*testDir*/, bool p12)
         // Repeat with RevoactionCheck=2 to check whole chain
         initData.properties = createClientProps(defaultProps, p12, "", "cacert4");
         initData.properties->setProperty("IceSSL.RevocationCheck", "2");
+        initData.properties->setProperty("IceSSL.RevocationCheckCacheOnly", "0");
         initData.properties->setProperty("IceSSL.VerifyPeer", "0");
         comm = initialize(initData);
         fact = ICE_CHECKED_CAST(Test::ServerFactoryPrx, comm->stringToProxy(factoryRef));
@@ -4224,6 +4225,7 @@ allTests(Test::TestHelper* helper, const string& /*testDir*/, bool p12)
         server->ice_ping();
         info = ICE_DYNAMIC_CAST(IceSSL::ConnectionInfo, server->ice_getConnection()->getInfo());
         test(getTrustError(info) == IceSSL::ICE_ENUM(TrustError, NoError));
+        test(info->verified);
         fact->destroyServer(server);
         comm->destroy();
 
