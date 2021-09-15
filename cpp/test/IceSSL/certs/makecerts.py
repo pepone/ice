@@ -85,7 +85,7 @@ ca3 = IceCertUtils.CertificateFactory(
     cn="ZeroC Test CA 3",
     ip="127.0.0.1",
     email="issuer@zeroc.com",
-    crlDistributionPoints="http://127.0.0.1:20001/ca.crl.pem")
+    crlDistributionPoints="http://127.0.0.1:20001/ca3.crl.pem")
 
 # CA3 include CRL distribution points
 ca4 = IceCertUtils.CertificateFactory(
@@ -132,8 +132,8 @@ if not cai2:
 cai3 = ca3.getIntermediateFactory("intermediate1")
 if not cai3:
     cai3 = ca3.createIntermediateFactory("intermediate1",
-                                         cn="ZeroC Test Intermediate CA 1",
-                                         crlDistributionPoints="http://127.0.0.1:20001/ca.crl.pem")
+                                         cn="ZeroC Test Intermediate CA 3",
+                                         crlDistributionPoints="http://127.0.0.1:20001/cai3.crl.pem")
 
 if force or not os.path.exists("cai3.pem"): cai3.getCA().save("cai3.pem")
 if force or not os.path.exists("cai3.der"): cai3.getCA().save("cai3.der")
@@ -141,7 +141,7 @@ if force or not os.path.exists("cai3.der"): cai3.getCA().save("cai3.der")
 cai4 = ca4.getIntermediateFactory("intermediate1")
 if not cai4:
     cai4 = ca4.createIntermediateFactory("intermediate1",
-                                         cn="ZeroC Test Intermediate CA 1",
+                                         cn="ZeroC Test Intermediate CA 4",
                                          ocspResponder="http://127.0.0.1:20002",
                                          caIssuers="http://127.0.0.1:20001/cai4.der")
 
