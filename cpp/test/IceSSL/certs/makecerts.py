@@ -180,22 +180,22 @@ certs = [
     # Certificates with CRL distribution points
     (ca3, "s_rsa_ca3",           { "cn": "Server", "ip": "127.0.0.1", "dns": "server" }),
     (ca3, "c_rsa_ca3",           { "cn": "Client", "ip": "127.0.0.1", "dns": "client" }),
-    (ca3, "s_rsa_ca3_revoked",   { "cn": "Server", "ip": "127.0.0.1", "dns": "server" }),
-    (ca3, "c_rsa_ca3_revoked",   { "cn": "Client", "ip": "127.0.0.1", "dns": "client" }),
-    (cai3, "s_rsa_cai3",         { "cn": "Server", "ip": "127.0.0.1", "dns": "server" }),
-    (cai3, "c_rsa_cai3",         { "cn": "Client", "ip": "127.0.0.1", "dns": "client" }),
-    (cai3, "s_rsa_cai3_revoked", { "cn": "Server", "ip": "127.0.0.1", "dns": "server" }),
-    (cai3, "c_rsa_cai3_revoked", { "cn": "Client", "ip": "127.0.0.1", "dns": "client" }),
+    (ca3, "s_rsa_ca3_revoked",   { "cn": "Server ca3 revoked", "ip": "127.0.0.1", "dns": "server" }),
+    (ca3, "c_rsa_ca3_revoked",   { "cn": "Client ca3 revoked", "ip": "127.0.0.1", "dns": "client" }),
+    (cai3, "s_rsa_cai3",         { "cn": "Server cai3", "ip": "127.0.0.1", "dns": "server" }),
+    (cai3, "c_rsa_cai3",         { "cn": "Client cai3", "ip": "127.0.0.1", "dns": "client" }),
+    (cai3, "s_rsa_cai3_revoked", { "cn": "Server cai3 revoked", "ip": "127.0.0.1", "dns": "server" }),
+    (cai3, "c_rsa_cai3_revoked", { "cn": "Client cai3 revoked", "ip": "127.0.0.1", "dns": "client" }),
 
     # Certificates with AIA extension
-    (ca4, "s_rsa_ca4",           { "cn": "Server", "ip": "127.0.0.1", "dns": "server" }),
-    (ca4, "c_rsa_ca4",           { "cn": "Client", "ip": "127.0.0.1", "dns": "client" }),
-    (ca4, "s_rsa_ca4_revoked",   { "cn": "Server", "ip": "127.0.0.1", "dns": "server" }),
-    (ca4, "c_rsa_ca4_revoked",   { "cn": "Client", "ip": "127.0.0.1", "dns": "client" }),
-    (cai4, "s_rsa_cai4",         { "cn": "Server", "ip": "127.0.0.1", "dns": "server" }),
-    (cai4, "c_rsa_cai4",         { "cn": "Client", "ip": "127.0.0.1", "dns": "client" }),
-    (cai4, "s_rsa_cai4_revoked", { "cn": "Server", "ip": "127.0.0.1", "dns": "server" }),
-    (cai4, "c_rsa_cai4_revoked", { "cn": "Client", "ip": "127.0.0.1", "dns": "client" }),
+    (ca4, "s_rsa_ca4",           { "cn": "Server ca4", "ip": "127.0.0.1", "dns": "server" }),
+    (ca4, "c_rsa_ca4",           { "cn": "Client ca4", "ip": "127.0.0.1", "dns": "client" }),
+    (ca4, "s_rsa_ca4_revoked",   { "cn": "Server ca4 revoked", "ip": "127.0.0.1", "dns": "server" }),
+    (ca4, "c_rsa_ca4_revoked",   { "cn": "Client ca4 revoked", "ip": "127.0.0.1", "dns": "client" }),
+    (cai4, "s_rsa_cai4",         { "cn": "Server cai4", "ip": "127.0.0.1", "dns": "server" }),
+    (cai4, "c_rsa_cai4",         { "cn": "Client cai4", "ip": "127.0.0.1", "dns": "client" }),
+    (cai4, "s_rsa_cai4_revoked", { "cn": "Server cai4 revoked", "ip": "127.0.0.1", "dns": "server" }),
+    (cai4, "c_rsa_cai4_revoked", { "cn": "Client cai4 revoked", "ip": "127.0.0.1", "dns": "client" }),
 ]
 
 #
