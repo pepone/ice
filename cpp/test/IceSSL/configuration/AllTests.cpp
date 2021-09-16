@@ -4128,6 +4128,9 @@ allTests(Test::TestHelper* helper, const string& /*testDir*/, bool p12)
         comm->destroy();
 
         // Test with s_rsa_cai3 only the intermediate CA cert is revoked
+        const char* certificates[] = {"/s_rsa_cai3.p12", 0};
+        ImportCerts import(defaultDir, certificates);
+
         initData.properties = createClientProps(defaultProps, p12, "", "cacert3");
         initData.properties->setProperty("IceSSL.RevocationCheck", "2");
         initData.properties->setProperty("IceSSL.RevocationCheckCacheOnly", "0");
@@ -4144,11 +4147,7 @@ allTests(Test::TestHelper* helper, const string& /*testDir*/, bool p12)
         server->ice_ping();
         info = ICE_DYNAMIC_CAST(IceSSL::ConnectionInfo, server->ice_getConnection()->getInfo());
         test(!info->verified);
-#   if defined(ICE_USE_SCHANNEL)
-        test(getTrustError(info) == IceSSL::ICE_ENUM(TrustError, RevocationStatusUnknown));
-#   else
         test(getTrustError(info) == IceSSL::ICE_ENUM(TrustError, Revoked));
-#   endif
 
         fact->destroyServer(server);
         comm->destroy();
@@ -4170,14 +4169,11 @@ allTests(Test::TestHelper* helper, const string& /*testDir*/, bool p12)
 
         server->ice_ping();
         info = ICE_DYNAMIC_CAST(IceSSL::ConnectionInfo, server->ice_getConnection()->getInfo());
-#   if defined(ICE_USE_SCHANNEL)
-        test(!info->verified);
-        test(getTrustError(info) == IceSSL::ICE_ENUM(TrustError, RevocationStatusUnknown));
-#   else
         test(info->verified);
-#   endif
+
         fact->destroyServer(server);
         comm->destroy();
+        import.cleanup();
 
         cout << "ok" << endl;
 #endif
@@ -4267,6 +4263,8 @@ allTests(Test::TestHelper* helper, const string& /*testDir*/, bool p12)
         fact->destroyServer(server);
         comm->destroy();
 
+        const char* certificates[] = {"/s_rsa_cai4.p12", 0};
+        ImportCerts import(defaultDir, certificates);
         // Test with s_rsa_cai4 only the intermediate CA cert is revoked
 #   ifndef ICE_USE_SECURE_TRANSPORT
         // There is no realiable way to disable revocation checks with secure transport
@@ -4331,6 +4329,7 @@ allTests(Test::TestHelper* helper, const string& /*testDir*/, bool p12)
         test(getTrustError(info) == IceSSL::ICE_ENUM(TrustError, Revoked));
         fact->destroyServer(server);
         comm->destroy();
+        import.cleanup();
 
         cout << "ok" << endl;
 #endif
