@@ -113,7 +113,7 @@ if force or not os.path.exists("cacerts.pem"):
     with open("cacert2.pem", "r") as f: pem += f.read()
     with open("cacert3.pem", "r") as f: pem += f.read()
     with open("cacert4.pem", "r") as f: pem += f.read()
-    with open("cacerts.pem", "w") as f: f.write(pem);
+    with open("cacerts.pem", "w") as f: f.write(pem)
 
 # Also export the ca2 self-signed certificate, it's used by the tests to test self-signed certificates
 if force or not os.path.exists("cacert2_pub.pem"): ca2.getCA().save("cacert2_pub.pem")

@@ -15,7 +15,7 @@ class ConfigurationTestCase(ClientServerTestCase):
         certsPath = os.path.abspath(os.path.join(current.testsuite.getPath(), "..", "certs"))
 
         self.server = None
-        if isinstance(platform, Windows):
+        if isinstance(platform, Windows) or isinstance(platform, Darwin):
             class Handler(http.server.SimpleHTTPRequestHandler):
                 def __init__(self, *args, **kwargs):
                     super().__init__(*args, directory=certsPath, **kwargs)
