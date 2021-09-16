@@ -7,6 +7,7 @@ from ocspbuilder import OCSPResponseBuilder
 import sys
 import base64
 import os
+import traceback
 
 db = {}
 
@@ -87,16 +88,18 @@ class OCSPHandler(http.server.BaseHTTPRequestHandler):
                         builder = OCSPResponseBuilder('successful', subject_cert, 'good')
                     elif cert_info['status'] == 'R':
                         print("REVOKED ------------->")
-                        # revocation_time = datetime(2021, 9, 15, 15, 0, 0, tzinfo=timezone.utc)
+                        revocation_time = datetime(2021, 9, 16, 00, 0, 0, tzinfo=timezone.utc)
                         builder = OCSPResponseBuilder('successful',
                                                       subject_cert,
                                                       'revoked',
-                                                      cert_info["revocation_date"].native)
+                                                      revocation_time)
                     else:
                         print("UNKNOWN ------------->")
                         builder = OCSPResponseBuilder('successful', subject_cert, 'unknown')
-                # builder.this_update = datetime(2021, 9, 15, 14, 0, 0, tzinfo=timezone.utc)
-                # builder.next_update = datetime(2021, 9, 16, 14, 0, 0, tzinfo=timezone.utc)
+                if ocsp_request.nonce_value:
+                    builder.nonce = ocsp_request.nonce_value.native
+                builder.this_update = datetime(2021, 9, 16, 00, 0, 0, tzinfo=timezone.utc)
+                builder.next_update = datetime(2021, 9, 17, 14, 0, 0, tzinfo=timezone.utc)
                 ocsp_response = builder.build(issuer_key, issuer_cert)
             else:
                 print("UNAUTHORIZED 2 ------------->")
@@ -106,7 +109,7 @@ class OCSPHandler(http.server.BaseHTTPRequestHandler):
                 ocsp_response = OCSPResponseBuilder('unauthorized').build()
         except Exception as e:
             print("ERROR ------------->")
-            print(e)
+            traceback.print_exc(file=sys.stdout)
             ocsp_response = OCSPResponseBuilder('internal_error').build()
 
         self.send_response(200)

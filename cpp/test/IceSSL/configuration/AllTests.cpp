@@ -4263,11 +4263,9 @@ allTests(Test::TestHelper* helper, const string& /*testDir*/, bool p12)
         fact->destroyServer(server);
         comm->destroy();
 
+        // Test with s_rsa_cai4 only the intermediate CA cert is revoked
         const char* certificates[] = {"/s_rsa_cai4.p12", 0};
         ImportCerts import(defaultDir, certificates);
-        // Test with s_rsa_cai4 only the intermediate CA cert is revoked
-#   ifndef ICE_USE_SECURE_TRANSPORT
-        // There is no realiable way to disable revocation checks with secure transport
         initData.properties = createClientProps(defaultProps, p12, "", "cacert4");
         initData.properties->setProperty("IceSSL.RevocationCheck", "2");
         initData.properties->setProperty("IceSSL.RevocationCheckCacheOnly", "0");
@@ -4286,9 +4284,9 @@ allTests(Test::TestHelper* helper, const string& /*testDir*/, bool p12)
         test(getTrustError(info) == IceSSL::ICE_ENUM(TrustError, Revoked));
         fact->destroyServer(server);
         comm->destroy();
-#   endif
 
-        // Repeat checking only the end cert
+#   ifndef ICE_USE_SECURE_TRANSPORT
+        // SecureTransport always check the whole chain for revocation
         initData.properties = createClientProps(defaultProps, p12, "", "cacert4");
         initData.properties->setProperty("IceSSL.RevocationCheck", "1");
         initData.properties->setProperty("IceSSL.RevocationCheckCacheOnly", "0");
@@ -4308,6 +4306,7 @@ allTests(Test::TestHelper* helper, const string& /*testDir*/, bool p12)
         test(getTrustError(info) == IceSSL::ICE_ENUM(TrustError, NoError));
         fact->destroyServer(server);
         comm->destroy();
+#   endif
 
         // Repeat checking the whole chain
         initData.properties = createClientProps(defaultProps, p12, "", "cacert4");
