@@ -1,2 +1,2 @@
-R	231219163624Z	210915163625Z	03080C65E67DF0F1	unknown	/CN=Server ca4 revoked/OU=Ice/O=ZeroC, Inc./L=Jupiter/ST=Florida/C=US/emailAddress=info@zeroc.com
-R	231219163624Z	210915163625Z	F988E37D2C7C31DC	unknown	/CN=Client ca4 revoked/OU=Ice/O=ZeroC, Inc./L=Jupiter/ST=Florida/C=US/emailAddress=info@zeroc.com
+R	231220163233Z	210916163233Z	528FCD564D74B882	unknown	/CN=Server ca4 revoked/OU=Ice/O=ZeroC, Inc./L=Jupiter/ST=Florida/C=US/emailAddress=info@zeroc.com
+R	231220163233Z	210916163233Z	06B0E86CD8619859	unknown	/CN=Client ca4 revoked/OU=Ice/O=ZeroC, Inc./L=Jupiter/ST=Florida/C=US/emailAddress=info@zeroc.com
