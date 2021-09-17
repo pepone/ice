@@ -4185,6 +4185,8 @@ allTests(Test::TestHelper* helper, const string& /*testDir*/, bool p12)
         CommunicatorPtr comm;
         InitializationData initData;
 
+        // TODO test OCSP status=Unknown
+
         // First test with non revoked certificate that include AIA info
         initData.properties = createClientProps(defaultProps, p12, "", "cacert4");
         initData.properties->setProperty("IceSSL.RevocationCheck", "1");

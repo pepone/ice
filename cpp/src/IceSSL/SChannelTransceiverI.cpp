@@ -55,13 +55,25 @@ trustStatusToTrustError(DWORD status)
     {
         return IceSSL::ICE_ENUM(TrustError, NoError);
     }
-    if (status & CERT_TRUST_IS_NOT_TIME_VALID)
+    if ((status & CERT_TRUST_IS_UNTRUSTED_ROOT) ||
+        (status & CERT_TRUST_IS_CYCLIC) ||
+        (status & CERT_TRUST_CTL_IS_NOT_TIME_VALID) ||
+        (status & CERT_TRUST_CTL_IS_NOT_SIGNATURE_VALID) ||
+        (status & CERT_TRUST_CTL_IS_NOT_VALID_FOR_USAGE))
     {
-        return IceSSL::ICE_ENUM(TrustError, InvalidTime);
+        return IceSSL::ICE_ENUM(TrustError, UntrustedRoot);
     }
-    if (status & CERT_TRUST_IS_REVOKED)
+    if (status & CERT_TRUST_IS_EXPLICIT_DISTRUST)
     {
-        return IceSSL::ICE_ENUM(TrustError, Revoked);
+        return IceSSL::ICE_ENUM(TrustError, NotTrusted);
+    }
+    if (status & CERT_TRUST_IS_PARTIAL_CHAIN)
+    {
+        return IceSSL::ICE_ENUM(TrustError, PartialChain);
+    }
+    if (status & CERT_TRUST_INVALID_BASIC_CONSTRAINTS)
+    {
+        return IceSSL::ICE_ENUM(TrustError, InvalidBasicConstraints);
     }
     if (status & CERT_TRUST_IS_NOT_SIGNATURE_VALID)
     {
@@ -71,21 +83,9 @@ trustStatusToTrustError(DWORD status)
     {
         return IceSSL::ICE_ENUM(TrustError, InvalidPurpose);
     }
-    if ((status & CERT_TRUST_IS_UNTRUSTED_ROOT) ||
-        (status & CERT_TRUST_IS_CYCLIC) ||
-        (status & CERT_TRUST_CTL_IS_NOT_TIME_VALID) ||
-        (status & CERT_TRUST_CTL_IS_NOT_SIGNATURE_VALID) ||
-        (status & CERT_TRUST_CTL_IS_NOT_VALID_FOR_USAGE))
+    if (status & CERT_TRUST_IS_REVOKED)
     {
-        return IceSSL::ICE_ENUM(TrustError, UntrustedRoot);
-    }
-    if (status & CERT_TRUST_IS_OFFLINE_REVOCATION)
-    {
-        return IceSSL::ICE_ENUM(TrustError, RevocationStatusUnknown);
-    }
-    if (status & CERT_TRUST_REVOCATION_STATUS_UNKNOWN)
-    {
-        return IceSSL::ICE_ENUM(TrustError, RevocationStatusUnknown);
+        return IceSSL::ICE_ENUM(TrustError, Revoked);
     }
     if (status & CERT_TRUST_INVALID_EXTENSION)
     {
@@ -94,10 +94,6 @@ trustStatusToTrustError(DWORD status)
     if (status & CERT_TRUST_INVALID_POLICY_CONSTRAINTS)
     {
         return IceSSL::ICE_ENUM(TrustError, InvalidPolicyConstraints);
-    }
-    if (status & CERT_TRUST_INVALID_BASIC_CONSTRAINTS)
-    {
-        return IceSSL::ICE_ENUM(TrustError, InvalidBasicConstraints);
     }
     if (status & CERT_TRUST_INVALID_NAME_CONSTRAINTS)
     {
@@ -123,17 +119,18 @@ trustStatusToTrustError(DWORD status)
     {
         return IceSSL::ICE_ENUM(TrustError, InvalidPolicyConstraints);
     }
-    if (status & CERT_TRUST_IS_EXPLICIT_DISTRUST)
-    {
-        return IceSSL::ICE_ENUM(TrustError, NotTrusted);
-    }
     if (status & CERT_TRUST_HAS_NOT_SUPPORTED_CRITICAL_EXT)
     {
         return IceSSL::ICE_ENUM(TrustError, HasNonSupportedCriticalExtension);
     }
-    if (status & CERT_TRUST_IS_PARTIAL_CHAIN)
+    if (status & CERT_TRUST_IS_OFFLINE_REVOCATION ||
+        status & CERT_TRUST_REVOCATION_STATUS_UNKNOWN)
     {
-        return IceSSL::ICE_ENUM(TrustError, PartialChain);
+        return IceSSL::ICE_ENUM(TrustError, RevocationStatusUnknown);
+    }
+    if (status & CERT_TRUST_IS_NOT_TIME_VALID)
+    {
+        return IceSSL::ICE_ENUM(TrustError, InvalidTime);
     }
     return IceSSL::ICE_ENUM(TrustError, UnknownTrustFailure);
 }
