@@ -640,7 +640,7 @@ Ice::ObjectAdapterI::getEndpoints() const ICE_NOEXCEPT
     transform(_incomingConnectionFactories.begin(), _incomingConnectionFactories.end(),
             back_inserter(endpoints),
 #ifdef ICE_CPP11_COMPILER
-            [](const auto& factory)
+            [](const IncomingConnectionFactoryPtr& factory)
             {
                 return factory->endpoint();
             });
