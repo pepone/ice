@@ -465,7 +465,7 @@ IceInternal::OutgoingConnectionFactory::findConnection(const vector<EndpointIPtr
     {
 #ifdef ICE_CPP11_COMPILER
         auto connection = find(_connectionsByEndpoint, *p,
-                               [](const ConnectionI& conn)
+                               [](const ConnectionIPtr& conn)
                                {
                                    return conn->isActiveOrHolding();
                                });
