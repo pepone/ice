@@ -2,6 +2,8 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
+import { StreamHelpers } from "./StreamHelpers";
+
 const eq = function(e1, e2)
 {
     if(e1 === e2)
@@ -87,9 +89,9 @@ function defineSequence(module, name, valueHelper, fixed, elementType)
                 {
                     if(helper === null)
                     {
-                        helper = Ice.StreamHelpers.generateSeqHelper(_ModuleRegistry.type(valueHelper),
-                                                                     fixed,
-                                                                     _ModuleRegistry.type(elementType));
+                        helper = StreamHelpers.generateSeqHelper(_ModuleRegistry.type(valueHelper),
+                                                                 fixed,
+                                                                 _ModuleRegistry.type(elementType));
                     }
                     return helper;
                 }

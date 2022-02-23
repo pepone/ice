@@ -2,57 +2,33 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/ModuleRegistry").Ice;
-Ice._ModuleRegistry.require(module,
-    [
-        "../Ice/AsyncResultBase",
-        "../Ice/Debug",
-        "../Ice/DefaultsAndOverrides",
-        "../Ice/EndpointFactoryManager",
-        "../Ice/ImplicitContextI",
-        "../Ice/IdentityUtil",
-        "../Ice/LocatorManager",
-        "../Ice/ObjectAdapterFactory",
-        "../Ice/ValueFactoryManagerI",
-        "../Ice/OutgoingConnectionFactory",
-        "../Ice/Promise",
-        "../Ice/Properties",
-        "../Ice/ProtocolInstance",
-        "../Ice/ProxyFactory",
-        "../Ice/RetryQueue",
-        "../Ice/RouterManager",
-        "../Ice/Timer",
-        "../Ice/TraceLevels",
-        "../Ice/TcpEndpointFactory",
-        "../Ice/WSEndpointFactory",
-        "../Ice/Reference",
-        "../Ice/RequestHandlerFactory",
-        "../Ice/LocalException",
-        "../Ice/Exception",
-        "../Ice/ProcessLogger",
-        "../Ice/ACM",
-        "../Ice/ToStringMode",
-        "../Ice/EndpointInfo"
-    ]);
-
-const AsyncResultBase = Ice.AsyncResultBase;
-const Debug = Ice.Debug;
-const DefaultsAndOverrides = Ice.DefaultsAndOverrides;
-const EndpointFactoryManager = Ice.EndpointFactoryManager;
-const ImplicitContextI = Ice.ImplicitContextI;
-const LocatorManager = Ice.LocatorManager;
-const ObjectAdapterFactory = Ice.ObjectAdapterFactory;
-const ValueFactoryManagerI = Ice.ValueFactoryManagerI;
-const OutgoingConnectionFactory = Ice.OutgoingConnectionFactory;
-const Properties = Ice.Properties;
-const ProxyFactory = Ice.ProxyFactory;
-const RetryQueue = Ice.RetryQueue;
-const RouterManager = Ice.RouterManager;
-const Timer = Ice.Timer;
-const TraceLevels = Ice.TraceLevels;
-const ReferenceFactory = Ice.ReferenceFactory;
-const RequestHandlerFactory = Ice.RequestHandlerFactory;
-const ACMConfig = Ice.ACMConfig;
+import { AsyncResultBase } from "./AsyncResultBase";
+import { Debug } from "./Debug";
+import { DefaultsAndOverrides } from "./DefaultsAndOverrides";
+import { EndpointFactoryManager } from "./EndpointFactoryManager";
+import { ImplicitContextI } from "./ImplicitContextI";
+import { LocatorManager } from "./LocatorManager";
+import { ObjectAdapterFactory } from "./ObjectAdapterFactory";
+import { ValueFactoryManagerI } from "./ValueFactoryManagerI";
+import { OutgoingConnectionFactory } from "./OutgoingConnectionFactory";
+import { Properties } from "./Properties";
+import { ProxyFactory } from "./ProxyFactory";
+import { RetryQueue } from "./RetryQueue";
+import { RouterManager } from "./RouterManager";
+import { Timer } from "./Timer";
+import { TraceLevels } from "./TraceLevels";
+import { ReferenceFactory } from "./Reference";
+import { RequestHandlerFactory } from "./RequestHandlerFactory";
+import { ACMConfig } from "./ACM";
+import { ProtocolInstance } from "./ProtocolInstance";
+import { CommunicatorDestroyedException, InitializationException } from "./LocalException";
+import { TcpEndpointFactory } from "./TcpEndpointFactory";
+import { WSEndpointFactory } from "./WSEndpointFactory";
+import { TCPEndpointType, SSLEndpointType, WSEndpointType, WSSEndpointType } from "./Endpoint";
+import { RouterPrx } from "./Router";
+import { LocatorPrx } from "./Locator";
+import { LocalException } from "./Exception";
+import { IcePromise } from "./Promise";
 
 const StateActive = 0;
 const StateDestroyInProgress = 1;
@@ -117,7 +93,7 @@ class Instance
     {
         if(this._state === StateDestroyed)
         {
-            throw new Ice.CommunicatorDestroyedException();
+            throw new CommunicatorDestroyedException();
         }
 
         Debug.assert(this._routerManager !== null);
@@ -128,7 +104,7 @@ class Instance
     {
         if(this._state === StateDestroyed)
         {
-            throw new Ice.CommunicatorDestroyedException();
+            throw new CommunicatorDestroyedException();
         }
 
         Debug.assert(this._locatorManager !== null);
@@ -139,7 +115,7 @@ class Instance
     {
         if(this._state === StateDestroyed)
         {
-            throw new Ice.CommunicatorDestroyedException();
+            throw new CommunicatorDestroyedException();
         }
 
         Debug.assert(this._referenceFactory !== null);
@@ -150,7 +126,7 @@ class Instance
     {
         if(this._state === StateDestroyed)
         {
-            throw new Ice.CommunicatorDestroyedException();
+            throw new CommunicatorDestroyedException();
         }
 
         Debug.assert(this._requestHandlerFactory !== null);
@@ -161,7 +137,7 @@ class Instance
     {
         if(this._state === StateDestroyed)
         {
-            throw new Ice.CommunicatorDestroyedException();
+            throw new CommunicatorDestroyedException();
         }
 
         Debug.assert(this._proxyFactory !== null);
@@ -172,7 +148,7 @@ class Instance
     {
         if(this._state === StateDestroyed)
         {
-            throw new Ice.CommunicatorDestroyedException();
+            throw new CommunicatorDestroyedException();
         }
 
         Debug.assert(this._outgoingConnectionFactory !== null);
@@ -183,7 +159,7 @@ class Instance
     {
         if(this._state === StateDestroyed)
         {
-            throw new Ice.CommunicatorDestroyedException();
+            throw new CommunicatorDestroyedException();
         }
 
         Debug.assert(this._objectAdapterFactory !== null);
@@ -194,7 +170,7 @@ class Instance
     {
         if(this._state === StateDestroyed)
         {
-            throw new Ice.CommunicatorDestroyedException();
+            throw new CommunicatorDestroyedException();
         }
 
         Debug.assert(this._retryQueue !== null);
@@ -205,7 +181,7 @@ class Instance
     {
         if(this._state === StateDestroyed)
         {
-            throw new Ice.CommunicatorDestroyedException();
+            throw new CommunicatorDestroyedException();
         }
 
         Debug.assert(this._timer !== null);
@@ -216,7 +192,7 @@ class Instance
     {
         if(this._state === StateDestroyed)
         {
-            throw new Ice.CommunicatorDestroyedException();
+            throw new CommunicatorDestroyedException();
         }
 
         Debug.assert(this._endpointFactoryManager !== null);
@@ -256,7 +232,7 @@ class Instance
     {
         if(this._state == StateDestroyed)
         {
-            throw new Ice.CommunicatorDestroyedException();
+            throw new CommunicatorDestroyedException();
         }
 
         this._referenceFactory = this._referenceFactory.setDefaultLocator(locator);
@@ -266,7 +242,7 @@ class Instance
     {
         if(this._state == StateDestroyed)
         {
-            throw new Ice.CommunicatorDestroyedException();
+            throw new CommunicatorDestroyedException();
         }
 
         this._referenceFactory = this._referenceFactory.setDefaultRouter(router);
@@ -358,7 +334,7 @@ class Instance
             }
             else if(toStringModeStr !== "Unicode")
             {
-                throw new Ice.InitializationException("The value for Ice.ToStringMode must be Unicode, ASCII or Compat");
+                throw new InitializationException("The value for Ice.ToStringMode must be Unicode, ASCII or Compat");
             }
 
             this._implicitContext =
@@ -376,20 +352,20 @@ class Instance
 
             this._endpointFactoryManager = new EndpointFactoryManager(this);
 
-            const tcpInstance = new Ice.ProtocolInstance(this, Ice.TCPEndpointType, "tcp", false);
-            const tcpEndpointFactory = new Ice.TcpEndpointFactory(tcpInstance);
+            const tcpInstance = new ProtocolInstance(this, TCPEndpointType, "tcp", false);
+            const tcpEndpointFactory = new TcpEndpointFactory(tcpInstance);
             this._endpointFactoryManager.add(tcpEndpointFactory);
 
-            const wsInstance = new Ice.ProtocolInstance(this, Ice.WSEndpointType, "ws", false);
-            const wsEndpointFactory = new Ice.WSEndpointFactory(wsInstance, tcpEndpointFactory.clone(wsInstance));
+            const wsInstance = new ProtocolInstance(this, WSEndpointType, "ws", false);
+            const wsEndpointFactory = new WSEndpointFactory(wsInstance, tcpEndpointFactory.clone(wsInstance));
             this._endpointFactoryManager.add(wsEndpointFactory);
 
-            const sslInstance = new Ice.ProtocolInstance(this, Ice.SSLEndpointType, "ssl", true);
-            const sslEndpointFactory = new Ice.TcpEndpointFactory(sslInstance);
+            const sslInstance = new ProtocolInstance(this, SSLEndpointType, "ssl", true);
+            const sslEndpointFactory = new TcpEndpointFactory(sslInstance);
             this._endpointFactoryManager.add(sslEndpointFactory);
 
-            const wssInstance = new Ice.ProtocolInstance(this, Ice.WSSEndpointType, "wss", true);
-            const wssEndpointFactory = new Ice.WSEndpointFactory(wssInstance, sslEndpointFactory.clone(wssInstance));
+            const wssInstance = new ProtocolInstance(this, WSSEndpointType, "wss", true);
+            const wssEndpointFactory = new WSEndpointFactory(wssInstance, sslEndpointFactory.clone(wssInstance));
             this._endpointFactoryManager.add(wssEndpointFactory);
 
             this._outgoingConnectionFactory = new OutgoingConnectionFactory(communicator, this);
@@ -404,13 +380,13 @@ class Instance
             this._retryQueue = new RetryQueue(this);
             this._timer = new Timer(this._initData.logger);
 
-            const router = Ice.RouterPrx.uncheckedCast(this._proxyFactory.propertyToProxy("Ice.Default.Router"));
+            const router = RouterPrx.uncheckedCast(this._proxyFactory.propertyToProxy("Ice.Default.Router"));
             if(router !== null)
             {
                 this._referenceFactory = this._referenceFactory.setDefaultRouter(router);
             }
 
-            const loc = Ice.LocatorPrx.uncheckedCast(this._proxyFactory.propertyToProxy("Ice.Default.Locator"));
+            const loc = LocatorPrx.uncheckedCast(this._proxyFactory.propertyToProxy("Ice.Default.Locator"));
             if(loc !== null)
             {
                 this._referenceFactory = this._referenceFactory.setDefaultLocator(loc);
@@ -425,7 +401,7 @@ class Instance
         {
             if(promise !== null)
             {
-                if(ex instanceof Ice.LocalException)
+                if(ex instanceof LocalException)
                 {
                     this.destroy().finally(() => promise.reject(ex));
                 }
@@ -436,7 +412,7 @@ class Instance
             }
             else
             {
-                if(ex instanceof Ice.LocalException)
+                if(ex instanceof LocalException)
                 {
                     this.destroy();
                 }
@@ -472,7 +448,7 @@ class Instance
         // Shutdown and destroy all the incoming and outgoing Ice
         // connections and wait for the connections to be finished.
         //
-        Ice.Promise.try(() =>
+        IcePromise.try(() =>
             {
                 if(this._objectAdapterFactory)
                 {
@@ -598,5 +574,4 @@ class Instance
     }
 }
 
-Ice.Instance = Instance;
-module.exports.Ice = Ice;
+export { Instance };

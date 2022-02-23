@@ -2,27 +2,12 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/ModuleRegistry").Ice;
-Ice._ModuleRegistry.require(module,
-    [
-        "../Ice/StringUtil",
-        "../Ice/Stream",
-        "../Ice/Debug",
-        "../Ice/OpaqueEndpointI",
-        "../Ice/Protocol",
-        "../Ice/LocalException"
-    ]);
-
-//
-// Local aliases.
-//
-const Debug = Ice.Debug;
-const InputStream = Ice.InputStream;
-const OutputStream = Ice.OutputStream;
-const EndpointParseException = Ice.EndpointParseException;
-const OpaqueEndpointI = Ice.OpaqueEndpointI;
-const Protocol = Ice.Protocol;
-const StringUtil = Ice.StringUtil;
+import { Debug } from "./Debug";
+import { InputStream, OutputStream } from "./Stream";
+import { EndpointParseException } from "./LocalException";
+import { OpaqueEndpointI } from "./OpaqueEndpointI";
+import { Protocol } from "./Protocol";
+import { StringUtil } from "./StringUtil";
 
 class EndpointFactoryManager
 {
@@ -64,6 +49,7 @@ class EndpointFactoryManager
         {
             protocol = this._instance.defaultsAndOverrides().defaultProtocol;
         }
+        
         for(let i = 0, length = this._factories.length; i < length; ++i)
         {
             if(this._factories[i].protocol() === protocol)
@@ -151,5 +137,4 @@ class EndpointFactoryManager
     }
 }
 
-Ice.EndpointFactoryManager = EndpointFactoryManager;
-module.exports.Ice = Ice;
+export { EndpointFactoryManager };

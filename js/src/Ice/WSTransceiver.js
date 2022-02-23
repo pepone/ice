@@ -2,17 +2,15 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/ModuleRegistry").Ice;
-Ice._ModuleRegistry.require(module,
-    [
-        "../Ice/Debug",
-        "../Ice/SocketOperation",
-        "../Ice/Exception",
-        "../Ice/LocalException",
-        "../Ice/Timer",
-        "../Ice/ConnectionInfo"
-    ]);
-const IceSSL = Ice._ModuleRegistry.module("IceSSL");
+
+import { Debug } from "./Debug";
+import { Timer } from "./Timer";
+import { SocketOperation } from "./SocketOperation";
+import { TCPConnectionInfo, WSConnectionInfo } from "./Connection";
+import { ConnectionInfo as SSLConnectionInfo } from "../IceSSL/Connection";
+import { ConnectFailedException, ConnectionLostException, SocketException } from "./ConnectionLostException";
+
+let WSTransceiver = {};
 
 if (typeof WebSocket !== 'undefined')
 {
@@ -28,17 +26,13 @@ if (typeof WebSocket !== 'undefined')
                     navigator.userAgent.indexOf("Chrome/") !== -1;
     const IsSafari = (/^((?!chrome).)*safari/i).test(navigator.userAgent);
 
-    const Debug = Ice.Debug;
-    const SocketOperation = Ice.SocketOperation;
-    const Timer = Ice.Timer;
-
     const StateNeedConnect = 0;
     const StateConnectPending = 1;
     const StateConnected = 2;
     const StateClosePending = 3;
     const StateClosed = 4;
 
-    class WSTransceiver
+    WSTransceiver = class
     {
         constructor(instance)
         {
@@ -293,13 +287,13 @@ if (typeof WebSocket !== 'undefined')
         getInfo()
         {
             Debug.assert(this._fd !== null);
-            const info = new Ice.WSConnectionInfo();
-            const tcpinfo = new Ice.TCPConnectionInfo();
+            const info = new WSConnectionInfo();
+            const tcpinfo = new TCPConnectionInfo();
             tcpinfo.localAddress = "";
             tcpinfo.localPort = -1;
             tcpinfo.remoteAddress = this._addr.host;
             tcpinfo.remotePort = this._addr.port;
-            info.underlying = this._secure ? new IceSSL.ConnectionInfo(tcpinfo, tcpinfo.timeout, tcpinfo.compress) : tcpinfo;
+            info.underlying = this._secure ? new SSLConnectionInfo(tcpinfo, tcpinfo.timeout, tcpinfo.compress) : tcpinfo;
             info.rcvSize = -1;
             info.sndSize = this._maxSendPacketSize;
             info.headers = {};
@@ -398,22 +392,22 @@ if (typeof WebSocket !== 'undefined')
     {
         if(state < StateConnected)
         {
-            return new Ice.ConnectFailedException(err.code, err);
+            return new ConnectFailedException(err.code, err);
         }
         else
         {
             if(err.code === 1000 || err.code === 1006) // CLOSE_NORMAL | CLOSE_ABNORMAL
             {
-                return new Ice.ConnectionLostException();
+                return new ConnectionLostException();
             }
-            return new Ice.SocketException(err.code, err);
+            return new SocketException(err.code, err);
         }
     }
 }
 else
 {
     // Dummy WSTransceiver for platforms without WebSocket support.
-    class WSTransceiver {}
+    WSTransceiver = class {}
 }
 
 export { WSTransceiver };

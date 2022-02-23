@@ -2,19 +2,11 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/ModuleRegistry").Ice;
-Ice._ModuleRegistry.require(module,
-    [
-        "../Ice/Debug",
-        "../Ice/LocalException",
-        "../Ice/StringUtil",
-        "../Ice/IdentityUtil",
-        "../Ice/HashMap"
-    ]);
-
 import { StringUtil } from "./StringUtil";
 import { HashMap } from "./HashMap";
 import { Debug } from "./Debug";
+import { AlreadyRegisteredException, NotRegisteredException } from "./LocalException";
+import { identityToString } from "./IdentityUtil";
 
 //
 // Only for use by Ice.ObjectAdatperI.
@@ -50,8 +42,8 @@ class ServantManager
         }
         else if(m.has(facet))
         {
-            const ex = new Ice.AlreadyRegisteredException();
-            ex.id = Ice.identityToString(ident, this._instance.toStringMode());
+            const ex = new AlreadyRegisteredException();
+            ex.id = identityToString(ident, this._instance.toStringMode());
             ex.kindOfObject = "servant";
             if(facet.length > 0)
             {
@@ -69,7 +61,7 @@ class ServantManager
 
         if(this._defaultServantMap.has(category))
         {
-            const ex = new Ice.AlreadyRegisteredException();
+            const ex = new AlreadyRegisteredException();
             ex.kindOfObject = "default servant";
             ex.id = category;
             throw ex;
@@ -90,8 +82,8 @@ class ServantManager
         const m = this._servantMapMap.get(ident);
         if(m === undefined || !m.has(facet))
         {
-            const ex = new Ice.NotRegisteredException();
-            ex.id = Ice.identityToString(ident, this._instance.toStringMode());
+            const ex = new NotRegisteredException();
+            ex.id = identityToString(ident, this._instance.toStringMode());
             ex.kindOfObject = "servant";
             if(facet.length > 0)
             {
@@ -135,8 +127,8 @@ class ServantManager
         const m = this._servantMapMap.get(ident);
         if(m === undefined)
         {
-            const ex = new Ice.NotRegisteredException();
-            ex.id = Ice.identityToString(ident, this._instance.toStringMode());
+            const ex = new NotRegisteredException();
+            ex.id = identityToString(ident, this._instance.toStringMode());
             ex.kindOfObject = "servant";
             throw ex;
         }
@@ -212,7 +204,7 @@ class ServantManager
 
         if(this._locatorMap.has(category))
         {
-            const ex = new Ice.AlreadyRegisteredException();
+            const ex = new AlreadyRegisteredException();
             ex.id = StringUtil.escapeString(category, "", this._instance.toStringMode());
             ex.kindOfObject = "servant locator";
             throw ex;
@@ -228,7 +220,7 @@ class ServantManager
         const l = this._locatorMap.get(category);
         if(l === undefined)
         {
-            const ex = new Ice.NotRegisteredException();
+            const ex = new NotRegisteredException();
             ex.id = StringUtil.escapeString(category, "", this._instance.toStringMode());
             ex.kindOfObject = "servant locator";
             throw ex;
@@ -274,5 +266,4 @@ class ServantManager
     }
 }
 
-Ice.ServantManager = ServantManager;
-module.exports.Ice = Ice;
+export { ServantManager };

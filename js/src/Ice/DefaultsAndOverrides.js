@@ -120,8 +120,8 @@ class DefaultsAndOverrides
         this.defaultPreferSecure = properties.getPropertyAsIntWithDefault("Ice.Default.PreferSecure", 0) > 0;
 
         value = properties.getPropertyWithDefault("Ice.Default.EncodingVersion",
-                                                Ice.encodingVersionToString(Protocol.currentEncoding));
-        this.defaultEncoding = Ice.stringToEncodingVersion(value);
+                                                encodingVersionToString(Protocol.currentEncoding));
+        this.defaultEncoding = stringToEncodingVersion(value);
         Protocol.checkSupportedEncoding(this.defaultEncoding);
 
         const slicedFormat = properties.getPropertyAsIntWithDefault("Ice.Default.SlicedFormat", 0) > 0;

@@ -2,8 +2,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/Timer").Ice;
-const Timer = Ice.Timer;
+import { Timer } from "./Timer";
 
 class P extends Promise
 {
@@ -49,4 +48,4 @@ class P extends Promise
     }
 }
 
-export { P }
+export { P as IcePromise }

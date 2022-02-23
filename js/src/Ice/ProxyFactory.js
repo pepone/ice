@@ -4,8 +4,19 @@
 
 import { Debug } from "./Debug";
 import { ObjectPrx } from "./ObjectPrx";
-const StringUtil = Ice.StringUtil;
-const Identity = Ice.Identity;
+import { StringUtil } from "./StringUtil";
+import { Identity } from "./Identity";
+import { FixedReference, Reference } from "./Reference";
+import { 
+    CloseConnectionException,
+    CommunicatorDestroyedException, 
+    ConnectionManuallyClosedException,
+    InvocationCanceledException,
+    InvocationTimeoutException,
+    MarshalException,
+    ObjectAdapterDeactivatedException,
+    ObjectNotExistException,
+    RequestFailedException } from "./LocalException";
 
 //
 // Only for use by Instance.
@@ -105,7 +116,7 @@ class ProxyFactory
         // the all the requests batched with the connection to be aborted and we
         // want the application to be notified.
         //
-        if(ref.getMode() === Ice.Reference.ModeBatchOneway || ref.getMode() === Ice.Reference.ModeBatchDatagram)
+        if(ref.getMode() === Reference.ModeBatchOneway || ref.getMode() === Reference.ModeBatchDatagram)
         {
             throw ex;
         }
@@ -114,12 +125,12 @@ class ProxyFactory
         // If it's a fixed proxy, retrying isn't useful as the proxy is tied to
         // the connection and the request will fail with the exception.
         //
-        if(ref instanceof Ice.FixedReference)
+        if(ref instanceof FixedReference)
         {
             throw ex;
         }
 
-        if(ex instanceof Ice.ObjectNotExistException)
+        if(ex instanceof ObjectNotExistException)
         {
             if(ref.getRouterInfo() !== null && ex.operation === "ice_add_proxy")
             {
@@ -170,7 +181,7 @@ class ProxyFactory
                 throw ex;
             }
         }
-        else if(ex instanceof Ice.RequestFailedException)
+        else if(ex instanceof RequestFailedException)
         {
             //
             // For all other cases, we don't retry ObjectNotExistException
@@ -200,7 +211,7 @@ class ProxyFactory
         // the client that all of the batched requests were accepted, when
         // in reality only the last few are actually sent.
         //
-        if(ex instanceof Ice.MarshalException)
+        if(ex instanceof MarshalException)
         {
             throw ex;
         }
@@ -209,9 +220,9 @@ class ProxyFactory
         // Don't retry if the communicator is destroyed, object adapter is deactivated,
         // or connection is manually closed.
         //
-        if(ex instanceof Ice.CommunicatorDestroyedException ||
-           ex instanceof Ice.ObjectAdapterDeactivatedException ||
-           ex instanceof Ice.ConnectionManuallyClosedException)
+        if(ex instanceof CommunicatorDestroyedException ||
+           ex instanceof ObjectAdapterDeactivatedException ||
+           ex instanceof ConnectionManuallyClosedException)
         {
             throw ex;
         }
@@ -219,7 +230,7 @@ class ProxyFactory
         //
         // Don't retry invocation timeouts.
         //
-        if(ex instanceof Ice.InvocationTimeoutException || ex instanceof Ice.InvocationCanceledException)
+        if(ex instanceof InvocationTimeoutException || ex instanceof InvocationCanceledException)
         {
             throw ex;
         }
@@ -228,7 +239,7 @@ class ProxyFactory
         Debug.assert(cnt > 0);
 
         let interval;
-        if(cnt === (this._retryIntervals.length + 1) && ex instanceof Ice.CloseConnectionException)
+        if(cnt === (this._retryIntervals.length + 1) && ex instanceof CloseConnectionException)
         {
             //
             // A close connection exception is always retried at least once, even if the retry
@@ -268,5 +279,4 @@ class ProxyFactory
     }
 }
 
-Ice.ProxyFactory = ProxyFactory;
-module.exports.Ice = Ice;
+export { ProxyFactory };

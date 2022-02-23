@@ -190,5 +190,4 @@ class RouterInfo
     }
 }
 
-Ice.RouterInfo = RouterInfo;
-module.exports.Ice = Ice;
+export { RouterInfo };

@@ -2,12 +2,9 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/ModuleRegistry").Ice;
-Ice._ModuleRegistry.require(module, ["../Ice/HashMap", "../Ice/RouterInfo", "../Ice/Router"]);
-
-const HashMap = Ice.HashMap;
-const RouterInfo = Ice.RouterInfo;
-const RouterPrx = Ice.RouterPrx;
+import { HashMap } from "./HashMap";
+import { RouterInfo } from "./RouterInfo";
+import { RouterPrx } from "./Router";
 
 class RouterManager
 {
@@ -65,5 +62,5 @@ class RouterManager
         return info;
     }
 }
-Ice.RouterManager = RouterManager;
-module.exports.Ice = Ice;
+
+export { RouterManager };

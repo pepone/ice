@@ -2,17 +2,8 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/ModuleRegistry").Ice;
-Ice._ModuleRegistry.require(module,
-    [
-        "../Ice/LocalException",
-        "../Ice/ObjectAdapterI",
-        "../Ice/Promise",
-        "../Ice/UUID"
-    ]);
-
-const ObjectAdapterI = Ice.ObjectAdapterI;
-const _Promise = Ice.Promise;
+import { ObjectAdapterI } from "./ObjectAdapterI";
+import { IcePromise as _Promise  } from "./Promise";
 
 //
 // Only for use by Instance.
@@ -113,5 +104,4 @@ class ObjectAdapterFactory
     }
 }
 
-Ice.ObjectAdapterFactory = ObjectAdapterFactory;
-module.exports.Ice = Ice;
+export { ObjectAdapterFactory };
