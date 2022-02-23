@@ -2,23 +2,15 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/ModuleRegistry").Ice;
-Ice._ModuleRegistry.require(module,
-    [
-        "../Ice/Debug",
-        "../Ice/Promise",
-        "../Ice/Protocol",
-        "../Ice/Locator",
-        "../Ice/LocalException",
-        "../Ice/Exception",
-        "../Ice/HashMap",
-        "../Ice/IdentityUtil"
-    ]);
-
-const Debug = Ice.Debug;
-const Protocol = Ice.Protocol;
-const LocatorRegistryPrx = Ice.LocatorRegisterPrx;
-const HashMap = Ice.HashMap;
+import { Debug } from "./Debug";
+import { Protocol } from "./Protocol";
+import { Promise } from "./Promise";
+import { LocalException, UserException } from "./Exception";
+import { AdapterNotFoundException, NotRegisteredException, ObjectNotFoundException } from "./LocalException";
+import { EndpointSelectionType } from "./EndpointTypes";
+import { LocatorRegistryPrx } from "./Locator";
+import { HashMap } from "./HashMap";
+import { identityToString } from "./IdentityUtil";
 
 class LocatorInfo
 {
@@ -68,7 +60,7 @@ class LocatorInfo
     {
         if(this._locatorRegistry !== null)
         {
-            return Ice.Promise.resolve(this._locatorRegistry);
+            return Promise.resolve(this._locatorRegistry);
         }
 
         return this._locator.getRegistry().then(reg =>
@@ -79,14 +71,14 @@ class LocatorInfo
                 // with some endpoints which are prefered to be tried first.
                 //
                 this._locatorRegistry = LocatorRegistryPrx.uncheckedCast(reg.ice_locator(null).ice_endpointSelection(
-                    Ice.EndpointSelectionType.Ordered));
+                    EndpointSelectionType.Ordered));
                 return this._locatorRegistry;
             });
     }
 
     getEndpoints(ref, wellKnownRef, ttl, p)
     {
-        const promise = p || new Ice.Promise(); // success callback receives (endpoints, cached)
+        const promise = p || new Promise(); // success callback receives (endpoints, cached)
 
         Debug.assert(ref.isIndirect());
         let endpoints = null;
@@ -237,7 +229,7 @@ class LocatorInfo
         }
         catch(ex)
         {
-            if(ex instanceof Ice.AdapterNotFoundException)
+            if(ex instanceof AdapterNotFoundException)
             {
                 if(instance.traceLevels().location >= 1)
                 {
@@ -248,32 +240,32 @@ class LocatorInfo
                     instance.initializationData().logger.trace(instance.traceLevels().locationCat, s.join(""));
                 }
 
-                const e = new Ice.NotRegisteredException();
+                const e = new NotRegisteredException();
                 e.kindOfObject = "object adapter";
                 e.id = ref.getAdapterId();
                 throw e;
             }
-            else if(ex instanceof Ice.ObjectNotFoundException)
+            else if(ex instanceof ObjectNotFoundException)
             {
                 if(instance.traceLevels().location >= 1)
                 {
                     const s = [];
                     s.push("object not found\n");
                     s.push("object = ");
-                    s.push(Ice.identityToString(ref.getIdentity(), instance.toStringMode()));
+                    s.push(identityToString(ref.getIdentity(), instance.toStringMode()));
                     instance.initializationData().logger.trace(instance.traceLevels().locationCat, s.join(""));
                 }
 
-                const e = new Ice.NotRegisteredException();
+                const e = new NotRegisteredException();
                 e.kindOfObject = "object";
-                e.id = Ice.identityToString(ref.getIdentity(), instance.toStringMode());
+                e.id = identityToString(ref.getIdentity(), instance.toStringMode());
                 throw e;
             }
-            else if(ex instanceof Ice.NotRegisteredException)
+            else if(ex instanceof NotRegisteredException)
             {
                 throw ex;
             }
-            else if(ex instanceof Ice.LocalException)
+            else if(ex instanceof LocalException)
             {
                 if(instance.traceLevels().location >= 1)
                 {
@@ -442,8 +434,6 @@ class LocatorInfo
         }
     }
 }
-
-Ice.LocatorInfo = LocatorInfo;
 
 class RequestCallback
 {
@@ -639,4 +629,4 @@ class AdapterRequest extends Request
     }
 }
 
-module.exports.Ice = Ice;
+export { LocatorInfo };

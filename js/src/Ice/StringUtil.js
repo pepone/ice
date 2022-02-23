@@ -2,10 +2,9 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/Debug").Ice;
-const Debug = Ice.Debug;
+import { Debug } from "../Ice/Debug"
 
-Ice.StringUtil = class
+class StringUtil
 {
     //
     // Return the index of the first character in str to
@@ -268,7 +267,8 @@ Ice.StringUtil = class
         return n;
     }
 };
-module.exports.Ice = Ice;
+
+export { StringUtil };
 
 function encodeChar(c, sb, special, toStringMode)
 {

@@ -257,5 +257,4 @@ class Base64
     }
 }
 
-Ice.Base64 = Base64;
-module.exports.Ice = Ice;
+export { Base64 };

@@ -2,23 +2,15 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/ModuleRegistry").Ice;
-Ice._ModuleRegistry.require(module,
-    [
-        "../Ice/StringUtil",
-        "../Ice/LocalException",
-        "../Ice/Version",
-        "../Ice/Buffer"
-    ]);
-
-const StringUtil = Ice.StringUtil;
+import { EncodingVersion, ProtocolVersion } from "./Version" ;
+import { StringUtil } from "./StringUtil";
 
 const Protocol = {};
 
-Ice.Encoding_1_0 = new Ice.EncodingVersion(1, 0);
-Ice.Encoding_1_1 = new Ice.EncodingVersion(1, 1);
+const Encoding_1_0 = new EncodingVersion(1, 0);
+const Encoding_1_1 = new EncodingVersion(1, 1);
 
-Ice.Protocol_1_0 = new Ice.ProtocolVersion(1, 0);
+const Protocol_1_0 = new ProtocolVersion(1, 0);
 
 //
 // Size of the Ice protocol header
@@ -206,9 +198,9 @@ Protocol.isSupported = function(version, supported)
 *
 * @return The converted protocol version.
 **/
-Ice.stringToProtocolVersion = function(version)
+function stringToProtocolVersion(version)
 {
-    return new Ice.ProtocolVersion(stringToMajor(version), stringToMinor(version));
+    return new ProtocolVersion(stringToMajor(version), stringToMinor(version));
 };
 
 /**
@@ -218,9 +210,9 @@ Ice.stringToProtocolVersion = function(version)
 *
 * @return The converted object identity.
 **/
-Ice.stringToEncodingVersion = function(version)
+function stringToEncodingVersion(version)
 {
-    return new Ice.EncodingVersion(stringToMajor(version), stringToMinor(version));
+    return new EncodingVersion(stringToMajor(version), stringToMinor(version));
 };
 
 /**
@@ -230,7 +222,7 @@ Ice.stringToEncodingVersion = function(version)
 *
 * @return The converted string.
 **/
-Ice.protocolVersionToString = function(v)
+function protocolVersionToString(v)
 {
     return majorMinorToString(v.major, v.minor);
 };
@@ -242,7 +234,7 @@ Ice.protocolVersionToString = function(v)
  *
  * @return The converted string.
  **/
-Ice.encodingVersionToString = function(v)
+function encodingVersionToString(v)
 {
     return majorMinorToString(v.major, v.minor);
 };
@@ -256,8 +248,15 @@ Protocol.FLAG_HAS_INDIRECTION_TABLE = (1 << 3);
 Protocol.FLAG_HAS_SLICE_SIZE = (1 << 4);
 Protocol.FLAG_IS_LAST_SLICE = (1 << 5);
 
-Ice.Protocol = Protocol;
-module.exports.Ice = Ice;
+export { 
+    Encoding_1_0,
+    Encoding_1_1,
+    Protocol_1_0,
+    Protocol, 
+    stringToProtocolVersion, 
+    stringToEncodingVersion, 
+    protocolVersionToString, 
+    encodingVersionToString };
 
 function stringToMajor(str)
 {

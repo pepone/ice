@@ -2,44 +2,26 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/ModuleRegistry").Ice;
-Ice._ModuleRegistry.require(module,
-    [
-        "../Ice/ArrayUtil",
-        "../Ice/BatchRequestQueue",
-        "../Ice/Debug",
-        "../Ice/HashUtil",
-        "../Ice/OpaqueEndpointI",
-        "../Ice/Promise",
-        "../Ice/ReferenceMode",
-        "../Ice/StringUtil",
-        "../Ice/BuiltinSequences",
-        "../Ice/EndpointTypes",
-        "../Ice/Identity",
-        "../Ice/Router",
-        "../Ice/Locator",
-        "../Ice/LocalException",
-        "../Ice/Version",
-        "../Ice/PropertyNames",
-        "../Ice/ConnectionRequestHandler",
-        "../Ice/MapUtil"
-    ]);
-
-const ArrayUtil = Ice.ArrayUtil;
-const Debug = Ice.Debug;
-const BatchRequestQueue = Ice.BatchRequestQueue;
-const HashUtil = Ice.HashUtil;
-const OpaqueEndpointI = Ice.OpaqueEndpointI;
-const RefMode = Ice.ReferenceMode;
-const StringUtil = Ice.StringUtil;
-const StringSeqHelper = Ice.StringSeqHelper;
-const EndpointSelectionType = Ice.EndpointSelectionType;
-const Identity = Ice.Identity;
-const RouterPrx = Ice.RouterPrx;
-const LocatorPrx = Ice.LocatorPrx;
-const PropertyNames = Ice.PropertyNames;
-const ConnectionRequestHandler = Ice.ConnectionRequestHandler;
-const MapUtil = Ice.MapUtil;
+import { ArrayUtil } from "./ArrayUtil";
+import { Debug } from "./Debug";
+import { BatchRequestQueue } from "./BatchRequestQueue";
+import { HashUtil } from "./HashUtil";
+import { OpaqueEndpointI } from "./OpaqueEndpointI";
+import { ReferenceMode } from "./ReferenceMode";
+import { StringUtil } from "./StringUtil";
+import { StringSeqHelper } from "./BuiltinSequences";
+import { EndpointSelectionType } from "./EndpointTypes";
+import { Identity } from "./Identity";
+import { RouterPrx } from "./Router";
+import { LocatorPrx } from "./Locator";
+import { PropertyNames } from "./PropertyNames";
+import { ConnectionRequestHandler } from "./ConnectionRequestHandler";
+import { MapUtil } from "./MapUtil";
+import { EncodingVersion, ProtocolVersion } from "./Version" ;
+import { Encoding_1_0, Protocol_1_0, stringToEncodingVersion, stringToProtocolVersion, protocolVersionToString, encodingVersionToString } from "./Protocol";
+import { EndpointSelectionTypeParseException, FixedProxyException, IllegalIdentityException, NoEndpointException, ProxyParseException, ProxyUnmarshalException } from "./LocalException";
+import { identityToString, stringToIdentity } from "./IdentityUtil";
+import { Promise } from "./Promise";
 
 const suffixes =
 [
@@ -104,9 +86,9 @@ class ReferenceFactory
             this._communicator,
             ident,
             "", // Facet
-            fixedConnection.endpoint().datagram() ? RefMode.ModeDatagram : RefMode.ModeTwoway,
+            fixedConnection.endpoint().datagram() ? ReferenceMode.ModeDatagram : ReferenceMode.ModeTwoway,
             fixedConnection.endpoint().secure(),
-            Ice.Protocol_1_0,
+            Protocol_1_0,
             this._instance.defaultsAndOverrides().defaultEncoding,
             fixedConnection,
             -1,
@@ -136,7 +118,7 @@ class ReferenceFactory
         let beg = StringUtil.findFirstNotOf(s, delim, end);
         if(beg == -1)
         {
-            throw new Ice.ProxyParseException("no non-whitespace characters found in `" + s + "'");
+            throw new ProxyParseException("no non-whitespace characters found in `" + s + "'");
         }
 
         //
@@ -147,7 +129,7 @@ class ReferenceFactory
         end = StringUtil.checkQuote(s, beg);
         if(end === -1)
         {
-            throw new Ice.ProxyParseException("mismatched quotes around identity in `" + s + "'");
+            throw new ProxyParseException("mismatched quotes around identity in `" + s + "'");
         }
         else if(end === 0)
         {
@@ -167,13 +149,13 @@ class ReferenceFactory
 
         if(beg === end)
         {
-            throw new Ice.ProxyParseException("no identity in `" + s + "'");
+            throw new ProxyParseException("no identity in `" + s + "'");
         }
 
         //
         // Parsing the identity may raise IdentityParseException.
         //
-        const ident = Ice.stringToIdentity(idstr);
+        const ident = stringToIdentity(idstr);
 
         if(ident.name.length === 0)
         {
@@ -183,7 +165,7 @@ class ReferenceFactory
             //
             if(ident.category.length > 0)
             {
-                throw new Ice.IllegalIdentityException(ident);
+                throw new IllegalIdentityException(ident);
             }
             //
             // Treat a stringified proxy containing two double
@@ -193,7 +175,7 @@ class ReferenceFactory
             //
             else if(StringUtil.findFirstNotOf(s, delim, end) != -1)
             {
-                throw new Ice.ProxyParseException("invalid characters after identity in `" + s + "'");
+                throw new ProxyParseException("invalid characters after identity in `" + s + "'");
             }
             else
             {
@@ -205,7 +187,7 @@ class ReferenceFactory
         let mode = RefMode.ModeTwoway;
         let secure = false;
         let encoding = this._instance.defaultsAndOverrides().defaultEncoding;
-        let protocol = Ice.Protocol_1_0;
+        let protocol = Protocol_1_0;
         let adapter = "";
 
         while(true)
@@ -235,7 +217,7 @@ class ReferenceFactory
             const option = s.substring(beg, end);
             if(option.length != 2 || option.charAt(0) != '-')
             {
-                throw new Ice.ProxyParseException("expected a proxy option but found `" + option + "' in `" + s + "'");
+                throw new ProxyParseException("expected a proxy option but found `" + option + "' in `" + s + "'");
             }
 
             //
@@ -254,7 +236,7 @@ class ReferenceFactory
                     end = StringUtil.checkQuote(s, beg);
                     if(end == -1)
                     {
-                        throw new Ice.ProxyParseException("mismatched quotes around value for " + option +
+                        throw new ProxyParseException("mismatched quotes around value for " + option +
                                                           " option in `" + s + "'");
                     }
                     else if(end === 0)
@@ -285,7 +267,7 @@ class ReferenceFactory
                 {
                     if(argument === null)
                     {
-                        throw new Ice.ProxyParseException("no argument provided for -f option in `" + s + "'");
+                        throw new ProxyParseException("no argument provided for -f option in `" + s + "'");
                     }
 
                     try
@@ -294,7 +276,7 @@ class ReferenceFactory
                     }
                     catch(ex)
                     {
-                        throw new Ice.ProxyParseException("invalid facet in `" + s + "': " + ex.message);
+                        throw new ProxyParseException("invalid facet in `" + s + "': " + ex.message);
                     }
 
                     break;
@@ -304,7 +286,7 @@ class ReferenceFactory
                 {
                     if(argument !== null)
                     {
-                        throw new Ice.ProxyParseException("unexpected argument `" + argument +
+                        throw new ProxyParseException("unexpected argument `" + argument +
                                                           "' provided for -t option in `" + s + "'");
                     }
                     mode = RefMode.ModeTwoway;
@@ -315,7 +297,7 @@ class ReferenceFactory
                 {
                     if(argument !== null)
                     {
-                        throw new Ice.ProxyParseException("unexpected argument `" + argument +
+                        throw new ProxyParseException("unexpected argument `" + argument +
                                                           "' provided for -o option in `" + s + "'");
                     }
                     mode = RefMode.ModeOneway;
@@ -326,7 +308,7 @@ class ReferenceFactory
                 {
                     if(argument !== null)
                     {
-                        throw new Ice.ProxyParseException("unexpected argument `" + argument +
+                        throw new ProxyParseException("unexpected argument `" + argument +
                                                           "' provided for -O option in `" + s + "'");
                     }
                     mode = RefMode.ModeBatchOneway;
@@ -337,7 +319,7 @@ class ReferenceFactory
                 {
                     if(argument !== null)
                     {
-                        throw new Ice.ProxyParseException("unexpected argument `" + argument +
+                        throw new ProxyParseException("unexpected argument `" + argument +
                                                           "' provided for -d option in `" + s + "'");
                     }
                     mode = RefMode.ModeDatagram;
@@ -348,7 +330,7 @@ class ReferenceFactory
                 {
                     if(argument !== null)
                     {
-                        throw new Ice.ProxyParseException("unexpected argument `" + argument +
+                        throw new ProxyParseException("unexpected argument `" + argument +
                                                           "' provided for -D option in `" + s + "'");
                     }
                     mode = RefMode.ModeBatchDatagram;
@@ -359,7 +341,7 @@ class ReferenceFactory
                 {
                     if(argument !== null)
                     {
-                        throw new Ice.ProxyParseException("unexpected argument `" + argument +
+                        throw new ProxyParseException("unexpected argument `" + argument +
                                                           "' provided for -s option in `" + s + "'");
                     }
                     secure = true;
@@ -370,16 +352,16 @@ class ReferenceFactory
                 {
                     if(argument === null)
                     {
-                        throw new Ice.ProxyParseException("no argument provided for -e option in `" + s + "'");
+                        throw new ProxyParseException("no argument provided for -e option in `" + s + "'");
                     }
 
                     try
                     {
-                        encoding = Ice.stringToEncodingVersion(argument);
+                        encoding = stringToEncodingVersion(argument);
                     }
                     catch(e) // VersionParseException
                     {
-                        throw new Ice.ProxyParseException("invalid encoding version `" + argument + "' in `" + s +
+                        throw new ProxyParseException("invalid encoding version `" + argument + "' in `" + s +
                                                           "':\n" + e.str);
                     }
                     break;
@@ -389,16 +371,16 @@ class ReferenceFactory
                 {
                     if(argument === null)
                     {
-                        throw new Ice.ProxyParseException("no argument provided for -p option in `" + s + "'");
+                        throw new ProxyParseException("no argument provided for -p option in `" + s + "'");
                     }
 
                     try
                     {
-                        protocol = Ice.stringToProtocolVersion(argument);
+                        protocol = stringToProtocolVersion(argument);
                     }
                     catch(e) // VersionParseException
                     {
-                        throw new Ice.ProxyParseException("invalid protocol version `" + argument + "' in `" + s +
+                        throw new ProxyParseException("invalid protocol version `" + argument + "' in `" + s +
                                                           "':\n" + e.str);
                     }
                     break;
@@ -406,7 +388,7 @@ class ReferenceFactory
 
                 default:
                 {
-                    throw new Ice.ProxyParseException("unknown option `" + option + "' in `" + s + "'");
+                    throw new ProxyParseException("unknown option `" + option + "' in `" + s + "'");
                 }
             }
         }
@@ -484,7 +466,7 @@ class ReferenceFactory
             if(endpoints.length === 0)
             {
                 Debug.assert(unknownEndpoints.length > 0);
-                throw new Ice.EndpointParseException("invalid endpoint `" + unknownEndpoints[0] + "' in `" + s + "'");
+                throw new EndpointParseException("invalid endpoint `" + unknownEndpoints[0] + "' in `" + s + "'");
             }
             else if(unknownEndpoints.length !== 0 &&
                     this._instance.initializationData().properties.getPropertyAsIntWithDefault("Ice.Warn.Endpoints", 1) > 0)
@@ -507,14 +489,14 @@ class ReferenceFactory
             beg = StringUtil.findFirstNotOf(s, delim, beg + 1);
             if(beg == -1)
             {
-                throw new Ice.ProxyParseException("missing adapter id in `" + s + "'");
+                throw new ProxyParseException("missing adapter id in `" + s + "'");
             }
 
             let adapterstr = null;
             end = StringUtil.checkQuote(s, beg);
             if(end === -1)
             {
-                throw new Ice.ProxyParseException("mismatched quotes around adapter id in `" + s + "'");
+                throw new ProxyParseException("mismatched quotes around adapter id in `" + s + "'");
             }
             else if(end === 0)
             {
@@ -534,7 +516,7 @@ class ReferenceFactory
 
             if(end !== s.length && StringUtil.findFirstNotOf(s, delim, end) !== -1)
             {
-                throw new Ice.ProxyParseException("invalid trailing characters after `" + s.substring(0, end + 1) +
+                throw new ProxyParseException("invalid trailing characters after `" + s.substring(0, end + 1) +
                                                     "' in `" + s + "'");
             }
 
@@ -544,16 +526,16 @@ class ReferenceFactory
             }
             catch(ex)
             {
-                throw new Ice.ProxyParseException("invalid adapter id in `" + s + "': " + ex.message);
+                throw new ProxyParseException("invalid adapter id in `" + s + "': " + ex.message);
             }
             if(adapter.length === 0)
             {
-                throw new Ice.ProxyParseException("empty adapter id in `" + s + "'");
+                throw new ProxyParseException("empty adapter id in `" + s + "'");
             }
             return this.createImpl(ident, facet, mode, secure, protocol, encoding, null, adapter, propertyPrefix);
         }
 
-        throw new Ice.ProxyParseException("malformed proxy `" + s + "'");
+        throw new ProxyParseException("malformed proxy `" + s + "'");
     }
 
     createFromStream(ident, s)
@@ -577,7 +559,7 @@ class ReferenceFactory
         {
             if(facetPath.length > 1)
             {
-                throw new Ice.ProxyUnmarshalException();
+                throw new ProxyUnmarshalException();
             }
             facet = facetPath[0];
         }
@@ -589,24 +571,24 @@ class ReferenceFactory
         const mode = s.readByte();
         if(mode < 0 || mode > RefMode.ModeLast)
         {
-            throw new Ice.ProxyUnmarshalException();
+            throw new ProxyUnmarshalException();
         }
 
         const secure = s.readBool();
 
         let protocol = null;
         let encoding = null;
-        if(!s.getEncoding().equals(Ice.Encoding_1_0))
+        if(!s.getEncoding().equals(Encoding_1_0))
         {
-            protocol = new Ice.ProtocolVersion();
+            protocol = new ProtocolVersion();
             protocol._read(s);
-            encoding = new Ice.EncodingVersion();
+            encoding = new EncodingVersion();
             encoding._read(s);
         }
         else
         {
-            protocol = Ice.Protocol_1_0;
-            encoding = Ice.Encoding_1_0;
+            protocol = Protocol_1_0;
+            encoding = Encoding_1_0;
         }
 
         let endpoints = null; // EndpointI[]
@@ -786,8 +768,7 @@ class ReferenceFactory
                 }
                 else
                 {
-                    throw new Ice.EndpointSelectionTypeParseException("illegal value `" + type +
-                                                                      "'; expected `Random' or `Ordered'");
+                    throw new EndpointSelectionTypeParseException("illegal value `" + type + "'; expected `Random' or `Ordered'");
                 }
             }
 
@@ -842,8 +823,6 @@ class ReferenceFactory
                                      invocationTimeout);
     }
 }
-
-Ice.ReferenceFactory = ReferenceFactory;
 
 class Reference
 {
@@ -1229,7 +1208,7 @@ class Reference
 
         s.writeBool(this._secure);
 
-        if(!s.getEncoding().equals(Ice.Encoding_1_0))
+        if(!s.getEncoding().equals(Encoding_1_0))
         {
             this._protocol._write(s);
             this._encoding._write(s);
@@ -1259,8 +1238,7 @@ class Reference
         // the reference parser uses as separators, then we enclose
         // the identity string in quotes.
         //
-
-        const id = Ice.identityToString(this._identity, toStringMode);
+        const id = identityToString(this._identity, toStringMode);
         if(id.search(/[ :@]/) != -1)
         {
             s.push('"');
@@ -1337,7 +1315,7 @@ class Reference
             s.push(" -s");
         }
 
-        if(!this._protocol.equals(Ice.Protocol_1_0))
+        if(!this._protocol.equals(Protocol_1_0))
         {
             //
             // We only print the protocol if it's not 1.0. It's fine as
@@ -1346,7 +1324,7 @@ class Reference
             // stringToProxy.
             //
             s.push(" -p ");
-            s.push(Ice.protocolVersionToString(this._protocol));
+            s.push(protocolVersionToString(this._protocol));
         }
 
         //
@@ -1355,7 +1333,7 @@ class Reference
         // stringToProxy (and won't use Ice.Default.EncodingVersion).
         //
         s.push(" -e ");
-        s.push(Ice.encodingVersionToString(this._encoding));
+        s.push(encodingVersionToString(this._encoding));
 
         return s.join("");
 
@@ -1452,8 +1430,6 @@ class Reference
 Reference._emptyContext = new Map();
 Reference._emptyEndpoints = [];
 
-Ice.Reference = Reference;
-
 class FixedReference extends Reference
 {
     constructor(instance, communicator, identity, facet, mode, secure, protocol, encoding, connection,
@@ -1515,52 +1491,52 @@ class FixedReference extends Reference
 
     changeAdapterId(newAdapterId)
     {
-        throw new Ice.FixedProxyException();
+        throw new FixedProxyException();
     }
 
     changeEndpoints(newEndpoints)
     {
-        throw new Ice.FixedProxyException();
+        throw new FixedProxyException();
     }
 
     changeLocato(newLocator)
     {
-        throw new Ice.FixedProxyException();
+        throw new FixedProxyException();
     }
 
     changeRouter(newRouter)
     {
-        throw new Ice.FixedProxyException();
+        throw new FixedProxyException();
     }
 
     changeCacheConnection(newCache)
     {
-        throw new Ice.FixedProxyException();
+        throw new FixedProxyException();
     }
 
     changePreferSecure(prefSec)
     {
-        throw new Ice.FixedProxyException();
+        throw new FixedProxyException();
     }
 
     changeEndpointSelection(newType)
     {
-        throw new Ice.FixedProxyException();
+        throw new FixedProxyException();
     }
 
     changeLocatorCacheTimeout(newTimeout)
     {
-        throw new Ice.FixedProxyException();
+        throw new FixedProxyException();
     }
 
     changeTimeout(newTimeout)
     {
-        throw new Ice.FixedProxyException();
+        throw new FixedProxyException();
     }
 
     changeConnectionId(connectionId)
     {
-        throw new Ice.FixedProxyException();
+        throw new FixedProxyException();
     }
 
     changeConnection(newConnection)
@@ -1586,12 +1562,12 @@ class FixedReference extends Reference
 
     streamWrite(s)
     {
-        throw new Ice.FixedProxyException();
+        throw new FixedProxyException();
     }
 
     toProperty(prefix)
     {
-        throw new Ice.FixedProxyException();
+        throw new FixedProxyException();
     }
 
     clone()
@@ -1621,7 +1597,7 @@ class FixedReference extends Reference
             {
                 if(this._fixedConnection.endpoint().datagram())
                 {
-                    throw new Ice.NoEndpointException(this.toString());
+                    throw new NoEndpointException(this.toString());
                 }
                 break;
             }
@@ -1631,7 +1607,7 @@ class FixedReference extends Reference
             {
                 if(!this._fixedConnection.endpoint().datagram())
                 {
-                    throw new Ice.NoEndpointException(this.toString());
+                    throw new NoEndpointException(this.toString());
                 }
                 break;
             }
@@ -1651,7 +1627,7 @@ class FixedReference extends Reference
         const secure = defaultsAndOverrides.overrideSecure ? defaultsAndOverrides.overrideSecureValue : this.getSecure();
         if(secure && !this._fixedConnection.endpoint().secure())
         {
-            throw new Ice.NoEndpointException(this.toString());
+            throw new NoEndpointException(this.toString());
         }
 
         this._fixedConnection.throwException(); // Throw in case our connection is already destroyed.
@@ -1681,8 +1657,6 @@ class FixedReference extends Reference
         return this._fixedConnection == rhs._fixedConnection;
     }
 }
-
-Ice.FixedReference = FixedReference;
 
 class RoutableReference extends Reference
 {
@@ -2102,7 +2076,7 @@ class RoutableReference extends Reference
 
     getConnection()
     {
-        const p = new Ice.Promise(); // success callback receives (connection)
+        const p = new Promise(); // success callback receives (connection)
 
         if(this._routerInfo !== null)
         {
@@ -2146,7 +2120,7 @@ class RoutableReference extends Reference
                     const [endpoints, cached] = values;
                     if(endpoints.length === 0)
                     {
-                        p.reject(new Ice.NoEndpointException(this.toString()));
+                        p.reject(new NoEndpointException(this.toString()));
                         return;
                     }
 
@@ -2155,7 +2129,7 @@ class RoutableReference extends Reference
                         p.resolve,
                         ex =>
                         {
-                            if(ex instanceof Ice.NoEndpointException)
+                            if(ex instanceof NoEndpointException)
                             {
                                 //
                                 // No need to retry if there's no endpoints.
@@ -2187,7 +2161,7 @@ class RoutableReference extends Reference
         }
         else
         {
-            p.reject(new Ice.NoEndpointException(this.toString()));
+            p.reject(new NoEndpointException(this.toString()));
         }
     }
 
@@ -2346,13 +2320,13 @@ class RoutableReference extends Reference
         const endpoints = this.filterEndpoints(allEndpoints);
         if(endpoints.length === 0)
         {
-            return Ice.Promise.reject(new Ice.NoEndpointException(this.toString()));
+            return Promise.reject(new NoEndpointException(this.toString()));
         }
 
         //
         // Finally, create the connection.
         //
-        const promise = new Ice.Promise();
+        const promise = new Promise();
         const factory = this.getInstance().outgoingConnectionFactory();
         if(this.getCacheConnection() || endpoints.length == 1)
         {
@@ -2380,9 +2354,6 @@ class RoutableReference extends Reference
         return promise;
     }
 }
-
-Ice.RoutableReference = RoutableReference;
-module.exports.Ice = Ice;
 
 class CreateConnectionCallback
 {
@@ -2429,3 +2400,5 @@ class CreateConnectionCallback
                 connection => this.setConnection(connection)).catch(ex => this.setException(ex));
     }
 }
+
+export { ReferenceFactory, Reference, FixedReference, RoutableReference };

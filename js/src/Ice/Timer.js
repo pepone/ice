@@ -2,10 +2,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/ModuleRegistry").Ice;
-Ice._ModuleRegistry.require(module, ["../Ice/LocalException", "../Ice/TimerUtil"]);
-
-const CommunicatorDestroyedException = Ice.CommunicatorDestroyedException;
+import { CommunicatorDestroyedException } from "./LocalException";
 
 class Timer
 {
@@ -118,11 +115,4 @@ class Timer
     }
 }
 
-Timer.setTimeout = Ice.Timer.setTimeout;
-Timer.clearTimeout = Ice.Timer.clearTimeout;
-Timer.setInterval = Ice.Timer.setInterval;
-Timer.clearInterval = Ice.Timer.clearInterval;
-Timer.setImmediate = Ice.Timer.setImmediate;
-
-Ice.Timer = Timer;
-module.exports.Ice = Ice;
+export { Timer };

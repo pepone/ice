@@ -2,23 +2,12 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/ModuleRegistry").Ice;
-Ice._ModuleRegistry.require(module,
-    [
-        "../Ice/AsyncStatus",
-        "../Ice/ConnectionRequestHandler",
-        "../Ice/Debug",
-        "../Ice/RetryException",
-        "../Ice/ReferenceMode",
-        "../Ice/Exception"
-    ]);
-
-const AsyncStatus = Ice.AsyncStatus;
-const ConnectionRequestHandler = Ice.ConnectionRequestHandler;
-const Debug = Ice.Debug;
-const RetryException = Ice.RetryException;
-const ReferenceMode = Ice.ReferenceMode;
-const LocalException = Ice.LocalException;
+import { AsyncStatus } from "./AsyncStatus";
+import { ConnectionRequestHandler } from "./ConnectionRequestHandler";
+import { RetryException } from "./RetryException";
+import { ReferenceMode } from "./ReferenceMode";
+import { LocalException } from "./Exception";
+import { Debug } from "./Debug";
 
 class ConnectRequestHandler
 {
@@ -249,5 +238,4 @@ class ConnectRequestHandler
     }
 }
 
-Ice.ConnectRequestHandler = ConnectRequestHandler;
-module.exports.Ice = Ice;
+export { ConnectRequestHandler };

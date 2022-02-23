@@ -2,25 +2,18 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/ModuleRegistry").Ice;
-Ice._ModuleRegistry.require(module,
-    [
-        "../Ice/FormatType",
-        "../Ice/EndpointTypes",
-        "../Ice/Protocol",
-        "../Ice/LocalException"
-    ]);
-
-const FormatType = Ice.FormatType;
-const EndpointSelectionType = Ice.EndpointSelectionType;
-const Protocol = Ice.Protocol;
+import { FormatType } from "./FormatType";
+import { EndpointSelectionType } from "./EndpointSelectionType";
+import { EndpointSelectionTypeParseException } from "./LocalException";
+import { Protocol, encodingVersionToString, stringToEncodingVersion } from "./Protocol";
 
 class DefaultsAndOverrides
 {
     constructor(properties, logger)
     {
-        this.defaultProtocol = properties.getPropertyWithDefault("Ice.Default.Protocol",
-                                                                 Ice.TcpTransceiver !== null ? "tcp" : "ws");
+        this.defaultProtocol = properties.getPropertyWithDefault(
+            "Ice.Default.Protocol",
+            TcpTransceiver !== null ? "tcp" : "ws");
 
         let value = properties.getProperty("Ice.Default.Host");
         this.defaultHost = value.length > 0 ? value : null;
@@ -95,7 +88,7 @@ class DefaultsAndOverrides
         }
         else
         {
-            const ex = new Ice.EndpointSelectionTypeParseException();
+            const ex = new EndpointSelectionTypeParseException();
             ex.str = "illegal value `" + value + "'; expected `Random' or `Ordered'";
             throw ex;
         }
@@ -136,5 +129,4 @@ class DefaultsAndOverrides
     }
 }
 
-Ice.DefaultsAndOverrides = DefaultsAndOverrides;
-module.exports.Ice = Ice;
+export { DefaultsAndOverrides };

@@ -2,19 +2,8 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/ModuleRegistry").Ice;
-Ice._ModuleRegistry.require(module,
-    [
-        "../Ice/Debug",
-        "../Ice/ObjectPrx",
-        "../Ice/StringUtil",
-        "../Ice/Identity",
-        "../Ice/Reference",
-        "../Ice/LocalException"
-    ]);
-
-const Debug = Ice.Debug;
-const ObjectPrx = Ice.ObjectPrx;
+import { Debug } from "./Debug";
+import { ObjectPrx } from "./ObjectPrx";
 const StringUtil = Ice.StringUtil;
 const Identity = Ice.Identity;
 

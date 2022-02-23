@@ -2,32 +2,13 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/ModuleRegistry").Ice;
-const _ModuleRegistry = Ice._ModuleRegistry;
-_ModuleRegistry.require(module,
-    [
-        "../Ice/Debug",
-        "../Ice/ExUtil",
-        "../Ice/FormatType",
-        "../Ice/Object",
-        "../Ice/Value",
-        "../Ice/OptionalFormat",
-        "../Ice/Protocol",
-        "../Ice/TraceUtil",
-        "../Ice/Buffer",
-        "../Ice/Exception",
-        "../Ice/LocalException",
-        "../Ice/Version",
-        "../Ice/CompactIdRegistry",
-        "../Ice/ArrayUtil",
-        "../Ice/UnknownSlicedValue"
-    ]);
+import { Debug } from "./Debug";
+import { ExUtil } from "./ExUtil";
+import { FormatType } from "./FormatType";
+import { OptionalFormat } from "./OptionalFormat";
+import { Protocol } from "./Protocol";
+import { TraceUtil }
 
-const Debug = Ice.Debug;
-const ExUtil = Ice.ExUtil;
-const FormatType = Ice.FormatType;
-const OptionalFormat = Ice.OptionalFormat;
-const Protocol = Ice.Protocol;
 const TraceUtil = Ice.TraceUtil;
 const ArrayUtil = Ice.ArrayUtil;
 const SlicedData = Ice.SlicedData;
@@ -3453,34 +3434,35 @@ const MAX_INT32_VALUE = 0x7FFFFFFF;
 const MIN_FLOAT32_VALUE = -3.4028234664e+38;
 const MAX_FLOAT32_VALUE = 3.4028234664e+38;
 
-Ice.ByteHelper = defineBuiltinHelper(ostr.writeByte, istr.readByte, 1, Ice.OptionalFormat.F1,
-                                     MIN_UINT8_VALUE, MAX_UINT8_VALUE);
+const ByteHelper = defineBuiltinHelper(ostr.writeByte, istr.readByte, 1, Ice.OptionalFormat.F1,
+                                       MIN_UINT8_VALUE, MAX_UINT8_VALUE);
 
-Ice.ShortHelper = defineBuiltinHelper(ostr.writeShort, istr.readShort, 2, Ice.OptionalFormat.F2,
-                                      MIN_INT16_VALUE, MAX_INT16_VALUE);
+const ShortHelper = defineBuiltinHelper(ostr.writeShort, istr.readShort, 2, Ice.OptionalFormat.F2,
+                                        MIN_INT16_VALUE, MAX_INT16_VALUE);
 
-Ice.IntHelper = defineBuiltinHelper(ostr.writeInt, istr.readInt, 4, Ice.OptionalFormat.F4,
-                                    MIN_INT32_VALUE, MAX_INT32_VALUE);
+const IntHelper = defineBuiltinHelper(ostr.writeInt, istr.readInt, 4, Ice.OptionalFormat.F4,
+                                      MIN_INT32_VALUE, MAX_INT32_VALUE);
 
-Ice.FloatHelper = defineBuiltinHelper(ostr.writeFloat, istr.readFloat, 4, Ice.OptionalFormat.F4,
-                                      MIN_FLOAT32_VALUE, MAX_FLOAT32_VALUE);
-Ice.FloatHelper.validate = function(v)
+const FloatHelper = defineBuiltinHelper(ostr.writeFloat, istr.readFloat, 4, Ice.OptionalFormat.F4,
+                                        MIN_FLOAT32_VALUE, MAX_FLOAT32_VALUE);
+FloatHelper.validate = function(v)
 {
     return Number.isNaN(v) || v == Number.POSITIVE_INFINITY || v == Number.NEGATIVE_INFINITY ||
         (v >= MIN_FLOAT32_VALUE && v <= MAX_FLOAT32_VALUE);
 };
 
-Ice.DoubleHelper = defineBuiltinHelper(ostr.writeDouble, istr.readDouble, 8, Ice.OptionalFormat.F8,
-                                       -Number.MAX_VALUE, Number.MAX_VALUE);
-Ice.DoubleHelper.validate = function(v)
+const DoubleHelper = defineBuiltinHelper(ostr.writeDouble, istr.readDouble, 8, Ice.OptionalFormat.F8,
+                                         -Number.MAX_VALUE, Number.MAX_VALUE);
+DoubleHelper.validate = function(v)
 {
     return Number.isNaN(v) || v == Number.POSITIVE_INFINITY || v == Number.NEGATIVE_INFINITY ||
         (v >= -Number.MAX_VALUE && v <= Number.MAX_VALUE);
 };
 
-Ice.BoolHelper = defineBuiltinHelper(ostr.writeBool, istr.readBool, 1, Ice.OptionalFormat.F1);
-Ice.LongHelper = defineBuiltinHelper(ostr.writeLong, istr.readLong, 8, Ice.OptionalFormat.F8);
-Ice.LongHelper.validate = function(v)
+const BoolHelper = defineBuiltinHelper(ostr.writeBool, istr.readBool, 1, Ice.OptionalFormat.F1);
+
+const LongHelper = defineBuiltinHelper(ostr.writeLong, istr.readLong, 8, Ice.OptionalFormat.F8);
+LongHelper.validate = function(v)
 {
     //
     // For a long to be valid both words must be within the range of UINT32
@@ -3489,9 +3471,9 @@ Ice.LongHelper.validate = function(v)
            v.high >= MIN_UINT32_VALUE && v.high <= MAX_UINT32_VALUE;
 };
 
-Ice.StringHelper = defineBuiltinHelper(ostr.writeString, istr.readString, 1, Ice.OptionalFormat.VSize);
+const StringHelper = defineBuiltinHelper(ostr.writeString, istr.readString, 1, Ice.OptionalFormat.VSize);
 
-Ice.ObjectHelper = class
+class ObjectHelper
 {
     static write(os, v)
     {
@@ -3529,6 +3511,15 @@ Ice.ObjectHelper = class
     }
 };
 
-Ice.InputStream = InputStream;
-Ice.OutputStream = OutputStream;
-module.exports.Ice = Ice;
+export { 
+    InputStream,
+    OutputStream,
+    ByteHelper,
+    ShortHelper,
+    IntHelper,
+    FloatHelper,
+    DoubleHelper,
+    BoolHelper,
+    LongHelper,
+    StringHelper,
+    ObjectHelper };

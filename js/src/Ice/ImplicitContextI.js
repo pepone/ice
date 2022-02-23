@@ -2,11 +2,8 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/ModuleRegistry").Ice;
-Ice._ModuleRegistry.require(module, ["../Ice/LocalException", "../Ice/Current"]);
-
-const Context = Ice.Context;
-const InitializationException = Ice.InitializationException;
+import { Context } from "./Current";
+import { InitializationException } from "./LocalException";
 
 //
 // The base class for all ImplicitContext implementations
@@ -142,5 +139,4 @@ class ImplicitContextI
     }
 }
 
-Ice.ImplicitContextI = ImplicitContextI;
-module.exports.Ice = Ice;
+export { ImplicitContextI };

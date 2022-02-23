@@ -2,22 +2,11 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/ModuleRegistry").Ice;
-Ice._ModuleRegistry.require(module,
-    [
-        "../Ice/StringUtil",
-        "../Ice/PropertyNames",
-        "../Ice/Debug",
-        "../Ice/ProcessLogger",
-        "../Ice/ProcessLogger",
-        "../Ice/LocalException"
-    ]);
-
-const StringUtil = Ice.StringUtil;
-const PropertyNames = Ice.PropertyNames;
-const Debug = Ice.Debug;
-const getProcessLogger = Ice.getProcessLogger;
-const InitializationException = Ice.InitializationException;
+import { StringUtil } from "./StringUtil";
+import { getProcessLogger } from "./ProcessLogger";
+import { InitializationException } from "./LocalException";
+import { Debug } from "./Debug";
+import { PropertyNames } from "./PropertyNames";
 
 const ParseStateKey = 0;
 const ParseStateValue = 1;
@@ -499,5 +488,4 @@ class Properties
     }
 }
 
-Ice.Properties = Properties;
-module.exports.Ice = Ice;
+export { Properties };

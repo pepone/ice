@@ -2,9 +2,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/LocalException").Ice;
-
-const AlreadyRegisteredException = Ice.AlreadyRegisteredException;
+import { AlreadyRegisteredException } from "./LocalException";
 
 //
 // Only for use by Instance
@@ -36,5 +34,4 @@ class ValueFactoryManagerI
     }
 }
 
-Ice.ValueFactoryManagerI = ValueFactoryManagerI;
-module.exports.Ice = Ice;
+export { ValueFactoryManagerI };

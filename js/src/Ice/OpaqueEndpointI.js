@@ -2,30 +2,22 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/ModuleRegistry").Ice;
-Ice._ModuleRegistry.require(module,
-    [
-        "../Ice/Base64",
-        "../Ice/Debug",
-        "../Ice/FormatType",
-        "../Ice/HashUtil",
-        "../Ice/StringUtil",
-        "../Ice/EndpointI",
-        "../Ice/LocalException"
-    ]);
+import { Base64 } from "./Base64";
+import { HashUtil } from "./HashUtil";
+import { StringUtil } from "./StringUtil";
+import { EndpointParseException } from "./LocalException";
+import { Debug } from "./Debug";
+import { OpaqueEndpointInfo } from "./OpaqueEndpointInfo";
+import { EndpointI } from "./EndpointI";
+import { Encoding_1_0, encodingVersionToString, stringToEncodingVersion } from "./Protocol";
+import { FormatType } from "./FormatType";
 
-const Base64 = Ice.Base64;
-const Debug = Ice.Debug;
-const HashUtil = Ice.HashUtil;
-const StringUtil = Ice.StringUtil;
-const EndpointParseException = Ice.EndpointParseException;
-
-class OpaqueEndpointI extends Ice.EndpointI
+class OpaqueEndpointI extends EndpointI
 {
     constructor(type)
     {
         super();
-        this._rawEncoding = Ice.Encoding_1_0;
+        this._rawEncoding = Encoding_1_0;
         this._type = type === undefined ? -1 : type;
         this._rawBytes = null;
     }
@@ -35,7 +27,7 @@ class OpaqueEndpointI extends Ice.EndpointI
     //
     streamWrite(s)
     {
-        s.startEncapsulation(this._rawEncoding, Ice.FormatType.DefaultFormat);
+        s.startEncapsulation(this._rawEncoding, FormatType.DefaultFormat);
         s.writeBlob(this._rawBytes);
         s.endEncapsulation();
     }
@@ -179,7 +171,7 @@ class OpaqueEndpointI extends Ice.EndpointI
     {
         let s = "";
         s += " -t " + this._type;
-        s += " -e " + Ice.encodingVersionToString(this._rawEncoding);
+        s += " -e " + encodingVersionToString(this._rawEncoding);
         s += " -v " + Base64.encode(this._rawBytes);
         return s;
     }
@@ -358,7 +350,7 @@ class OpaqueEndpointI extends Ice.EndpointI
                 }
                 try
                 {
-                    this._rawEncoding = Ice.stringToEncodingVersion(argument);
+                    this._rawEncoding = stringToEncodingVersion(argument);
                 }
                 catch(e)
                 {
@@ -397,7 +389,7 @@ class OpaqueEndpointI extends Ice.EndpointI
     }
 }
 
-class OpaqueEndpointInfoI extends Ice.OpaqueEndpointInfo
+class OpaqueEndpointInfoI extends OpaqueEndpointInfo
 {
     constructor(timeout, compress, rawEncoding, rawBytes, type)
     {
@@ -421,5 +413,4 @@ class OpaqueEndpointInfoI extends Ice.OpaqueEndpointInfo
     }
 }
 
-Ice.OpaqueEndpointI = OpaqueEndpointI;
-module.exports.Ice = Ice;
+export { OpaqueEndpointI };

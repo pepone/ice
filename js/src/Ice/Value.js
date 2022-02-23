@@ -5,16 +5,8 @@
 //
 // Ice.Value
 //
-const Ice = require("../Ice/ModuleRegistry").Ice;
-Ice._ModuleRegistry.require(module,
-    [
-        "../Ice/Exception",
-        "../Ice/FormatType",
-        "../Ice/StreamHelpers",
-        "../Ice/OptionalFormat"
-    ]);
 
-Ice.Value = class
+class Value
 {
     ice_preMarshal()
     {
@@ -75,9 +67,9 @@ Ice.Value = class
                              }, this);
         return v;
     }
-};
+}
 
-Ice.InterfaceByValue = class extends Ice.Value
+class InterfaceByValue extends Value
 {
     constructor(id)
     {
@@ -105,7 +97,40 @@ Ice.InterfaceByValue = class extends Ice.Value
         is.endSlice();
         is.endValue(false);
     }
+}
+
+function defineValue(valueType, id, preserved, compactId = 0)
+{
+    valueType.prototype.ice_id = function()
+    {
+        return id;
+    };
+
+    valueType.prototype._iceMostDerivedType = function()
+    {
+        return valueType;
+    };
+
+    valueType.ice_staticId = function()
+    {
+        return id;
+    };
+
+    if(preserved)
+    {
+        valueType.prototype.ice_getSlicedData = ice_getSlicedData;
+        valueType.prototype._iceWrite = writePreserved;
+        valueType.prototype._iceRead = readPreserved;
+    }
+
+    if(compactId > 0)
+    {
+        Ice.CompactIdRegistry.set(compactId, id);
+    }
 };
+defineValue(Value, "::Ice::Object");
+
+export { Value, InterfaceByValue, defineValue };
 
 //
 // Private methods
@@ -182,38 +207,3 @@ function ice_getSlicedData()
 {
     return this._iceSlicedData;
 }
-
-const Slice = Ice.Slice;
-
-Slice.defineValue = function(valueType, id, preserved, compactId = 0)
-{
-    valueType.prototype.ice_id = function()
-    {
-        return id;
-    };
-
-    valueType.prototype._iceMostDerivedType = function()
-    {
-        return valueType;
-    };
-
-    valueType.ice_staticId = function()
-    {
-        return id;
-    };
-
-    if(preserved)
-    {
-        valueType.prototype.ice_getSlicedData = ice_getSlicedData;
-        valueType.prototype._iceWrite = writePreserved;
-        valueType.prototype._iceRead = readPreserved;
-    }
-
-    if(compactId > 0)
-    {
-        Ice.CompactIdRegistry.set(compactId, id);
-    }
-};
-Slice.defineValue(Ice.Value, "::Ice::Object");
-
-module.exports.Ice = Ice;

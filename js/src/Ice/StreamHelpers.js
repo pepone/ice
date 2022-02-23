@@ -2,10 +2,9 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/OptionalFormat").Ice;
+import { OptionalFormat } from "./OptionalFormat";
 
 const defineProperty = Object.defineProperty;
-const OptionalFormat = Ice.OptionalFormat;
 
 const StreamHelpers = {};
 
@@ -323,5 +322,4 @@ StreamHelpers.generateDictHelper = function(keyHelper, valueHelper, fixed, value
     return helper;
 };
 
-Ice.StreamHelpers = StreamHelpers;
-module.exports.Ice = Ice;
+export { StreamHelpers };

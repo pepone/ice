@@ -49,5 +49,4 @@ class P extends Promise
     }
 }
 
-Ice.Promise = P;
-module.exports.Ice = Ice;
+export { P }

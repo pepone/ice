@@ -12,9 +12,9 @@ Ice._ModuleRegistry.require(module,
         "../Ice/HashMap"
     ]);
 
-const Debug = Ice.Debug;
-const StringUtil = Ice.StringUtil;
-const HashMap = Ice.HashMap;
+import { StringUtil } from "./StringUtil";
+import { HashMap } from "./HashMap";
+import { Debug } from "./Debug";
 
 //
 // Only for use by Ice.ObjectAdatperI.

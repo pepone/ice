@@ -2,7 +2,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/Value").Ice;
+import { Value } from "./Value";
 
 class SliceInfo
 {
@@ -39,7 +39,6 @@ class SliceInfo
         this.isLastSlice = false;
     }
 }
-Ice.SliceInfo = SliceInfo;
 
 class SlicedData
 {
@@ -48,9 +47,8 @@ class SlicedData
         this.slices = slices;
     }
 }
-Ice.SlicedData = SlicedData;
 
-class UnknownSlicedValue extends Ice.Value
+class UnknownSlicedValue extends Value
 {
     constructor(unknownTypeId)
     {
@@ -80,6 +78,5 @@ class UnknownSlicedValue extends Ice.Value
         this._slicedData = is.endValue(true);
     }
 }
-Ice.UnknownSlicedValue = UnknownSlicedValue;
 
-module.exports.Ice = Ice;
+export { SliceInfo, SlicedData, UnknownSlicedValue };

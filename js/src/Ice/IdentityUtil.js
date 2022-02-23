@@ -2,17 +2,9 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/ModuleRegistry").Ice;
-Ice._ModuleRegistry.require(module,
-                            [
-                                "../Ice/StringUtil",
-                                "../Ice/Identity",
-                                "../Ice/LocalException"
-                            ]);
-
-const StringUtil = Ice.StringUtil;
-const Identity = Ice.Identity;
-const IdentityParseException = Ice.IdentityParseException;
+import { StringUtil } from "./StringUtil";
+import { Identity } from "./Identity";
+import { IdentityParseException } from "./LocalException";
 
 /**
 * Converts a string to an object identity.
@@ -21,7 +13,7 @@ const IdentityParseException = Ice.IdentityParseException;
 *
 * @return The converted object identity.
 **/
-Ice.stringToIdentity = function(s)
+function stringToIdentity(s)
 {
     const ident = new Identity();
 
@@ -110,7 +102,7 @@ Ice.stringToIdentity = function(s)
 *
 * @return The string representation of the object identity.
 **/
-Ice.identityToString = function(ident, toStringMode = Ice.ToStringMode.Unicode)
+function identityToString(ident, toStringMode = Ice.ToStringMode.Unicode)
 {
     if(ident.category === null || ident.category.length === 0)
     {
@@ -135,7 +127,7 @@ Ice.identityToString = function(ident, toStringMode = Ice.ToStringMode.Unicode)
 * @see ProxyIdentityAndFacetKey
 * @see ProxyIdentityAndFacetCompare
 **/
-Ice.proxyIdentityCompare = function(lhs, rhs)
+function proxyIdentityCompare(lhs, rhs)
 {
     if(lhs === rhs)
     {
@@ -171,7 +163,7 @@ Ice.proxyIdentityCompare = function(lhs, rhs)
 * @see ProxyIdentityKey
 * @see ProxyIdentityCompare
 **/
-Ice.proxyIdentityAndFacetCompare = function(lhs, rhs)
+function proxyIdentityAndFacetCompare(lhs, rhs)
 {
     if(lhs === rhs)
     {
@@ -218,4 +210,4 @@ Ice.proxyIdentityAndFacetCompare = function(lhs, rhs)
     }
 };
 
-module.exports.Ice = Ice;
+export { stringToIdentity,  identityToString, proxyIdentityCompare, proxyIdentityAndFacetCompare}

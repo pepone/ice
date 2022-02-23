@@ -2,10 +2,9 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/ModuleRegistry").Ice;
-const _ModuleRegistry = Ice._ModuleRegistry;
-_ModuleRegistry.require(module, ["../Ice/StringUtil", "../Ice/UUID"]);
-const StringUtil = Ice.StringUtil;
+import { StringUtil } from "./StringUtil";
+import { generateUUID } from "./UUID";
+import { StreamHelpers } from "./StreamHelpers";
 
 function setInternal(map, key, value, hash, index)
 {
@@ -384,7 +383,7 @@ class HashMap
         {
             if(HashMap._null === null)
             {
-                const uuid = Ice.generateUUID();
+                const uuid = generateUUID();
                 HashMap._null = {key: uuid, hash: StringUtil.hashCode(uuid)};
             }
             return HashMap._null;
@@ -411,7 +410,7 @@ class HashMap
             {
                 if(HashMap._nan === null)
                 {
-                    const uuid = Ice.generateUUID();
+                    const uuid = generateUUID();
                     HashMap._nan = {key: uuid, hash: StringUtil.hashCode(uuid)};
                 }
                 return HashMap._nan;
@@ -439,16 +438,13 @@ class HashMap
 
 HashMap.prototype[Symbol.iterator] = HashMap.prototype.entries;
 
-Ice.HashMap = HashMap;
 
 HashMap.compareEquals = compareEquals;
 HashMap.compareIdentity = compareIdentity;
 HashMap._null = null;
 HashMap._nan = null;
 
-const Slice = Ice.Slice;
-
-Slice.defineDictionary = function(module, name, helperName, keyHelper, valueHelper, fixed, keysEqual, valueType)
+defineDictionary = function(module, name, helperName, keyHelper, valueHelper, fixed, keysEqual, valueType)
 {
     if(keysEqual === undefined)
     {
@@ -474,14 +470,15 @@ Slice.defineDictionary = function(module, name, helperName, keyHelper, valueHelp
         {
             if(helper === null)
             {
-                helper = Ice.StreamHelpers.generateDictHelper(_ModuleRegistry.type(keyHelper),
-                                                              _ModuleRegistry.type(valueHelper),
-                                                              fixed,
-                                                              _ModuleRegistry.type(valueType),
-                                                              module[name]);
+                helper = StreamHelpers.generateDictHelper(_ModuleRegistry.type(keyHelper),
+                                                          _ModuleRegistry.type(valueHelper),
+                                                          fixed,
+                                                          _ModuleRegistry.type(valueType),
+                                                          module[name]);
             }
             return helper;
         }
     });
 };
-module.exports.Ice = Ice;
+
+export { HashMap, defineDictionary }

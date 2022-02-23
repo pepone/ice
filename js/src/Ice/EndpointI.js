@@ -2,8 +2,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/Endpoint").Ice;
-
 class EndpointI
 {
     toString()
@@ -86,5 +84,4 @@ class EndpointI
     }
 }
 
-Ice.EndpointI = EndpointI;
-module.exports.Ice = Ice;
+export { EndpointI };

@@ -2,17 +2,9 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/ModuleRegistry").Ice;
-Ice._ModuleRegistry.require(module,
-    [
-        "../Ice/Stream",
-        "../Ice/Debug",
-        "../Ice/Protocol"
-    ]);
-
-const OutputStream = Ice.OutputStream;
-const Debug = Ice.Debug;
-const Protocol = Ice.Protocol;
+import { OutputStream } from "./Stream";
+import { Protocol } from "./Protocol";
+import { Debug } from "./Debug";
 
 const udpOverhead = 20 + 8;
 
@@ -122,5 +114,4 @@ class BatchRequestQueue
     }
 }
 
-Ice.BatchRequestQueue = BatchRequestQueue;
-module.exports.Ice = Ice;
+export { BatchRequestQueue };

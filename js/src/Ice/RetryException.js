@@ -2,15 +2,14 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/ModuleRegistry").Ice;
-Ice._ModuleRegistry.require(module, ["../Ice/Debug", "../Ice/LocalException"]);
+import { LocalException } from "./Exception";
 
 class RetryException extends Error
 {
     constructor(ex)
     {
         super();
-        if(ex instanceof Ice.LocalException)
+        if(ex instanceof LocalException)
         {
             this._ex = ex;
         }
@@ -27,5 +26,4 @@ class RetryException extends Error
     }
 }
 
-Ice.RetryException = RetryException;
-module.exports.Ice = Ice;
+export { RetryException };

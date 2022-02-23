@@ -2,19 +2,10 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/ModuleRegistry").Ice;
-Ice._ModuleRegistry.require(module,
-    [
-        "../Ice/HashMap",
-        "../Ice/LocatorInfo",
-        "../Ice/LocatorTable",
-        "../Ice/Locator"
-    ]);
-
-const HashMap = Ice.HashMap;
-const LocatorInfo = Ice.LocatorInfo;
-const LocatorTable = Ice.LocatorTable;
-const LocatorPrx = Ice.LocatorPrx;
+import { HashMap } from "./HashMap";
+import { LocatorInfo } from "./LocatorInfo";
+import { LocatorTable } from "./LocatorTable";
+import { LocatorPrx } from "./Locator";
 
 class LocatorManager
 {
@@ -77,5 +68,4 @@ class LocatorManager
     }
 }
 
-Ice.LocatorManager = LocatorManager;
-module.exports.Ice = Ice;
+export { LocatorManager };

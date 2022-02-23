@@ -2,15 +2,9 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/ModuleRegistry").Ice;
-Ice._ModuleRegistry.require(module,
-    [
-        "../Ice/HashUtil",
-        "../Ice/ArrayUtil",
-        "../Ice/StreamHelpers"
-    ]);
 
-const ArrayUtil = Ice.ArrayUtil;
+import { ArrayUtil } from "./ArrayUtil";
+import { HashUtil } from "./HashUtil";
 
 //
 // Use generic equality test from ArrayUtil.
@@ -84,26 +78,26 @@ function memberHashCode(h, e)
 {
     if(typeof e.hashCode == "function")
     {
-        return Ice.HashUtil.addHashable(h, e);
+        return HashUtil.addHashable(h, e);
     }
     else if(e instanceof Array)
     {
-        return Ice.HashUtil.addArray(h, e, memberHashCode);
+        return HashUtil.addArray(h, e, memberHashCode);
     }
     else
     {
         const t = typeof e;
         if(e instanceof String || t == "string")
         {
-            return Ice.HashUtil.addString(h, e);
+            return HashUtil.addString(h, e);
         }
         else if(e instanceof Number || t == "number")
         {
-            return Ice.HashUtil.addNumber(h, e);
+            return HashUtil.addNumber(h, e);
         }
         else if(e instanceof Boolean || t == "boolean")
         {
-            return Ice.HashUtil.addBoolean(h, e);
+            return HashUtil.addBoolean(h, e);
         }
     }
 }

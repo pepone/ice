@@ -2,10 +2,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/ModuleRegistry").Ice;
-Ice._ModuleRegistry.require(module, ["../Ice/Debug", "../Ice/Connection"]);
-
-const Debug = Ice.Debug;
+import { ACMHeartbeat, ACMClose, ACM } from "./Connection";
 
 class ACMConfig
 {
@@ -14,8 +11,8 @@ class ACMConfig
         if(p === undefined)
         {
             this.timeout = 60 * 1000;
-            this.heartbeat = Ice.ACMHeartbeat.HeartbeatOnDispatch;
-            this.close = Ice.ACMClose.CloseOnInvocationAndIdle;
+            this.heartbeat = ACMHeartbeat.HeartbeatOnDispatch;
+            this.close = ACMClose.CloseOnInvocationAndIdle;
             return;
         }
 
@@ -38,9 +35,9 @@ class ACMConfig
         }
 
         const hb = p.getPropertyAsIntWithDefault(prefix + ".Heartbeat", dflt.heartbeat.value);
-        if(hb >= 0 && hb <= Ice.ACMHeartbeat.maxValue)
+        if(hb >= 0 && hb <= ACMHeartbeat.maxValue)
         {
-            this.heartbeat = Ice.ACMHeartbeat.valueOf(hb);
+            this.heartbeat = ACMHeartbeat.valueOf(hb);
         }
         else
         {
@@ -50,9 +47,9 @@ class ACMConfig
         }
 
         const cl = p.getPropertyAsIntWithDefault(prefix + ".Close", dflt.close.value);
-        if(cl >= 0 && cl <= Ice.ACMClose.maxValue)
+        if(cl >= 0 && cl <= ACMClose.maxValue)
         {
-            this.close = Ice.ACMClose.valueOf(cl);
+            this.close = ACMClose.valueOf(cl);
         }
         else
         {
@@ -143,7 +140,7 @@ class FactoryACMMonitor
 
     getACM()
     {
-        return new Ice.ACM(this._config.timeout / 1000, this._config.close, this._config.heartbeat);
+        return new ACM(this._config.timeout / 1000, this._config.close, this._config.heartbeat);
     }
 
     swapReapedConnections()
@@ -235,7 +232,7 @@ class ConnectionACMMonitor
 
     getACM()
     {
-        return new Ice.ACM(this._config.timeout / 1000, this._config.close, this._config.heartbeat);
+        return new ACM(this._config.timeout / 1000, this._config.close, this._config.heartbeat);
     }
 
     runTimerTask()
@@ -251,6 +248,4 @@ class ConnectionACMMonitor
     }
 }
 
-Ice.FactoryACMMonitor = FactoryACMMonitor;
-Ice.ACMConfig = ACMConfig;
-module.exports.Ice = Ice;
+export { FactoryACMMonitor, ACMConfig };

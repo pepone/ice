@@ -2,32 +2,27 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/ModuleRegistry").Ice;
-const _ModuleRegistry = Ice._ModuleRegistry;
-_ModuleRegistry.require(module,
-    [
-        "../Ice/Current",
-        "../Ice/Exception",
-        "../Ice/FormatType",
-        "../Ice/Object",
-        "../Ice/ObjectPrx",
-        "../Ice/OptionalFormat",
-        "../Ice/StreamHelpers"
-    ]);
+import { OperationMode } from "./Current";
+import { FormatType } from "./FormatType";
+import * as Stream from "./Stream";
+import { Value } from "./Value";
+import { ObjectPrx } from "./ObjectPrx";
+import { IceObject } from "./Object";
+import { OperationNotExistException } from "./LocalException";
 
 const builtinHelpers =
 [
-    Ice.ByteHelper,
-    Ice.BoolHelper,
-    Ice.ShortHelper,
-    Ice.IntHelper,
-    Ice.LongHelper,
-    Ice.FloatHelper,
-    Ice.DoubleHelper,
-    Ice.StringHelper,
-    Ice.Value,
-    Ice.ObjectPrx,
-    Ice.Value
+    Stream.ByteHelper,
+    Stream.BoolHelper,
+    Stream.ShortHelper,
+    Stream.IntHelper,
+    Stream.LongHelper,
+    Stream.FloatHelper,
+    Stream.DoubleHelper,
+    Stream.StringHelper,
+    Value,
+    ObjectPrx,
+    Value
 ];
 
 function parseParam(p)
@@ -72,9 +67,9 @@ function parseOperation(name, arr)
 
     r.name = name;
     r.servantMethod = arr[0] ? arr[0] : name;
-    r.mode = arr[1] ? Ice.OperationMode.valueOf(arr[1]) : Ice.OperationMode.Normal;
-    r.sendMode = arr[2] ? Ice.OperationMode.valueOf(arr[2]) : Ice.OperationMode.Normal;
-    r.format = arr[3] ? Ice.FormatType.valueOf(arr[3]) : Ice.FormatType.DefaultFormat;
+    r.mode = arr[1] ? OperationMode.valueOf(arr[1]) : OperationMode.Normal;
+    r.sendMode = arr[2] ? OperationMode.valueOf(arr[2]) : OperationMode.Normal;
+    r.format = arr[3] ? FormatType.valueOf(arr[3]) : FormatType.DefaultFormat;
 
     let ret;
     if(arr[4])
@@ -558,13 +553,12 @@ function addProxyOperation(proxyType, name, data)
                 return results.length == 1 ? results[0] : results;
             };
         }
-        return Ice.ObjectPrx._invoke(this, op.name, op.sendMode, op.format, ctx, marshalFn, unmarshalFn,
-                                     op.exceptions, Array.prototype.slice.call(args));
+        return ObjectPrx._invoke(this, op.name, op.sendMode, op.format, ctx, marshalFn, unmarshalFn,
+                                 op.exceptions, Array.prototype.slice.call(args));
     };
 }
 
-const Slice = Ice.Slice;
-Slice.defineOperations = function(classType, proxyType, ids, pos, ops)
+function defineOperations(classType, proxyType, ids, pos, ops)
 {
     if(ops)
     {
@@ -580,7 +574,7 @@ Slice.defineOperations = function(classType, proxyType, ids, pos, ops)
 
         if(method === undefined || typeof method !== 'function')
         {
-            throw new Ice.OperationNotExistException(current.id, current.facet, current.operation);
+            throw new OperationNotExistException(current.id, current.facet, current.operation);
         }
 
         return method.call(method, this, incomingAsync, current);
@@ -641,7 +635,7 @@ Slice.defineOperations = function(classType, proxyType, ids, pos, ops)
 //
 // Define the "built-in" operations for all Ice objects.
 //
-Slice.defineOperations(Ice.Object, Ice.ObjectPrx, ["::Ice::Object"], 0,
+defineOperations(IceObject, ObjectPrx, ["::Ice::Object"], 0,
 {
     ice_ping: [undefined, 1, 1, undefined, undefined, undefined, undefined, undefined],
     ice_isA: [undefined, 1, 1, undefined, [1], [[7]], undefined, undefined],
@@ -649,4 +643,4 @@ Slice.defineOperations(Ice.Object, Ice.ObjectPrx, ["::Ice::Object"], 0,
     ice_ids: [undefined, 1, 1, undefined, ["Ice.StringSeqHelper"], undefined, undefined, undefined]
 });
 
-module.exports.Ice = Ice;
+export { defineOperations}

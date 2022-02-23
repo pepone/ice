@@ -7,16 +7,8 @@
 //
 // Using IceObject in this file to avoid collisions with the native Object.
 //
-const Ice = require("../Ice/ModuleRegistry").Ice;
-Ice._ModuleRegistry.require(module,
-    [
-        "../Ice/Exception",
-        "../Ice/FormatType",
-        "../Ice/StreamHelpers",
-        "../Ice/OptionalFormat"
-    ]);
 
-Ice.Object = class
+class IceObject
 {
     ice_isA(s, current)
     {
@@ -69,4 +61,4 @@ Ice.Object = class
     }
 };
 
-module.exports.Ice = Ice;
+export { IceObject };

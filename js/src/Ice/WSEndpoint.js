@@ -2,19 +2,10 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/ModuleRegistry").Ice;
-
-Ice._ModuleRegistry.require(module,
-    [
-        "../Ice/HashUtil",
-        "../Ice/EndpointI",
-        "../Ice/LocalException",
-        "../Ice/WSTransceiver",
-        "../Ice/EndpointInfo"
-    ]);
-
-const HashUtil = Ice.HashUtil;
-const EndpointI = Ice.EndpointI;
+import { HashUtil } from "./HashUtil";
+import { WSEndpointInfo } from "./Endpoint";
+import { EndpointI } from "./EndpointI";
+import { EndpointParseException } from "./LocalException";
 
 class WSEndpoint extends EndpointI
 {
@@ -28,7 +19,7 @@ class WSEndpoint extends EndpointI
 
     getInfo()
     {
-        const info = new Ice.WSEndpointInfo();
+        const info = new WSEndpointInfo();
         info.type = () => this.type();
         info.datagram = () => this.datagram();
         info.secure = () => this.secure();
@@ -198,7 +189,7 @@ class WSEndpoint extends EndpointI
         {
             if(argument === null)
             {
-                throw new Ice.EndpointParseException("no argument provided for -r option in endpoint " + endpoint);
+                throw new EndpointParseException("no argument provided for -r option in endpoint " + endpoint);
             }
             this._resource = argument;
         }
@@ -211,9 +202,9 @@ class WSEndpoint extends EndpointI
 
     connectable()
     {
-        return typeof Ice.WSTransceiver !== "undefined";
+        // TODO we need to check if running in a borwser.
+        return typeof WSTransceiver !== "undefined";
     }
 }
 
-Ice.WSEndpoint = WSEndpoint;
-exports.Ice = Ice;
+export { WSEndpoint };

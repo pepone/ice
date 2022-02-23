@@ -2,8 +2,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/ModuleRegistry").Ice;
-
 class Logger
 {
     constructor(prefix)
@@ -93,5 +91,4 @@ class Logger
     }
 }
 
-Ice.Logger = Logger;
-module.exports.Ice = Ice;
+export { Logger };

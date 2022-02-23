@@ -2,24 +2,12 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/ModuleRegistry").Ice;
-Ice._ModuleRegistry.require(module,
-    [
-        "../Ice/Debug",
-        "../Ice/Protocol",
-        "../Ice/StringUtil",
-        "../Ice/Current",
-        "../Ice/Identity"
-    ]);
+import { Debug } from "./Debug";
+import { Protocol } from "./Protocol";
+import { StringUtil } from "./StringUtil";
+import { OperationMode } from "./Current";
+import { Identity } from "./Identity";
 
-//
-// Local aliases.
-//
-const Debug = Ice.Debug;
-const Protocol = Ice.Protocol;
-const StringUtil = Ice.StringUtil;
-const OperationMode = Ice.OperationMode;
-const Identity = Ice.Identity;
 const slicingIds = new Map();
 
 function printIdentityFacetOperation(s, stream)
@@ -495,5 +483,4 @@ class TraceUtil
     }
 }
 
-Ice.TraceUtil = TraceUtil;
-module.exports.Ice = Ice;
+export { TraceUtil };

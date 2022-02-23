@@ -2,8 +2,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/ModuleRegistry").Ice;
-
 const toString = function(key, object, objectTable, ident)
 {
     ident += "  ";
@@ -124,8 +122,6 @@ class Exception extends Error
     }
 }
 
-Ice.Exception = Exception;
-
 //
 // Ice.LocalException
 //
@@ -142,8 +138,6 @@ class LocalException extends Exception
         return "::Ice::LocalException";
     }
 }
-
-Ice.LocalException = LocalException;
 
 //
 // Ice.UserException
@@ -190,7 +184,6 @@ class UserException extends Exception
         return Ice.UserException;
     }
 }
-Ice.UserException = UserException;
 
 //
 // Private methods
@@ -267,11 +260,11 @@ const ice_getSlicedData = function()
     return this._slicedData;
 };
 
-Ice.Slice.PreservedUserException = function(ex)
+function PreservedUserException(ex)
 {
     ex.prototype.ice_getSlicedData = ice_getSlicedData;
     ex.prototype._write = writePreserved;
     ex.prototype._read = readPreserved;
-};
+}
 
-module.exports.Ice = Ice;
+export { Exception, LocalException, UserException, PreservedUserException };

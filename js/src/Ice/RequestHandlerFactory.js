@@ -2,16 +2,9 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/ModuleRegistry").Ice;
-Ice._ModuleRegistry.require(module,
-    [
-        "../Ice/HashMap",
-        "../Ice/Reference",
-        "../Ice/ConnectRequestHandler"
-    ]);
+import { HashMap } from "./HashMap";
+import { ConnectRequestHandler } from "./ConnectRequestHandler";
 
-const HashMap = Ice.HashMap;
-const ConnectRequestHandler = Ice.ConnectRequestHandler;
 
 class RequestHandlerFactory
 {
@@ -67,5 +60,4 @@ class RequestHandlerFactory
     }
 }
 
-Ice.RequestHandlerFactory = RequestHandlerFactory;
-module.exports.Ice = Ice;
+export { RequestHandlerFactory };

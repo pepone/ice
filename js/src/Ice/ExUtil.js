@@ -2,19 +2,13 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/LocalException").Ice;
 
-//
-// Local aliases.
-//
-const UnexpectedObjectException = Ice.UnexpectedObjectException;
-const MemoryLimitException = Ice.MemoryLimitException;
+import { UnexpectedObjectException, MemoryLimitException } from "./LocalException";
 
 //
 // Exception utilities
 //
-
-Ice.ExUtil =
+const ExUtil =
 {
     throwUOE: function(expectedType, v)
     {
@@ -28,4 +22,5 @@ Ice.ExUtil =
                                        " bytes (see Ice.MessageSizeMax)");
     }
 };
-module.exports.Ice = Ice;
+
+export { ExUtil };

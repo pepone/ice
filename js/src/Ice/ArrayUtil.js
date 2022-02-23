@@ -2,10 +2,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/ModuleRegistry").Ice;
-const _ModuleRegistry = Ice._ModuleRegistry;
-const Slice = Ice.Slice;
-
 const eq = function(e1, e2)
 {
     if(e1 === e2)
@@ -82,7 +78,7 @@ class ArrayUtil
 
 ArrayUtil.eq = eq;
 
-Slice.defineSequence = function(module, name, valueHelper, fixed, elementType)
+function defineSequence(module, name, valueHelper, fixed, elementType)
 {
     let helper = null;
     Object.defineProperty(module, name,
@@ -100,5 +96,4 @@ Slice.defineSequence = function(module, name, valueHelper, fixed, elementType)
         });
 };
 
-Ice.ArrayUtil = ArrayUtil;
-module.exports.Ice = Ice;
+export { ArrayUtil, defineSequence }

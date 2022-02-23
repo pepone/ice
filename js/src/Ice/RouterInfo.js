@@ -2,18 +2,8 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/ModuleRegistry").Ice;
-Ice._ModuleRegistry.require(module,
-    [
-        "../Ice/Debug",
-        "../Ice/HashMap",
-        "../Ice/Promise",
-        "../Ice/LocalException",
-        "../Ice/Exception"
-    ]);
-
-const Debug = Ice.Debug;
-const HashMap = Ice.HashMap;
+import { Debug } from "./Debug";
+import { HashMap } from "./HashMap";
 
 class RouterInfo
 {

@@ -2,30 +2,23 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/ModuleRegistry").Ice;
-Ice._ModuleRegistry.require(module,
-    [
-        "../Ice/ArrayUtil",
-        "../Ice/AsyncResult",
-        "../Ice/Debug",
-        "../Ice/FormatType",
-        "../Ice/OutgoingAsync",
-        "../Ice/ReferenceMode",
-        "../Ice/Current",
-        "../Ice/Exception",
-        "../Ice/BuiltinSequences",
-        "../Ice/LocalException",
-        "../Ice/Object"
-    ]);
-
-const ArrayUtil = Ice.ArrayUtil;
-const AsyncResultBase = Ice.AsyncResultBase;
-const Debug = Ice.Debug;
-const OutgoingAsync = Ice.OutgoingAsync;
-const ProxyFlushBatch = Ice.ProxyFlushBatch;
-const ProxyGetConnection = Ice.ProxyGetConnection;
-const RefMode = Ice.ReferenceMode;
-const OperationMode = Ice.OperationMode;
+import { ArrayUtil } from "./ArrayUtil";
+import { AsyncResultBase } from "./AsyncResultBase"
+import { Debug } from "./Debug";
+import { OutgoingAsync, ProxyFlushBatch, ProxyGetConnection } from "./OutgoingAsync";
+import { ReferenceMode } from "./ReferenceMode";
+import { FixedReference } from "./Reference";
+import { OperationMode } from "./Current";
+import { ConnectionI } from "./ConnectionI";
+import { UserException } from "./Exception";
+import { 
+    CloseConnectionException,
+    CommunicatorDestroyedException, 
+    FacetNotExistException,
+    LocalException, 
+    ObjectNotExistException, 
+    TwowayOnlyException,
+    UnknownUserException } from "./LocalException";
 
 //
 // Ice.ObjectPrx
@@ -321,86 +314,86 @@ class ObjectPrx
 
     ice_isTwoway()
     {
-        return this._reference.getMode() === RefMode.ModeTwoway;
+        return this._reference.getMode() === ReferenceMode.ModeTwoway;
     }
 
     ice_twoway()
     {
-        if(this._reference.getMode() === RefMode.ModeTwoway)
+        if(this._reference.getMode() === ReferenceMode.ModeTwoway)
         {
             return this;
         }
         else
         {
-            return this._newInstance(this._reference.changeMode(RefMode.ModeTwoway));
+            return this._newInstance(this._reference.changeMode(ReferenceMode.ModeTwoway));
         }
     }
 
     ice_isOneway()
     {
-        return this._reference.getMode() === RefMode.ModeOneway;
+        return this._reference.getMode() === ReferenceMode.ModeOneway;
     }
 
     ice_oneway()
     {
-        if(this._reference.getMode() === RefMode.ModeOneway)
+        if(this._reference.getMode() === ReferenceMode.ModeOneway)
         {
             return this;
         }
         else
         {
-            return this._newInstance(this._reference.changeMode(RefMode.ModeOneway));
+            return this._newInstance(this._reference.changeMode(ReferenceMode.ModeOneway));
         }
     }
 
     ice_isBatchOneway()
     {
-        return this._reference.getMode() === RefMode.ModeBatchOneway;
+        return this._reference.getMode() === ReferenceMode.ModeBatchOneway;
     }
 
     ice_batchOneway()
     {
-        if(this._reference.getMode() === RefMode.ModeBatchOneway)
+        if(this._reference.getMode() === ReferenceMode.ModeBatchOneway)
         {
             return this;
         }
         else
         {
-            return this._newInstance(this._reference.changeMode(RefMode.ModeBatchOneway));
+            return this._newInstance(this._reference.changeMode(ReferenceMode.ModeBatchOneway));
         }
     }
 
     ice_isDatagram()
     {
-        return this._reference.getMode() === RefMode.ModeDatagram;
+        return this._reference.getMode() === ReferenceMode.ModeDatagram;
     }
 
     ice_datagram()
     {
-        if(this._reference.getMode() === RefMode.ModeDatagram)
+        if(this._reference.getMode() === ReferenceMode.ModeDatagram)
         {
             return this;
         }
         else
         {
-            return this._newInstance(this._reference.changeMode(RefMode.ModeDatagram));
+            return this._newInstance(this._reference.changeMode(ReferenceMode.ModeDatagram));
         }
     }
 
     ice_isBatchDatagram()
     {
-        return this._reference.getMode() === RefMode.ModeBatchDatagram;
+        return this._reference.getMode() === ReferenceMode.ModeBatchDatagram;
     }
 
     ice_batchDatagram()
     {
-        if(this._reference.getMode() === RefMode.ModeBatchDatagram)
+        if(this._reference.getMode() === ReferenceMode.ModeBatchDatagram)
         {
             return this;
         }
         else
         {
-            return this._newInstance(this._reference.changeMode(RefMode.ModeBatchDatagram));
+            return this._newInstance(this._reference.changeMode(ReferenceMode.ModeBatchDatagram));
         }
     }
 
@@ -432,7 +425,7 @@ class ObjectPrx
         {
             throw new RangeError("invalid null connection passed to ice_fixed");
         }
-        if(!(connection instanceof Ice.ConnectionI))
+        if(!(connection instanceof ConnectionI))
         {
             throw new RangeError("invalid connection passed to ice_fixed");
         }
@@ -449,7 +442,7 @@ class ObjectPrx
 
     ice_isFixed()
     {
-        return this._reference instanceof Ice.FixedReference;
+        return this._reference instanceof FixedReference;
     }
 
     ice_getConnectionId()
@@ -557,10 +550,10 @@ class ObjectPrx
         // If the request didn't get sent or if it's non-mutating or idempotent it can
         // also always be retried if the retry count isn't reached.
         //
-        if(ex instanceof Ice.LocalException &&
+        if(ex instanceof LocalException &&
            (!sent ||
             mode == OperationMode.Nonmutating || mode == OperationMode.Idempotent ||
-            ex instanceof Ice.CloseConnectionException || ex instanceof Ice.ObjectNotExistException))
+            ex instanceof CloseConnectionException || ex instanceof ObjectNotExistException))
         {
             try
             {
@@ -571,7 +564,7 @@ class ObjectPrx
             }
             catch(exc)
             {
-                if(exc instanceof Ice.CommunicatorDestroyedException)
+                if(exc instanceof CommunicatorDestroyedException)
                 {
                     //
                     // The communicator is already destroyed, so we cannot retry.
@@ -594,7 +587,7 @@ class ObjectPrx
     {
         if(!this.ice_isTwoway())
         {
-            throw new Ice.TwowayOnlyException(name);
+            throw new TwowayOnlyException(name);
         }
     }
 
@@ -753,7 +746,7 @@ class ObjectPrx
         }
         catch(ex)
         {
-            if(ex instanceof Ice.UserException)
+            if(ex instanceof UserException)
             {
                 if(uex !== null)
                 {
@@ -766,7 +759,7 @@ class ObjectPrx
                         }
                     }
                 }
-                r.reject(new Ice.UnknownUserException(ex.ice_id()));
+                r.reject(new UnknownUserException(ex.ice_id()));
                 return false;
             }
             else
@@ -817,7 +810,7 @@ class ObjectPrx
                 }).catch(
                     ex =>
                     {
-                        if(ex instanceof Ice.FacetNotExistException)
+                        if(ex instanceof FacetNotExistException)
                         {
                             r.resolve(null);
                         }
@@ -900,5 +893,4 @@ class ObjectPrx
     }
 }
 
-Ice.ObjectPrx = ObjectPrx;
-module.exports.Ice = Ice;
+export { ObjectPrx };
