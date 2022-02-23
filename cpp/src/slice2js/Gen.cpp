@@ -1083,22 +1083,30 @@ Slice::Gen::RequireVisitor::writeRequires(const UnitPtr& p)
             }
         }
 
-        //
-        // We first import the Ice runtime
-        //
-        _out << nl << "import { ";
-        mImports = imports["ice"];
-        for(set<string>::const_iterator i = mImports.begin(); i != mImports.end();)
+        if(_icejs)
         {
-            _out << (*i);
-            if(++i != mImports.end())
-            {
-                _out << ", ";
-            }
+            _out << nl << "import { _ModuleRegistry } from \"../Ice/ModuleRegistry\";";
+            _out << nl << "import { Slice_defineSequence } from \"../Ice/ArrayUtil\";";
         }
-        _out << " } from \"ice\";";
-
-        _out << nl << "const _ModuleRegistry = Ice._ModuleRegistry;";
+        else
+        {
+            //
+            // We first import the Ice runtime
+            //
+            _out << nl << "import { ";
+            mImports = imports["ice"];
+            for(set<string>::const_iterator i = mImports.begin(); i != mImports.end();)
+            {
+                _out << (*i);
+                if(++i != mImports.end())
+                {
+                    _out << ", ";
+                }
+            }
+            _out << " } from \"ice\";";
+            _out << nl << "import { _ModuleRegistry } = Ice._ModuleRegistry;";
+            _out << nl << "const Slice_defineSequence = Ice.Slice.defineSequence;";
+        }
 
         for(map<string, set<string> >::const_iterator i = imports.begin(); i != imports.end(); ++i)
         {
@@ -1122,7 +1130,6 @@ Slice::Gen::RequireVisitor::writeRequires(const UnitPtr& p)
                 _out << "\"" << i->first << "\";";
             }
         }
-        _out << nl << "const Slice = Ice.Slice;";
     }
     else
     {
@@ -1159,12 +1166,12 @@ Slice::Gen::RequireVisitor::writeRequires(const UnitPtr& p)
 
         if(!_icejs)
         {
-            _out << nl << "const Ice = require(\"ice\").Ice;";
+            _out << nl << "import {xx Ice } from \"ice\";";
             _out << nl << "const _ModuleRegistry = Ice._ModuleRegistry;";
         }
         else
         {
-            _out << nl << "const _ModuleRegistry = require(\"../Ice/ModuleRegistry\").Ice._ModuleRegistry;";
+            _out << nl << "import  {yy _ModuleRegistry } from \"../Ice/ModuleRegistry\";";
         }
 
         for(map<string, list<string> >::const_iterator i = jsRequires.begin(); i != jsRequires.end(); ++i)
@@ -1240,6 +1247,7 @@ Slice::Gen::TypesVisitor::visitModuleStart(const ModulePtr& p)
     // Foo.Bar = _ModuleRegistry.module("Foo.Bar");
     //
     const string scoped = getLocalScope(p->scoped());
+    cerr << "visit module: " << scoped << endl;
     vector<string>::const_iterator i = find(_seenModules.begin(), _seenModules.end(), scoped);
     if(i == _seenModules.end())
     {
@@ -1266,6 +1274,10 @@ Slice::Gen::TypesVisitor::visitModuleStart(const ModulePtr& p)
             _out << nl << "/* slice2js browser-bundle-skip-end */";
             _out.restoreIndent();
         }
+    }
+    else
+    {
+        cerr << "module already seen: " << scoped << endl;
     }
     return true;
 }
@@ -1801,7 +1813,7 @@ Slice::Gen::TypesVisitor::visitSequence(const SequencePtr& p)
     const bool fixed = !type->isVariableLength();
 
     _out << sp;
-    _out << nl << "Slice.defineSequence(" << scope << ", \"" << propertyName << "\", "
+    _out << nl << "Slice_defineSequence(" << scope << ", \"" << propertyName << "\", "
          << "\"" << getHelper(type) << "\"" << ", " << (fixed ? "true" : "false");
     if(isClassType(type))
     {
