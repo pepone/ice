@@ -1429,16 +1429,16 @@ allTests(Test::TestHelper* helper, const string& /*testDir*/, bool p12)
         const char* authorities[] =
         {
             "", // Self signed CA cert has not X509v3 Authority Key Identifier extension
-            "FF:2B:17:61:F1:80:5C:11:B0:87:00:53:40:BD:F6:EA:52:CE:B7:58",
-            "FF:2B:17:61:F1:80:5C:11:B0:87:00:53:40:BD:F6:EA:52:CE:B7:58",
+            "02:FD:1B:E9:6F:4E:96:8F:0C:0E:99:61:8F:45:48:6B:2B:14:3C:31",
+            "02:FD:1B:E9:6F:4E:96:8F:0C:0E:99:61:8F:45:48:6B:2B:14:3C:31",
             0
         };
 
         const char* subjects[] =
         {
-            "FF:2B:17:61:F1:80:5C:11:B0:87:00:53:40:BD:F6:EA:52:CE:B7:58",
-            "15:60:69:5F:C5:27:48:7F:25:99:3F:3D:D8:2E:CB:C2:F4:66:03:53",
-            "14:56:24:99:69:6B:AD:B3:FB:72:0E:4D:B4:DC:9E:A8:7F:DD:B0:E3",
+            "02:FD:1B:E9:6F:4E:96:8F:0C:0E:99:61:8F:45:48:6B:2B:14:3C:31",
+            "7F:4D:BF:80:65:E0:EE:A4:18:D5:6A:87:33:63:B3:76:7D:42:82:06",
+            "EB:4A:7A:79:09:65:0F:45:40:E8:8C:E6:A8:27:74:34:AB:EA:AF:48",
             0
         };
 
@@ -1451,7 +1451,10 @@ allTests(Test::TestHelper* helper, const string& /*testDir*/, bool p12)
 
         IceSSL::CertificatePtr cert = IceSSL::Certificate::load(defaultDir + "/cacert1.pem");
         unsigned int keyUsage = cert->getKeyUsage();
-        test(keyUsage == 0);
+        test(keyUsage ==
+             (IceSSL::KEY_USAGE_DIGITAL_SIGNATURE |
+              IceSSL::KEY_USAGE_KEY_CERT_SIGN |
+              IceSSL::KEY_USAGE_CRL_SIGN));
 
         //  Digital Signature, Certificate Sign, CRL Sign
         cert = IceSSL::Certificate::load(defaultDir + "/cacert3.pem");
