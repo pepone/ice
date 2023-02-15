@@ -617,13 +617,7 @@ IcePHP::TypedInvocation::unmarshalResults(int argc, zval* args, zval* ret,
     for(ResultCallbackList::iterator q = outParamCallbacks.begin(); q != outParamCallbacks.end(); ++q, ++i)
     {
         assert(Z_ISREF(args[i]));
-
-        //
-        // We must explicitly destroy the existing contents of all zvals passed
-        // as out parameters, otherwise leaks occur.
-        //
         zval* arg = Z_REFVAL_P(&args[i]);
-        zval_ptr_dtor(arg);
         ZVAL_COPY(arg, &(*q)->zv);
     }
 
@@ -669,7 +663,7 @@ IcePHP::TypedInvocation::unmarshalException(zval* zex, const pair<const Ice::Byt
             {
                 StreamUtil::setSlicedDataMember(ex, slicedData);
             }
-            ZVAL_DUP(zex, ex);
+            ZVAL_COPY(zex, ex);
             return;
         }
         else
