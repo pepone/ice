@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace Ice
 {
@@ -52,7 +53,7 @@ namespace Ice
                 private bool _called;
             }
 
-            internal static void batchOneways(Test.MyClassPrx p)
+            internal static async Task batchOneways(Test.MyClassPrx p)
             {
                 byte[] bs1 = new byte[10 * 1024];
 
@@ -65,14 +66,7 @@ namespace Ice
 
                 for (int i = 0; i < 30; ++i)
                 {
-                    batch.begin_opByteSOneway(bs1).whenCompleted(
-                        () =>
-                        {
-                        },
-                        (Ice.Exception ex) =>
-                        {
-                            test(false);
-                        });
+                    await batch.opByteSOnewayAsync(bs1);
                 }
 
                 int count = 0;

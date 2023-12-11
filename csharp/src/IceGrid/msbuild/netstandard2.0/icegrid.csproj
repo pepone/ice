@@ -8,6 +8,30 @@
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="generated\Admin.cs">
+      <SliceCompileSource>..\..\..\..\..\slice\IceGrid\Admin.ice</SliceCompileSource>
+    </Compile>
+    <Compile Include="generated\Descriptor.cs">
+      <SliceCompileSource>..\..\..\..\..\slice\IceGrid\Descriptor.ice</SliceCompileSource>
+    </Compile>
+    <Compile Include="generated\Exception.cs">
+      <SliceCompileSource>..\..\..\..\..\slice\IceGrid\Exception.ice</SliceCompileSource>
+    </Compile>
+    <Compile Include="generated\FileParser.cs">
+      <SliceCompileSource>..\..\..\..\..\slice\IceGrid\FileParser.ice</SliceCompileSource>
+    </Compile>
+    <Compile Include="generated\PluginFacade.cs">
+      <SliceCompileSource>..\..\..\..\..\slice\IceGrid\PluginFacade.ice</SliceCompileSource>
+    </Compile>
+    <Compile Include="generated\Registry.cs">
+      <SliceCompileSource>..\..\..\..\..\slice\IceGrid\Registry.ice</SliceCompileSource>
+    </Compile>
+    <Compile Include="generated\Session.cs">
+      <SliceCompileSource>..\..\..\..\..\slice\IceGrid\Session.ice</SliceCompileSource>
+    </Compile>
+    <Compile Include="generated\UserAccountMapper.cs">
+      <SliceCompileSource>..\..\..\..\..\slice\IceGrid\UserAccountMapper.ice</SliceCompileSource>
+    </Compile>
     <SliceCompile Include="../../../../../slice/$(AssemblyName)/*.ice" />
     <Compile Include="../../*.cs" />
   </ItemGroup>

@@ -8,6 +8,27 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="generated\Metrics.cs">
+      <SliceCompileSource>..\..\..\..\..\slice\Glacier2\Metrics.ice</SliceCompileSource>
+    </Compile>
+    <Compile Include="generated\PermissionsVerifier.cs">
+      <SliceCompileSource>..\..\..\..\..\slice\Glacier2\PermissionsVerifier.ice</SliceCompileSource>
+    </Compile>
+    <Compile Include="generated\PermissionsVerifierF.cs">
+      <SliceCompileSource>..\..\..\..\..\slice\Glacier2\PermissionsVerifierF.ice</SliceCompileSource>
+    </Compile>
+    <Compile Include="generated\Router.cs">
+      <SliceCompileSource>..\..\..\..\..\slice\Glacier2\Router.ice</SliceCompileSource>
+    </Compile>
+    <Compile Include="generated\RouterF.cs">
+      <SliceCompileSource>..\..\..\..\..\slice\Glacier2\RouterF.ice</SliceCompileSource>
+    </Compile>
+    <Compile Include="generated\Session.cs">
+      <SliceCompileSource>..\..\..\..\..\slice\Glacier2\Session.ice</SliceCompileSource>
+    </Compile>
+    <Compile Include="generated\SSLInfo.cs">
+      <SliceCompileSource>..\..\..\..\..\slice\Glacier2\SSLInfo.ice</SliceCompileSource>
+    </Compile>
     <SliceCompile Include="../../../../../slice/$(AssemblyName)/*.ice" />
     <Compile Include="../../*.cs" />
   </ItemGroup>
