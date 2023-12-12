@@ -403,7 +403,7 @@ exception_id
 // ----------------------------------------------------------------------
 exception_decl
 // ----------------------------------------------------------------------
-: exception_id
+: local_qualifier exception_id
 {
     unit->error("exceptions cannot be forward declared");
     $$ = 0;
@@ -413,12 +413,13 @@ exception_decl
 // ----------------------------------------------------------------------
 exception_def
 // ----------------------------------------------------------------------
-: exception_id exception_extends
+: local_qualifier exception_id exception_extends
 {
-    StringTokPtr ident = StringTokPtr::dynamicCast($1);
-    ExceptionPtr base = ExceptionPtr::dynamicCast($2);
+    BoolTokPtr local = BoolTokPtr::dynamicCast($1);
+    StringTokPtr ident = StringTokPtr::dynamicCast($2);
+    ExceptionPtr base = ExceptionPtr::dynamicCast($3);
     ContainerPtr cont = unit->currentContainer();
-    ExceptionPtr ex = cont->createException(ident->v, base);
+    ExceptionPtr ex = cont->createException(ident->v, base, local->v);
     if(ex)
     {
         cont->checkIntroduced(ident->v, ex);
@@ -808,7 +809,7 @@ struct_id
 // ----------------------------------------------------------------------
 struct_decl
 // ----------------------------------------------------------------------
-: struct_id
+: local_qualifier struct_id
 {
     unit->error("structs cannot be forward declared");
     $$ = 0; // Dummy
@@ -818,11 +819,12 @@ struct_decl
 // ----------------------------------------------------------------------
 struct_def
 // ----------------------------------------------------------------------
-: struct_id
+: local_qualifier struct_id
 {
-    StringTokPtr ident = StringTokPtr::dynamicCast($1);
+    BoolTokPtr local = BoolTokPtr::dynamicCast($1);
+    StringTokPtr ident = StringTokPtr::dynamicCast($2);
     ContainerPtr cont = unit->currentContainer();
-    StructPtr st = cont->createStruct(ident->v);
+    StructPtr st = cont->createStruct(ident->v, local->v);
     if(st)
     {
         cont->checkIntroduced(ident->v, st);
@@ -1043,11 +1045,12 @@ class_id
 // ----------------------------------------------------------------------
 class_decl
 // ----------------------------------------------------------------------
-: class_name
+: local_qualifier class_name
 {
-    StringTokPtr ident = StringTokPtr::dynamicCast($1);
+    BoolTokPtr local = BoolTokPtr::dynamicCast($1);
+    StringTokPtr ident = StringTokPtr::dynamicCast($2);
     ContainerPtr cont = unit->currentContainer();
-    ClassDeclPtr cl = cont->createClassDecl(ident->v, false);
+    ClassDeclPtr cl = cont->createClassDecl(ident->v, false, local->v);
     $$ = cl;
 }
 ;
@@ -1055,17 +1058,18 @@ class_decl
 // ----------------------------------------------------------------------
 class_def
 // ----------------------------------------------------------------------
-: class_id class_extends implements
+: local_qualifier class_id class_extends implements
 {
-    ClassIdTokPtr ident = ClassIdTokPtr::dynamicCast($1);
+    BoolTokPtr local = BoolTokPtr::dynamicCast($1);
+    ClassIdTokPtr ident = ClassIdTokPtr::dynamicCast($2);
     ContainerPtr cont = unit->currentContainer();
-    ClassDefPtr base = ClassDefPtr::dynamicCast($2);
-    ClassListTokPtr bases = ClassListTokPtr::dynamicCast($3);
+    ClassDefPtr base = ClassDefPtr::dynamicCast($3);
+    ClassListTokPtr bases = ClassListTokPtr::dynamicCast($4);
     if(base)
     {
         bases->v.push_front(base);
     }
-    ClassDefPtr cl = cont->createClassDef(ident->v, ident->t, false, bases->v);
+    ClassDefPtr cl = cont->createClassDef(ident->v, ident->t, false, bases->v, local->v);
     if(cl)
     {
         cont->checkIntroduced(ident->v, cl);
@@ -1569,11 +1573,12 @@ interface_id
 // ----------------------------------------------------------------------
 interface_decl
 // ----------------------------------------------------------------------
-: interface_id
+: local_qualifier interface_id
 {
-    StringTokPtr ident = StringTokPtr::dynamicCast($1);
+    BoolTokPtr local = BoolTokPtr::dynamicCast($1);
+    StringTokPtr ident = StringTokPtr::dynamicCast($2);
     ContainerPtr cont = unit->currentContainer();
-    ClassDeclPtr cl = cont->createClassDecl(ident->v, true);
+    ClassDeclPtr cl = cont->createClassDecl(ident->v, true, local->v);
     cont->checkIntroduced(ident->v, cl);
     $$ = cl;
 }
@@ -1582,12 +1587,13 @@ interface_decl
 // ----------------------------------------------------------------------
 interface_def
 // ----------------------------------------------------------------------
-: interface_id interface_extends
+: local_qualifier interface_id interface_extends
 {
-    StringTokPtr ident = StringTokPtr::dynamicCast($1);
+    BoolTokPtr local = BoolTokPtr::dynamicCast($1);
+    StringTokPtr ident = StringTokPtr::dynamicCast($2);
     ContainerPtr cont = unit->currentContainer();
-    ClassListTokPtr bases = ClassListTokPtr::dynamicCast($2);
-    ClassDefPtr cl = cont->createClassDef(ident->v, -1, true, bases->v);
+    ClassListTokPtr bases = ClassListTokPtr::dynamicCast($3);
+    ClassDefPtr cl = cont->createClassDef(ident->v, -1, true, bases->v, local->v);
     if(cl)
     {
         cont->checkIntroduced(ident->v, cl);
@@ -1786,21 +1792,23 @@ exception
 // ----------------------------------------------------------------------
 sequence_def
 // ----------------------------------------------------------------------
-: ICE_SEQUENCE '<' meta_data type '>' ICE_IDENTIFIER
+: local_qualifier ICE_SEQUENCE '<' meta_data type '>' ICE_IDENTIFIER
 {
-    StringTokPtr ident = StringTokPtr::dynamicCast($6);
-    StringListTokPtr metaData = StringListTokPtr::dynamicCast($3);
-    TypePtr type = TypePtr::dynamicCast($4);
+    BoolTokPtr local = BoolTokPtr::dynamicCast($1);
+    StringTokPtr ident = StringTokPtr::dynamicCast($7);
+    StringListTokPtr metaData = StringListTokPtr::dynamicCast($4);
+    TypePtr type = TypePtr::dynamicCast($5);
     ContainerPtr cont = unit->currentContainer();
-    $$ = cont->createSequence(ident->v, type, metaData->v);
+    $$ = cont->createSequence(ident->v, type, metaData->v, local->v);
 }
-| ICE_SEQUENCE '<' meta_data type '>' keyword
+| local_qualifier ICE_SEQUENCE '<' meta_data type '>' keyword
 {
-    StringTokPtr ident = StringTokPtr::dynamicCast($6);
-    StringListTokPtr metaData = StringListTokPtr::dynamicCast($3);
-    TypePtr type = TypePtr::dynamicCast($4);
+    BoolTokPtr local = BoolTokPtr::dynamicCast($1);
+    StringTokPtr ident = StringTokPtr::dynamicCast($7);
+    StringListTokPtr metaData = StringListTokPtr::dynamicCast($4);
+    TypePtr type = TypePtr::dynamicCast($5);
     ContainerPtr cont = unit->currentContainer();
-    $$ = cont->createSequence(ident->v, type, metaData->v); // Dummy
+    $$ = cont->createSequence(ident->v, type, metaData->v, local->v); // Dummy
     unit->error("keyword `" + ident->v + "' cannot be used as sequence name");
 }
 ;
@@ -1808,25 +1816,27 @@ sequence_def
 // ----------------------------------------------------------------------
 dictionary_def
 // ----------------------------------------------------------------------
-: ICE_DICTIONARY '<' meta_data type ',' meta_data type '>' ICE_IDENTIFIER
+: local_qualifier ICE_DICTIONARY '<' meta_data type ',' meta_data type '>' ICE_IDENTIFIER
 {
-    StringTokPtr ident = StringTokPtr::dynamicCast($9);
-    StringListTokPtr keyMetaData = StringListTokPtr::dynamicCast($3);
-    TypePtr keyType = TypePtr::dynamicCast($4);
-    StringListTokPtr valueMetaData = StringListTokPtr::dynamicCast($6);
-    TypePtr valueType = TypePtr::dynamicCast($7);
+    BoolTokPtr local = BoolTokPtr::dynamicCast($1);
+    StringTokPtr ident = StringTokPtr::dynamicCast($10);
+    StringListTokPtr keyMetaData = StringListTokPtr::dynamicCast($4);
+    TypePtr keyType = TypePtr::dynamicCast($5);
+    StringListTokPtr valueMetaData = StringListTokPtr::dynamicCast($7);
+    TypePtr valueType = TypePtr::dynamicCast($8);
     ContainerPtr cont = unit->currentContainer();
-    $$ = cont->createDictionary(ident->v, keyType, keyMetaData->v, valueType, valueMetaData->v);
+    $$ = cont->createDictionary(ident->v, keyType, keyMetaData->v, valueType, valueMetaData->v, local->v);
 }
-| ICE_DICTIONARY '<' meta_data type ',' meta_data type '>' keyword
+| local_qualifier ICE_DICTIONARY '<' meta_data type ',' meta_data type '>' keyword
 {
-    StringTokPtr ident = StringTokPtr::dynamicCast($9);
-    StringListTokPtr keyMetaData = StringListTokPtr::dynamicCast($3);
-    TypePtr keyType = TypePtr::dynamicCast($4);
-    StringListTokPtr valueMetaData = StringListTokPtr::dynamicCast($6);
-    TypePtr valueType = TypePtr::dynamicCast($7);
+    BoolTokPtr local = BoolTokPtr::dynamicCast($1);
+    StringTokPtr ident = StringTokPtr::dynamicCast($10);
+    StringListTokPtr keyMetaData = StringListTokPtr::dynamicCast($4);
+    TypePtr keyType = TypePtr::dynamicCast($5);
+    StringListTokPtr valueMetaData = StringListTokPtr::dynamicCast($7);
+    TypePtr valueType = TypePtr::dynamicCast($8);
     ContainerPtr cont = unit->currentContainer();
-    $$ = cont->createDictionary(ident->v, keyType, keyMetaData->v, valueType, valueMetaData->v); // Dummy
+    $$ = cont->createDictionary(ident->v, keyType, keyMetaData->v, valueType, valueMetaData->v, local->v); // Dummy
     unit->error("keyword `" + ident->v + "' cannot be used as dictionary name");
 }
 ;
@@ -1849,18 +1859,19 @@ enum_id
 // ----------------------------------------------------------------------
 enum_def
 // ----------------------------------------------------------------------
-: enum_id
+: local_qualifier enum_id
 {
-    StringTokPtr ident = StringTokPtr::dynamicCast($1);
+    BoolTokPtr local = BoolTokPtr::dynamicCast($1);
+    StringTokPtr ident = StringTokPtr::dynamicCast($2);
     ContainerPtr cont = unit->currentContainer();
-    EnumPtr en = cont->createEnum(ident->v);
+    EnumPtr en = cont->createEnum(ident->v, local->v);
     if(en)
     {
         cont->checkIntroduced(ident->v, en);
     }
     else
     {
-        en = cont->createEnum(IceUtil::generateUUID(), Dummy);
+        en = cont->createEnum(IceUtil::generateUUID(), local->v, Dummy);
     }
     unit->pushContainer(en);
     $$ = en;
@@ -1880,11 +1891,12 @@ enum_def
     $$ = $2;
 }
 |
-ICE_ENUM
+local_qualifier ICE_ENUM
 {
     unit->error("missing enumeration name");
+    BoolTokPtr local = BoolTokPtr::dynamicCast($1);
     ContainerPtr cont = unit->currentContainer();
-    EnumPtr en = cont->createEnum(IceUtil::generateUUID(), Dummy);
+    EnumPtr en = cont->createEnum(IceUtil::generateUUID(), local->v, Dummy);
     unit->pushContainer(en);
     $$ = en;
 }
