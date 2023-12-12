@@ -823,7 +823,7 @@ struct_def
     }
     else
     {
-        st = cont->createStruct(IceUtil::generateUUID()); // Dummy
+        st = cont->createStruct(IceUtil::generateUUID(), local->v); // Dummy
         assert(st);
         unit->pushContainer(st);
     }
@@ -1360,22 +1360,13 @@ return_type
 : tag type
 {
     TaggedDefTokPtr m = TaggedDefTokPtr::dynamicCast($1);
-
-//  OptionalPtr opt = OptionalPtr::dynamicCast($2);
-//  if(!opt)
-//  {
-//      unit->error("Only optional types can be tagged.");
-//  }
-
     m->type = TypePtr::dynamicCast($2);
     $$ = m;
 }
 | optional type
 {
     TaggedDefTokPtr m = TaggedDefTokPtr::dynamicCast($1);
-
-    // Infer the type to be optional for backwards compatability.
-    m->type = new Optional(TypePtr::dynamicCast($2));
+    m->type = TypePtr::dynamicCast($2);
     $$ = m;
 }
 | type
