@@ -86,6 +86,7 @@ int slice_lex(YYSTYPE* lvalp, YYLTYPE* llocp);
 // Avoid old style cast warnings in generated grammar
 #ifdef __GNUC__
 #  pragma GCC diagnostic ignored "-Wold-style-cast"
+#  pragma GCC diagnostic ignored "-Wunused-label"
 #endif
 
 // Avoid clang conversion warnings
@@ -2269,7 +2270,7 @@ local_qualifier
     local->v = true;
     $$ = local;
 }
-|
+| %empty
 {
     BoolTokPtr local = new BoolTok;
     local->v = false;
