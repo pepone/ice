@@ -733,14 +733,12 @@ optional
 }
 | ICE_OPTIONAL_OPEN ')'
 {
-    unit->warning(Deprecated, string("The `optional' keyword is deprecated, use `tag' instead"));
     unit->error("missing tag");
     TaggedDefTokPtr m = new TaggedDefTok(-1); // Dummy
     $$ = m;
 }
 | ICE_OPTIONAL
 {
-    unit->warning(Deprecated, string("The `optional' keyword is deprecated, use `tag' instead"));
     unit->error("missing tag");
     TaggedDefTokPtr m = new TaggedDefTok(-1); // Dummy
     $$ = m;
@@ -755,12 +753,6 @@ tagged_type_id
     TaggedDefTokPtr m = TaggedDefTokPtr::dynamicCast($1);
     TypeStringTokPtr ts = TypeStringTokPtr::dynamicCast($2);
 
-//  OptionalPtr opt = OptionalPtr::dynamicCast(ts->v.first);
-//  if(!opt)
-//  {
-//      unit->error("Only optional types can be tagged.");
-//  }
-
     m->type = ts->v.first;
     m->name = ts->v.second;
     $$ = m;
@@ -770,8 +762,7 @@ tagged_type_id
     TaggedDefTokPtr m = TaggedDefTokPtr::dynamicCast($1);
     TypeStringTokPtr ts = TypeStringTokPtr::dynamicCast($2);
 
-    // Infer the type to be optional for backwards compatability.
-    m->type = new Optional(ts->v.first);
+    m->type = ts->v.first;
     m->name = ts->v.second;
     $$ = m;
 }
@@ -2147,73 +2138,37 @@ type
 {
     $$ = unit->builtin(Builtin::KindByte);
 }
-| ICE_BYTE '?'
-{
-    $$ = unit->optionalBuiltin(Builtin::KindByte);
-}
 | ICE_BOOL
 {
     $$ = unit->builtin(Builtin::KindBool);
-}
-| ICE_BOOL '?'
-{
-    $$ = unit->optionalBuiltin(Builtin::KindBool);
 }
 | ICE_SHORT
 {
     $$ = unit->builtin(Builtin::KindShort);
 }
-| ICE_SHORT '?'
-{
-    $$ = unit->optionalBuiltin(Builtin::KindShort);
-}
 | ICE_INT
 {
     $$ = unit->builtin(Builtin::KindInt);
-}
-| ICE_INT '?'
-{
-    $$ = unit->optionalBuiltin(Builtin::KindInt);
 }
 | ICE_LONG
 {
     $$ = unit->builtin(Builtin::KindLong);
 }
-| ICE_LONG '?'
-{
-    $$ = unit->optionalBuiltin(Builtin::KindLong);
-}
 | ICE_FLOAT
 {
     $$ = unit->builtin(Builtin::KindFloat);
-}
-| ICE_FLOAT '?'
-{
-    $$ = unit->optionalBuiltin(Builtin::KindFloat);
 }
 | ICE_DOUBLE
 {
     $$ = unit->builtin(Builtin::KindDouble);
 }
-| ICE_DOUBLE '?'
-{
-    $$ = unit->optionalBuiltin(Builtin::KindDouble);
-}
 | ICE_STRING
 {
     $$ = unit->builtin(Builtin::KindString);
 }
-| ICE_STRING '?'
-{
-    $$ = unit->optionalBuiltin(Builtin::KindString);
-}
 | ICE_OBJECT
 {
     $$ = unit->builtin(Builtin::KindObject);
-}
-| ICE_OBJECT '?'
-{
-    $$ = unit->optionalBuiltin(Builtin::KindObjectProxy);
 }
 | ICE_OBJECT '*'
 {
@@ -2227,10 +2182,6 @@ type
 | ICE_VALUE
 {
     $$ = unit->builtin(Builtin::KindValue);
-}
-| ICE_VALUE '?'
-{
-    $$ = unit->optionalBuiltin(Builtin::KindValue);
 }
 | scoped_name
 {
@@ -2253,7 +2204,6 @@ type
 }
 | scoped_name '*'
 {
-    // TODO: keep '*' only as an alias for T? where T = interface
     StringTokPtr scoped = StringTokPtr::dynamicCast($1);
     ContainerPtr cont = unit->currentContainer();
     if(cont)
@@ -2276,29 +2226,6 @@ type
             }
             cont->checkIntroduced(scoped->v);
             *p = new Proxy(cl);
-        }
-        $$ = types.front();
-    }
-    else
-    {
-        $$ = 0;
-    }
-}
-| scoped_name '?'
-{
-    StringTokPtr scoped = StringTokPtr::dynamicCast($1);
-    ContainerPtr cont = unit->currentContainer();
-    if(cont)
-    {
-        TypeList types = cont->lookupType(scoped->v);
-        if(types.empty())
-        {
-            YYERROR; // Can't continue, jump to next yyerrok
-        }
-        for(TypeList::iterator p = types.begin(); p != types.end(); ++p)
-        {
-            cont->checkIntroduced(scoped->v);
-            *p = new Optional(*p);
         }
         $$ = types.front();
     }
