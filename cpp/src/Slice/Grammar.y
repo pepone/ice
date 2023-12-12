@@ -147,6 +147,8 @@ slice_error(const char* s)
 %token ICE_DOUBLE
 %token ICE_STRING
 %token ICE_OBJECT
+%token ICE_LOCAL_OBJECT
+%token ICE_LOCAL
 %token ICE_CONST
 %token ICE_FALSE
 %token ICE_TRUE
@@ -2206,6 +2208,10 @@ type
     // TODO: equivalent to ICE_OBJECT ? above, need to merge KindObject / KindObjectProxy
     $$ = unit->builtin(Builtin::KindObjectProxy);
 }
+| ICE_LOCAL_OBJECT
+{
+    $$ = unit->builtin(Builtin::KindLocalObject);
+}
 | ICE_VALUE
 {
     $$ = unit->builtin(Builtin::KindValue);
@@ -2321,6 +2327,23 @@ string_list
     StringListTokPtr stringList = new StringListTok;
     stringList->v.push_back(str->v);
     $$ = stringList;
+}
+;
+
+// ----------------------------------------------------------------------
+local_qualifier
+// ----------------------------------------------------------------------
+: ICE_LOCAL
+{
+    BoolTokPtr local = new BoolTok;
+    local->v = true;
+    $$ = local;
+}
+|
+{
+    BoolTokPtr local = new BoolTok;
+    local->v = false;
+    $$ = local;
 }
 ;
 
@@ -2498,6 +2521,12 @@ keyword
 {
 }
 | ICE_OBJECT
+{
+}
+| ICE_LOCAL_OBJECT
+{
+}
+| ICE_LOCAL
 {
 }
 | ICE_CONST
