@@ -64,10 +64,12 @@ Slice::CompilerException::reason() const
     return _reason;
 }
 
+// Forward declare things from Bison and Flex the parser can use.
+extern int slice_parse();
+extern int slice_lineno;
 extern FILE* slice_in;
 extern int slice_debug;
-
-int slice_parse();
+extern int slice__flex_debug;
 
 //
 // Operation attributes
@@ -6815,23 +6817,17 @@ int
 Slice::Unit::parse(const string& filename, FILE* file, bool debug)
 {
     slice_debug = debug ? 1 : 0;
+    slice__flex_debug = debug ? 1 : 0;
 
     assert(!Slice::unit);
     Slice::unit = this;
 
     _currentComment = "";
-    _currentLine = 1;
     _currentIncludeLevel = 0;
     _topLevelFile = fullPath(filename);
     pushContainer(this);
     pushDefinitionContext();
-
-    //
-    // MCPP Fix: mcpp doesn't always output the first #line when mcpp_lib_main is
-    // called repeatedly. We scan a fake #line here to ensure the top definition
-    // context is correctly initialized.
-    //
-    scanPosition(string("#line 1 " + _topLevelFile).c_str());
+    setCurrentFile(_topLevelFile, 0);
 
     slice_in = file;
     int status = slice_parse();
