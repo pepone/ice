@@ -2162,7 +2162,6 @@ type
 }
 | ICE_OBJECT '*'
 {
-    // TODO: equivalent to ICE_OBJECT ? above, need to merge KindObject / KindObjectProxy
     $$ = unit->builtin(Builtin::KindObjectProxy);
 }
 | ICE_LOCAL_OBJECT

@@ -7,8 +7,6 @@
 
 #include <Slice/Parser.h>
 
-#include <memory>
-
 namespace Slice
 {
 
