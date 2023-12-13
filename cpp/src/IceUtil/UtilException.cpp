@@ -616,7 +616,7 @@ IceUtil::operator<<(ostream& out, const IceUtil::Exception& ex)
 IceUtil::NullHandleException::NullHandleException(const char* file, int line) :
     ExceptionHelper<NullHandleException>(file, line)
 {
-    // if(IceUtilInternal::nullHandleAbort)
+    if(IceUtilInternal::nullHandleAbort)
     {
         abort();
     }
