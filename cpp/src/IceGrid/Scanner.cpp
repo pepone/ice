@@ -1,7 +1,7 @@
 #include <IceUtil/ScannerConfig.h>
-#line 1 "src/IceGrid/Scanner.cpp"
+#line 2 "src/IceGrid/Scanner.cpp"
 
-#line 3 "src/IceGrid/Scanner.cpp"
+#line 4 "src/IceGrid/Scanner.cpp"
 
 #define  YY_INT_ALIGNED short int
 
@@ -517,8 +517,8 @@ std::string parseSingleQuotedString();
 }
 #define         YY_USER_INIT initScanner();
 
-#line 519 "src/IceGrid/Scanner.cpp"
 #line 520 "src/IceGrid/Scanner.cpp"
+#line 521 "src/IceGrid/Scanner.cpp"
 
 #define INITIAL 0
 
@@ -738,7 +738,7 @@ YY_DECL
 #line 76 "src/IceGrid/Scanner.l"
 
 
-#line 740 "src/IceGrid/Scanner.cpp"
+#line 741 "src/IceGrid/Scanner.cpp"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -942,7 +942,7 @@ YY_RULE_SETUP
 #line 197 "src/IceGrid/Scanner.l"
 ECHO;
 	YY_BREAK
-#line 944 "src/IceGrid/Scanner.cpp"
+#line 945 "src/IceGrid/Scanner.cpp"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
