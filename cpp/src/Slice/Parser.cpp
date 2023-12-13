@@ -6427,7 +6427,7 @@ Slice::Unit::topLevelFile() const
 int
 Slice::Unit::currentLine() const
 {
-    return _currentLine;
+    return slice_lineno;
 }
 int
 Slice::Unit::setCurrentFile(const std::string& currentFile, int lineNumber)
@@ -6534,7 +6534,7 @@ Slice::Unit::setSeenDefinition()
 void
 Slice::Unit::error(const string& s)
 {
-    emitError(currentFile(), _currentLine, s);
+    emitError(currentFile(), currentLine(), s);
     _errors++;
 }
 
@@ -6543,11 +6543,11 @@ Slice::Unit::warning(WarningCategory category, const string& msg) const
 {
     if(_definitionContextStack.empty())
     {
-        emitWarning(currentFile(), _currentLine, msg);
+        emitWarning(currentFile(), currentLine(), msg);
     }
     else
     {
-        _definitionContextStack.top()->warning(category, currentFile(), _currentLine, msg);
+        _definitionContextStack.top()->warning(category, currentFile(), currentLine(), msg);
     }
 }
 
@@ -6929,7 +6929,6 @@ Slice::Unit::Unit(bool ignRedefs, bool all, bool allowIcePrefix, bool allowUnder
     _allowUnderscore(allowUnderscore),
     _defaultGlobalMetaData(defaultGlobalMetadata),
     _errors(0),
-    _currentLine(0),
     _currentIncludeLevel(0)
 
 {
