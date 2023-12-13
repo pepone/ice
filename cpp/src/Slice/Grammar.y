@@ -1072,7 +1072,7 @@ class_def
 }
 '{' class_exports '}'
 {
-    if($4)
+    if($5)
     {
         unit->popContainer();
         $$ = $5;
@@ -1587,10 +1587,10 @@ interface_def
 }
 '{' interface_exports '}'
 {
-    if($3)
+    if($4)
     {
         unit->popContainer();
-        $$ = $3;
+        $$ = $4;
     }
     else
     {
@@ -1858,7 +1858,7 @@ enum_def
 }
 '{' enumerator_list '}'
 {
-    EnumPtr en = EnumPtr::dynamicCast($2);
+    EnumPtr en = EnumPtr::dynamicCast($3);
     if(en)
     {
         EnumeratorListTokPtr enumerators = EnumeratorListTokPtr::dynamicCast($4);
@@ -1868,7 +1868,7 @@ enum_def
         }
         unit->popContainer();
     }
-    $$ = $2;
+    $$ = $3;
 }
 |
 local_qualifier ICE_ENUM
@@ -1883,7 +1883,7 @@ local_qualifier ICE_ENUM
 '{' enumerator_list '}'
 {
     unit->popContainer();
-    $$ = $1;
+    $$ = $2;
 }
 ;
 
