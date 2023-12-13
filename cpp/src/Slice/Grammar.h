@@ -39,7 +39,7 @@
 # define YY_SLICE_SRC_SLICE_GRAMMAR_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
-# define YYDEBUG 0
+# define YYDEBUG 1
 #endif
 #if YYDEBUG
 extern int slice_debug;

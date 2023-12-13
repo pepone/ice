@@ -430,11 +430,11 @@ exception_def
 }
 '{' exception_exports '}'
 {
-    if($3)
+    if($4)
     {
         unit->popContainer();
     }
-    $$ = $3;
+    $$ = $4;
 }
 ;
 
@@ -624,7 +624,6 @@ optional
 : ICE_OPTIONAL_OPEN ICE_INTEGER_LITERAL ')'
 {
     IntegerTokPtr i = IntegerTokPtr::dynamicCast($2);
-    unit->warning(Deprecated, string("The `optional' keyword is deprecated, use `tag' instead"));
 
     int tag;
     if(i->v < 0 || i->v > Int32Max)
@@ -643,8 +642,6 @@ optional
 | ICE_OPTIONAL_OPEN scoped_name ')'
 {
     StringTokPtr scoped = StringTokPtr::dynamicCast($2);
-    unit->warning(Deprecated, string("The `optional' keyword is deprecated, use `tag' instead"));
-
     ContainerPtr cont = unit->currentContainer();
     assert(cont);
     ContainedList cl = cont->lookupContained(scoped->v, false);
@@ -832,11 +829,11 @@ struct_def
 }
 '{' struct_exports '}'
 {
-    if($2)
+    if($3)
     {
         unit->popContainer();
     }
-    $$ = $2;
+    $$ = $3;
 
     //
     // Empty structures are not allowed
@@ -1078,7 +1075,7 @@ class_def
     if($4)
     {
         unit->popContainer();
-        $$ = $4;
+        $$ = $5;
     }
     else
     {

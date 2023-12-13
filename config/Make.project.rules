@@ -178,7 +178,7 @@ endef
 define make-bison
 $1/%.h $1/%.cpp: $1/%.y
 	@$(RM) $$*.h $$*.cpp
-	bison -dv $2 --header=$1/$$*.h -o $1/$$*.cpp $$<
+	bison -tv $2 --header=$1/$$*.h -o $1/$$*.cpp $$<
 	@$(RM) $1/$$*.output
 endef
 
