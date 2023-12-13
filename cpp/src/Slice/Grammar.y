@@ -1756,7 +1756,7 @@ exception
     ExceptionPtr exception = cont->lookupException(scoped->v);
     if(!exception)
     {
-        exception = cont->createException(IceUtil::generateUUID(), 0, Dummy); // Dummy
+        exception = cont->createException(IceUtil::generateUUID(), 0, false, Dummy); // Dummy
     }
     cont->checkIntroduced(scoped->v, exception);
     $$ = exception;
@@ -1765,7 +1765,7 @@ exception
 {
     StringTokPtr ident = StringTokPtr::dynamicCast($1);
     unit->error("keyword `" + ident->v + "' cannot be used as exception name");
-    $$ = unit->currentContainer()->createException(IceUtil::generateUUID(), 0, Dummy); // Dummy
+    $$ = unit->currentContainer()->createException(IceUtil::generateUUID(), 0, false, Dummy); // Dummy
 }
 ;
 
