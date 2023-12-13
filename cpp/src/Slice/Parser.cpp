@@ -6427,65 +6427,18 @@ Slice::Unit::currentLine() const
 {
     return _currentLine;
 }
-
-void
-Slice::Unit::nextLine()
+int
+Slice::Unit::setCurrentFile(const std::string& currentFile, int lineNumber)
 {
-    _currentLine++;
-}
-
-bool
-Slice::Unit::scanPosition(const char* s)
-{
-    assert(*s == '#');
-
-    string line(s + 1);                      // Skip leading #
-    eraseWhiteSpace(line);
-    if(line.find("line", 0) == 0)            // Erase optional "line"
-    {
-        line.erase(0, 4);
-        eraseWhiteSpace(line);
-    }
-
-    string::size_type idx;
-
-    _currentLine = atoi(line.c_str()) - 1;   // Read line number
-
-    idx = line.find_first_of(" \t\r");       // Erase line number
-    if(idx != string::npos)
-    {
-        line.erase(0, idx);
-    }
-    eraseWhiteSpace(line);
-
-    string currentFile;
-    if(!line.empty())
-    {
-        if(line[0] == '"')
-        {
-            idx = line.rfind('"');
-            if(idx != string::npos)
-            {
-                currentFile = line.substr(1, idx - 1);
-            }
-        }
-        else
-        {
-            currentFile = line;
-        }
-    }
-
     enum LineType { File, Push, Pop };
 
     LineType type = File;
 
-    if(_currentLine == 0)
+    if(lineNumber == 0)
     {
         if(_currentIncludeLevel > 0 || currentFile != _topLevelFile)
         {
             type = Push;
-            line.erase(idx);
-            eraseWhiteSpace(line);
         }
     }
     else
@@ -6494,8 +6447,6 @@ Slice::Unit::scanPosition(const char* s)
         if(dc != 0 && !dc->filename().empty() && dc->filename() != currentFile)
         {
             type = Pop;
-            line.erase(idx);
-            eraseWhiteSpace(line);
         }
     }
 
@@ -6534,10 +6485,7 @@ Slice::Unit::scanPosition(const char* s)
         _definitionContextMap.insert(make_pair(currentFile, dc));
     }
 
-    //
-    // Return code indicates whether starting parse of a new file.
-    //
-    return _currentLine == 0;
+    return static_cast<int>(type);
 }
 
 int

@@ -1088,8 +1088,7 @@ public:
     std::string topLevelFile() const;
     int currentLine() const;
 
-    void nextLine();
-    bool scanPosition(const char*);
+    int setCurrentFile(const std::string&, int);
     int currentIncludeLevel() const;
 
     void addGlobalMetaData(const StringList&);
