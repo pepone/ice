@@ -226,7 +226,7 @@ struct TokenContext
     int lastLine;
     int firstColumn;
     int lastColumn;
-    std::shared_ptr<std::string> filename;
+    std::string filename;
 };
 
 }

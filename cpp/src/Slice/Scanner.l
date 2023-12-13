@@ -39,7 +39,8 @@ namespace Slice
 {
 
 // Definitions for the case-insensitive keyword-token map.
-map<string, int> keywordMap;
+typedef map<string, int> StringTokenMap;
+StringTokenMap keywordMap;
 
 int checkKeyword(string&);
 int checkIdentifier(const string&);
@@ -50,7 +51,7 @@ int checkIdentifier(const string&);
 // generates 'yylineno', which stores the scanner's current line number.
 int yycolno = 0;
 // Stores a copy of the filename that the scanner is currently scanning.
-shared_ptr<string> yyfilename;
+string yyfilename;
 
 namespace
 {
@@ -187,7 +188,7 @@ floating_literal    (({fractional_constant}{exponent_part}?)|((\+|-)?{dec}+{expo
 
   /* Matches an escaped octal value. Octal literals are limited to a max of 3 digits. */
 <STRING_LITERAL>"\\"{oct}{1,3} {
-    auto value = strtoull((yytext + 1), 0, 8);
+    IceUtil::Int64 value = strtoull((yytext + 1), 0, 8);
     if(value > 255)
     {
         unit->error("octal escape sequence out of range: `\\" + string(yytext + 1) + "'");
@@ -200,7 +201,7 @@ floating_literal    (({fractional_constant}{exponent_part}?)|((\+|-)?{dec}+{expo
 
   /* Matches an escaped hexadecimal value. Hexadecimal literals are limited to a max of 2 digits. */
 <STRING_LITERAL>"\\x"{hex}{1,2} {
-    auto value = strtoull((yytext + 2), 0, 16);
+    IceUtil::Int64 value = strtoull((yytext + 2), 0, 16);
     assert(value <= 255);
 
     StringTokPtr str = StringTokPtr::dynamicCast(*yylval);
@@ -218,7 +219,7 @@ floating_literal    (({fractional_constant}{exponent_part}?)|((\+|-)?{dec}+{expo
   /* Matches a 4-char or 8-char size universal character code. */
 <STRING_LITERAL>"\\u"{hex}{4} |
 <STRING_LITERAL>"\\U"{hex}{8} {
-    auto codePoint = strtoull((yytext + 2), 0, 16);
+    IceUtil::Int64 codePoint = strtoull((yytext + 2), 0, 16);
     if(codePoint <= 0xdfff && codePoint >= 0xd800)
     {
         unit->error("a universal character name cannot designate a surrogate: `" + string(yytext) + "'");
@@ -559,7 +560,7 @@ namespace Slice
 // an identifier token.
 int checkKeyword(string& id)
 {
-    const auto pos = keywordMap.find(id);
+    const StringTokenMap::const_iterator pos = keywordMap.find(id);
     if(pos != keywordMap.end())
     {
         if(pos->first != id)
@@ -693,7 +694,7 @@ int scanPosition(const char* s)
             }
         }
         lineTypeCode = unit->setCurrentFile(line, yylineno);
-        yyfilename = make_shared<string>(move(line));
+        yyfilename = string(line);
     }
     return lineTypeCode;
 }
@@ -724,42 +725,40 @@ void initScanner()
     // Ensure the scanner starts at line number 1, column position 0.
     yylineno = 1;
 
-    keywordMap = {
-        {"module", ICE_MODULE},
-        {"class", ICE_CLASS},
-        {"interface", ICE_INTERFACE},
-        {"exception", ICE_EXCEPTION},
-        {"struct", ICE_STRUCT},
-        {"sequence", ICE_SEQUENCE},
-        {"dictionary", ICE_DICTIONARY},
-        {"enum", ICE_ENUM},
-        {"out", ICE_OUT},
-        {"extends", ICE_EXTENDS},
-        {"implements", ICE_IMPLEMENTS},
-        {"throws", ICE_THROWS},
-        {"void", ICE_VOID},
-        {"byte", ICE_BYTE},
-        {"bool", ICE_BOOL},
-        {"short", ICE_SHORT},
-        {"int", ICE_INT},
-        {"long", ICE_LONG},
-        {"float", ICE_FLOAT},
-        {"double", ICE_DOUBLE},
-        {"string", ICE_STRING},
-        {"Object", ICE_OBJECT},
-        {"const", ICE_CONST},
-        {"LocalObject", ICE_LOCAL_OBJECT},
-        {"local", ICE_LOCAL},
-        {"false", ICE_FALSE},
-        {"true", ICE_TRUE},
-        {"idempotent", ICE_IDEMPOTENT},
-        {"tag", ICE_TAG},
-        // 'optional' is kept as an alias for 'tag' for backwards compatability.
-        // We need a separate token type since we infer 'optional T' to mean 'tag T?'.
-        // But for 'tag' we require an optional (nullable) type. No inferencing is done.
-        {"optional", ICE_OPTIONAL},
-        {"Value", ICE_VALUE}
-    };
+    keywordMap["module"] = ICE_MODULE;
+    keywordMap["class"] = ICE_CLASS;
+    keywordMap["interface"] = ICE_INTERFACE;
+    keywordMap["exception"] = ICE_EXCEPTION;
+    keywordMap["struct"] = ICE_STRUCT;
+    keywordMap["sequence"] = ICE_SEQUENCE;
+    keywordMap["dictionary"] = ICE_DICTIONARY;
+    keywordMap["enum"] = ICE_ENUM;
+    keywordMap["out"] = ICE_OUT;
+    keywordMap["extends"] = ICE_EXTENDS;
+    keywordMap["implements"] = ICE_IMPLEMENTS;
+    keywordMap["throws"] = ICE_THROWS;
+    keywordMap["void"] = ICE_VOID;
+    keywordMap["byte"] = ICE_BYTE;
+    keywordMap["bool"] = ICE_BOOL;
+    keywordMap["short"] = ICE_SHORT;
+    keywordMap["int"] = ICE_INT;
+    keywordMap["long"] = ICE_LONG;
+    keywordMap["float"] = ICE_FLOAT;
+    keywordMap["double"] = ICE_DOUBLE;
+    keywordMap["string"] = ICE_STRING;
+    keywordMap["Object"] = ICE_OBJECT;
+    keywordMap["const"] = ICE_CONST;
+    keywordMap["LocalObject"] = ICE_LOCAL_OBJECT;
+    keywordMap["local"] = ICE_LOCAL;
+    keywordMap["false"] = ICE_FALSE;
+    keywordMap["true"] = ICE_TRUE;
+    keywordMap["idempotent"] = ICE_IDEMPOTENT;
+    keywordMap["tag"] = ICE_TAG;
+    // 'optional' is kept as an alias for 'tag' for backwards compatability.
+    // We need a separate token type since we infer 'optional T' to mean 'tag T?'.
+    // But for 'tag' we require an optional (nullable) type. No inferencing is done.
+    keywordMap["optional"] = ICE_OPTIONAL;
+    keywordMap["Value"] = ICE_VALUE;
 }
 
 // This function is always called directly after a match has been made, but directly before it's action block is run.
@@ -778,7 +777,7 @@ void preAction()
 // This function is called whenever the scanner encounters an unrecoverable error.
 void yynoreturn fatalError(const char* msg)
 {
-    cerr << *yyfilename << ":" << yylineno << ":" << yycolno << ": fatal  error: " << msg << endl
+    cerr << yyfilename << ":" << yylineno << ":" << yycolno << ": fatal  error: " << msg << endl
          << "\tlast matched text: `" << yytext << "'" << endl
          << "\tlast scanner state: `" << YY_START << "'" << endl;
     exit(YY_EXIT_FAILURE);

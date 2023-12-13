@@ -93,6 +93,7 @@ int slice_lex(YYSTYPE* lvalp, YYLTYPE* llocp);
 #if defined(__clang__)
 #   pragma clang diagnostic ignored "-Wconversion"
 #   pragma clang diagnostic ignored "-Wsign-conversion"
+#   pragma clang diagnostic ignored "-Wunused-but-set-variable"
 #endif
 
 using namespace std;
@@ -536,7 +537,7 @@ tag
             ostringstream os;
             os << "enumerator `" << scoped->v << "' could designate";
             bool first = true;
-            for(const auto& p : enumerators)
+            for(EnumeratorList::iterator p = enumerators.begin(); p != enumerators.end(); ++p)
             {
                 if(first)
                 {
@@ -547,7 +548,7 @@ tag
                     os << " or";
                 }
 
-                os << " `" << p->scoped() << "'";
+                os << " `" << (*p)->scoped() << "'";
             }
             unit->error(os.str());
         }
@@ -661,7 +662,7 @@ optional
             ostringstream os;
             os << "enumerator `" << scoped->v << "' could designate";
             bool first = true;
-            for(const auto& p : enumerators)
+            for(EnumeratorList::iterator p = enumerators.begin(); p != enumerators.end(); ++p)
             {
                 if(first)
                 {
@@ -672,7 +673,7 @@ optional
                     os << " or";
                 }
 
-                os << " `" << p->scoped() << "'";
+                os << " `" << (*p)->scoped() << "'";
             }
             unit->error(os.str());
         }
