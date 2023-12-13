@@ -2214,6 +2214,10 @@ type
                 YYERROR; // Can't continue, jump to next yyerrok
             }
             cont->checkIntroduced(scoped->v);
+            if(cl->isLocal())
+            {
+                unit->error("cannot create proxy for " + cl->kindOf() + " `" + cl->name() + "'"); // $$ is dummy
+            }
             *p = new Proxy(cl);
         }
         $$ = types.front();
