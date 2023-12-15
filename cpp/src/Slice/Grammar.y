@@ -1929,7 +1929,7 @@ enumerator
     EnumeratorPtr en = cont->createEnumerator(ident->v);
     if (en && !metadata->v.empty())
     {
-        en->setMetadata(metadata->v);
+        en->setMetaData(metadata->v);
     }
     $$ = en;
 }
@@ -1943,7 +1943,7 @@ enumerator
 
     if (en && !metadata->v.empty())
     {
-        en->setMetadata(metadata->v);
+        en->setMetaData(metadata->v);
     }
     $$ = en;
 }
@@ -1961,7 +1961,7 @@ enumerator
 
     if (en && !metadata->v.empty())
     {
-        en->setMetadata(metadata->v);
+        en->setMetaData(metadata->v);
     }
     $$ = en;
 }
