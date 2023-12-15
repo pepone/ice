@@ -1947,7 +1947,7 @@ enumerator
     }
     $$ = en;
 }
-| keyword
+| meta_data keyword
 {
     StringListTokPtr metadata = StringListTokPtr::dynamicCast($1);
     StringTokPtr ident = StringTokPtr::dynamicCast($2);
