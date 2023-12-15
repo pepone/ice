@@ -1949,13 +1949,10 @@ enumerator
 }
 | keyword
 {
-    StringTokPtr ident = StringTokPtr::dynamicCast($1);
+    StringListTokPtr metadata = StringListTokPtr::dynamicCast($1);
+    StringTokPtr ident = StringTokPtr::dynamicCast($2);
     unit->error("keyword `" + ident->v + "' cannot be used as enumerator");
-    EnumeratorListTokPtr ens = new EnumeratorListTok; // Dummy
-    $$ = ens;
-}
-| %empty
-{
+
     EnumPtr cont = EnumPtr::dynamicCast(unit->currentContainer());
     EnumeratorPtr en = cont->createEnumerator(ident->v);
 
