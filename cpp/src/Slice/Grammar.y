@@ -1921,7 +1921,7 @@ enumerator_list
 // ----------------------------------------------------------------------
 enumerator
 // ----------------------------------------------------------------------
-: local_metadata ICE_IDENTIFIER
+: meta_data ICE_IDENTIFIER
 {
     StringListTokPtr metadata = StringListTokPtr::dynamicCast($1);
     StringTokPtr ident = StringTokPtr::dynamicCast($2);
@@ -1933,7 +1933,7 @@ enumerator
     }
     $$ = en;
 }
-| local_metadata ICE_IDENTIFIER '=' enumerator_initializer
+| meta_data ICE_IDENTIFIER '=' enumerator_initializer
 {
     StringListTokPtr metadata = StringListTokPtr::dynamicCast($1);
     StringTokPtr ident = StringTokPtr::dynamicCast($2);
