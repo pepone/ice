@@ -1854,10 +1854,9 @@ enum_def
     unit->pushContainer(en);
     $$ = en;
 }
-'{' enumerator_list '}'
+'{' enumerator_list_or_empty '}'
 {
-    EnumPtr en = EnumPtr::dynamicCast($3);
-    if(en)
+    if(EnumPtr en = EnumPtr::dynamicCast($3))
     {
         EnumeratorListTokPtr enumerators = EnumeratorListTokPtr::dynamicCast($5);
         if(enumerators->v.empty())
@@ -1878,7 +1877,7 @@ local_qualifier ICE_ENUM
     unit->pushContainer(en);
     $$ = en;
 }
-'{' enumerator_list '}'
+'{' enumerator_list_or_empty '}'
 {
     unit->popContainer();
     $$ = $2;
@@ -1886,53 +1885,67 @@ local_qualifier ICE_ENUM
 ;
 
 // ----------------------------------------------------------------------
+enumerator_list_or_empty
+// ----------------------------------------------------------------------
+: enumerator_list
+| enumerator_list ','
+| %empty
+{
+    $$ = new EnumeratorListTok;
+}
+;
+
+// ----------------------------------------------------------------------
 enumerator_list
 // ----------------------------------------------------------------------
-: enumerator ',' enumerator_list
+: enumerator_list ',' enumerator
 {
-    EnumeratorListTokPtr ens = EnumeratorListTokPtr::dynamicCast($1);
-    ens->v.splice(ens->v.end(), EnumeratorListTokPtr::dynamicCast($3)->v);
-    $$ = ens;
+    EnumeratorListTokPtr enumerators = EnumeratorListTokPtr::dynamicCast($1);
+    if (EnumeratorPtr en = EnumeratorPtr::dynamicCast($3))
+    {
+        enumerators->v.push_back(en);
+    }
+    $$ = enumerators;
 }
 | enumerator
 {
+    EnumeratorListTokPtr enumerators = new EnumeratorListTok;
+    if (EnumeratorPtr en = EnumeratorPtr::dynamicCast($1))
+    {
+        enumerators->v.push_back(en);
+    }
+    $$ = enumerators;
 }
 ;
 
 // ----------------------------------------------------------------------
 enumerator
 // ----------------------------------------------------------------------
-: ICE_IDENTIFIER
+: local_metadata ICE_IDENTIFIER
 {
-    StringTokPtr ident = StringTokPtr::dynamicCast($1);
-    EnumeratorListTokPtr ens = new EnumeratorListTok;
+    StringListTokPtr metadata = StringListTokPtr::dynamicCast($1);
+    StringTokPtr ident = StringTokPtr::dynamicCast($2);
     ContainerPtr cont = unit->currentContainer();
     EnumeratorPtr en = cont->createEnumerator(ident->v);
-    if(en)
+    if (en && !metadata->v.empty())
     {
-        ens->v.push_front(en);
+        en->setMetadata(metadata->v);
     }
-    $$ = ens;
+    $$ = en;
 }
-| ICE_IDENTIFIER '=' enumerator_initializer
+| local_metadata ICE_IDENTIFIER '=' enumerator_initializer
 {
-    StringTokPtr ident = StringTokPtr::dynamicCast($1);
-    EnumeratorListTokPtr ens = new EnumeratorListTok;
+    StringListTokPtr metadata = StringListTokPtr::dynamicCast($1);
+    StringTokPtr ident = StringTokPtr::dynamicCast($2);
     ContainerPtr cont = unit->currentContainer();
-    IntegerTokPtr intVal = IntegerTokPtr::dynamicCast($3);
-    if(intVal)
+    IntegerTokPtr intVal = IntegerTokPtr::dynamicCast($4);
+    EnumeratorPtr en = cont->createEnumerator(ident->v, intVal->v);
+
+    if (en && !metadata->v.empty())
     {
-        if(intVal->v < 0 || intVal->v > Int32Max)
-        {
-            unit->error("value for enumerator `" + ident->v + "' is out of range");
-        }
-        else
-        {
-            EnumeratorPtr en = cont->createEnumerator(ident->v, static_cast<int>(intVal->v));
-            ens->v.push_front(en);
-        }
+        en->setMetadata(metadata->v);
     }
-    $$ = ens;
+    $$ = en;
 }
 | keyword
 {
@@ -1943,8 +1956,14 @@ enumerator
 }
 | %empty
 {
-    EnumeratorListTokPtr ens = new EnumeratorListTok;
-    $$ = ens; // Dummy
+    EnumPtr cont = EnumPtr::dynamicCast(unit->currentContainer());
+    EnumeratorPtr en = cont->createEnumerator(ident->v);
+
+    if (en && !metadata->v.empty())
+    {
+        en->setMetadata(metadata->v);
+    }
+    $$ = en;
 }
 ;
 
