@@ -12,33 +12,9 @@ class IceBox(ProcessFromBinDir, Server):
         Server.__init__(self, *args, **kargs)
         self.configFile = configFile
 
-    def setup(self, current):
-        mapping = self.getMapping(current)
-
-        #
-        # If running IceBox tests with non default framework we need to generate a custom config
-        # file.
-        #
-        if self.configFile:
-            if isinstance(mapping, CSharpMapping) and current.config.dotnet:
-                configFile = self.configFile.format(testdir=current.testsuite.getPath())
-                with open(configFile, 'r') as source:
-                    framework = mapping.getTargetFramework(current)
-                    libframework = mapping.getLibTargetFramework(current)
-                    newConfigFile = "{}.{}".format(configFile, framework)
-                    with open(newConfigFile, 'w') as target:
-                        for line in source.readlines():
-                            line = line.replace("\\net45\\", "\\netstandard2.0\\{0}\\".format(libframework))
-                            if "\\" != os.sep:
-                                line = line.replace("\\", os.sep)
-                            target.write(line)
-                        current.files.append(newConfigFile)
-
     def getExe(self, current):
         mapping = self.getMapping(current)
-        if isinstance(mapping, JavaCompatMapping):
-            return "IceBox.Server"
-        elif isinstance(mapping, JavaMapping):
+        if isinstance(mapping, JavaMapping):
             return "com.zeroc.IceBox.Server"
         elif isinstance(mapping, CSharpMapping):
             return "iceboxnet"
@@ -77,9 +53,7 @@ class IceBoxAdmin(ProcessFromBinDir, ProcessIsReleaseOnly, Client):
 
     def getExe(self, current):
         mapping = self.getMapping(current)
-        if isinstance(mapping, JavaCompatMapping):
-            return "IceBox.Admin"
-        elif isinstance(mapping, JavaMapping):
+        if isinstance(mapping, JavaMapping):
             return "com.zeroc.IceBox.Admin"
         elif isinstance(platform, AIX) and \
              current.config.buildPlatform == "ppc" and not component.useBinDist(mapping, current):

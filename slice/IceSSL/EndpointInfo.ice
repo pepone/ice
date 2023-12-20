@@ -20,24 +20,14 @@
 
 #include <Ice/Endpoint.ice>
 
-/**
- *
- * IceSSL provides a secure transport for Ice.
- *
- **/
-#ifndef __SLICE2JAVA_COMPAT__
+/// IceSSL provides a secure transport for Ice.
 [["java:package:com.zeroc"]]
-#endif
 
 ["objc:prefix:ICESSL", "swift:module:Ice:SSL"]
 module IceSSL
 {
 
-/**
- *
- * Provides access to an SSL endpoint information.
- *
- **/
+/// Provides access to an SSL endpoint information.
 local class EndpointInfo extends Ice::EndpointInfo
 {
 }

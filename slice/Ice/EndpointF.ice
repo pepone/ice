@@ -18,9 +18,7 @@
 
 [["python:pkgdir:Ice"]]
 
-#ifndef __SLICE2JAVA_COMPAT__
 [["java:package:com.zeroc"]]
-#endif
 
 ["objc:prefix:ICE"]
 module Ice
@@ -33,11 +31,7 @@ local class UDPEndpointInfo;
 local class WSEndpointInfo;
 local interface Endpoint;
 
-/**
- *
- * A sequence of endpoints.
- *
- **/
+/// A sequence of endpoints.
 ["swift:nonnull"] local sequence<Endpoint> EndpointSeq;
 
 }

@@ -8,7 +8,6 @@
 #include <IceUtil/Functional.h>
 #include <IceUtil/Iterator.h>
 #include <IceUtil/StringUtil.h>
-#include <Slice/Checksum.h>
 #include <Slice/FileTracker.h>
 #include <IceUtil/FileUtil.h>
 
@@ -661,7 +660,7 @@ emitOpNameResult(IceUtilInternal::Output& H, const OperationPtr& p, int useWstri
 Slice::Gen::Gen(const string& base, const string& headerExtension, const string& sourceExtension,
                 const vector<string>& extraHeaders, const string& include,
                 const vector<string>& includePaths, const string& dllExport, const string& dir,
-                bool implCpp98, bool implCpp11, bool checksum, bool ice) :
+                bool implCpp98, bool implCpp11, bool ice) :
     _base(base),
     _headerExtension(headerExtension),
     _implHeaderExtension(headerExtension),
@@ -673,7 +672,6 @@ Slice::Gen::Gen(const string& base, const string& headerExtension, const string&
     _dir(dir),
     _implCpp98(implCpp98),
     _implCpp11(implCpp11),
-    _checksum(checksum),
     _ice(ice)
 {
     for(vector<string>::iterator p = _includePaths.begin(); p != _includePaths.end(); ++p)
@@ -698,38 +696,6 @@ Slice::Gen::~Gen()
     {
         implH << "\n\n#endif\n";
         implC << '\n';
-    }
-}
-
-void
-Slice::Gen::generateChecksumMap(const UnitPtr& p)
-{
-    if(_checksum)
-    {
-        ChecksumMap map = createChecksums(p);
-        if(!map.empty())
-        {
-            C << sp << nl << "namespace";
-            C << nl << "{";
-            C << sp << nl << "const char* iceSliceChecksums[] =";
-            C << sb;
-            for(ChecksumMap::const_iterator q = map.begin(); q != map.end(); ++q)
-            {
-                C << nl << "\"" << q->first << "\", \"";
-                ostringstream str;
-                str.flags(ios_base::hex);
-                str.fill('0');
-                for(vector<unsigned char>::const_iterator r = q->second.begin(); r != q->second.end(); ++r)
-                {
-                    str << static_cast<int>(*r);
-                }
-                C << str.str() << "\",";
-            }
-            C << nl << "0";
-            C << eb << ';';
-            C << nl << "const IceInternal::SliceChecksumInit iceSliceChecksumInit(iceSliceChecksums);";
-            C << sp << nl << "}";
-        }
     }
 }
 
@@ -944,11 +910,6 @@ Slice::Gen::generate(const UnitPtr& p)
         C << "\n#include <Ice/SlicedData.h>";
     }
 
-    if(_checksum)
-    {
-        C << "\n#include <Ice/SliceChecksums.h>";
-    }
-
     C << "\n#include <IceUtil/PopDisableWarnings.h>";
 
     StringList includes = p->includeFiles();
@@ -1088,9 +1049,8 @@ Slice::Gen::generate(const UnitPtr& p)
 
         Cpp11CompatibilityVisitor compatibilityVisitor(H, C, _dllExport);
         p->visit(&compatibilityVisitor, false);
-
-        generateChecksumMap(p);
     }
+
     H << sp;
     H.zeroIndent();
     H << nl << "#else // C++98 mapping";
@@ -1165,8 +1125,6 @@ Slice::Gen::generate(const UnitPtr& p)
             ImplVisitor implVisitor(implH, implC, _dllExport);
             p->visit(&implVisitor, false);
         }
-
-        generateChecksumMap(p);
     }
 
     H << sp;
@@ -3042,7 +3000,7 @@ Slice::Gen::ObjectVisitor::visitClassDefStart(const ClassDefPtr& p)
             {
                 C.zeroIndent();
                 C << sp;
-                C << nl << "#if defined(_MSC_VER) && (_MSC_VER >= 1900)";
+                C << nl << "#if defined(_MSC_VER)";
                 C << nl << "#   pragma warning(push)";
                 C << nl << "#   pragma warning(disable:4589)";
                 C << nl << "#endif";
@@ -3068,7 +3026,7 @@ Slice::Gen::ObjectVisitor::visitClassDefStart(const ClassDefPtr& p)
             if(hasGCObjectBaseClass)
             {
                 C.zeroIndent();
-                C << nl << "#if defined(_MSC_VER) && (_MSC_VER >= 1900)";
+                C << nl << "#if defined(_MSC_VER)";
                 C << nl << "#   pragma warning(pop)";
                 C << nl << "#endif";
                 C.restoreIndent();
@@ -3077,25 +3035,19 @@ Slice::Gen::ObjectVisitor::visitClassDefStart(const ClassDefPtr& p)
 
         ClassList allBases = p->allBases();
         StringList ids;
-#ifdef ICE_CPP11_COMPILER
         transform(allBases.begin(), allBases.end(), back_inserter(ids),
                   [](const ContainedPtr& it)
                   {
                       return it->scoped();
                   });
-#else
-        transform(allBases.begin(), allBases.end(), back_inserter(ids), ::IceUtil::constMemFun(&Contained::scoped));
-#endif
         StringList other;
         other.push_back(p->scoped());
         other.push_back("::Ice::Object");
         other.sort();
         ids.merge(other);
         ids.unique();
-        StringList::const_iterator firstIter = ids.begin();
         StringList::const_iterator scopedIter = find(ids.begin(), ids.end(), p->scoped());
         assert(scopedIter != ids.end());
-        StringList::difference_type scopedPos = IceUtilInternal::distance(firstIter, scopedIter);
 
         H << sp;
         H << nl << "/**";
@@ -3172,18 +3124,8 @@ Slice::Gen::ObjectVisitor::visitClassDefStart(const ClassDefPtr& p)
         C << sp;
         C << nl << "const ::std::string&" << nl << scoped.substr(2) << "::ice_staticId()";
         C << sb;
-        C.zeroIndent();
-        C << nl << "#ifdef ICE_HAS_THREAD_SAFE_LOCAL_STATIC";
-        C.restoreIndent();
         C << nl << "static const ::std::string typeId = \"" << *scopedIter << "\";";
         C << nl << "return typeId;";
-        C.zeroIndent();
-        C << nl << "#else";
-        C.restoreIndent();
-        C << nl << "return " << flatName << '[' << scopedPos << "];";
-        C.zeroIndent();
-        C << nl << "#endif";
-        C.restoreIndent();
         C << eb;
 
         emitGCFunctions(p);
@@ -3225,12 +3167,7 @@ Slice::Gen::ObjectVisitor::visitClassDefEnd(const ClassDefPtr& p)
         if(!allOps.empty())
         {
             StringList allOpNames;
-#ifdef ICE_CPP11_COMPILER
             transform(allOps.begin(), allOps.end(), back_inserter(allOpNames), [](const auto& it) { return it->name(); });
-#else
-            transform(allOps.begin(), allOps.end(), back_inserter(allOpNames),
-                      ::IceUtil::constMemFun(&Contained::name));
-#endif
             allOpNames.push_back("ice_id");
             allOpNames.push_back("ice_ids");
             allOpNames.push_back("ice_isA");
@@ -5218,7 +5155,7 @@ Slice::Gen::AsyncImplVisitor::visitOperation(const OperationPtr& p)
 
     H.zeroIndent();
     H << sp;
-    H << nl << "#if defined(_MSC_VER) && (_MSC_VER >= 1900)";
+    H << nl << "#if defined(_MSC_VER)";
     H << nl << "#   pragma warning(push)";
     H << nl << "#   pragma warning(disable:4239)";
     H << nl << "#endif";
@@ -5240,7 +5177,7 @@ Slice::Gen::AsyncImplVisitor::visitOperation(const OperationPtr& p)
 
     H.zeroIndent();
     H << sp;
-    H << nl << "#if defined(_MSC_VER) && (_MSC_VER >= 1900)";
+    H << nl << "#if defined(_MSC_VER)";
     H << nl << "#   pragma warning(pop)";
     H << nl << "#endif";
     H.restoreIndent();
@@ -6174,15 +6111,11 @@ Slice::Gen::Cpp11DeclVisitor::visitClassDefStart(const ClassDefPtr& p)
 
         ClassList allBases = p->allBases();
         StringList ids;
-#ifdef ICE_CPP11_COMPILER
         transform(allBases.begin(), allBases.end(), back_inserter(ids),
                   [](const ContainedPtr& it)
                   {
                       return it->scoped();
                   });
-#else
-        transform(allBases.begin(), allBases.end(), back_inserter(ids), ::IceUtil::constMemFun(&Contained::scoped));
-#endif
         StringList other;
         other.push_back(p->scoped());
         other.push_back("::Ice::Object");
@@ -6203,15 +6136,11 @@ Slice::Gen::Cpp11DeclVisitor::visitClassDefStart(const ClassDefPtr& p)
         C << eb << ';';
 
         StringList allOpNames;
-#ifdef ICE_CPP11_COMPILER
         transform(allOps.begin(), allOps.end(), back_inserter(allOpNames),
                   [](const ContainedPtr& it)
                   {
                       return it->name();
                   });
-#else
-        transform(allOps.begin(), allOps.end(), back_inserter(allOpNames), ::IceUtil::constMemFun(&Contained::name));
-#endif
         allOpNames.push_back("ice_id");
         allOpNames.push_back("ice_ids");
         allOpNames.push_back("ice_isA");
@@ -8005,15 +7934,11 @@ Slice::Gen::Cpp11InterfaceVisitor::visitClassDefStart(const ClassDefPtr& p)
 
     ClassList allBases = p->allBases();
     StringList ids;
-#ifdef ICE_CPP11_COMPILER
     transform(allBases.begin(), allBases.end(), back_inserter(ids),
               [](const ContainedPtr& it)
               {
                   return it->scoped();
               });
-#else
-    transform(allBases.begin(), allBases.end(), back_inserter(ids), ::IceUtil::constMemFun(&Contained::scoped));
-#endif
     StringList other;
     other.push_back(p->scoped());
     other.push_back("::Ice::Object");
@@ -8111,15 +8036,11 @@ Slice::Gen::Cpp11InterfaceVisitor::visitClassDefEnd(const ClassDefPtr& p)
     if(!allOps.empty())
     {
         StringList allOpNames;
-#ifdef ICE_CPP11_COMPILER
         transform(allOps.begin(), allOps.end(), back_inserter(allOpNames),
                   [](const ContainedPtr& it)
                   {
                       return it->name();
                   });
-#else
-        transform(allOps.begin(), allOps.end(), back_inserter(allOpNames), ::IceUtil::constMemFun(&Contained::name));
-#endif
         allOpNames.push_back("ice_id");
         allOpNames.push_back("ice_ids");
         allOpNames.push_back("ice_isA");

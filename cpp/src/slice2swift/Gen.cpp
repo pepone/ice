@@ -324,15 +324,11 @@ Gen::TypesVisitor::visitClassDefStart(const ClassDefPtr& p)
 
     ClassList allBases = p->allBases();
     StringList allIds;
-#ifdef ICE_CPP11_COMPILER
     transform(allBases.begin(), allBases.end(), back_inserter(allIds),
               [](const ContainedPtr& it)
               {
                   return it->scoped();
               });
-#else
-    transform(allBases.begin(), allBases.end(), back_inserter(allIds), ::IceUtil::constMemFun(&Contained::scoped));
-#endif
     allIds.push_back(p->scoped());
     allIds.push_back("::Ice::Object");
     allIds.sort();
@@ -389,8 +385,8 @@ Gen::TypesVisitor::visitExceptionStart(const ExceptionPtr& p)
         //
         ostringstream factory;
         factory << prefix;
-        StringList parts = splitScopedName(p->scoped());
-        for(StringList::const_iterator it = parts.begin(); it != parts.end();)
+        vector<string> parts = splitScopedName(p->scoped());
+        for(vector<string>::const_iterator it = parts.begin(); it != parts.end();)
         {
             factory << (*it);
             if(++it != parts.end())
@@ -1403,8 +1399,8 @@ Gen::ValueVisitor::visitClassDefStart(const ClassDefPtr& p)
     //
     ostringstream factory;
     factory << prefix;
-    StringList parts = splitScopedName(p->scoped());
-    for(StringList::const_iterator it = parts.begin(); it != parts.end();)
+    vector<string> parts = splitScopedName(p->scoped());
+    for(vector<string>::const_iterator it = parts.begin(); it != parts.end();)
     {
         factory << (*it);
         if(++it != parts.end())
@@ -1617,15 +1613,11 @@ Gen::ObjectVisitor::visitClassDefStart(const ClassDefPtr& p)
     const OperationList allOps = p->allOperations();
 
     StringList allOpNames;
-#ifdef ICE_CPP11_COMPILER
     transform(allOps.begin(), allOps.end(), back_inserter(allOpNames),
               [](const ContainedPtr& it)
               {
                   return it->name();
               });
-#else
-    transform(allOps.begin(), allOps.end(), back_inserter(allOpNames), ::IceUtil::constMemFun(&Contained::name));
-#endif
 
     allOpNames.push_back("ice_id");
     allOpNames.push_back("ice_ids");

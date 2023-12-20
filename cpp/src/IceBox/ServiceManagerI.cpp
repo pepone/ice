@@ -7,7 +7,6 @@
 #include <Ice/Ice.h>
 #include <Ice/ConsoleUtil.h>
 #include <Ice/DynamicLibrary.h>
-#include <Ice/SliceChecksums.h>
 #include <Ice/Initialize.h>
 #include <Ice/Instance.h>
 #include <IceBox/ServiceManagerI.h>
@@ -113,12 +112,6 @@ IceBox::ServiceManagerI::ServiceManagerI(CommunicatorPtr communicator, int& argc
 
 IceBox::ServiceManagerI::~ServiceManagerI()
 {
-}
-
-SliceChecksumDict
-IceBox::ServiceManagerI::getSliceChecksums(const Current&) const
-{
-    return sliceChecksums();
 }
 
 void
@@ -653,10 +646,6 @@ IceBox::ServiceManagerI::start(const string& service, const string& entryPoint, 
         //
         // Invoke the factory function.
         //
-#ifdef __IBMCPP__
-      // xlC warns when casting a void* to function pointer
-#   pragma report(disable, "1540-0216")
-#endif
 
         ServiceFactory factory = reinterpret_cast<ServiceFactory>(sym);
         try

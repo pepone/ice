@@ -621,7 +621,6 @@ generated from the section label.
     <section name="Glacier2">
         <property name="AddConnectionContext"/>
         <property name="Client" class="objectadapter"/>
-        <property name="Client.AlwaysBatch" />
         <property name="Client.Buffered" />
         <property name="Client.ForwardContext" />
         <property name="Client.SleepTime" />
@@ -642,7 +641,6 @@ generated from the section label.
         <property name="SSLPermissionsVerifier" class="proxy" />
         <property name="RoutingTable.MaxSize" />
         <property name="Server" class="objectadapter" />
-        <property name="Server.AlwaysBatch" />
         <property name="Server.Buffered" />
         <property name="Server.ForwardContext" />
         <property name="Server.SleepTime" />
@@ -650,7 +648,6 @@ generated from the section label.
         <property name="Server.Trace.Request" />
         <property name="SessionManager" class="proxy" />
         <property name="SSLSessionManager" class="proxy" />
-        <property name="SessionTimeout" />
         <property name="Trace.RoutingTable" />
         <property name="Trace.Session" />
     </section>
@@ -658,35 +655,6 @@ generated from the section label.
     <section name="Glacier2CryptPermissionsVerifier">
         <property name="[any].PermissionsVerifier" />
         <property name="[any].AdminPermissionsVerifier" />
-    </section>
-
-    <section name="Freeze">
-        <property name="DbEnv.[any].CheckpointPeriod" />
-        <property name="DbEnv.[any].DbHome" />
-        <property name="DbEnv.[any].DbPrivate" />
-        <property name="DbEnv.[any].DbRecoverFatal" />
-        <property name="DbEnv.[any].EncodingVersion" />
-        <property name="DbEnv.[any].LockFile" />
-        <property name="DbEnv.[any].OldLogsAutoDelete" />
-        <property name="DbEnv.[any].PeriodicCheckpointMinSize" />
-        <property name="Evictor.[any].BtreeMinKey" />
-        <property name="Evictor.[any].Checksum" />
-        <property name="Evictor.[any].MaxTxSize" />
-        <property name="Evictor.[any].PageSize" />
-        <property name="Evictor.[any].PopulateEmptyIndices" />
-        <property name="Evictor.[any].RollbackOnUserException" />
-        <property name="Evictor.[any].SavePeriod" />
-        <property name="Evictor.[any].SaveSizeTrigger" />
-        <property name="Evictor.[any].StreamTimeout" />
-        <property name="Map.[any].BtreeMinKey" />
-        <property name="Map.[any].Checksum" />
-        <property name="Map.[any].PageSize" />
-        <property name="Trace.DbEnv" />
-        <property name="Trace.Evictor" />
-        <property name="Trace.Map" />
-        <property name="Trace.Transaction" />
-        <property name="Warn.Deadlocks" />
-        <property name="Warn.Rollback" />
     </section>
 
 </properties>

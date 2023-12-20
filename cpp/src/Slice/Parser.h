@@ -42,7 +42,7 @@ private:
     const std::string _reason;
 };
 
-#if defined(_WIN32) && !defined(__MINGW32__)
+#if defined(_WIN32)
 
 const IceUtil::Int64 Int32Max =  0x7fffffffi64;
 const IceUtil::Int64 Int32Min = -Int32Max - 1i64;
@@ -1082,13 +1082,13 @@ public:
     bool allowUnderscore() const;
 
     void setComment(const std::string&);
+    void addToComment(const std::string&);
     std::string currentComment(); // Not const, as this function removes the current comment.
     std::string currentFile() const;
     std::string topLevelFile() const;
     int currentLine() const;
 
-    void nextLine();
-    bool scanPosition(const char*);
+    int setCurrentFile(const std::string&, int);
     int currentIncludeLevel() const;
 
     void addGlobalMetaData(const StringList&);
@@ -1153,9 +1153,7 @@ private:
     StringList _defaultGlobalMetaData;
     int _errors;
     std::string _currentComment;
-    int _currentLine;
     int _currentIncludeLevel;
-    std::string _currentFile;
     std::string _topLevelFile;
     std::stack<DefinitionContextPtr> _definitionContextStack;
     StringList _includeFiles;

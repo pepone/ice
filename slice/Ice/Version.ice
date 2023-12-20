@@ -18,30 +18,20 @@
 
 [["python:pkgdir:Ice"]]
 
-#ifndef __SLICE2JAVA_COMPAT__
 [["java:package:com.zeroc"]]
-#endif
 
 ["objc:prefix:ICE"]
 module Ice
 {
 
-/**
- *
- * A version structure for the protocol version.
- *
- **/
+/// A version structure for the protocol version.
 struct ProtocolVersion
 {
     byte major;
     byte minor;
 }
 
-/**
- *
- * A version structure for the encoding version.
- *
- **/
+/// A version structure for the encoding version.
 struct EncodingVersion
 {
     byte major;

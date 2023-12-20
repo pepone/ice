@@ -24,9 +24,6 @@
     <RootNamespace>Ice</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup>
-    <DefaultPlatformToolset Condition="'$(VisualStudioVersion)' == '10.0' And  '$(DefaultPlatformToolset)' == ''">v100</DefaultPlatformToolset>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
@@ -172,7 +169,6 @@
     <SliceCompile Include="..\..\..\..\..\slice\Ice\RouterF.ice" />
     <SliceCompile Include="..\..\..\..\..\slice\Ice\ServantLocator.ice" />
     <SliceCompile Include="..\..\..\..\..\slice\Ice\ServantLocatorF.ice" />
-    <SliceCompile Include="..\..\..\..\..\slice\Ice\SliceChecksumDict.ice" />
     <SliceCompile Include="..\..\..\..\..\slice\Ice\ValueFactory.ice" />
     <SliceCompile Include="..\..\..\..\..\slice\Ice\Version.ice" />
   </ItemGroup>
@@ -414,12 +410,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <SliceCompileSource>..\..\..\..\..\slice\Ice\ServantLocatorF.ice</SliceCompileSource>
     </ClCompile>
-    <ClCompile Include="Win32\Debug\SliceChecksumDict.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <SliceCompileSource>..\..\..\..\..\slice\Ice\SliceChecksumDict.ice</SliceCompileSource>
-    </ClCompile>
     <ClCompile Include="Win32\Debug\ValueFactory.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -647,12 +637,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <SliceCompileSource>..\..\..\..\..\slice\Ice\ServantLocatorF.ice</SliceCompileSource>
-    </ClCompile>
-    <ClCompile Include="Win32\Release\SliceChecksumDict.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <SliceCompileSource>..\..\..\..\..\slice\Ice\SliceChecksumDict.ice</SliceCompileSource>
     </ClCompile>
     <ClCompile Include="Win32\Release\ValueFactory.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
@@ -882,12 +866,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <SliceCompileSource>..\..\..\..\..\slice\Ice\ServantLocatorF.ice</SliceCompileSource>
     </ClCompile>
-    <ClCompile Include="x64\Debug\SliceChecksumDict.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <SliceCompileSource>..\..\..\..\..\slice\Ice\SliceChecksumDict.ice</SliceCompileSource>
-    </ClCompile>
     <ClCompile Include="x64\Debug\ValueFactory.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -1116,12 +1094,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <SliceCompileSource>..\..\..\..\..\slice\Ice\ServantLocatorF.ice</SliceCompileSource>
     </ClCompile>
-    <ClCompile Include="x64\Release\SliceChecksumDict.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <SliceCompileSource>..\..\..\..\..\slice\Ice\SliceChecksumDict.ice</SliceCompileSource>
-    </ClCompile>
     <ClCompile Include="x64\Release\ValueFactory.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -1229,7 +1201,6 @@
     <ClCompile Include="..\..\ServantManager.cpp" />
     <ClCompile Include="..\..\Service.cpp" />
     <ClCompile Include="..\..\SHA1.cpp" />
-    <ClCompile Include="..\..\SliceChecksums.cpp" />
     <ClCompile Include="..\..\SlicedData.cpp" />
     <ClCompile Include="..\..\StreamSocket.cpp" />
     <ClCompile Include="..\..\StringConverterPlugin.cpp" />
@@ -1472,12 +1443,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <SliceCompileSource>..\..\..\..\..\slice\Ice\ServantLocatorF.ice</SliceCompileSource>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\include\generated\cpp98\Win32\Debug\Ice\SliceChecksumDict.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <SliceCompileSource>..\..\..\..\..\slice\Ice\SliceChecksumDict.ice</SliceCompileSource>
-    </ClInclude>
     <ClInclude Include="..\..\..\..\include\generated\cpp98\Win32\Debug\Ice\ValueFactory.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -1705,12 +1670,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <SliceCompileSource>..\..\..\..\..\slice\Ice\ServantLocatorF.ice</SliceCompileSource>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\include\generated\cpp98\Win32\Release\Ice\SliceChecksumDict.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <SliceCompileSource>..\..\..\..\..\slice\Ice\SliceChecksumDict.ice</SliceCompileSource>
     </ClInclude>
     <ClInclude Include="..\..\..\..\include\generated\cpp98\Win32\Release\Ice\ValueFactory.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
@@ -1940,12 +1899,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <SliceCompileSource>..\..\..\..\..\slice\Ice\ServantLocatorF.ice</SliceCompileSource>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\include\generated\cpp98\x64\Debug\Ice\SliceChecksumDict.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <SliceCompileSource>..\..\..\..\..\slice\Ice\SliceChecksumDict.ice</SliceCompileSource>
-    </ClInclude>
     <ClInclude Include="..\..\..\..\include\generated\cpp98\x64\Debug\Ice\ValueFactory.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -2174,12 +2127,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <SliceCompileSource>..\..\..\..\..\slice\Ice\ServantLocatorF.ice</SliceCompileSource>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\include\generated\cpp98\x64\Release\Ice\SliceChecksumDict.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <SliceCompileSource>..\..\..\..\..\slice\Ice\SliceChecksumDict.ice</SliceCompileSource>
-    </ClInclude>
     <ClInclude Include="..\..\..\..\include\generated\cpp98\x64\Release\Ice\ValueFactory.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -2198,11 +2145,6 @@
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
-    <Import Project="..\..\..\..\msbuild\packages\bzip2.v100.1.0.6.10\build\native\bzip2.v100.targets" Condition="Exists('..\..\..\..\msbuild\packages\bzip2.v100.1.0.6.10\build\native\bzip2.v100.targets')" />
-    <Import Project="..\..\..\..\msbuild\packages\bzip2.v120.1.0.6.10\build\native\bzip2.v120.targets" Condition="Exists('..\..\..\..\msbuild\packages\bzip2.v120.1.0.6.10\build\native\bzip2.v120.targets')" />
-    <Import Project="..\..\..\..\msbuild\packages\bzip2.v140.1.0.6.10\build\native\bzip2.v140.targets" Condition="Exists('..\..\..\..\msbuild\packages\bzip2.v140.1.0.6.10\build\native\bzip2.v140.targets')" />
-    <Import Project="..\..\..\..\msbuild\packages\bzip2.v141.1.0.6.10\build\native\bzip2.v141.targets" Condition="Exists('..\..\..\..\msbuild\packages\bzip2.v141.1.0.6.10\build\native\bzip2.v141.targets')" />
-    <Import Project="..\..\..\..\msbuild\packages\bzip2.v142.1.0.6.10\build\native\bzip2.v142.targets" Condition="Exists('..\..\..\..\msbuild\packages\bzip2.v142.1.0.6.10\build\native\bzip2.v142.targets')" />
     <Import Project="..\..\..\..\msbuild\packages\bzip2.v143.1.0.6.10\build\native\bzip2.v143.targets" Condition="Exists('..\..\..\..\msbuild\packages\bzip2.v143.1.0.6.10\build\native\bzip2.v143.targets')" />
     <Import Project="..\..\..\..\msbuild\packages\zeroc.icebuilder.msbuild.5.0.9\build\zeroc.icebuilder.msbuild.targets" Condition="Exists('..\..\..\..\msbuild\packages\zeroc.icebuilder.msbuild.5.0.9\build\zeroc.icebuilder.msbuild.targets')" />
   </ImportGroup>
@@ -2211,11 +2153,6 @@
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\..\..\..\msbuild\packages\bzip2.v100.1.0.6.10\build\native\bzip2.v100.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\..\msbuild\packages\bzip2.v100.1.0.6.10\build\native\bzip2.v100.targets'))" />
-    <Error Condition="!Exists('..\..\..\..\msbuild\packages\bzip2.v120.1.0.6.10\build\native\bzip2.v120.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\..\msbuild\packages\bzip2.v120.1.0.6.10\build\native\bzip2.v120.targets'))" />
-    <Error Condition="!Exists('..\..\..\..\msbuild\packages\bzip2.v140.1.0.6.10\build\native\bzip2.v140.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\..\msbuild\packages\bzip2.v140.1.0.6.10\build\native\bzip2.v140.targets'))" />
-    <Error Condition="!Exists('..\..\..\..\msbuild\packages\bzip2.v141.1.0.6.10\build\native\bzip2.v141.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\..\msbuild\packages\bzip2.v141.1.0.6.10\build\native\bzip2.v141.targets'))" />
-    <Error Condition="!Exists('..\..\..\..\msbuild\packages\bzip2.v142.1.0.6.10\build\native\bzip2.v142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\..\msbuild\packages\bzip2.v142.1.0.6.10\build\native\bzip2.v142.targets'))" />
     <Error Condition="!Exists('..\..\..\..\msbuild\packages\bzip2.v143.1.0.6.10\build\native\bzip2.v143.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\..\msbuild\packages\bzip2.v143.1.0.6.10\build\native\bzip2.v143.targets'))" />
     <Error Condition="!Exists('..\..\..\..\msbuild\packages\zeroc.icebuilder.msbuild.5.0.9\build\zeroc.icebuilder.msbuild.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\..\msbuild\packages\zeroc.icebuilder.msbuild.5.0.9\build\zeroc.icebuilder.msbuild.props'))" />
     <Error Condition="!Exists('..\..\..\..\msbuild\packages\zeroc.icebuilder.msbuild.5.0.9\build\zeroc.icebuilder.msbuild.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\..\msbuild\packages\zeroc.icebuilder.msbuild.5.0.9\build\zeroc.icebuilder.msbuild.targets'))" />

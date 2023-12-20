@@ -243,7 +243,7 @@ class Platform(object):
     def hasSwift(self, version):
         if self._hasSwift is None:
             try:
-                m = re.search("Apple Swift version ([0-9]+\.[0-9]+)", run("swift --version"))
+                m = re.search(r"Apple Swift version ([0-9]+\.[0-9]+)", run("swift --version"))
                 if m and m.group(1):
                     self._hasSwift = tuple([int(n) for n in m.group(1).split(".")]) >= version
                 else:
@@ -278,9 +278,9 @@ class Platform(object):
         installDir = component.getInstallDir(mapping, current)
         if isinstance(mapping, CSharpMapping):
             if component.useBinDist(mapping, current):
-                return os.path.join(installDir, "tools", mapping.getBinTargetFramework(current))
+                return os.path.join(installDir, "tools", mapping.getTargetFramework(current))
             else:
-                return os.path.join(installDir, "bin", mapping.getBinTargetFramework(current))
+                return os.path.join(installDir, "bin", mapping.getTargetFramework(current))
         return os.path.join(installDir, "bin")
 
     def _getLibDir(self, component, process, mapping, current):
@@ -463,7 +463,7 @@ class Windows(Platform):
             elif isinstance(process, SliceTranslator):
                 return os.path.join(installDir, "tools")
             elif isinstance(mapping, CSharpMapping):
-                return os.path.join(installDir, "tools", mapping.getBinTargetFramework(current))
+                return os.path.join(installDir, "tools", mapping.getTargetFramework(current))
             elif process.isReleaseOnly():
                 # Some services are only available in release mode in the Nuget package
                 return os.path.join(installDir, "build", "native", "bin", platform, "Release")
@@ -471,7 +471,7 @@ class Windows(Platform):
                 return os.path.join(installDir, "build", "native", "bin", platform, config)
         else:
             if isinstance(mapping, CSharpMapping):
-                return os.path.join(installDir, "bin", mapping.getBinTargetFramework(current))
+                return os.path.join(installDir, "bin", mapping.getTargetFramework(current))
             elif isinstance(mapping, PhpMapping):
                 return os.path.join(self.getNugetPackageDir(component, mapping, current),
                                     "build", "native", "bin", platform, config)
@@ -481,7 +481,7 @@ class Windows(Platform):
     def _getLibDir(self, component, process, mapping, current):
         installDir = component.getInstallDir(mapping, current)
         if isinstance(mapping, CSharpMapping):
-            return os.path.join(installDir, "lib", mapping.getLibTargetFramework(current))
+            return os.path.join(installDir, "lib/netstandard2.0")
         else:
             platform = current.driver.configs[mapping].buildPlatform
             config = "Debug" if current.driver.configs[mapping].buildConfig.find("Debug") >= 0 else "Release"
@@ -621,7 +621,6 @@ class Mapping(object):
             # avoid having to check the configuration type)
             self.openssl = False
             self.browser = ""
-            self.es5 = False
             self.worker = False
             self.dotnet = False
             self.framework = ""
@@ -2360,10 +2359,7 @@ class AndroidProcessController(RemoteProcessController):
         return self.device is not None  # Discovery is only used with devices
 
     def getControllerIdentity(self, current):
-        if isinstance(current.testcase.getMapping(), JavaCompatMapping):
-            return "AndroidCompat/ProcessController"
-        else:
-            return "Android/ProcessController"
+        return "Android/ProcessController"
 
     def adb(self):
         return "adb -d" if self.device == "usb" else "adb"
@@ -2661,11 +2657,6 @@ class BrowserProcessController(RemoteProcessController):
                     options = webdriver.FirefoxOptions()
                     options.set_preference("profile", profilepath)
                     self.driver = webdriver.Firefox(options=options)
-                elif driver == "Ie":
-                    # Make sure we start with a clean cache
-                    options = webdriver.IeOptions()
-                    options.ensure_clean_session = True
-                    self.driver = webdriver.Ie(options=options)
                 elif driver == "Safari" and int(port) > 0:
                     service = webdriver.SafariService(port=port, reuse_service=True)
                     self.driver = webdriver.Safari(service=service)
@@ -2688,9 +2679,7 @@ class BrowserProcessController(RemoteProcessController):
         # to register itself with this script.
         #
         testsuite = ""
-        if current.config.es5:
-            testsuite += "es5/"
-        elif isinstance(current.testcase.getMapping(), TypeScriptMapping):
+        if isinstance(current.testcase.getMapping(), TypeScriptMapping):
             testsuite += "typescript/"
         testsuite += str(current.testsuite)
 
@@ -2730,8 +2719,7 @@ class BrowserProcessController(RemoteProcessController):
                         if ident in self.processControllerProxies:
                             prx = self.processControllerProxies[ident]
                             break
-                        print("Please load http://{0}:8080/{1}".format(self.host,
-                                                                       "es5/start" if current.config.es5 else "start"))
+                        print("Please load http://{0}:8080/{1}".format(self.host, "start"))
                         self.cond.wait(5)
 
                 try:
@@ -3087,6 +3075,9 @@ class CppMapping(Mapping):
         def __init__(self, options=[]):
             Mapping.Config.__init__(self, options)
 
+            if self.buildConfig == platform.getDefaultBuildConfig():
+                self.buildConfig = "cpp98-shared"
+
             # Derive from the build config the cpp11 option. This is used by canRun to allow filtering
             # tests on the cpp11 value in the testcase options specification
             self.cpp11 = self.buildConfig.lower().find("cpp11") >= 0
@@ -3258,8 +3249,6 @@ class JavaMapping(Mapping):
             "client" : "Client.java",
             "server" : "Server.java",
             "serveramd" : "AMDServer.java",
-            "servertie" : "TieServer.java",
-            "serveramdtie" : "AMDTieServer.java",
             "collocated" : "Collocated.java",
         }[processType]
 
@@ -3274,36 +3263,6 @@ class JavaMapping(Mapping):
     def getActivityName(self):
         return "com.zeroc.testcontroller/.ControllerActivity"
 
-class JavaCompatMapping(JavaMapping):
-
-    class Config(JavaMapping.Config):
-
-        @classmethod
-        def usage(self):
-            print("")
-            print("Java Compat Mapping options:")
-            print("--android                 Run the Android tests.")
-            print("--device=<device-id>      ID of the Android emulator or device used to run the tests.")
-            print("--avd=<name>              Start specific Android Virtual Device.")
-
-    def getPluginEntryPoint(self, plugin, process, current):
-        return {
-            "IceSSL" : "IceSSL.PluginFactory",
-            "IceBT" : "IceBT.PluginFactory",
-            "IceDiscovery" : "IceDiscovery.PluginFactory",
-            "IceLocatorDiscovery" : "IceLocatorDiscovery.PluginFactory"
-        }[plugin]
-
-    def getEnv(self, process, current):
-        classPath = [os.path.join(self.path, "lib", "test.jar")]
-        if os.path.exists(os.path.join(self.path, "lib", "IceTestLambda.jar")):
-            classPath += [os.path.join(self.path, "lib", "IceTestLambda.jar")]
-        return { "CLASSPATH" : os.pathsep.join(classPath) }
-
-    def getSDKPackage(self):
-        return "system-images;android-33;google_apis;{}".format(
-            "arm64-v8a" if platform_machine() == "arm64" else "x86_64")
-
 class CSharpMapping(Mapping):
 
     class Config(Mapping.Config):
@@ -3316,7 +3275,7 @@ class CSharpMapping(Mapping):
         def usage(self):
             print("")
             print("C# mapping options:")
-            print("--framework=net45|net6.0|net7.0   Choose the framework used to run .NET tests")
+            print("--framework=net48|net6.0|net8.0 Choose the framework used to run .NET tests")
 
         def __init__(self, options=[]):
             Mapping.Config.__init__(self, options)
@@ -3324,26 +3283,11 @@ class CSharpMapping(Mapping):
             if self.framework == "":
                 self.framework = "net6.0"
 
-            self.dotnet = not isinstance(platform, Windows) or self.framework != "net45"
-
-            self.libTargetFramework = "netstandard2.0" if self.framework != "net45" else self.framework
-            self.binTargetFramework = self.framework
-            self.testTargetFramework = self.framework
-
-    def getBinTargetFramework(self, current):
-        return current.config.binTargetFramework
-
-    def getLibTargetFramework(self, current):
-        return current.config.libTargetFramework
-
     def getTargetFramework(self, current):
-        return current.config.testTargetFramework
+        return current.config.framework
 
     def getBuildDir(self, name, current):
-        if current.config.framework in ["net45"]:
-            return os.path.join("msbuild", name, current.config.framework)
-        else:
-            return os.path.join("msbuild", name, "netstandard2.0", self.getTargetFramework(current))
+        return os.path.join("msbuild", name, self.getTargetFramework(current))
 
     def getSSLProps(self, process, current):
         props = Mapping.getSSLProps(self, process, current)
@@ -3386,8 +3330,6 @@ class CSharpMapping(Mapping):
                 env['PATH'] = os.path.join(self.component.getSourceDir(), "cpp", "msbuild", "packages",
                                            "bzip2.{0}.1.0.6.10".format(platform.getPlatformToolset()),
                                            "build", "native", "bin", "x64", "Release")
-            if not current.config.dotnet:
-                env['DEVPATH'] = self.component.getLibDir(process, self, current)
         return env
 
     def _getDefaultSource(self, processType):
@@ -3408,22 +3350,7 @@ class CSharpMapping(Mapping):
             path = self.component.getBinDir(process, self, current)
         else:
             path = os.path.join(current.testcase.getPath(current), current.getBuildDir(exe))
-
-        useDotnetExe = process.isFromBinDir() and current.config.testTargetFramework != "net45"
-        command = ""
-        if useDotnetExe:
-            command += "dotnet "
-        command += os.path.join(path, exe)
-        if useDotnetExe:
-            command += ".dll "
-        elif isinstance(platform, Windows):
-            command += ".exe"
-        command += " {}".format(args)
-        return command
-
-    def getSDKPackage(self):
-        return "system-images;android-33;google_apis;{}".format(
-            "arm64-v8a" if platform_machine() == "arm64" else "x86_64")
+        return "dotnet {}.dll {}".format(os.path.join(path, exe), args)
 
 class CppBasedMapping(Mapping):
 
@@ -3693,10 +3620,6 @@ class MatlabMapping(CppBasedClientMapping):
 class JavaScriptMixin():
 
     def loadTestSuites(self, tests, config, filters, rfilters):
-        # Exclude es5 directory, these are the same tests but transpiled with babel the JavaScript mapping
-        # use them when --es5 option is set.
-        rfilters += [re.compile("es5/*")]
-
         # Exclude typescript directory when the mapping is not typescript otherwise we endup with duplicate entries
         if self.name != "typescript":
             rfilters += [re.compile("typescript/*")]
@@ -3746,13 +3669,12 @@ class JavaScriptMapping(JavaScriptMixin,Mapping):
 
         @classmethod
         def getSupportedArgs(self):
-            return ("", ["es5", "browser=", "worker"])
+            return ("", ["browser=", "worker"])
 
         @classmethod
         def usage(self):
             print("")
             print("JavaScript mapping options:")
-            print("--es5                 Use JavaScript ES5 (Babel compiled code).")
             print("--browser=<name>      Run with the given browser.")
             print("--worker              Run with Web workers enabled.")
 
@@ -3762,31 +3684,19 @@ class JavaScriptMapping(JavaScriptMixin,Mapping):
             if self.browser and self.protocol == "tcp":
                 self.protocol = "ws"
 
-            # Ie only support ES5 for now
-            if self.browser in ["Ie"]:
-                self.es5 = True
-
     def getCommonDir(self, current):
-        if current.config.es5:
-            return os.path.join(self.getPath(), "test", "es5", "Common")
-        else:
-            return os.path.join(self.getPath(), "test", "Common")
+        return os.path.join(self.getPath(), "test", "Common")
 
     def _getDefaultSource(self, processType):
         return { "client" : "Client.js", "serveramd" : "ServerAMD.js", "server" : "Server.js" }[processType]
 
     def getTestCwd(self, process, current):
-        if current.config.es5:
-            # Change to the ES5 test directory if testing ES5
-            return os.path.join(self.path, "test", "es5", current.testcase.getTestSuite().getId())
-        else:
-            return os.path.join(self.path, "test", current.testcase.getTestSuite().getId())
+        return os.path.join(self.path, "test", current.testcase.getTestSuite().getId())
 
     def getOptions(self, current):
         options = JavaScriptMixin.getOptions(self, current)
         options.update({
-            "es5" : [True] if current.config.es5 else [False, True],
-            "worker" : [False, True] if current.config.browser and current.config.browser != "Ie" else [False],
+            "worker" : [False, True] if current.config.browser else [False],
         })
         return options
 
@@ -3842,7 +3752,7 @@ class SwiftMapping(Mapping):
             "macOS",
             current.config.buildConfig)
 
-        targetBuildDir = re.search("\sTARGET_BUILD_DIR = (.*)", run(cmd)).groups(1)[0]
+        targetBuildDir = re.search(r"\sTARGET_BUILD_DIR = (.*)", run(cmd)).groups(1)[0]
 
         testDriver = os.path.join(targetBuildDir, "TestDriver.app/Contents/MacOS/TestDriver")
         if not os.path.exists(testDriver):

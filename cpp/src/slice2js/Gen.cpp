@@ -8,7 +8,6 @@
 #include <Gen.h>
 #include <IceUtil/Iterator.h>
 #include <IceUtil/UUID.h>
-#include <Slice/Checksum.h>
 #include <Slice/FileTracker.h>
 #include <Slice/Util.h>
 
@@ -1327,15 +1326,11 @@ Slice::Gen::TypesVisitor::visitClassDefStart(const ClassDefPtr& p)
 
     ClassList allBases = p->allBases();
     StringList ids;
-#ifdef ICE_CPP11_COMPILER
     transform(allBases.begin(), allBases.end(), back_inserter(ids),
               [](const ContainedPtr& it)
               {
                   return it->scoped();
               });
-#else
-    transform(allBases.begin(), allBases.end(), back_inserter(ids), ::IceUtil::constMemFun(&Contained::scoped));
-#endif
     StringList other;
     other.push_back(scoped);
     other.push_back("::Ice::Object");

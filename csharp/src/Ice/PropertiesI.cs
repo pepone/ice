@@ -167,9 +167,9 @@ namespace Ice
             if(dotPos != -1)
             {
                 string prefix = key.Substring(0, dotPos);
-                for(int i = 0; IceInternal.PropertyNames.validProps[i] != null; ++i)
+                foreach(var validProps in IceInternal.PropertyNames.validProps)
                 {
-                    string pattern = IceInternal.PropertyNames.validProps[i][0].pattern();
+                    string pattern = validProps[0].pattern();
                     dotPos = pattern.IndexOf('.');
                     Debug.Assert(dotPos != -1);
                     string propPrefix = pattern.Substring(1, dotPos - 2);
@@ -181,31 +181,33 @@ namespace Ice
                     }
 
                     bool found = false;
-                    for(int j = 0; IceInternal.PropertyNames.validProps[i][j] != null && !found; ++j)
+                    foreach(var prop in validProps)
                     {
-                        Regex r = new Regex(IceInternal.PropertyNames.validProps[i][j].pattern());
+                        Regex r = new Regex(prop.pattern());
                         Match m = r.Match(key);
                         found = m.Success;
-                        if(found && IceInternal.PropertyNames.validProps[i][j].deprecated())
+                        if(found)
                         {
-                            logger.warning("deprecated property: " + key);
-                            if(IceInternal.PropertyNames.validProps[i][j].deprecatedBy() != null)
+                            if(prop.deprecated())
                             {
-                                key = IceInternal.PropertyNames.validProps[i][j].deprecatedBy();
+                                logger.warning("deprecated property: " + key);
+                                if(prop.deprecatedBy() != null)
+                                {
+                                    key = prop.deprecatedBy();
+                                }
                             }
+                            break;
                         }
 
                         if(!found)
                         {
-                            r = new Regex(IceInternal.PropertyNames.validProps[i][j].pattern().ToUpper());
+                            r = new Regex(prop.pattern().ToUpper());
                             m = r.Match(key.ToUpper());
                             if(m.Success)
                             {
                                 found = true;
                                 mismatchCase = true;
-                                otherKey = IceInternal.PropertyNames.validProps[i][j].pattern().Replace("\\", "").
-                                                                                                Replace("^", "").
-                                                                                                Replace("$", "");
+                                otherKey = prop.pattern().Replace("\\", "").Replace("^", "").Replace("$", "");
                                 break;
                             }
                         }
@@ -298,57 +300,28 @@ namespace Ice
         public string[] parseIceCommandLineOptions(string[] options)
         {
             string[] args = options;
-            for(int i = 0; IceInternal.PropertyNames.clPropNames[i] != null; ++i)
+            foreach(var name in IceInternal.PropertyNames.clPropNames)
             {
-                args = parseCommandLineOptions(IceInternal.PropertyNames.clPropNames[i], args);
+                args = parseCommandLineOptions(name, args);
             }
             return args;
         }
 
         public void load(string file)
         {
-#if NET45
-            if(file.StartsWith("HKCU\\", StringComparison.Ordinal) ||
-               file.StartsWith("HKLM\\", StringComparison.Ordinal))
+            try
             {
-                RegistryKey key =
-                    file.StartsWith("HKCU\\", StringComparison.Ordinal) ? Registry.CurrentUser : Registry.LocalMachine;
-                RegistryKey iceKey = key.OpenSubKey(file.Substring(file.IndexOf("\\") + 1));
-                if(iceKey == null)
+                using(System.IO.StreamReader sr = new System.IO.StreamReader(file))
                 {
-                    Ice.InitializationException ex = new Ice.InitializationException();
-                    ex.reason = "Could not open Windows registry key `" + file + "'";
-                    throw ex;
-                }
-
-                foreach(string propKey in iceKey.GetValueNames())
-                {
-                    RegistryValueKind kind = iceKey.GetValueKind(propKey);
-                    if(kind == RegistryValueKind.String || kind == RegistryValueKind.ExpandString)
-                    {
-                        setProperty(propKey, iceKey.GetValue(propKey).ToString());
-                    }
+                    parse(sr);
                 }
             }
-            else
+            catch(System.IO.IOException ex)
             {
-#endif
-                try
-                {
-                    using(System.IO.StreamReader sr = new System.IO.StreamReader(file))
-                    {
-                        parse(sr);
-                    }
-                }
-                catch(System.IO.IOException ex)
-                {
-                    FileException fe = new FileException(ex);
-                    fe.path = file;
-                    throw fe;
-                }
-#if NET45
+                FileException fe = new FileException(ex);
+                fe.path = file;
+                throw fe;
             }
-#endif
         }
 
         public Properties ice_clone_()

@@ -14,7 +14,6 @@
 #endif
 #include <IceUtil/Iterator.h>
 #include <IceUtil/UUID.h>
-#include <Slice/Checksum.h>
 #include <Slice/FileTracker.h>
 #include <Slice/Util.h>
 #include <string.h>
@@ -212,15 +211,11 @@ Slice::ObjCVisitor::writeDispatchAndMarshalling(const ClassDefPtr& p)
     ClassList allBases = p->allBases();
     StringList ids;
 
-#ifdef ICE_CPP11_COMPILER
     transform(allBases.begin(), allBases.end(), back_inserter(ids),
               [](const ContainedPtr& it)
               {
                   return it->scoped();
               });
-#else
-    transform(allBases.begin(), allBases.end(), back_inserter(ids), ::IceUtil::constMemFun(&Contained::scoped));
-#endif
 
     StringList other;
     other.push_back(p->scoped());
@@ -980,8 +975,8 @@ bool
 Slice::Gen::TypesVisitor::visitModuleStart(const ModulePtr& p)
 {
     string suffix;
-    StringList names = splitScopedName(p->scoped());
-    for(StringList::const_iterator i = names.begin(); i != names.end(); ++i)
+    vector<string> names = splitScopedName(p->scoped());
+    for(vector<string>::const_iterator i = names.begin(); i != names.end(); ++i)
     {
         if(i != names.begin())
         {

@@ -3,7 +3,6 @@
 //
 
 #include <Slice/RubyUtil.h>
-#include <Slice/Checksum.h>
 #include <Slice/Util.h>
 #include <IceUtil/Functional.h>
 #include <IceUtil/InputUtil.h>
@@ -142,37 +141,6 @@ lookupKwd(const string& name)
                                 &keywordList[sizeof(keywordList) / sizeof(*keywordList)],
                                 name);
     return found ? "_" + name : name;
-}
-
-//
-// Split a scoped name into its components and return the components as a list of (unscoped) identifiers.
-//
-static vector<string>
-splitScopedName(const string& scoped)
-{
-    assert(scoped[0] == ':');
-    vector<string> ids;
-    string::size_type next = 0;
-    string::size_type pos;
-    while((pos = scoped.find("::", next)) != string::npos)
-    {
-        pos += 2;
-        if(pos != scoped.size())
-        {
-            string::size_type endpos = scoped.find("::", pos);
-            if(endpos != string::npos && endpos > pos)
-            {
-                ids.push_back(scoped.substr(pos, endpos - pos));
-            }
-        }
-        next = pos;
-    }
-    if(next != scoped.size())
-    {
-        ids.push_back(scoped.substr(next));
-    }
-
-    return ids;
 }
 
 //
@@ -1434,7 +1402,7 @@ Slice::Ruby::CodeVisitor::collectExceptionMembers(const ExceptionPtr& p, MemberI
 }
 
 void
-Slice::Ruby::generate(const UnitPtr& un, bool all, bool checksum, const vector<string>& includePaths, Output& out)
+Slice::Ruby::generate(const UnitPtr& un, bool all, const vector<string>& includePaths, Output& out)
 {
     out << nl << "require 'Ice'";
 
@@ -1456,27 +1424,6 @@ Slice::Ruby::generate(const UnitPtr& un, bool all, bool checksum, const vector<s
 
     CodeVisitor codeVisitor(out);
     un->visit(&codeVisitor, false);
-
-    if(checksum)
-    {
-        ChecksumMap checksums = createChecksums(un);
-        if(!checksums.empty())
-        {
-            out << sp;
-            for(ChecksumMap::const_iterator p = checksums.begin(); p != checksums.end(); ++p)
-            {
-                out << nl << "::Ice::SliceChecksums[\"" << p->first << "\"] = \"";
-                ostringstream str;
-                str.flags(ios_base::hex);
-                str.fill('0');
-                for(vector<unsigned char>::const_iterator q = p->second.begin(); q != p->second.end(); ++q)
-                {
-                    str << static_cast<int>(*q);
-                }
-                out << str.str() << "\"";
-            }
-        }
-    }
 
     out << nl; // Trailing newline.
 }
@@ -1513,7 +1460,7 @@ Slice::Ruby::fixIdent(const string& ident, IdentStyle style)
         return lookupKwd(id);
     }
 
-    vector<string> ids = splitScopedName(ident);
+    vector<string> ids = splitScopedName(ident, false);
     assert(!ids.empty());
 
     ostringstream result;

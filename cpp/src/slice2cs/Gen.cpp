@@ -16,7 +16,6 @@
 
 #include <IceUtil/Iterator.h>
 #include <IceUtil/UUID.h>
-#include <Slice/Checksum.h>
 #include <Slice/FileTracker.h>
 #include <Slice/Util.h>
 #include <DotNetNames.h>
@@ -393,15 +392,11 @@ Slice::CsVisitor::writeDispatch(const ClassDefPtr& p)
     StringList ids;
     ClassList bases = p->bases();
     bool hasBaseClass = !bases.empty() && !bases.front()->isInterface();
-#ifdef ICE_CPP11_COMPILER
     transform(allBases.begin(), allBases.end(), back_inserter(ids),
               [](const ContainedPtr& it)
               {
                   return it->scoped();
               });
-#else
-    transform(allBases.begin(), allBases.end(), back_inserter(ids), constMemFun(&Contained::scoped));
-#endif
     StringList other;
     other.push_back(p->scoped());
     other.push_back("::Ice::Object");
@@ -654,15 +649,11 @@ Slice::CsVisitor::writeDispatch(const ClassDefPtr& p)
     if(!allOps.empty() || (!p->isInterface() && !hasBaseClass))
     {
         StringList allOpNames;
-#ifdef ICE_CPP11_COMPILER
         transform(allOps.begin(), allOps.end(), back_inserter(allOpNames),
                   [](const ContainedPtr& it)
                   {
                       return it->name();
                   });
-#else
-        transform(allOps.begin(), allOps.end(), back_inserter(allOpNames), constMemFun(&Contained::name));
-#endif
         allOpNames.push_back("ice_id");
         allOpNames.push_back("ice_ids");
         allOpNames.push_back("ice_isA");
@@ -778,15 +769,11 @@ Slice::CsVisitor::writeMarshaling(const ClassDefPtr& p)
     StringList ids;
     ClassList bases = p->bases();
 
-#ifdef ICE_CPP11_COMPILER
     transform(allBases.begin(), allBases.end(), back_inserter(ids),
               [](const ContainedPtr& it)
               {
                   return it->scoped();
               });
-#else
-    transform(allBases.begin(), allBases.end(), back_inserter(ids), constMemFun(&Contained::scoped));
-#endif
     StringList other;
     other.push_back(p->scoped());
     other.push_back("::Ice::Value");
@@ -2113,51 +2100,6 @@ Slice::Gen::generateImplTie(const UnitPtr& p)
 }
 
 void
-Slice::Gen::generateChecksums(const UnitPtr& u)
-{
-    ChecksumMap map = createChecksums(u);
-    if(!map.empty())
-    {
-        string className = "X" + generateUUID();
-        for(string::size_type pos = 1; pos < className.size(); ++pos)
-        {
-            if(!isalnum(static_cast<unsigned char>(className[pos])))
-            {
-                className[pos] = '_';
-            }
-        }
-
-        _out << sp << nl << "namespace IceInternal";
-        _out << sb;
-        _out << nl << "namespace SliceChecksums";
-        _out << sb;
-        _out << nl << "[global::System.CodeDom.Compiler.GeneratedCodeAttribute(\"slice2cs\", \"" << ICE_STRING_VERSION
-             << "\")]";
-        _out << nl << "public sealed class " << className;
-        _out << sb;
-        _out << nl << "public static global::System.Collections.Hashtable map = new global::System.Collections.Hashtable();";
-        _out << sp << nl << "static " << className << "()";
-        _out << sb;
-        for(ChecksumMap::const_iterator p = map.begin(); p != map.end(); ++p)
-        {
-            _out << nl << "map.Add(\"" << p->first << "\", \"";
-            ostringstream str;
-            str.flags(ios_base::hex);
-            str.fill('0');
-            for(vector<unsigned char>::const_iterator q = p->second.begin(); q != p->second.end(); ++q)
-            {
-                str << static_cast<int>(*q);
-            }
-            _out << str.str() << "\");";
-        }
-        _out << eb;
-        _out << eb << ';';
-        _out << eb;
-        _out << eb;
-    }
-}
-
-void
 Slice::Gen::closeOutput()
 {
     _out.close();
@@ -2414,7 +2356,6 @@ Slice::Gen::TypesVisitor::visitClassDefStart(const ClassDefPtr& p)
     {
         emitComVisibleAttribute();
         emitPartialTypeAttributes();
-        _out << nl << "[global::System.Serializable]";
         if(p->allOperations().size() > 0) // See bug 4747
         {
             _out << nl << "[global::System.Diagnostics.CodeAnalysis.SuppressMessage(\"Microsoft.Design\", \"CA1012\")]";
@@ -2721,7 +2662,6 @@ Slice::Gen::TypesVisitor::visitExceptionStart(const ExceptionPtr& p)
     // Suppress FxCop diagnostic about a missing constructor MyException(String).
     //
     _out << nl << "[global::System.Diagnostics.CodeAnalysis.SuppressMessage(\"Microsoft.Design\", \"CA1032\")]";
-    _out << nl << "[global::System.Serializable]";
 
     emitPartialTypeAttributes();
     _out << nl << "public partial class " << name << " : ";
@@ -2825,17 +2765,6 @@ Slice::Gen::TypesVisitor::visitExceptionEnd(const ExceptionPtr& p)
         _out << nl << "_initDM();";
     }
     _out << eb;
-    _out << sp;
-    emitGeneratedCodeAttribute();
-    _out << nl << "public " << name << "(global::System.Runtime.Serialization.SerializationInfo info, "
-         << "global::System.Runtime.Serialization.StreamingContext context) : base(info, context)";
-    _out << sb;
-    for(DataMemberList::const_iterator q = dataMembers.begin(); q != dataMembers.end(); ++q)
-    {
-        string memberName = fixId((*q)->name(), DotNet::Exception, false);
-        writeSerializeDeserializeCode(_out, (*q)->type(), ns, memberName, (*q)->optional(), (*q)->tag(), false);
-    }
-    _out << eb;
 
     if(!allDataMembers.empty())
     {
@@ -2896,91 +2825,6 @@ Slice::Gen::TypesVisitor::visitExceptionEnd(const ExceptionPtr& p)
     _out << sb;
     _out << nl << "return \"" << p->scoped() << "\";";
     _out << eb;
-
-    _out << sp << nl << "#region Object members";
-
-    _out << sp;
-    emitGeneratedCodeAttribute();
-    _out << nl << "public override int GetHashCode()";
-    _out << sb;
-    if(p->base())
-    {
-        _out << nl << "int h_ = base.GetHashCode();";
-    }
-    else
-    {
-        _out << nl << "int h_ = 5381;";
-    }
-    _out << nl << "global::IceInternal.HashUtil.hashAdd(ref h_, \"" << p->scoped() << "\");";
-    writeMemberHashCode(dataMembers, DotNet::Exception);
-    _out << nl << "return h_;";
-    _out << eb;
-
-    _out << sp;
-    emitGeneratedCodeAttribute();
-    _out << nl << "public override bool Equals(object other)";
-    _out << sb;
-    _out << nl << "if(other == null)";
-    _out << sb;
-    _out << nl << "return false;";
-    _out << eb;
-    _out << nl << "if(object.ReferenceEquals(this, other))";
-    _out << sb;
-    _out << nl << "return true;";
-    _out << eb;
-    _out << nl << name << " o = other as " << name << ";";
-    _out << nl << "if(o == null)";
-    _out << sb;
-    _out << nl << "return false;";
-    _out << eb;
-    if(p->base())
-    {
-        _out << nl << "if(!base.Equals(other))";
-        _out << sb;
-        _out << nl << "return false;";
-        _out << eb;
-    }
-    writeMemberEquals(dataMembers, DotNet::Exception);
-    _out << nl << "return true;";
-    _out << eb;
-
-    if(!dataMembers.empty())
-    {
-        _out << sp;
-        _out << nl << "#if !NET8_0_OR_GREATER";
-        emitGeneratedCodeAttribute();
-        _out << nl << "public override void GetObjectData(global::System.Runtime.Serialization.SerializationInfo info, "
-             << "global::System.Runtime.Serialization.StreamingContext context)";
-        _out << sb;
-        for(DataMemberList::const_iterator q = dataMembers.begin(); q != dataMembers.end(); ++q)
-        {
-            string memberName = fixId((*q)->name(), DotNet::Exception, false);
-            writeSerializeDeserializeCode(_out, (*q)->type(), ns, memberName, (*q)->optional(), (*q)->tag(), true);
-        }
-        _out << sp << nl << "base.GetObjectData(info, context);";
-        _out << eb;
-        _out << nl << "#endif";
-    }
-
-    _out << sp << nl << "#endregion"; // Object members
-
-    _out << sp << nl << "#region Comparison members";
-
-    _out << sp;
-    emitGeneratedCodeAttribute();
-    _out << nl << "public static bool operator==(" << name << " lhs, " << name << " rhs)";
-    _out << sb;
-    _out << nl << "return Equals(lhs, rhs);";
-    _out << eb;
-
-    _out << sp;
-    emitGeneratedCodeAttribute();
-    _out << nl << "public static bool operator!=(" << name << " lhs, " << name << " rhs)";
-    _out << sb;
-    _out << nl << "return !Equals(lhs, rhs);";
-    _out << eb;
-
-    _out << sp << nl << "#endregion"; // Comparison members
 
     if(!p->isLocal())
     {
@@ -3102,7 +2946,6 @@ Slice::Gen::TypesVisitor::visitStructStart(const StructPtr& p)
 
     emitAttributes(p);
     emitPartialTypeAttributes();
-    _out << nl << "[global::System.Serializable]";
     _out << nl << "public partial " << (isValueType(p) ? "struct" : "class") << ' ' << name;
 
     StringList baseNames;
@@ -3615,9 +3458,8 @@ Slice::Gen::TypesVisitor::writeMemberEquals(const DataMemberList& dataMembers, u
             if(seq)
             {
                 string meta;
-                bool isSerializable = seq->findMetaData("cs:serializable:", meta);
                 bool isGeneric = seq->findMetaData("cs:generic:", meta);
-                bool isArray = !isSerializable && !isGeneric;
+                bool isArray = !isGeneric;
                 if(isArray)
                 {
                     //
@@ -4198,19 +4040,12 @@ Slice::Gen::HelperVisitor::visitClassDefStart(const ClassDefPtr& p)
     _out << sp;
     emitComVisibleAttribute();
     emitGeneratedCodeAttribute();
-    _out << nl << "[global::System.Serializable]";
     _out << nl << "public sealed class " << name << "PrxHelper : " << getUnqualified("Ice.ObjectPrxHelperBase", ns)
          << ", " << name << "Prx";
     _out << sb;
 
     _out << sp;
     _out << nl << "public " << name << "PrxHelper()";
-    _out << sb;
-    _out << eb;
-
-    _out << sp;
-    _out << nl << "public " << name << "PrxHelper(global::System.Runtime.Serialization.SerializationInfo info, "
-         << "global::System.Runtime.Serialization.StreamingContext context) : base(info, context)";
     _out << sb;
     _out << eb;
 
@@ -4682,15 +4517,11 @@ Slice::Gen::HelperVisitor::visitClassDefStart(const ClassDefPtr& p)
     string scoped = p->scoped();
     ClassList allBases = p->allBases();
     StringList ids;
-#ifdef ICE_CPP11_COMPILER
     transform(allBases.begin(), allBases.end(), back_inserter(ids),
               [](const ContainedPtr& it)
               {
                   return it->scoped();
               });
-#else
-    transform(allBases.begin(), allBases.end(), back_inserter(ids), ::IceUtil::constMemFun(&Contained::scoped));
-#endif
     StringList other;
     other.push_back(p->scoped());
     other.push_back("::Ice::Object");
