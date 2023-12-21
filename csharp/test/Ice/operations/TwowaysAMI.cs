@@ -464,6 +464,7 @@ namespace Ice
                     {
                         [10] = true,
                         [11] = false,
+                        [100] = false,
                         [101] = true
                     };
 
@@ -483,6 +484,7 @@ namespace Ice
                     {
                         [110] = -1,
                         [111] = -100,
+                        [1100] = 123123,
                         [1101] = 0
                     };
 
@@ -502,6 +504,7 @@ namespace Ice
                     {
                         [999999110L] = -1.1f,
                         [999999120L] = -100.4f,
+                        [999999111L] = 123123.2f,
                         [999999130L] = 0.5f
                     };
 
@@ -521,6 +524,7 @@ namespace Ice
                     {
                         ["foo"] = "abc -1.1",
                         ["FOO"] = "abc -100.4",
+                        ["bar"] = "abc 123123.2",
                         ["BAR"] = "abc 0.5"
                     };
 
@@ -537,6 +541,7 @@ namespace Ice
                     var di2 = new Dictionary<string, Test.MyEnum>();
                     di2["abc"] = Test.MyEnum.enum1;
                     di2["qwerty"] = Test.MyEnum.enum3;
+                    di2[""] = Test.MyEnum.enum2;
                     di2["Hello!!"] = Test.MyEnum.enum2;
 
                     var result = p.opStringMyEnumDAsync(di1, di2).Result;
@@ -549,6 +554,7 @@ namespace Ice
                     var di1 = new Dictionary<Test.MyEnum, string>();
                     di1[Test.MyEnum.enum1] = "abc";
                     var di2 = new Dictionary<Test.MyEnum, string>();
+                    di2[Test.MyEnum.enum1] = "abc";
                     di2[Test.MyEnum.enum2] = "Hello!!";
                     di2[Test.MyEnum.enum3] = "qwerty";
 

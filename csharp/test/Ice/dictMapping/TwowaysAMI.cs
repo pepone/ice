@@ -57,8 +57,11 @@ namespace Ice
                     i["b"] = id;
 
                     var result = await p.opNDVAsync(i);
-                    test(CollectionComparer.Equals(i, result.o));
-                    test(CollectionComparer.Equals(i, result.returnValue));
+                    foreach(string key in i.Keys)
+                    {
+                        test(CollectionComparer.Equals(i[key], result.o[key]));
+                        test(CollectionComparer.Equals(i[key], result.returnValue[key]));
+                    }
                 }
 
                 {
@@ -72,8 +75,11 @@ namespace Ice
                     i["b"] = id;
 
                     var result = await p.opNDRAsync(i);
-                    test(CollectionComparer.Equals(i, result.o));
-                    test(CollectionComparer.Equals(i, result.returnValue));
+                    foreach(string key in i.Keys)
+                    {
+                        test(CollectionComparer.Equals(i[key], result.o[key]));
+                        test(CollectionComparer.Equals(i[key], result.returnValue[key]));
+                    }
                 }
 
                 {
@@ -85,8 +91,11 @@ namespace Ice
                     };
 
                     var result = await p.opNDAISAsync(i);
-                    test(CollectionComparer.Equals(i, result.o));
-                    test(CollectionComparer.Equals(i, result.returnValue));
+                    foreach(string key in i.Keys)
+                    {
+                        test(CollectionComparer.Equals(i[key], result.o[key]));
+                        test(CollectionComparer.Equals(i[key], result.returnValue[key]));
+                    }
                 }
 
                 {
@@ -102,8 +111,11 @@ namespace Ice
                     };
 
                     var result = await p.opNDGISAsync(i);
-                    test(CollectionComparer.Equals(i, result.o));
-                    test(CollectionComparer.Equals(i, result.returnValue));
+                    foreach(string key in i.Keys)
+                    {
+                        test(CollectionComparer.Equals(i[key], result.o[key]));
+                        test(CollectionComparer.Equals(i[key], result.returnValue[key]));
+                    }
                 }
 
                 {
@@ -115,8 +127,11 @@ namespace Ice
                     };
 
                     var result = await p.opNDASSAsync(i);
-                    test(CollectionComparer.Equals(i, result.o));
-                    test(CollectionComparer.Equals(i, result.returnValue));
+                    foreach(string key in i.Keys)
+                    {
+                        test(CollectionComparer.Equals(i[key], result.o[key]));
+                        test(CollectionComparer.Equals(i[key], result.returnValue[key]));
+                    }
                 }
 
                 {
@@ -132,8 +147,11 @@ namespace Ice
                     };
 
                     var result = await p.opNDGSSAsync(i);
-                    test(CollectionComparer.Equals(i, result.o));
-                    test(CollectionComparer.Equals(i, result.returnValue));
+                    foreach(string key in i.Keys)
+                    {
+                        test(CollectionComparer.Equals(i[key], result.o[key]));
+                        test(CollectionComparer.Equals(i[key], result.returnValue[key]));
+                    }
                 }
             }
         }
