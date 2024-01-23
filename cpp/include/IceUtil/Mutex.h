@@ -9,7 +9,6 @@
 #include <IceUtil/Config.h>
 #include <IceUtil/Lock.h>
 #include <IceUtil/ThreadException.h>
-#include <IceUtil/MutexProtocol.h>
 
 namespace IceUtil
 {
@@ -40,7 +39,6 @@ public:
     typedef TryLockT<Mutex> TryLock;
 
     inline Mutex();
-    inline Mutex(MutexProtocol);
     ~Mutex();
 
     //
@@ -70,7 +68,7 @@ public:
 
 private:
 
-    inline void init(MutexProtocol);
+    inline void init();
     // noncopyable
     Mutex(const Mutex&);
     void operator=(const Mutex&);
@@ -111,31 +109,13 @@ private:
 inline
 Mutex::Mutex()
 {
-#ifdef _WIN32
-    init(PrioNone);
-#else
-    init(getDefaultMutexProtocol());
-#endif
+    init();
 }
-
-#ifdef _WIN32
-inline
-Mutex::Mutex(MutexProtocol)
-{
-    init(PrioNone);
-}
-#else
-inline
-Mutex::Mutex(MutexProtocol protocol)
-{
-    init(protocol);
-}
-#endif
 
 #ifdef _WIN32
 
 inline void
-Mutex::init(MutexProtocol)
+Mutex::init()
 {
     InitializeCriticalSection(&_mutex);
 }
@@ -209,11 +189,7 @@ Mutex::lock(LockState&) const
 #else
 
 inline void
-Mutex::init(MutexProtocol
-#if defined(_POSIX_THREAD_PRIO_INHERIT) && _POSIX_THREAD_PRIO_INHERIT > 0
-            protocol
-#endif
-            )
+Mutex::init()
 {
     int rc;
     pthread_mutexattr_t attr;
@@ -235,22 +211,6 @@ Mutex::init(MutexProtocol
         pthread_mutexattr_destroy(&attr);
         throw ThreadSyscallException(__FILE__, __LINE__, rc);
     }
-
-    //
-    // If system has support for priority inheritance we set the protocol
-    // attribute of the mutex
-    //
-#if defined(_POSIX_THREAD_PRIO_INHERIT) && _POSIX_THREAD_PRIO_INHERIT > 0
-    if(PrioInherit == protocol)
-    {
-        rc = pthread_mutexattr_setprotocol(&attr, PTHREAD_PRIO_INHERIT);
-        if(rc != 0)
-        {
-            pthread_mutexattr_destroy(&attr);
-            throw ThreadSyscallException(__FILE__, __LINE__, rc);
-        }
-    }
-#endif
 
     rc = pthread_mutex_init(&_mutex, &attr);
     assert(rc == 0);

@@ -8,7 +8,6 @@
 #include <IceUtil/Config.h>
 #include <IceUtil/Lock.h>
 #include <IceUtil/ThreadException.h>
-#include <IceUtil/MutexProtocol.h>
 
 namespace IceUtil
 {
@@ -32,7 +31,6 @@ public:
     typedef TryLockT<RecMutex> TryLock;
 
     RecMutex();
-    RecMutex(const MutexProtocol);
     ~RecMutex();
 
     //
@@ -63,7 +61,7 @@ public:
 
 private:
 
-    void init(const MutexProtocol);
+    void init();
     // noncopyable
     RecMutex(const RecMutex&);
     void operator=(const RecMutex&);

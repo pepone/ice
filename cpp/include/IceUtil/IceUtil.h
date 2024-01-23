@@ -22,7 +22,6 @@
 #include <IceUtil/Handle.h>
 #include <IceUtil/Lock.h>
 #include <IceUtil/Monitor.h>
-#include <IceUtil/MutexProtocol.h>
 #include <IceUtil/Mutex.h>
 #include <IceUtil/RecMutex.h>
 #include <IceUtil/ScopedArray.h>
