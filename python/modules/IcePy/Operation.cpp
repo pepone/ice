@@ -2,24 +2,26 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-#include <Operation.h>
-#include <Communicator.h>
-#include <Current.h>
-#include <Proxy.h>
-#include <Thread.h>
-#include <Types.h>
-#include <Connection.h>
-#include <Util.h>
+#include "Operation.h"
+#include "Communicator.h"
+#include "Current.h"
+#include "Proxy.h"
+#include "Thread.h"
+#include "Types.h"
+#include "Connection.h"
+#include "Util.h"
+
 #include <Ice/Communicator.h>
 #include <Ice/IncomingAsync.h>
 #include <Ice/Initialize.h>
 #include <Ice/LocalException.h>
 #include <Ice/Logger.h>
 #include <Ice/ObjectAdapter.h>
-#include <Ice/AsyncResult.h>
 #include <Ice/Properties.h>
 #include <Ice/Proxy.h>
+
 #include <IceUtil/Time.h>
+
 #include "PythonUtil.h"
 
 using namespace std;
@@ -137,7 +139,7 @@ public:
 
 protected:
 
-    virtual void handleInvoke(PyObject*, PyObject*) = 0;
+    virtual function<void()> handleInvoke(PyObject*, PyObject*) = 0;
     virtual void handleResponse(PyObject*, bool, const pair<const Ice::Byte*, const Ice::Byte*>&) = 0;
 
     PyObject* _pyProxy;
@@ -161,7 +163,7 @@ public:
 
 protected:
 
-    Ice::AsyncResultPtr handleInvoke(PyObject*, PyObject*) final;
+    function<void()> handleInvoke(PyObject*, PyObject*) final;
     void handleResponse(PyObject*, bool, const pair<const Ice::Byte*, const Ice::Byte*>&) final;
 
 private:
@@ -186,7 +188,7 @@ public:
 
 protected:
 
-    Ice::AsyncResultPtr handleInvoke(PyObject*, PyObject*) final;
+    function<void()> handleInvoke(PyObject*, PyObject*) final;
     void handleResponse(PyObject*, bool, const pair<const Ice::Byte*, const Ice::Byte*>&) final;
 
     string _op;
@@ -297,6 +299,15 @@ struct DispatchCallbackObject
 {
     PyObject_HEAD
     UpcallPtr* upcall;
+};
+
+struct AsyncInvocationContextObject
+{
+    PyObject_HEAD
+    InvocationPtr* invocation;
+    PyObject* proxy;
+    PyObject* connection;
+    PyObject* communicator;
 };
 
 struct MarshaledResultObject
@@ -605,29 +616,27 @@ dispatchCallbackException(DispatchCallbackObject* self, PyObject* args)
 // AsyncResult operations
 //
 
-extern "C" static AsyncResultObject*
-asyncResultNew(PyTypeObject* type, PyObject* /*args*/, PyObject* /*kwds*/)
+extern "C" static AsyncInvocationContextObject*
+asyncInvocationContextNew(PyTypeObject* type, PyObject* /*args*/, PyObject* /*kwds*/)
 {
-    AsyncResultObject* self = reinterpret_cast<AsyncResultObject*>(type->tp_alloc(type, 0));
+    auto self = reinterpret_cast<AsyncInvocationContextObject*>(type->tp_alloc(type, 0));
     if(!self)
     {
         return 0;
     }
-    self->result = 0;
     self->invocation = 0;
     return self;
 }
 
 extern "C" static void
-asyncResultDealloc(AsyncResultObject* self)
+asyncInvocationContextDealloc(AsyncInvocationContextObject* self)
 {
-    delete self->result;
     delete self->invocation;
     Py_TYPE(self)->tp_free(reinterpret_cast<PyObject*>(self));
 }
 
 extern "C" static PyObject*
-asyncResultCancel(AsyncResultObject* self, PyObject* /*args*/)
+asyncInvocationContextCancel(AsyncInvocationContextObject* self, PyObject* /*args*/)
 {
     try
     {
@@ -642,7 +651,7 @@ asyncResultCancel(AsyncResultObject* self, PyObject* /*args*/)
 }
 
 extern "C" static PyObject*
-asyncResultCallLater(AsyncResultObject* self, PyObject* args)
+asyncInvocationContextCallLater(AsyncInvocationContextObject* self, PyObject* args)
 {
     PyObject* callback;
     if(!PyArg_ParseTuple(args, STRCAST("O"), &callback))
@@ -1136,12 +1145,20 @@ static PyMethodDef DispatchCallbackMethods[] =
     { 0, 0 } /* sentinel */
 };
 
-static PyMethodDef AsyncResultMethods[] =
+static PyMethodDef AsyncInvocationContextMethods[] =
 {
-    { STRCAST("cancel"), reinterpret_cast<PyCFunction>(asyncResultCancel), METH_NOARGS,
-      PyDoc_STR(STRCAST("cancels the invocation")) },
-    { STRCAST("callLater"), reinterpret_cast<PyCFunction>(asyncResultCallLater), METH_VARARGS,
-      PyDoc_STR(STRCAST("internal function")) },
+    { 
+        STRCAST("cancel"),
+        reinterpret_cast<PyCFunction>(asyncInvocationContextCancel),
+        METH_NOARGS,
+        PyDoc_STR(STRCAST("cancels the invocation")) 
+    },
+    { 
+        STRCAST("callLater"),
+        reinterpret_cast<PyCFunction>(asyncInvocationContextCallLater),
+        METH_VARARGS,
+        PyDoc_STR(STRCAST("internal function"))
+    },
     { 0, 0 } /* sentinel */
 };
 
@@ -1289,16 +1306,16 @@ static PyTypeObject DispatchCallbackType =
     0,                               /* tp_is_gc */
 };
 
-PyTypeObject AsyncResultType =
+PyTypeObject AsyncInvocationContextType =
 {
     /* The ob_type field must be initialized in the module init function
      * to be portable to Windows without using C++. */
     PyVarObject_HEAD_INIT(0, 0)
-    STRCAST("IcePy.AsyncResult"),    /* tp_name */
-    sizeof(AsyncResultObject),       /* tp_basicsize */
-    0,                               /* tp_itemsize */
+    STRCAST("IcePy.AsyncInvocationContext"),    /* tp_name */
+    sizeof(AsyncInvocationContextObject),       /* tp_basicsize */
+    0,                                          /* tp_itemsize */
     /* methods */
-    reinterpret_cast<destructor>(asyncResultDealloc), /* tp_dealloc */
+    reinterpret_cast<destructor>(asyncInvocationContextDealloc), /* tp_dealloc */
     0,                               /* tp_print */
     0,                               /* tp_getattr */
     0,                               /* tp_setattr */
@@ -1321,7 +1338,7 @@ PyTypeObject AsyncResultType =
     0,                               /* tp_weaklistoffset */
     0,                               /* tp_iter */
     0,                               /* tp_iternext */
-    AsyncResultMethods,              /* tp_methods */
+    AsyncInvocationContextMethods,   /* tp_methods */
     0,                               /* tp_members */
     0,                               /* tp_getset */
     0,                               /* tp_base */
@@ -1331,7 +1348,7 @@ PyTypeObject AsyncResultType =
     0,                               /* tp_dictoffset */
     0,                               /* tp_init */
     0,                               /* tp_alloc */
-    reinterpret_cast<newfunc>(asyncResultNew), /* tp_new */
+    reinterpret_cast<newfunc>(asyncInvocationContextNew), /* tp_new */
     0,                               /* tp_free */
     0,                               /* tp_is_gc */
 };
@@ -1418,12 +1435,12 @@ IcePy::initOperation(PyObject* module)
         return false;
     }
 
-    if(PyType_Ready(&AsyncResultType) < 0)
+    if(PyType_Ready(&AsyncInvocationContextType) < 0)
     {
         return false;
     }
-    PyTypeObject* arType = &AsyncResultType; // Necessary to prevent GCC's strict-alias warnings.
-    if(PyModule_AddObject(module, STRCAST("AsyncResult"), reinterpret_cast<PyObject*>(arType)) < 0)
+    PyTypeObject* arType = &AsyncInvocationContextType; // Necessary to prevent GCC's strict-alias warnings.
+    if (PyModule_AddObject(module, STRCAST("AsyncInvocationContext"), reinterpret_cast<PyObject*>(arType)) < 0)
     {
         return false;
     }
@@ -2128,12 +2145,10 @@ IcePy::AsyncTypedInvocation::AsyncTypedInvocation(const Ice::ObjectPrx& prx, PyO
 {
 }
 
-void
+function<void()>
 IcePy::AsyncTypedInvocation::handleInvoke(PyObject* args, PyObject* /* kwds */)
 {
-    //
     // Called from Python code, so the GIL is already acquired.
-    //
 
     assert(PyTuple_Check(args));
     assert(PyTuple_GET_SIZE(args) == 2); // Format is ((params...), context|None)
@@ -2141,9 +2156,7 @@ IcePy::AsyncTypedInvocation::handleInvoke(PyObject* args, PyObject* /* kwds */)
     assert(PyTuple_Check(pyparams));
     PyObject* pyctx = PyTuple_GET_ITEM(args, 1);
 
-    //
     // Marshal the input parameters to a byte sequence.
-    //
     Ice::OutputStream os(_communicator);
     pair<const Ice::Byte*, const Ice::Byte*> params;
     if(!prepareRequest(_op, pyparams, AsyncMapping, &os, params))
@@ -2364,7 +2377,7 @@ IcePy::AsyncBlobjectInvocation::AsyncBlobjectInvocation(const Ice::ObjectPrx& pr
 {
 }
 
-Ice::AsyncResultPtr
+function<void()>
 IcePy::AsyncBlobjectInvocation::handleInvoke(PyObject* args, PyObject* /* kwds */)
 {
     char* operation;
@@ -2434,12 +2447,12 @@ IcePy::AsyncBlobjectInvocation::handleInvoke(PyObject* args, PyObject* /* kwds *
 }
 
 void
-IcePy::AsyncBlobjectInvocation::handleResponse(PyObject* future, bool ok,
-                                                  const pair<const Ice::Byte*, const Ice::Byte*>& results)
+IcePy::AsyncBlobjectInvocation::handleResponse(
+    PyObject* future, 
+    bool ok,
+    const pair<const Ice::Byte*, const Ice::Byte*>& results)
 {
-    //
     // Prepare the args as a tuple of the bool and out param buffer.
-    //
     PyObjectHandle args = PyTuple_New(2);
     if(!args.get())
     {
