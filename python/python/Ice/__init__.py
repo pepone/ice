@@ -299,18 +299,6 @@ class InvocationFuture(Future):
             except Exception:
                 self._warn("sent callback raised exception")
 
-    def operation(self):
-        return self._operation
-
-    def proxy(self):
-        return self._asyncResult.getProxy()
-
-    def connection(self):
-        return self._asyncResult.getConnection()
-
-    def communicator(self):
-        return self._asyncResult.getCommunicator()
-
     def _warn(self, msg):
         communicator = self.communicator()
         if communicator:
@@ -853,23 +841,6 @@ WSConnectionInfo = IcePy.WSConnectionInfo
 SSLConnectionInfo = IcePy.SSLConnectionInfo
 
 
-class ThreadNotification(object):
-    """Base class for thread notification callbacks. A subclass must
-    define the start and stop methods."""
-
-    def __init__(self):
-        pass
-
-    def start():
-        """Invoked in the context of a thread created by the Ice run time."""
-        pass
-
-    def stop():
-        """Invoked in the context of an Ice run-time thread that is about
-        to terminate."""
-        pass
-
-
 class BatchRequestInterceptor(object):
     """Base class for batch request interceptor. A subclass must
     define the enqueue method."""
@@ -915,7 +886,6 @@ class InitializationData(object):
     def __init__(self):
         self.properties = None
         self.logger = None
-        self.threadHook = None  # Deprecated.
         self.threadStart = None
         self.threadStop = None
         self.dispatcher = None

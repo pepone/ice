@@ -538,7 +538,8 @@ OutgoingAsyncBase::_scheduleCallback(const CallbackPtr& cb)
     public:
 
         WorkItem(const ConnectionPtr& connection, const CallbackPtr& cb) :
-            DispatchWorkItem(connection), _cb(cb)
+            DispatchWorkItem(connection),
+            _cb(cb)
         {
         }
 

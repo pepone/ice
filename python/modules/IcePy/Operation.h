@@ -17,26 +17,17 @@ namespace IcePy
 
 bool initOperation(PyObject*);
 
-//
 // Builtin operations.
-//
 PyObject* invokeBuiltin(PyObject*, const std::string&, PyObject*);
 PyObject* invokeBuiltinAsync(PyObject*, const std::string&, PyObject*);
 
-//
+
 // Blobject invocations.
-//
 PyObject* iceInvoke(PyObject*, PyObject*);
 PyObject* iceInvokeAsync(PyObject*, PyObject*);
 
-extern PyTypeObject AsyncResultType;
-PyObject* createAsyncResult(const Ice::AsyncResultPtr&, PyObject*, PyObject*, PyObject*);
-Ice::AsyncResultPtr getAsyncResult(PyObject*);
-
-//
 // Used as the callback for getConnection operation.
-//
-class GetConnectionCallback : public IceUtil::Shared
+class GetConnectionCallback
 {
 public:
 
@@ -53,12 +44,12 @@ protected:
     PyObject* _ex;
     std::string _op;
 };
-typedef IceUtil::Handle<GetConnectionCallback> GetConnectionCallbackPtr;
+using GetConnectionCallbackPtr = std::shared_ptr<GetConnectionCallback>;
 
 //
 // Used as the callback for getConnectionAsync operation.
 //
-class GetConnectionAsyncCallback : public IceUtil::Shared
+class GetConnectionAsyncCallback
 {
 public:
 
@@ -78,12 +69,12 @@ protected:
     Ice::ConnectionPtr _connection;
     PyObject* _exception;
 };
-typedef IceUtil::Handle<GetConnectionAsyncCallback> GetConnectionAsyncCallbackPtr;
+using GetConnectionAsyncCallbackPtr = std::shared_ptr<GetConnectionAsyncCallback>;
 
 //
 // Used as the callback for the various flushBatchRequestAsync operations.
 //
-class FlushAsyncCallback : public IceUtil::Shared
+class FlushAsyncCallback
 {
 public:
 
@@ -103,7 +94,7 @@ protected:
     bool _sentSynchronously;
     PyObject* _exception;
 };
-typedef IceUtil::Handle<FlushAsyncCallback> FlushAsyncCallbackPtr;
+using FlushAsyncCallbackPtr = std::shared_ptr<FlushAsyncCallback>;
 
 //
 // ServantWrapper handles dispatching to a Python servant.

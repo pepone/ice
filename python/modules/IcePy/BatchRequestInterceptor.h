@@ -9,6 +9,8 @@
 #include <Util.h>
 #include <Ice/BatchRequestInterceptor.h>
 
+#include <memory>
+
 namespace IcePy
 {
 
@@ -16,7 +18,7 @@ extern PyTypeObject BatchRequestType;
 
 bool initBatchRequest(PyObject*);
 
-class BatchRequestInterceptor : public Ice::BatchRequestInterceptor
+class BatchRequestInterceptor
 {
 public:
 
@@ -28,7 +30,7 @@ private:
 
     PyObjectHandle _interceptor;
 };
-typedef IceUtil::Handle<BatchRequestInterceptor> BatchRequestInterceptorPtr;
+using BatchRequestInterceptorPtr = std::shared_ptr<BatchRequestInterceptor>;
 
 }
 

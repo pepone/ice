@@ -29,9 +29,7 @@ using namespace Slice::Python;
 namespace IcePy
 {
 
-//
 // Information about an operation's parameter.
-//
 class ParamInfo : public UnmarshalCallback
 {
 public:
@@ -44,13 +42,11 @@ public:
     int tag;
     Py_ssize_t pos;
 };
-typedef IceUtil::Handle<ParamInfo> ParamInfoPtr;
-typedef list<ParamInfoPtr> ParamInfoList;
+using ParamInfoPtr = shared_ptr<ParamInfo>;
+using ParamInfoList = list<ParamInfoPtr>;
 
-//
 // Encapsulates attributes of an operation.
-//
-class Operation : public IceUtil::Shared
+class Operation
 {
 public:
 
@@ -84,12 +80,10 @@ private:
     static void convertParams(PyObject*, ParamInfoList&, Py_ssize_t, bool&);
     static ParamInfoPtr convertParam(PyObject*, Py_ssize_t);
 };
-typedef IceUtil::Handle<Operation> OperationPtr;
+using OperationPtr = shared_ptr<Operation>;
 
-//
 // The base class for client-side invocations.
-//
-class Invocation : public virtual IceUtil::Shared
+class Invocation
 {
 public:
 
@@ -99,11 +93,9 @@ public:
 
 protected:
 
-    //
     // Helpers for typed invocations.
-    //
 
-    enum MappingType { SyncMapping, NewAsyncMapping }; // TODO: rename enumerators
+    enum MappingType { SyncMapping, AsyncMapping };
 
     bool prepareRequest(const OperationPtr&, PyObject*, MappingType, Ice::OutputStream*,
                         pair<const Ice::Byte*, const Ice::Byte*>&);
@@ -115,35 +107,29 @@ protected:
     Ice::ObjectPrx _prx;
     Ice::CommunicatorPtr _communicator;
 };
-typedef IceUtil::Handle<Invocation> InvocationPtr;
+using InvocationPtr = shared_ptr<Invocation>;
 
-//
-// Synchronous typed invocation.
-//
 class SyncTypedInvocation : public Invocation
 {
 public:
 
     SyncTypedInvocation(const Ice::ObjectPrx&, const OperationPtr&);
 
-    virtual PyObject* invoke(PyObject*, PyObject* = 0);
+    PyObject* invoke(PyObject*, PyObject* = 0) final;
 
 private:
 
     OperationPtr _op;
 };
 
-//
-// Asynchronous invocation with futures.
-//
-class NewAsyncInvocation : public Invocation // TODO: rename class
+class AsyncInvocation : public Invocation
 {
 public:
 
-    NewAsyncInvocation(const Ice::ObjectPrx&, PyObject*, const string&);
-    ~NewAsyncInvocation();
+    AsyncInvocation(const Ice::ObjectPrx&, PyObject*, const string&);
+    ~AsyncInvocation();
 
-    virtual PyObject* invoke(PyObject*, PyObject* = 0);
+    PyObject* invoke(PyObject*, PyObject* = 0) final;
 
     void response(bool, const pair<const Ice::Byte*, const Ice::Byte*>&);
     void exception(const Ice::Exception&);
@@ -151,7 +137,7 @@ public:
 
 protected:
 
-    virtual Ice::AsyncResultPtr handleInvoke(PyObject*, PyObject*) = 0;
+    virtual void handleInvoke(PyObject*, PyObject*) = 0;
     virtual void handleResponse(PyObject*, bool, const pair<const Ice::Byte*, const Ice::Byte*>&) = 0;
 
     PyObject* _pyProxy;
@@ -165,60 +151,49 @@ protected:
     vector<Ice::Byte> _results;
     PyObject* _exception;
 };
-typedef IceUtil::Handle<NewAsyncInvocation> NewAsyncInvocationPtr;
+using AsyncInvocationPtr = shared_ptr<AsyncInvocation>;
 
-//
-// New-style asynchronous typed invocation.
-//
-class NewAsyncTypedInvocation : public NewAsyncInvocation
+class AsyncTypedInvocation final : public AsyncInvocation
 {
 public:
 
-    NewAsyncTypedInvocation(const Ice::ObjectPrx&, PyObject*, const OperationPtr&);
+    AsyncTypedInvocation(const Ice::ObjectPrx&, PyObject*, const OperationPtr&);
 
 protected:
 
-    virtual Ice::AsyncResultPtr handleInvoke(PyObject*, PyObject*);
-    virtual void handleResponse(PyObject*, bool, const pair<const Ice::Byte*, const Ice::Byte*>&);
+    Ice::AsyncResultPtr handleInvoke(PyObject*, PyObject*) final;
+    void handleResponse(PyObject*, bool, const pair<const Ice::Byte*, const Ice::Byte*>&) final;
 
 private:
 
     OperationPtr _op;
 };
 
-//
-// Synchronous blobject invocation.
-//
-class SyncBlobjectInvocation : public Invocation
+class SyncBlobjectInvocation final : public Invocation
 {
 public:
 
     SyncBlobjectInvocation(const Ice::ObjectPrx&);
 
-    virtual PyObject* invoke(PyObject*, PyObject* = 0);
+    PyObject* invoke(PyObject*, PyObject* = 0) final;
 };
 
-//
-// New-style asynchronous blobject invocation.
-//
-class NewAsyncBlobjectInvocation : public NewAsyncInvocation // TODO: rename class
+class AsyncBlobjectInvocation final : public AsyncInvocation
 {
 public:
 
-    NewAsyncBlobjectInvocation(const Ice::ObjectPrx&, PyObject*);
+    AsyncBlobjectInvocation(const Ice::ObjectPrx&, PyObject*);
 
 protected:
 
-    virtual Ice::AsyncResultPtr handleInvoke(PyObject*, PyObject*);
-    virtual void handleResponse(PyObject*, bool, const pair<const Ice::Byte*, const Ice::Byte*>&);
+    Ice::AsyncResultPtr handleInvoke(PyObject*, PyObject*) final;
+    void handleResponse(PyObject*, bool, const pair<const Ice::Byte*, const Ice::Byte*>&) final;
 
     string _op;
 };
 
-//
 // The base class for server-side upcalls.
-//
-class Upcall : public IceUtil::Shared
+class Upcall
 {
 public:
 
@@ -231,25 +206,19 @@ protected:
 
     void dispatchImpl(PyObject*, const string&, PyObject*, const Ice::Current&);
 };
-typedef IceUtil::Handle<Upcall> UpcallPtr;
+using UpcallPtr = shared_ptr<Upcall>;
 
-//
-// TypedUpcall uses the information in the given Operation to validate, marshal, and unmarshal
-// parameters and exceptions.
-//
-class TypedUpcall;
-typedef IceUtil::Handle<TypedUpcall> TypedUpcallPtr;
-
-class TypedUpcall : public Upcall
+// TypedUpcall uses the information in the given Operation to validate, marshal, and unmarshal parameters and exceptions.
+class TypedUpcall final : public Upcall
 {
 public:
 
     TypedUpcall(const OperationPtr&, const Ice::AMD_Object_ice_invokePtr&, const Ice::CommunicatorPtr&);
 
-    virtual void dispatch(PyObject*, const pair<const Ice::Byte*, const Ice::Byte*>&, const Ice::Current&);
-    virtual void response(PyObject*);
-    virtual void exception(PyException&);
-    virtual void exception(const Ice::Exception&);
+    void dispatch(PyObject*, const pair<const Ice::Byte*, const Ice::Byte*>&, const Ice::Current&) final;
+    void response(PyObject*) final;
+    void exception(PyException&) final;
+    void exception(const Ice::Exception&) final;
 
 private:
 
@@ -258,59 +227,57 @@ private:
     Ice::CommunicatorPtr _communicator;
     Ice::EncodingVersion _encoding;
 };
+using TypedUpcallPtr = shared_ptr<TypedUpcall>;
 
 //
 // Upcall for blobject servants.
 //
-class BlobjectUpcall : public Upcall
+class BlobjectUpcall final : public Upcall
 {
 public:
 
     BlobjectUpcall(const Ice::AMD_Object_ice_invokePtr&);
 
-    virtual void dispatch(PyObject*, const pair<const Ice::Byte*, const Ice::Byte*>&, const Ice::Current&);
-    virtual void response(PyObject*);
-    virtual void exception(PyException&);
-    virtual void exception(const Ice::Exception&);
+    void dispatch(PyObject*, const pair<const Ice::Byte*, const Ice::Byte*>&, const Ice::Current&) final;
+    void response(PyObject*) final;
+    void exception(PyException&) final;
+    void exception(const Ice::Exception&) final;
 
 private:
 
     Ice::AMD_Object_ice_invokePtr _callback;
 };
 
-//
-// TypedServantWrapper uses the information in Operation to validate, marshal, and unmarshal
-// parameters and exceptions.
-//
-class TypedServantWrapper : public ServantWrapper
+// TypedServantWrapper uses the information in Operation to validate, marshal, and unmarshal parameters and exceptions.
+class TypedServantWrapper final : public ServantWrapper
 {
 public:
 
     TypedServantWrapper(PyObject*);
 
-    virtual void ice_invoke_async(const Ice::AMD_Object_ice_invokePtr&,
-                                  const pair<const Ice::Byte*, const Ice::Byte*>&,
-                                  const Ice::Current&);
+    void ice_invoke_async(
+        const Ice::AMD_Object_ice_invokePtr&,
+        const pair<const Ice::Byte*, const Ice::Byte*>&,
+        const Ice::Current&) final;
 
 private:
 
-    typedef map<string, OperationPtr> OperationMap;
+    using OperationMap = map<string, OperationPtr>;
     OperationMap _operationMap;
     OperationMap::iterator _lastOp;
 };
 
-//
 // Encapsulates a blobject servant.
-//
-class BlobjectServantWrapper : public ServantWrapper
+class BlobjectServantWrapper final : public ServantWrapper
 {
 public:
 
     BlobjectServantWrapper(PyObject*);
 
-    virtual void ice_invoke_async(const Ice::AMD_Object_ice_invokePtr&,
-                                  const pair<const Ice::Byte*, const Ice::Byte*>&,
-                                  const Ice::Current&);
+    void ice_invoke_async(
+        const Ice::AMD_Object_ice_invokePtr&,
+        const pair<const Ice::Byte*, const Ice::Byte*>&,
+        const Ice::Current&) final;
 };
 
 struct OperationObject
@@ -330,16 +297,6 @@ struct DispatchCallbackObject
 {
     PyObject_HEAD
     UpcallPtr* upcall;
-};
-
-struct AsyncResultObject
-{
-    PyObject_HEAD
-    Ice::AsyncResultPtr* result;
-    InvocationPtr* invocation;
-    PyObject* proxy;
-    PyObject* connection;
-    PyObject* communicator;
 };
 
 struct MarshaledResultObject
@@ -386,12 +343,8 @@ handleException()
 
     PyException ex; // Retrieve it before another Python API call clears it.
 
-    //
-    // A callback that calls sys.exit() will raise the SystemExit exception.
-    // This is normally caught by the interpreter, causing it to exit.
-    // However, we have no way to pass this exception to the interpreter,
-    // so we act on it directly.
-    //
+    // A callback that calls sys.exit() will raise the SystemExit exception. This is normally caught by the interpreter, causing it to exit.
+    // However, we have no way to pass this exception to the interpreter, so we act on it directly.
     ex.checkSystemExit();
 
     ex.raise();
@@ -417,10 +370,7 @@ callException(PyObject* method, const Ice::Exception& ex)
 
 }
 
-#ifdef WIN32
-extern "C"
-#endif
-static OperationObject*
+extern "C" static OperationObject*
 operationNew(PyTypeObject* type, PyObject* /*args*/, PyObject* /*kwds*/)
 {
     OperationObject* self = reinterpret_cast<OperationObject*>(type->tp_alloc(type, 0));
@@ -432,10 +382,7 @@ operationNew(PyTypeObject* type, PyObject* /*args*/, PyObject* /*kwds*/)
     return self;
 }
 
-#ifdef WIN32
-extern "C"
-#endif
-static int
+extern "C" static int
 operationInit(OperationObject* self, PyObject* args, PyObject* /*kwds*/)
 {
     char* name;
@@ -464,20 +411,14 @@ operationInit(OperationObject* self, PyObject* args, PyObject* /*kwds*/)
     return 0;
 }
 
-#ifdef WIN32
-extern "C"
-#endif
-static void
+extern "C" static void
 operationDealloc(OperationObject* self)
 {
     delete self->op;
     Py_TYPE(self)->tp_free(reinterpret_cast<PyObject*>(self));
 }
 
-#ifdef WIN32
-extern "C"
-#endif
-static PyObject*
+extern "C" static PyObject*
 operationInvoke(OperationObject* self, PyObject* args)
 {
     PyObject* pyProxy;
@@ -494,10 +435,7 @@ operationInvoke(OperationObject* self, PyObject* args)
     return i->invoke(opArgs);
 }
 
-#ifdef WIN32
-extern "C"
-#endif
-static PyObject*
+extern "C" static PyObject*
 operationInvokeAsync(OperationObject* self, PyObject* args)
 {
     PyObject* proxy;
@@ -508,14 +446,11 @@ operationInvokeAsync(OperationObject* self, PyObject* args)
     }
 
     Ice::ObjectPrx p = getProxy(proxy);
-    InvocationPtr i = new NewAsyncTypedInvocation(p, proxy, *self->op);
+    InvocationPtr i = new AsyncTypedInvocation(p, proxy, *self->op);
     return i->invoke(opArgs);
 }
 
-#ifdef WIN32
-extern "C"
-#endif
-static PyObject*
+extern "C" static PyObject*
 operationDeprecate(OperationObject* self, PyObject* args)
 {
     char* msg;
@@ -533,11 +468,7 @@ operationDeprecate(OperationObject* self, PyObject* args)
 //
 // DoneCallback operations
 //
-
-#ifdef WIN32
-extern "C"
-#endif
-static DoneCallbackObject*
+extern "C" static DoneCallbackObject*
 doneCallbackNew(PyTypeObject* type, PyObject* /*args*/, PyObject* /*kwds*/)
 {
     DoneCallbackObject* self = reinterpret_cast<DoneCallbackObject*>(type->tp_alloc(type, 0));
@@ -550,21 +481,14 @@ doneCallbackNew(PyTypeObject* type, PyObject* /*args*/, PyObject* /*kwds*/)
     return self;
 }
 
-#ifdef WIN32
-extern "C"
-#endif
-static void
-doneCallbackDealloc(DoneCallbackObject* self)
+extern "C" doneCallbackDealloc(DoneCallbackObject* self)
 {
     delete self->upcall;
     Py_XDECREF(self->coroutine);
     Py_TYPE(self)->tp_free(reinterpret_cast<PyObject*>(self));
 }
 
-#ifdef WIN32
-extern "C"
-#endif
-static PyObject*
+extern "C" static PyObject*
 doneCallbackInvoke(DoneCallbackObject* self, PyObject* args)
 {
     PyObject* future = 0;
@@ -607,10 +531,7 @@ doneCallbackInvoke(DoneCallbackObject* self, PyObject* args)
 // DispatchCallbackObject operations
 //
 
-#ifdef WIN32
-extern "C"
-#endif
-static DispatchCallbackObject*
+extern "C" static DispatchCallbackObject*
 dispatchCallbackNew(PyTypeObject* type, PyObject* /*args*/, PyObject* /*kwds*/)
 {
     DispatchCallbackObject* self = reinterpret_cast<DispatchCallbackObject*>(type->tp_alloc(type, 0));
@@ -622,20 +543,14 @@ dispatchCallbackNew(PyTypeObject* type, PyObject* /*args*/, PyObject* /*kwds*/)
     return self;
 }
 
-#ifdef WIN32
-extern "C"
-#endif
-static void
+extern "C" static void
 dispatchCallbackDealloc(DispatchCallbackObject* self)
 {
     delete self->upcall;
     Py_TYPE(self)->tp_free(reinterpret_cast<PyObject*>(self));
 }
 
-#ifdef WIN32
-extern "C"
-#endif
-static PyObject*
+extern "C" static PyObject*
 dispatchCallbackResponse(DispatchCallbackObject* self, PyObject* args)
 {
     PyObject* result = 0;
@@ -660,10 +575,7 @@ dispatchCallbackResponse(DispatchCallbackObject* self, PyObject* args)
     return incRef(Py_None);
 }
 
-#ifdef WIN32
-extern "C"
-#endif
-static PyObject*
+extern "C" static PyObject*
 dispatchCallbackException(DispatchCallbackObject* self, PyObject* args)
 {
     PyObject* ex = 0;
@@ -693,10 +605,7 @@ dispatchCallbackException(DispatchCallbackObject* self, PyObject* args)
 // AsyncResult operations
 //
 
-#ifdef WIN32
-extern "C"
-#endif
-static AsyncResultObject*
+extern "C" static AsyncResultObject*
 asyncResultNew(PyTypeObject* type, PyObject* /*args*/, PyObject* /*kwds*/)
 {
     AsyncResultObject* self = reinterpret_cast<AsyncResultObject*>(type->tp_alloc(type, 0));
@@ -706,44 +615,18 @@ asyncResultNew(PyTypeObject* type, PyObject* /*args*/, PyObject* /*kwds*/)
     }
     self->result = 0;
     self->invocation = 0;
-    self->proxy = 0;
-    self->connection = 0;
-    self->communicator = 0;
     return self;
 }
 
-#ifdef WIN32
-extern "C"
-#endif
-static void
+extern "C" static void
 asyncResultDealloc(AsyncResultObject* self)
 {
     delete self->result;
     delete self->invocation;
-    Py_XDECREF(self->proxy);
-    Py_XDECREF(self->connection);
-    Py_XDECREF(self->communicator);
     Py_TYPE(self)->tp_free(reinterpret_cast<PyObject*>(self));
 }
 
-#ifdef WIN32
-extern "C"
-#endif
-static PyObject*
-asyncResultGetCommunicator(AsyncResultObject* self, PyObject* /*args*/)
-{
-    if(self->communicator)
-    {
-        return incRef(self->communicator);
-    }
-
-    return incRef(Py_None);
-}
-
-#ifdef WIN32
-extern "C"
-#endif
-static PyObject*
+extern "C" static PyObject*
 asyncResultCancel(AsyncResultObject* self, PyObject* /*args*/)
 {
     try
@@ -758,38 +641,7 @@ asyncResultCancel(AsyncResultObject* self, PyObject* /*args*/)
     return incRef(Py_None);
 }
 
-#ifdef WIN32
-extern "C"
-#endif
-static PyObject*
-asyncResultGetConnection(AsyncResultObject* self, PyObject* /*args*/)
-{
-    if(self->connection)
-    {
-        return incRef(self->connection);
-    }
-
-    return incRef(Py_None);
-}
-
-#ifdef WIN32
-extern "C"
-#endif
-static PyObject*
-asyncResultGetProxy(AsyncResultObject* self, PyObject* /*args*/)
-{
-    if(self->proxy)
-    {
-        return incRef(self->proxy);
-    }
-
-    return incRef(Py_None);
-}
-
-#ifdef WIN32
-extern "C"
-#endif
-static PyObject*
+extern "C" static PyObject*
 asyncResultCallLater(AsyncResultObject* self, PyObject* args)
 {
     PyObject* callback;
@@ -856,10 +708,7 @@ asyncResultCallLater(AsyncResultObject* self, PyObject* args)
 // MarshaledResult operations
 //
 
-#ifdef WIN32
-extern "C"
-#endif
-static MarshaledResultObject*
+extern "C" static MarshaledResultObject*
 marshaledResultNew(PyTypeObject* type, PyObject* /*args*/, PyObject* /*kwds*/)
 {
     MarshaledResultObject* self = reinterpret_cast<MarshaledResultObject*>(type->tp_alloc(type, 0));
@@ -871,10 +720,7 @@ marshaledResultNew(PyTypeObject* type, PyObject* /*args*/, PyObject* /*kwds*/)
     return self;
 }
 
-#ifdef WIN32
-extern "C"
-#endif
-static int
+extern "C" static int
 marshaledResultInit(MarshaledResultObject* self, PyObject* args, PyObject* /*kwds*/)
 {
     PyObject* versionType = IcePy::lookupType("Ice.EncodingVersion");
@@ -919,10 +765,7 @@ marshaledResultInit(MarshaledResultObject* self, PyObject* args, PyObject* /*kwd
     return 0;
 }
 
-#ifdef WIN32
-extern "C"
-#endif
-static void
+extern "C" static void
 marshaledResultDealloc(MarshaledResultObject* self)
 {
     delete self->out;
@@ -1297,12 +1140,6 @@ static PyMethodDef AsyncResultMethods[] =
 {
     { STRCAST("cancel"), reinterpret_cast<PyCFunction>(asyncResultCancel), METH_NOARGS,
       PyDoc_STR(STRCAST("cancels the invocation")) },
-    { STRCAST("getCommunicator"), reinterpret_cast<PyCFunction>(asyncResultGetCommunicator), METH_NOARGS,
-      PyDoc_STR(STRCAST("returns the communicator for the invocation")) },
-    { STRCAST("getConnection"), reinterpret_cast<PyCFunction>(asyncResultGetConnection), METH_NOARGS,
-      PyDoc_STR(STRCAST("returns the connection for the invocation")) },
-    { STRCAST("getProxy"), reinterpret_cast<PyCFunction>(asyncResultGetProxy), METH_NOARGS,
-      PyDoc_STR(STRCAST("returns the proxy for the invocation")) },
     { STRCAST("callLater"), reinterpret_cast<PyCFunction>(asyncResultCallLater), METH_VARARGS,
       PyDoc_STR(STRCAST("internal function")) },
     { 0, 0 } /* sentinel */
@@ -1627,7 +1464,7 @@ IcePy::Invocation::prepareRequest(const OperationPtr& op, PyObject* args, Mappin
     if(argc != paramCount)
     {
         string opName;
-        if(mapping == NewAsyncMapping)
+        if(mapping == AsyncMapping)
         {
             opName = op->name + "Async";
         }
@@ -1662,7 +1499,7 @@ IcePy::Invocation::prepareRequest(const OperationPtr& op, PyObject* args, Mappin
                 if((!info->optional || arg != Unset) && !info->type->validate(arg))
                 {
                     string name;
-                    if(mapping == NewAsyncMapping)
+                    if(mapping == AsyncMapping)
                     {
                         name = op->name + "Async";
                     }
@@ -1679,9 +1516,8 @@ IcePy::Invocation::prepareRequest(const OperationPtr& op, PyObject* args, Mappin
             //
             // Marshal the required parameters.
             //
-            for(p = op->inParams.begin(); p != op->inParams.end(); ++p)
+            for (const auto& info : op->inParams)
             {
-                ParamInfoPtr info = *p;
                 if(!info->optional)
                 {
                     PyObject* arg = PyTuple_GET_ITEM(args, info->pos);
@@ -1692,9 +1528,8 @@ IcePy::Invocation::prepareRequest(const OperationPtr& op, PyObject* args, Mappin
             //
             // Marshal the optional parameters.
             //
-            for(p = op->optionalInParams.begin(); p != op->optionalInParams.end(); ++p)
+            for(const auto& info : op->optionalInParams)
             {
-                ParamInfoPtr info = *p;
                 PyObject* arg = PyTuple_GET_ITEM(args, info->pos);
                 if(arg != Unset && os->writeOptional(info->tag, info->type->optionalFormat()))
                 {
@@ -1751,35 +1586,27 @@ IcePy::Invocation::unmarshalResults(const OperationPtr& op, const pair<const Ice
 
         ParamInfoList::iterator p;
 
-        //
         // Unmarshal the required out parameters.
-        //
-        for(p = op->outParams.begin(); p != op->outParams.end(); ++p)
+        for (const auto& info : op->outParams)
         {
-            ParamInfoPtr info = *p;
-            if(!info->optional)
+            if (!info->optional)
             {
                 void* closure = reinterpret_cast<void*>(info->pos);
                 info->type->unmarshal(&is, info, results.get(), closure, false, &info->metaData);
             }
         }
 
-        //
         // Unmarshal the required return value, if any.
-        //
-        if(op->returnType && !op->returnType->optional)
+        if (op->returnType && !op->returnType->optional)
         {
             assert(op->returnType->pos == 0);
             void* closure = reinterpret_cast<void*>(op->returnType->pos);
             op->returnType->type->unmarshal(&is, op->returnType, results.get(), closure, false, &op->metaData);
         }
 
-        //
         // Unmarshal the optional results. This includes an optional return value.
-        //
-        for(p = op->optionalOutParams.begin(); p != op->optionalOutParams.end(); ++p)
+        for (const auto& info : op->optionalOutParams)
         {
-            ParamInfoPtr info = *p;
             if(is.readOptional(info->tag, info->type->optionalFormat()))
             {
                 void* closure = reinterpret_cast<void*>(info->pos);
@@ -1809,10 +1636,8 @@ IcePy::Invocation::unmarshalException(const OperationPtr& op, const pair<const I
 {
     Ice::InputStream is(_communicator, bytes);
 
-    //
-    // Store a pointer to a local StreamUtil object as the stream's closure.
-    // This is necessary to support object unmarshaling (see ValueReader).
-    //
+    // Store a pointer to a local StreamUtil object as the stream's closure. This is necessary to support object
+    // unmarshaling (see ValueReader).
     StreamUtil util;
     assert(!is.getClosure());
     is.setClosure(&util);
@@ -2031,16 +1856,24 @@ IcePy::SyncTypedInvocation::invoke(PyObject* args, PyObject* /* kwds */)
 }
 
 //
-// NewAsyncInvocation
+// AsyncInvocation
 //
-IcePy::NewAsyncInvocation::NewAsyncInvocation(const Ice::ObjectPrx& prx, PyObject* pyProxy, const string& operation)
-    : Invocation(prx), _pyProxy(pyProxy), _operation(operation), _twoway(prx->ice_isTwoway()), _sent(false),
-      _sentSynchronously(false), _done(false), _future(0), _ok(false), _exception(0)
+IcePy::AsyncInvocation::AsyncInvocation(const Ice::ObjectPrx& prx, PyObject* pyProxy, const string& operation)
+    : Invocation(prx),
+    _pyProxy(pyProxy),
+    _operation(operation),
+    _twoway(prx->ice_isTwoway()),
+    _sent(false),
+    _sentSynchronously(false),
+    _done(false),
+    _future(0),
+    _ok(false),
+    _exception(0)
 {
     Py_INCREF(_pyProxy);
 }
 
-IcePy::NewAsyncInvocation::~NewAsyncInvocation()
+IcePy::AsyncInvocation::~AsyncInvocation()
 {
     AdoptThread adoptThread; // Ensure the current thread is able to call into Python.
 
@@ -2050,13 +1883,13 @@ IcePy::NewAsyncInvocation::~NewAsyncInvocation()
 }
 
 PyObject*
-IcePy::NewAsyncInvocation::invoke(PyObject* args, PyObject* kwds)
+IcePy::AsyncInvocation::invoke(PyObject* args, PyObject* kwds)
 {
     //
     // Called from Python code, so the GIL is already acquired.
     //
 
-    Ice::AsyncResultPtr result;
+    future<Ice::Object::Ice_invokeResult> result;
 
     try
     {
@@ -2093,18 +1926,9 @@ IcePy::NewAsyncInvocation::invoke(PyObject* args, PyObject* kwds)
 
     assert(result);
 
-    //
-    // NOTE: Any time we call into interpreted Python code there's a chance that another thread will be
-    // allowed to run!
-    //
+    // Any time we call into interpreted Python code there's a chance that another thread will be allowed to run!
 
     PyObjectHandle communicatorObj = getCommunicatorWrapper(_communicator);
-
-    PyObjectHandle asyncResultObj = createAsyncResult(result, _pyProxy, 0, communicatorObj.get());
-    if(!asyncResultObj.get())
-    {
-        return 0;
-    }
 
     PyObjectHandle future = createFuture(_operation, asyncResultObj.get()); // Calls into Python code.
     if(!future.get())
@@ -2176,7 +2000,7 @@ IcePy::NewAsyncInvocation::invoke(PyObject* args, PyObject* kwds)
 }
 
 void
-IcePy::NewAsyncInvocation::response(bool ok, const pair<const Ice::Byte*, const Ice::Byte*>& results)
+IcePy::AsyncInvocation::response(bool ok, const pair<const Ice::Byte*, const Ice::Byte*>& results)
 {
     AdoptThread adoptThread; // Ensure the current thread is able to call into Python.
 
@@ -2221,7 +2045,7 @@ IcePy::NewAsyncInvocation::response(bool ok, const pair<const Ice::Byte*, const 
 }
 
 void
-IcePy::NewAsyncInvocation::exception(const Ice::Exception& ex)
+IcePy::AsyncInvocation::exception(const Ice::Exception& ex)
 {
     AdoptThread adoptThread; // Ensure the current thread is able to call into Python.
 
@@ -2250,7 +2074,7 @@ IcePy::NewAsyncInvocation::exception(const Ice::Exception& ex)
 }
 
 void
-IcePy::NewAsyncInvocation::sent(bool sentSynchronously)
+IcePy::AsyncInvocation::sent(bool sentSynchronously)
 {
     AdoptThread adoptThread; // Ensure the current thread is able to call into Python.
 
@@ -2300,16 +2124,16 @@ IcePy::NewAsyncInvocation::sent(bool sentSynchronously)
 }
 
 //
-// NewAsyncTypedInvocation
+// AsyncTypedInvocation
 //
-IcePy::NewAsyncTypedInvocation::NewAsyncTypedInvocation(const Ice::ObjectPrx& prx, PyObject* pyProxy,
+IcePy::AsyncTypedInvocation::AsyncTypedInvocation(const Ice::ObjectPrx& prx, PyObject* pyProxy,
                                                         const OperationPtr& op)
-    : NewAsyncInvocation(prx, pyProxy, op->name), _op(op)
+    : AsyncInvocation(prx, pyProxy, op->name), _op(op)
 {
 }
 
-Ice::AsyncResultPtr
-IcePy::NewAsyncTypedInvocation::handleInvoke(PyObject* args, PyObject* /* kwds */)
+void
+IcePy::AsyncTypedInvocation::handleInvoke(PyObject* args, PyObject* /* kwds */)
 {
     //
     // Called from Python code, so the GIL is already acquired.
@@ -2326,30 +2150,19 @@ IcePy::NewAsyncTypedInvocation::handleInvoke(PyObject* args, PyObject* /* kwds *
     //
     Ice::OutputStream os(_communicator);
     pair<const Ice::Byte*, const Ice::Byte*> params;
-    if(!prepareRequest(_op, pyparams, NewAsyncMapping, &os, params))
+    if(!prepareRequest(_op, pyparams, AsyncMapping, &os, params))
     {
         return 0;
     }
 
     checkTwowayOnly(_op, _prx);
 
-    NewAsyncInvocationPtr self = this;
-    Ice::Callback_Object_ice_invokePtr cb;
-    if(!_prx->ice_isBatchOneway() && !_prx->ice_isBatchDatagram())
-    {
-        cb = Ice::newCallback_Object_ice_invoke(self,
-                                                &NewAsyncInvocation::response,
-                                                &NewAsyncInvocation::exception,
-                                                &NewAsyncInvocation::sent);
-    }
-
     //
     // Invoke the operation asynchronously.
     //
+    optional<Ice::Context> ctx;
     if(pyctx != Py_None)
     {
-        Ice::Context ctx;
-
         if(!PyDict_Check(pyctx))
         {
             PyErr_Format(PyExc_ValueError, STRCAST("context argument must be None or a dictionary"));
@@ -2360,31 +2173,36 @@ IcePy::NewAsyncTypedInvocation::handleInvoke(PyObject* args, PyObject* /* kwds *
         {
             return 0;
         }
+    }
 
-        if(cb)
+    return _prx->ice_invokeAsync(
+        _op->name,
+        _op->sendMode,
+        params,
+        ctx.value_or(Ice::implicitContext),
+        [this](bool ok, const pair<const Ice::Byte*, const Ice::Byte*>& results)
         {
-            return _prx->begin_ice_invoke(_op->name, _op->sendMode, params, ctx, cb);
-        }
-        else
+            this->response(ok, results);
+        },
+        [this](exception_ptr exptr)
         {
-            return _prx->begin_ice_invoke(_op->name, _op->sendMode, params, ctx);
-        }
-    }
-    else
-    {
-        if(cb)
+            try
+            {
+                rethrow_exception(exptr);
+            }
+            catch(const Ice::Exception& ex)
+            {
+                this->exception(ex);
+            }
+        },
+        [this](bool sentSynchronously)
         {
-            return _prx->begin_ice_invoke(_op->name, _op->sendMode, params, cb);
-        }
-        else
-        {
-            return _prx->begin_ice_invoke(_op->name, _op->sendMode, params);
-        }
-    }
+            this->sent(sentSynchronously);
+        });
 }
 
 void
-IcePy::NewAsyncTypedInvocation::handleResponse(PyObject* future, bool ok,
+IcePy::AsyncTypedInvocation::handleResponse(PyObject* future, bool ok,
                                                const pair<const Ice::Byte*, const Ice::Byte*>& results)
 {
     try
@@ -2545,15 +2363,15 @@ IcePy::SyncBlobjectInvocation::invoke(PyObject* args, PyObject* /* kwds */)
 }
 
 //
-// NewAsyncBlobjectInvocation
+// AsyncBlobjectInvocation
 //
-IcePy::NewAsyncBlobjectInvocation::NewAsyncBlobjectInvocation(const Ice::ObjectPrx& prx, PyObject* pyProxy) :
-    NewAsyncInvocation(prx, pyProxy, "ice_invoke")
+IcePy::AsyncBlobjectInvocation::AsyncBlobjectInvocation(const Ice::ObjectPrx& prx, PyObject* pyProxy) :
+    AsyncInvocation(prx, pyProxy, "ice_invoke")
 {
 }
 
 Ice::AsyncResultPtr
-IcePy::NewAsyncBlobjectInvocation::handleInvoke(PyObject* args, PyObject* /* kwds */)
+IcePy::AsyncBlobjectInvocation::handleInvoke(PyObject* args, PyObject* /* kwds */)
 {
     char* operation;
     PyObject* mode;
@@ -2581,14 +2399,14 @@ IcePy::NewAsyncBlobjectInvocation::handleInvoke(PyObject* args, PyObject* /* kwd
         in.second = in.first + sz;
     }
 
-    NewAsyncInvocationPtr self = this;
+    AsyncInvocationPtr self = this;
     Ice::Callback_Object_ice_invokePtr cb;
     if(!_prx->ice_isBatchOneway() && !_prx->ice_isBatchDatagram())
     {
         cb = Ice::newCallback_Object_ice_invoke(self,
-                                                &NewAsyncInvocation::response,
-                                                &NewAsyncInvocation::exception,
-                                                &NewAsyncInvocation::sent);
+                                                &AsyncInvocation::response,
+                                                &AsyncInvocation::exception,
+                                                &AsyncInvocation::sent);
     }
 
     if(ctx == 0 || ctx == Py_None)
@@ -2622,7 +2440,7 @@ IcePy::NewAsyncBlobjectInvocation::handleInvoke(PyObject* args, PyObject* /* kwd
 }
 
 void
-IcePy::NewAsyncBlobjectInvocation::handleResponse(PyObject* future, bool ok,
+IcePy::AsyncBlobjectInvocation::handleResponse(PyObject* future, bool ok,
                                                   const pair<const Ice::Byte*, const Ice::Byte*>& results)
 {
     //
@@ -3087,7 +2905,7 @@ IcePy::invokeBuiltinAsync(PyObject* proxy, const string& builtin, PyObject* args
     assert(op);
 
     Ice::ObjectPrx p = getProxy(proxy);
-    InvocationPtr i = new NewAsyncTypedInvocation(p, proxy, op);
+    InvocationPtr i = new AsyncTypedInvocation(p, proxy, op);
     return i->invoke(args);
 }
 
@@ -3103,31 +2921,8 @@ PyObject*
 IcePy::iceInvokeAsync(PyObject* proxy, PyObject* args)
 {
     Ice::ObjectPrx p = getProxy(proxy);
-    InvocationPtr i = new NewAsyncBlobjectInvocation(p, proxy);
+    InvocationPtr i = new AsyncBlobjectInvocation(p, proxy);
     return i->invoke(args);
-}
-
-PyObject*
-IcePy::createAsyncResult(const Ice::AsyncResultPtr& r, PyObject* proxy, PyObject* connection, PyObject* communicator)
-{
-    AsyncResultObject* obj = asyncResultNew(&AsyncResultType, 0, 0);
-    if(!obj)
-    {
-        return 0;
-    }
-    obj->result = new Ice::AsyncResultPtr(r);
-    obj->proxy = incRef(proxy);
-    obj->connection = incRef(connection);
-    obj->communicator = incRef(communicator);
-    return reinterpret_cast<PyObject*>(obj);
-}
-
-Ice::AsyncResultPtr
-IcePy::getAsyncResult(PyObject* p)
-{
-    assert(PyObject_IsInstance(p, reinterpret_cast<PyObject*>(&AsyncResultType)) == 1);
-    AsyncResultObject* obj = reinterpret_cast<AsyncResultObject*>(p);
-    return *obj->result;
 }
 
 IcePy::FlushAsyncCallback::FlushAsyncCallback(const string& op) :
@@ -3491,26 +3286,6 @@ IcePy::createServantWrapper(PyObject* servant)
     }
 
     return make_shared<TypedServantWrapper>(servant);
-}
-
-PyObject*
-IcePy::createFuture()
-{
-    PyObject* futureType = lookupType("Ice.Future");
-    assert(futureType);
-    PyObjectHandle args = PyTuple_New(0);
-    if(!args.get())
-    {
-        return 0;
-    }
-    PyTypeObject* type = reinterpret_cast<PyTypeObject*>(futureType);
-    PyObject* future = type->tp_new(type, args.get(), 0);
-    if(!future)
-    {
-        return 0;
-    }
-    type->tp_init(future, args.get(), 0); // Call the constructor
-    return future;
 }
 
 PyObject*

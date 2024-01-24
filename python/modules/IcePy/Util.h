@@ -120,31 +120,22 @@ private:
     PyObject* _p;
 };
 
-//
+
 // Manages the interpreter's exception.
-//
 class PyException
 {
 public:
 
-    //
     // Retrieves the interpreter's current exception.
-    //
     PyException();
 
-    //
     // Uses the given exception.
-    //
     PyException(PyObject*);
 
-    //
     // Convert the Python exception to its C++ equivalent.
-    //
     void raise();
 
-    //
     // If the Python exception is SystemExit, act on it. May not return.
-    //
     void checkSystemExit();
 
     PyObjectHandle ex;
@@ -159,103 +150,63 @@ private:
     PyObjectHandle _tb;
 };
 
-//
 // Convert Ice::ByteSeq to a Python list.
-//
 PyObject* byteSeqToList(const Ice::ByteSeq&);
 
-//
 // Convert Ice::StringSeq to and from a Python list.
-//
 bool listToStringSeq(PyObject*, Ice::StringSeq&);
 bool stringSeqToList(const Ice::StringSeq&, PyObject*);
 
-//
 // Convert a tuple to Ice::StringSeq.
-//
 bool tupleToStringSeq(PyObject*, Ice::StringSeq&);
 
-//
 // Convert Ice::Context to and from a Python dictionary.
-//
 bool dictionaryToContext(PyObject*, Ice::Context&);
 bool contextToDictionary(const Ice::Context&, PyObject*);
 
-//
-// Returns a borrowed reference to the Python type object corresponding
-// to the given Python type name.
-//
+// Returns a borrowed reference to the Python type object corresponding to the given Python type name.
 PyObject* lookupType(const std::string&);
 
-//
 // Creates an exception instance of the given type.
-//
 PyObject* createExceptionInstance(PyObject*);
 
-//
 // Converts an Ice exception into a Python exception.
-//
 PyObject* convertException(const Ice::Exception&);
 
-//
 // Converts an Ice exception into a Python exception and sets it in the Python environment.
-//
 void setPythonException(const Ice::Exception&);
 
-//
 // Sets an exception in the Python environment.
-//
 void setPythonException(PyObject*);
 
-//
-// Converts the interpreter's current exception into an Ice exception
-// and throws it.
-//
+// Converts the interpreter's current exception into an Ice exception and throws it.
 void throwPythonException();
 
-//
 // Handle the SystemExit exception.
-//
 void handleSystemExit(PyObject*);
 
-//
 // Create a Python instance of Ice.Identity.
-//
 PyObject* createIdentity(const Ice::Identity&);
 
-//
 // Verify that the object is Ice.Identity.
-//
 bool checkIdentity(PyObject*);
 
-//
 // Assign values to members of an instance of Ice.Identity.
-//
 bool setIdentity(PyObject*, const Ice::Identity&);
 
-//
 // Extract the members of Ice.Identity.
-//
 bool getIdentity(PyObject*, Ice::Identity&);
 
-//
 // Create a Python instance of Ice.ProtocolVersion.
-//
 PyObject* createProtocolVersion(const Ice::ProtocolVersion&);
 
-//
 // Create a Python instance of Ice.EncodingVersion.
-//
 PyObject* createEncodingVersion(const Ice::EncodingVersion&);
 
-//
 // Extracts the members of an encoding version.
-//
 bool getEncodingVersion(PyObject*, Ice::EncodingVersion&);
 
-//
 // Call a Python method.
-//
 PyObject* callMethod(PyObject*, const std::string&, PyObject* = 0, PyObject* = 0);
 PyObject* callMethod(PyObject*, PyObject* = 0, PyObject* = 0);
 

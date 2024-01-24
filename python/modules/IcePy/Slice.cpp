@@ -2,17 +2,16 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-#include <Slice.h>
-#include <Util.h>
-#include <Slice/Preprocessor.h>
+#include "Slice.h"
+#include "Util.h"
 #include "PythonUtil.h"
+
+#include <Slice/Preprocessor.h>
 #include <Slice/Util.h>
+
 #include <IceUtil/Options.h>
 #include <IceUtil/ConsoleUtil.h>
 
-//
-// Python headers needed for PyEval_EvalCode.
-//
 #include <compile.h>
 // Use ceval.h instead of eval.h with Pyhthon 3.11 and greater
 #if PY_VERSION_HEX >= 0x030B0000
@@ -27,8 +26,7 @@ using namespace Slice;
 using namespace Slice::Python;
 using namespace IceUtilInternal;
 
-extern "C"
-PyObject*
+extern "C" PyObject* 
 IcePy_loadSlice(PyObject* /*self*/, PyObject* args)
 {
     char* cmd;
@@ -205,12 +203,9 @@ IcePy_compile(PyObject* /*self*/, PyObject* args)
     }
 
     vector<string> argSeq;
-    if(list)
+    if(list && !listToStringSeq(list, argSeq))
     {
-        if(!listToStringSeq(list, argSeq))
-        {
-            return 0;
-        }
+        return 0;
     }
 
     int rc;
@@ -228,7 +223,5 @@ IcePy_compile(PyObject* /*self*/, PyObject* args)
         consoleErr << argSeq[0] << ": error:" << "unknown exception" << endl;
         rc = EXIT_FAILURE;
     }
-
-    // PyInt_FromLong doesn't exist in python 3.
     return PyLong_FromLong(rc);
 }

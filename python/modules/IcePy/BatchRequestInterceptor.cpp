@@ -2,9 +2,10 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-#include <BatchRequestInterceptor.h>
-#include <Proxy.h>
-#include <Thread.h>
+#include "BatchRequestInterceptor.h"
+#include "Proxy.h"
+#include "Thread.h"
+
 #include <Ice/Initialize.h>
 
 using namespace std;
@@ -24,20 +25,14 @@ struct BatchRequestObject
 
 }
 
-#ifdef WIN32
-extern "C"
-#endif
-static BatchRequestObject*
+extern "C" static BatchRequestObject*
 batchRequestNew(PyTypeObject* /*type*/, PyObject* /*args*/, PyObject* /*kwds*/)
 {
     PyErr_Format(PyExc_RuntimeError, STRCAST("Batch requests can only be created by the Ice runtime"));
     return 0;
 }
 
-#ifdef WIN32
-extern "C"
-#endif
-static void
+extern "C" static void
 batchRequestDealloc(BatchRequestObject* self)
 {
     Py_XDECREF(self->size);
@@ -46,10 +41,7 @@ batchRequestDealloc(BatchRequestObject* self)
     Py_TYPE(self)->tp_free(reinterpret_cast<PyObject*>(self));
 }
 
-#ifdef WIN32
-extern "C"
-#endif
-static PyObject*
+extern "C" static PyObject*
 batchRequestGetSize(BatchRequestObject* self, PyObject* /*args*/)
 {
     assert(self->request);
@@ -72,10 +64,7 @@ batchRequestGetSize(BatchRequestObject* self, PyObject* /*args*/)
     return self->size;
 }
 
-#ifdef WIN32
-extern "C"
-#endif
-static PyObject*
+extern "C" static PyObject*
 batchRequestGetOperation(BatchRequestObject* self, PyObject* /*args*/)
 {
     assert(self->request);
@@ -98,16 +87,13 @@ batchRequestGetOperation(BatchRequestObject* self, PyObject* /*args*/)
     return self->operation;
 }
 
-#ifdef WIN32
-extern "C"
-#endif
-static PyObject*
+extern "C" static PyObject*
 batchRequestGetProxy(BatchRequestObject* self, PyObject* /*args*/)
 {
     assert(self->request);
     if(!self->proxy)
     {
-        Ice::ObjectPrx proxy;
+        shared_ptr<Ice::ObjectPrx> proxy;
         try
         {
             proxy = self->request->getProxy();
@@ -124,10 +110,7 @@ batchRequestGetProxy(BatchRequestObject* self, PyObject* /*args*/)
     return self->proxy;
 }
 
-#ifdef WIN32
-extern "C"
-#endif
-static PyObject*
+extern "C" static PyObject*
 batchRequestEnqueue(BatchRequestObject* self, PyObject* /*args*/)
 {
     assert(self->request);
