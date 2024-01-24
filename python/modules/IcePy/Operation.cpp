@@ -1716,9 +1716,7 @@ IcePy::Invocation::checkTwowayOnly(const OperationPtr& op, const Ice::ObjectPrx&
     }
 }
 
-//
 // SyncTypedInvocation
-//
 IcePy::SyncTypedInvocation::SyncTypedInvocation(const Ice::ObjectPrx& prx, const OperationPtr& op) :
     Invocation(prx), _op(op)
 {
@@ -1733,9 +1731,7 @@ IcePy::SyncTypedInvocation::invoke(PyObject* args, PyObject* /* kwds */)
     assert(PyTuple_Check(pyparams));
     PyObject* pyctx = PyTuple_GET_ITEM(args, 1);
 
-    //
     // Marshal the input parameters to a byte sequence.
-    //
     Ice::OutputStream os(_communicator);
     pair<const Ice::Byte*, const Ice::Byte*> params;
     if(!prepareRequest(_op, pyparams, SyncMapping, &os, params))
@@ -2202,28 +2198,28 @@ IcePy::AsyncTypedInvocation::handleInvoke(PyObject* args, PyObject* /* kwds */)
 }
 
 void
-IcePy::AsyncTypedInvocation::handleResponse(PyObject* future, bool ok,
-                                               const pair<const Ice::Byte*, const Ice::Byte*>& results)
+IcePy::AsyncTypedInvocation::handleResponse(
+    PyObject* future,
+    bool ok,
+    const pair<const Ice::Byte*, const Ice::Byte*>& results)
 {
     try
     {
-        if(ok)
+        if (ok)
         {
-            //
             // Unmarshal the results.
-            //
             PyObjectHandle args;
 
             try
             {
                 args = unmarshalResults(_op, results);
-                if(!args.get())
+                if (!args.get())
                 {
                     assert(PyErr_Occurred());
                     return;
                 }
             }
-            catch(const Ice::Exception& ex)
+            catch (const Ice::Exception& ex)
             {
                 PyObjectHandle exh = convertException(ex);
                 assert(exh.get());
@@ -2232,19 +2228,17 @@ IcePy::AsyncTypedInvocation::handleResponse(PyObject* future, bool ok,
                 return;
             }
 
-            //
             // The future's result is always one value:
             //
             // - If the operation has no out parameters, the result is None
             // - If the operation returns one value, the result is the value
             // - If the operation returns multiple values, the result is a tuple containing the values
-            //
             PyObjectHandle r;
-            if(PyTuple_GET_SIZE(args.get()) == 0)
+            if (PyTuple_GET_SIZE(args.get()) == 0)
             {
                 r = incRef(Py_None);
             }
-            else if(PyTuple_GET_SIZE(args.get()) == 1)
+            else if (PyTuple_GET_SIZE(args.get()) == 1)
             {
                 r = incRef(PyTuple_GET_ITEM(args.get(), 0)); // PyTuple_GET_ITEM steals a reference.
             }
@@ -2263,7 +2257,7 @@ IcePy::AsyncTypedInvocation::handleResponse(PyObject* future, bool ok,
             PyErr_Clear();
         }
     }
-    catch(const AbortMarshaling&)
+    catch (const AbortMarshaling&)
     {
         assert(PyErr_Occurred());
     }
