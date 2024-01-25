@@ -45,9 +45,9 @@ const Py_ssize_t CURRENT_ENCODING   = 8;
 
 }
 
-#ifdef WIN32
 extern "C"
-#endif
+{
+
 static CurrentObject*
 currentNew(PyTypeObject* type, PyObject* /*args*/, PyObject* /*kwds*/)
 {
@@ -71,9 +71,6 @@ currentNew(PyTypeObject* type, PyObject* /*args*/, PyObject* /*kwds*/)
     return self;
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static void
 currentDealloc(CurrentObject* self)
 {
@@ -90,9 +87,6 @@ currentDealloc(CurrentObject* self)
     Py_TYPE(self)->tp_free(reinterpret_cast<PyObject*>(self));
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 currentGetter(CurrentObject* self, void* closure)
 {
@@ -175,13 +169,13 @@ currentGetter(CurrentObject* self, void* closure)
             const char* enumerator = 0;
             switch(self->current->mode)
             {
-            case Ice::Normal:
+            case Ice::OperationMode::Normal:
                 enumerator = "Normal";
                 break;
-            case Ice::Nonmutating:
+            case Ice::OperationMode::Nonmutating:
                 enumerator = "Nonmutating";
                 break;
-            case Ice::Idempotent:
+            case Ice::OperationMode::Idempotent:
                 enumerator = "Idempotent";
                 break;
             }
@@ -234,6 +228,8 @@ currentGetter(CurrentObject* self, void* closure)
 
     return result;
 }
+
+} // End of extern "C".
 
 static PyGetSetDef CurrentGetSetters[] =
 {

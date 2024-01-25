@@ -18,13 +18,13 @@ extern PyTypeObject BatchRequestType;
 
 bool initBatchRequest(PyObject*);
 
-class BatchRequestInterceptor
+class BatchRequestInterceptor final
 {
 public:
 
     BatchRequestInterceptor(PyObject*);
 
-    virtual void enqueue(const Ice::BatchRequest&, int, int);
+    void enqueue(const Ice::BatchRequest&, int, int);
 
 private:
 

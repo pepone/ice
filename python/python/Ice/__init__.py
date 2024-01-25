@@ -2,7 +2,7 @@
 # Copyright (c) ZeroC, Inc. All rights reserved.
 #
 
-# ruff: noqa: F401, F821
+# ruff: noqa: F401, F821, E402
 
 """
 Ice module
@@ -18,6 +18,7 @@ import inspect
 import traceback
 import types
 import array
+import ctypes
 
 #
 # RTTI problems can occur in C++ code unless we modify Python's dlopen flags.
@@ -28,24 +29,10 @@ import array
 _dlopenflags = -1
 try:
     _dlopenflags = sys.getdlopenflags()
-
-    try:
-        import dl
-
-        sys.setdlopenflags(dl.RTLD_NOW | dl.RTLD_GLOBAL)
-    except ImportError:
-        #
-        # If the dl module is not available and we're running on a Linux
-        # platform, use the hard coded value of RTLD_NOW|RTLD_GLOBAL.
-        #
-        if sys.platform.startswith("linux"):
-            sys.setdlopenflags(258)
-        pass
+    sys.setdlopenflags(ctypes.RTLD_NOW | ctypes.RTLD_GLOBAL)
 
 except AttributeError:
-    #
     # sys.getdlopenflags() is not supported (we're probably running on Windows).
-    #
     pass
 
 #
@@ -81,10 +68,10 @@ stringToEncodingVersion = IcePy.stringToEncodingVersion
 encodingVersionToString = IcePy.encodingVersionToString
 generateUUID = IcePy.generateUUID
 loadSlice = IcePy.loadSlice
-AsyncResult = IcePy.AsyncResult
+AsyncInvocationContext = IcePy.AsyncInvocationContext
 Unset = IcePy.Unset
 
-from Ice.IceFuture import FutureBase, wrap_future  # noqa
+from Ice.IceFuture import FutureBase  # noqa
 
 
 class Future(FutureBase):
@@ -216,17 +203,17 @@ class Future(FutureBase):
 
 
 class InvocationFuture(Future):
-    def __init__(self, operation, asyncResult):
+    def __init__(self, operation, asyncInvocationContext):
         Future.__init__(self)
-        assert asyncResult
+        assert asyncInvocationContext
         self._operation = operation
-        self._asyncResult = asyncResult  # May be None for a batch invocation.
+        self._asyncInvocationContext = asyncInvocationContext
         self._sent = False
         self._sentSynchronously = False
         self._sentCallbacks = []
 
     def cancel(self):
-        self._asyncResult.cancel()
+        self._asyncInvocationContext.cancel()
         return Future.cancel(self)
 
     def add_done_callback_async(self, fn):
@@ -240,7 +227,7 @@ class InvocationFuture(Future):
             if self._state == Future.StateRunning:
                 self._doneCallbacks.append(fn)
                 return
-        self._asyncResult.callLater(callback)
+        self._asyncInvocationContext.callLater(callback)
 
     def is_sent(self):
         with self._condition:
@@ -268,7 +255,7 @@ class InvocationFuture(Future):
             if not self._sent:
                 self._sentCallbacks.append(fn)
                 return
-        self._asyncResult.callLater(callback)
+        self._asyncInvocationContext.callLater(callback)
 
     def sent(self, timeout=None):
         with self._condition:

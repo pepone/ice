@@ -104,7 +104,7 @@ IcePy::LoggerWrapper::cloneWithPrefix(const string& prefix)
         throwPythonException();
     }
 
-    return new LoggerWrapper(tmp.get());
+    return make_shared<LoggerWrapper>(tmp.get());
 }
 
 PyObject*
@@ -113,9 +113,9 @@ IcePy::LoggerWrapper::getObject()
     return _logger.get();
 }
 
-#ifdef WIN32
 extern "C"
-#endif
+{
+
 static LoggerObject*
 loggerNew(PyTypeObject* type, PyObject* /*args*/, PyObject* /*kwds*/)
 {
@@ -128,9 +128,6 @@ loggerNew(PyTypeObject* type, PyObject* /*args*/, PyObject* /*kwds*/)
     return self;
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static void
 loggerDealloc(LoggerObject* self)
 {
@@ -138,9 +135,6 @@ loggerDealloc(LoggerObject* self)
     Py_TYPE(self)->tp_free(reinterpret_cast<PyObject*>(self));
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 loggerPrint(LoggerObject* self, PyObject* args)
 {
@@ -171,9 +165,6 @@ loggerPrint(LoggerObject* self, PyObject* args)
     return Py_None;
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 loggerTrace(LoggerObject* self, PyObject* args)
 {
@@ -210,9 +201,6 @@ loggerTrace(LoggerObject* self, PyObject* args)
     return Py_None;
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 loggerWarning(LoggerObject* self, PyObject* args)
 {
@@ -243,9 +231,6 @@ loggerWarning(LoggerObject* self, PyObject* args)
     return Py_None;
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 loggerError(LoggerObject* self, PyObject* args)
 {
@@ -276,9 +261,6 @@ loggerError(LoggerObject* self, PyObject* args)
     return Py_None;
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 loggerGetPrefix(LoggerObject* self, PyObject* /*args*/)
 {
@@ -298,9 +280,6 @@ loggerGetPrefix(LoggerObject* self, PyObject* /*args*/)
     return createString(prefix);
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 loggerCloneWithPrefix(LoggerObject* self, PyObject* args)
 {
@@ -336,7 +315,7 @@ loggerCloneWithPrefix(LoggerObject* self, PyObject* args)
     // return it directly. Otherwise, we create a Python object
     // that delegates to the C++ object.
     //
-    LoggerWrapperPtr wrapper = LoggerWrapperPtr::dynamicCast(clone);
+    LoggerWrapperPtr wrapper = dynamic_pointer_cast<LoggerWrapper>(clone);
     if(wrapper)
     {
         PyObject* obj = wrapper->getObject();
@@ -346,6 +325,8 @@ loggerCloneWithPrefix(LoggerObject* self, PyObject* args)
 
     return createLogger(clone);
 }
+
+} // End of extern "C".
 
 static PyMethodDef LoggerMethods[] =
 {
@@ -474,7 +455,7 @@ IcePy_getProcessLogger(PyObject* /*self*/, PyObject* /*args*/)
     // return it directly. Otherwise, we create a Python object
     // that delegates to the C++ object.
     //
-    LoggerWrapperPtr wrapper = LoggerWrapperPtr::dynamicCast(logger);
+    LoggerWrapperPtr wrapper = dynamic_pointer_cast<LoggerWrapper>(logger);
     if(wrapper)
     {
         PyObject* obj = wrapper->getObject();
@@ -498,7 +479,7 @@ IcePy_setProcessLogger(PyObject* /*self*/, PyObject* args)
         return 0;
     }
 
-    Ice::LoggerPtr wrapper = new LoggerWrapper(logger);
+    Ice::LoggerPtr wrapper = make_shared<LoggerWrapper>(logger);
     try
     {
         Ice::setProcessLogger(wrapper);

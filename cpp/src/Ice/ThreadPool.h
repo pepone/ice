@@ -61,7 +61,7 @@ private:
 };
 typedef IceUtil::Handle<DispatchWorkItem> DispatchWorkItemPtr;
 
-class ThreadPool : public IceUtil::Shared, private IceUtil::Monitor<IceUtil::Mutex>
+class ICE_API ThreadPool : public IceUtil::Shared, private IceUtil::Monitor<IceUtil::Mutex>
 {
     class EventHandlerThread : public IceUtil::Thread
     {
@@ -105,6 +105,7 @@ public:
 
     void dispatchFromThisThread(const DispatchWorkItemPtr&);
     void dispatch(const DispatchWorkItemPtr&);
+    void dispatch(std::function<void()>);
 
     void joinWithAllThreads();
 

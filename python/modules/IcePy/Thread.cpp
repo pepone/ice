@@ -31,12 +31,12 @@ IcePy::ThreadHook::ThreadHook(PyObject* threadStart, PyObject* threadStop) :
     _threadStart(threadStart),
     _threadStop(threadStop)
 {
-    if(threadStart && !PyCallable_Check(threadStart))
+    if (threadStart && !PyCallable_Check(threadStart))
     {
         throw Ice::InitializationException(__FILE__, __LINE__, "threadStart must be a callable");
     }
 
-    if(threadStop && !PyCallable_Check(threadStop))
+    if (threadStop && !PyCallable_Check(threadStop))
     {
         throw Ice::InitializationException(__FILE__, __LINE__, "threadStop must be a callable");
     }
@@ -49,11 +49,11 @@ void
 IcePy::ThreadHook::start()
 {
     AdoptThread adoptThread; // Ensure the current thread is able to call into Python.
-    if(_threadStart.get())
+    if (_threadStart.get())
     {
         PyObjectHandle args = PyTuple_New(0);
         PyObjectHandle tmp = PyObject_Call(_threadStart.get(), args.get(), 0);
-        if(!tmp.get())
+        if (!tmp.get())
         {
             throwPythonException();
         }
@@ -64,11 +64,11 @@ void
 IcePy::ThreadHook::stop()
 {
     AdoptThread adoptThread; // Ensure the current thread is able to call into Python.
-    if(_threadStop.get())
+    if (_threadStop.get())
     {
         PyObjectHandle args = PyTuple_New(0);
         PyObjectHandle tmp = PyObject_Call(_threadStop.get(), args.get(), 0);
-        if(!tmp.get())
+        if (!tmp.get())
         {
             throwPythonException();
         }

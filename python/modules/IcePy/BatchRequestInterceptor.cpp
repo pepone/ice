@@ -25,14 +25,16 @@ struct BatchRequestObject
 
 }
 
-extern "C" static BatchRequestObject*
+extern "C"
+{
+static BatchRequestObject*
 batchRequestNew(PyTypeObject* /*type*/, PyObject* /*args*/, PyObject* /*kwds*/)
 {
     PyErr_Format(PyExc_RuntimeError, STRCAST("Batch requests can only be created by the Ice runtime"));
     return 0;
 }
 
-extern "C" static void
+static void
 batchRequestDealloc(BatchRequestObject* self)
 {
     Py_XDECREF(self->size);
@@ -41,7 +43,7 @@ batchRequestDealloc(BatchRequestObject* self)
     Py_TYPE(self)->tp_free(reinterpret_cast<PyObject*>(self));
 }
 
-extern "C" static PyObject*
+static PyObject*
 batchRequestGetSize(BatchRequestObject* self, PyObject* /*args*/)
 {
     assert(self->request);
@@ -64,7 +66,7 @@ batchRequestGetSize(BatchRequestObject* self, PyObject* /*args*/)
     return self->size;
 }
 
-extern "C" static PyObject*
+static PyObject*
 batchRequestGetOperation(BatchRequestObject* self, PyObject* /*args*/)
 {
     assert(self->request);
@@ -87,7 +89,7 @@ batchRequestGetOperation(BatchRequestObject* self, PyObject* /*args*/)
     return self->operation;
 }
 
-extern "C" static PyObject*
+static PyObject*
 batchRequestGetProxy(BatchRequestObject* self, PyObject* /*args*/)
 {
     assert(self->request);
@@ -110,7 +112,7 @@ batchRequestGetProxy(BatchRequestObject* self, PyObject* /*args*/)
     return self->proxy;
 }
 
-extern "C" static PyObject*
+static PyObject*
 batchRequestEnqueue(BatchRequestObject* self, PyObject* /*args*/)
 {
     assert(self->request);
@@ -127,6 +129,8 @@ batchRequestEnqueue(BatchRequestObject* self, PyObject* /*args*/)
 
     Py_INCREF(Py_None);
     return Py_None;
+}
+
 }
 
 static PyMethodDef BatchRequestMethods[] =

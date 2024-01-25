@@ -74,7 +74,7 @@ struct BufSizeWarnInfo
     int rcvSize;
 };
 
-class Instance : public IceUtil::Shared, public IceUtil::Monitor<IceUtil::RecMutex>
+class ICE_API Instance : public IceUtil::Shared, public IceUtil::Monitor<IceUtil::RecMutex>
 {
 public:
 

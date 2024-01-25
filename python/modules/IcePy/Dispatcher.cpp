@@ -2,10 +2,14 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-#include <Dispatcher.h>
-#include <Connection.h>
-#include <Thread.h>
+#include "Dispatcher.h"
+#include "Connection.h"
+#include "Thread.h"
+
 #include <Ice/Initialize.h>
+
+#include <memory>
+#include <functional>
 
 using namespace std;
 using namespace IcePy;
@@ -16,14 +20,14 @@ namespace IcePy
 struct DispatcherCallObject
 {
     PyObject_HEAD
-    std::function<void()> call;
+    function<void()>* call;
 };
 
 }
 
-#ifdef WIN32
 extern "C"
-#endif
+{
+
 static void
 dispatcherCallDealloc(DispatcherCallObject* self)
 {
@@ -31,16 +35,13 @@ dispatcherCallDealloc(DispatcherCallObject* self)
     Py_TYPE(self)->tp_free(reinterpret_cast<PyObject*>(self));
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 dispatcherCallInvoke(DispatcherCallObject* self, PyObject* /*args*/, PyObject* /*kwds*/)
 {
     try
     {
         AllowThreads allowThreads; // Release Python's global interpreter lock during blocking calls.
-        (*self->call)->run();
+        (*self->call)();
     }
     catch(const Ice::Exception& ex)
     {
@@ -49,6 +50,8 @@ dispatcherCallInvoke(DispatcherCallObject* self, PyObject* /*args*/, PyObject* /
     }
 
     return incRef(Py_None);
+}
+
 }
 
 namespace IcePy
@@ -141,18 +144,17 @@ IcePy::Dispatcher::dispatch(std::function<void()> call, const Ice::ConnectionPtr
 {
     AdoptThread adoptThread; // Ensure the current thread is able to call into Python.
 
-    DispatcherCallObject* obj =
-        reinterpret_cast<DispatcherCallObject*>(DispatcherCallType.tp_alloc(&DispatcherCallType, 0));
-    if(!obj)
+    auto obj = reinterpret_cast<DispatcherCallObject*>(DispatcherCallType.tp_alloc(&DispatcherCallType, 0));
+    if (!obj)
     {
         return;
     }
 
-    obj->call = std::move(call);
+    obj->call = new function<void()>(std::move(call));
     PyObjectHandle c = createConnection(con, _communicator);
     PyObjectHandle tmp = PyObject_CallFunction(_dispatcher.get(), STRCAST("OO"), obj, c.get());
     Py_DECREF(reinterpret_cast<PyObject*>(obj));
-    if(!tmp.get())
+    if (!tmp.get())
     {
         throwPythonException();
     }

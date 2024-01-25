@@ -15,7 +15,7 @@ namespace IcePy
 
 bool initDispatcher(PyObject*);
 
-class Dispatcher
+class Dispatcher final
 {
 public:
 
@@ -23,7 +23,7 @@ public:
 
     void setCommunicator(const Ice::CommunicatorPtr&);
 
-    virtual void dispatch(std::function<void()> call, const Ice::ConnectionPtr&);
+    void dispatch(std::function<void()> call, const Ice::ConnectionPtr&);
 
 private:
 

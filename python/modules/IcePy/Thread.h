@@ -40,13 +40,14 @@ private:
 
 // ThreadHook ensures that every Ice thread is ready to invoke the Python API. It also acts as a wrapper thread
 // notification callbacks.
-class ThreadHook
+class ThreadHook final
+{
 public:
 
     ThreadHook(PyObject*, PyObject*);
 
-    virtual void start();
-    virtual void stop();
+    void start();
+    void stop();
 
 private:
 

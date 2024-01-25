@@ -297,9 +297,9 @@ IcePy::ServantLocatorWrapper::Cookie::~Cookie()
     Py_XDECREF(cookie);
 }
 
-#ifdef WIN32
 extern "C"
-#endif
+{
+
 static ObjectAdapterObject*
 adapterNew(PyTypeObject* /*type*/, PyObject* /*args*/, PyObject* /*kwds*/)
 {
@@ -307,9 +307,6 @@ adapterNew(PyTypeObject* /*type*/, PyObject* /*args*/, PyObject* /*kwds*/)
     return 0;
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static void
 adapterDealloc(ObjectAdapterObject* self)
 {
@@ -326,9 +323,6 @@ adapterDealloc(ObjectAdapterObject* self)
     Py_TYPE(self)->tp_free(reinterpret_cast<PyObject*>(self));
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 adapterGetName(ObjectAdapterObject* self, PyObject* /*args*/)
 {
@@ -347,9 +341,6 @@ adapterGetName(ObjectAdapterObject* self, PyObject* /*args*/)
     return createString(name);
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 adapterGetCommunicator(ObjectAdapterObject* self, PyObject* /*args*/)
 {
@@ -368,9 +359,6 @@ adapterGetCommunicator(ObjectAdapterObject* self, PyObject* /*args*/)
     return createCommunicator(communicator);
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 adapterActivate(ObjectAdapterObject* self, PyObject* /*args*/)
 {
@@ -398,9 +386,6 @@ adapterActivate(ObjectAdapterObject* self, PyObject* /*args*/)
     return Py_None;
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 adapterHold(ObjectAdapterObject* self, PyObject* /*args*/)
 {
@@ -419,9 +404,6 @@ adapterHold(ObjectAdapterObject* self, PyObject* /*args*/)
     return Py_None;
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 adapterWaitForHold(ObjectAdapterObject* self, PyObject* args)
 {
@@ -478,7 +460,7 @@ adapterWaitForHold(ObjectAdapterObject* self, PyObject* args)
             }
             catch(const Ice::Exception& ex)
             {
-                self->holdException = ex.ice_clone();
+                self->holdException = ex.ice_clone().release();
             }
         }
 
@@ -506,9 +488,6 @@ adapterWaitForHold(ObjectAdapterObject* self, PyObject* args)
     PyRETURN_TRUE;
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 adapterDeactivate(ObjectAdapterObject* self, PyObject* /*args*/)
 {
@@ -528,9 +507,6 @@ adapterDeactivate(ObjectAdapterObject* self, PyObject* /*args*/)
     return Py_None;
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 adapterWaitForDeactivate(ObjectAdapterObject* self, PyObject* args)
 {
@@ -585,7 +561,7 @@ adapterWaitForDeactivate(ObjectAdapterObject* self, PyObject* args)
             }
             catch(const Ice::Exception& ex)
             {
-                self->deactivateException = ex.ice_clone();
+                self->deactivateException = ex.ice_clone().release();
             }
         }
 
@@ -613,9 +589,6 @@ adapterWaitForDeactivate(ObjectAdapterObject* self, PyObject* args)
     PyRETURN_TRUE;
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 adapterIsDeactivated(ObjectAdapterObject* self, PyObject* /*args*/)
 {
@@ -634,9 +607,6 @@ adapterIsDeactivated(ObjectAdapterObject* self, PyObject* /*args*/)
     return Py_None;
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 adapterDestroy(ObjectAdapterObject* self, PyObject* /*args*/)
 {
@@ -656,9 +626,6 @@ adapterDestroy(ObjectAdapterObject* self, PyObject* /*args*/)
     return Py_None;
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 adapterAdd(ObjectAdapterObject* self, PyObject* args)
 {
@@ -683,7 +650,7 @@ adapterAdd(ObjectAdapterObject* self, PyObject* args)
     }
 
     assert(self->adapter);
-    Ice::ObjectPrx proxy;
+    shared_ptr<Ice::ObjectPrx> proxy;
     try
     {
         proxy = (*self->adapter)->add(wrapper, ident);
@@ -697,9 +664,6 @@ adapterAdd(ObjectAdapterObject* self, PyObject* args)
     return createProxy(proxy, (*self->adapter)->getCommunicator());
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 adapterAddFacet(ObjectAdapterObject* self, PyObject* args)
 {
@@ -731,7 +695,7 @@ adapterAddFacet(ObjectAdapterObject* self, PyObject* args)
     }
 
     assert(self->adapter);
-    Ice::ObjectPrx proxy;
+    shared_ptr<Ice::ObjectPrx> proxy;
     try
     {
         proxy = (*self->adapter)->addFacet(wrapper, ident, facet);
@@ -745,9 +709,6 @@ adapterAddFacet(ObjectAdapterObject* self, PyObject* args)
     return createProxy(proxy, (*self->adapter)->getCommunicator());
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 adapterAddWithUUID(ObjectAdapterObject* self, PyObject* args)
 {
@@ -764,7 +725,7 @@ adapterAddWithUUID(ObjectAdapterObject* self, PyObject* args)
     }
 
     assert(self->adapter);
-    Ice::ObjectPrx proxy;
+    shared_ptr<Ice::ObjectPrx> proxy;
     try
     {
         proxy = (*self->adapter)->addWithUUID(wrapper);
@@ -778,9 +739,6 @@ adapterAddWithUUID(ObjectAdapterObject* self, PyObject* args)
     return createProxy(proxy, (*self->adapter)->getCommunicator());
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 adapterAddFacetWithUUID(ObjectAdapterObject* self, PyObject* args)
 {
@@ -804,7 +762,7 @@ adapterAddFacetWithUUID(ObjectAdapterObject* self, PyObject* args)
     }
 
     assert(self->adapter);
-    Ice::ObjectPrx proxy;
+    shared_ptr<Ice::ObjectPrx> proxy;
     try
     {
         proxy = (*self->adapter)->addFacetWithUUID(wrapper, facet);
@@ -818,9 +776,6 @@ adapterAddFacetWithUUID(ObjectAdapterObject* self, PyObject* args)
     return createProxy(proxy, (*self->adapter)->getCommunicator());
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 adapterAddDefaultServant(ObjectAdapterObject* self, PyObject* args)
 {
@@ -858,9 +813,6 @@ adapterAddDefaultServant(ObjectAdapterObject* self, PyObject* args)
     return Py_None;
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 adapterRemove(ObjectAdapterObject* self, PyObject* args)
 {
@@ -900,9 +852,6 @@ adapterRemove(ObjectAdapterObject* self, PyObject* args)
     return wrapper->getObject();
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 adapterRemoveFacet(ObjectAdapterObject* self, PyObject* args)
 {
@@ -949,9 +898,6 @@ adapterRemoveFacet(ObjectAdapterObject* self, PyObject* args)
     return wrapper->getObject();
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 adapterRemoveAllFacets(ObjectAdapterObject* self, PyObject* args)
 {
@@ -1000,9 +946,6 @@ adapterRemoveAllFacets(ObjectAdapterObject* self, PyObject* args)
     return result.release();
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 adapterRemoveDefaultServant(ObjectAdapterObject* self, PyObject* args)
 {
@@ -1041,9 +984,6 @@ adapterRemoveDefaultServant(ObjectAdapterObject* self, PyObject* args)
     return wrapper->getObject();
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 adapterFind(ObjectAdapterObject* self, PyObject* args)
 {
@@ -1132,9 +1072,6 @@ adapterFindFacet(ObjectAdapterObject* self, PyObject* args)
     return wrapper->getObject();
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 adapterFindAllFacets(ObjectAdapterObject* self, PyObject* args)
 {
@@ -1183,9 +1120,6 @@ adapterFindAllFacets(ObjectAdapterObject* self, PyObject* args)
     return result.release();
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 adapterFindByProxy(ObjectAdapterObject* self, PyObject* args)
 {
@@ -1199,7 +1133,7 @@ adapterFindByProxy(ObjectAdapterObject* self, PyObject* args)
         return 0;
     }
 
-    Ice::ObjectPrx prx = getProxy(proxy);
+    shared_ptr<Ice::ObjectPrx> prx = getProxy(proxy);
 
     assert(self->adapter);
     shared_ptr<Ice::Object> obj;
@@ -1224,9 +1158,6 @@ adapterFindByProxy(ObjectAdapterObject* self, PyObject* args)
     return wrapper->getObject();
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 adapterFindDefaultServant(ObjectAdapterObject* self, PyObject* args)
 {
@@ -1265,9 +1196,6 @@ adapterFindDefaultServant(ObjectAdapterObject* self, PyObject* args)
     return wrapper->getObject();
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 adapterAddServantLocator(ObjectAdapterObject* self, PyObject* args)
 {
@@ -1301,9 +1229,6 @@ adapterAddServantLocator(ObjectAdapterObject* self, PyObject* args)
     return Py_None;
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 adapterRemoveServantLocator(ObjectAdapterObject* self, PyObject* args)
 {
@@ -1342,9 +1267,6 @@ adapterRemoveServantLocator(ObjectAdapterObject* self, PyObject* args)
     return wrapper->getObject();
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 adapterFindServantLocator(ObjectAdapterObject* self, PyObject* args)
 {
@@ -1383,9 +1305,6 @@ adapterFindServantLocator(ObjectAdapterObject* self, PyObject* args)
     return wrapper->getObject();
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 adapterCreateProxy(ObjectAdapterObject* self, PyObject* args)
 {
@@ -1403,7 +1322,7 @@ adapterCreateProxy(ObjectAdapterObject* self, PyObject* args)
     }
 
     assert(self->adapter);
-    Ice::ObjectPrx proxy;
+    shared_ptr<Ice::ObjectPrx> proxy;
     try
     {
         proxy = (*self->adapter)->createProxy(ident);
@@ -1417,9 +1336,6 @@ adapterCreateProxy(ObjectAdapterObject* self, PyObject* args)
     return createProxy(proxy, (*self->adapter)->getCommunicator());
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 adapterCreateDirectProxy(ObjectAdapterObject* self, PyObject* args)
 {
@@ -1437,7 +1353,7 @@ adapterCreateDirectProxy(ObjectAdapterObject* self, PyObject* args)
     }
 
     assert(self->adapter);
-    Ice::ObjectPrx proxy;
+    shared_ptr<Ice::ObjectPrx> proxy;
     try
     {
         proxy = (*self->adapter)->createDirectProxy(ident);
@@ -1451,9 +1367,6 @@ adapterCreateDirectProxy(ObjectAdapterObject* self, PyObject* args)
     return createProxy(proxy, (*self->adapter)->getCommunicator());
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 adapterCreateIndirectProxy(ObjectAdapterObject* self, PyObject* args)
 {
@@ -1471,7 +1384,7 @@ adapterCreateIndirectProxy(ObjectAdapterObject* self, PyObject* args)
     }
 
     assert(self->adapter);
-    Ice::ObjectPrx proxy;
+    shared_ptr<Ice::ObjectPrx> proxy;
     try
     {
         proxy = (*self->adapter)->createIndirectProxy(ident);
@@ -1485,9 +1398,6 @@ adapterCreateIndirectProxy(ObjectAdapterObject* self, PyObject* args)
     return createProxy(proxy, (*self->adapter)->getCommunicator());
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 adapterSetLocator(ObjectAdapterObject* self, PyObject* args)
 {
@@ -1497,13 +1407,13 @@ adapterSetLocator(ObjectAdapterObject* self, PyObject* args)
         return 0;
     }
 
-    Ice::ObjectPrx proxy;
+    shared_ptr<Ice::ObjectPrx> proxy;
     if(!getProxyArg(p, "setLocator", "loc", proxy, "Ice.LocatorPrx"))
     {
         return 0;
     }
 
-    Ice::LocatorPrx locator = Ice::LocatorPrx::uncheckedCast(proxy);
+    shared_ptr<Ice::LocatorPrx> locator = Ice::uncheckedCast<Ice::LocatorPrx>(proxy);
 
     assert(self->adapter);
     try
@@ -1521,14 +1431,11 @@ adapterSetLocator(ObjectAdapterObject* self, PyObject* args)
     return Py_None;
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 adapterGetLocator(ObjectAdapterObject* self, PyObject* /*args*/)
 {
     assert(self->adapter);
-    Ice::LocatorPrx locator;
+    shared_ptr<Ice::LocatorPrx> locator;
     try
     {
         locator = (*self->adapter)->getLocator();
@@ -1550,9 +1457,6 @@ adapterGetLocator(ObjectAdapterObject* self, PyObject* /*args*/)
     return createProxy(locator, (*self->adapter)->getCommunicator(), locatorProxyType);
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 adapterGetEndpoints(ObjectAdapterObject* self, PyObject* /*args*/)
 {
@@ -1585,9 +1489,6 @@ adapterGetEndpoints(ObjectAdapterObject* self, PyObject* /*args*/)
     return result.release();
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 adapterRefreshPublishedEndpoints(ObjectAdapterObject* self, PyObject* /*args*/)
 {
@@ -1607,9 +1508,6 @@ adapterRefreshPublishedEndpoints(ObjectAdapterObject* self, PyObject* /*args*/)
     return Py_None;
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 adapterGetPublishedEndpoints(ObjectAdapterObject* self, PyObject* /*args*/)
 {
@@ -1642,9 +1540,6 @@ adapterGetPublishedEndpoints(ObjectAdapterObject* self, PyObject* /*args*/)
     return result.release();
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 adapterSetPublishedEndpoints(ObjectAdapterObject* self, PyObject* args)
 {
@@ -1682,6 +1577,8 @@ adapterSetPublishedEndpoints(ObjectAdapterObject* self, PyObject* args)
     Py_INCREF(Py_None);
     return Py_None;
 }
+
+} // End of extern "C".
 
 static PyMethodDef AdapterMethods[] =
 {

@@ -141,6 +141,7 @@ class TypeInfo : public UnmarshalCallback
 {
 public:
 
+    TypeInfo();
     virtual std::string getId() const = 0;
 
     virtual bool validate(PyObject*) = 0;
@@ -155,9 +156,6 @@ public:
 
     virtual void destroy();
 
-protected:
-
-    TypeInfo();
 
 public:
 
@@ -371,7 +369,7 @@ private:
     void unmarshalPrimitiveSequence(const PrimitiveInfoPtr&, Ice::InputStream*, const UnmarshalCallbackPtr&,
                                     PyObject*, void*, const SequenceMappingPtr&);
 
-    PyObject* createSequenceFromMemory(const SequenceMappingPtr&, const char*, Py_ssize_t, BuiltinType, bool);
+    PyObject* createSequenceFromMemory(const SequenceMappingPtr&, const char*, Py_ssize_t, BuiltinType);
 
 public:
 
@@ -431,7 +429,7 @@ using CustomInfoPtr = std::shared_ptr<CustomInfo>;
 //
 // Dictionary information.
 //
-class DictionaryInfo : public TypeInfo
+class DictionaryInfo : public TypeInfo, std::enable_shared_from_this<DictionaryInfo>
 {
 public:
 
@@ -478,11 +476,12 @@ private:
 using DictionaryInfoPtr = std::shared_ptr<DictionaryInfo>;
 using TypeInfoList = std::vector<TypeInfoPtr>;
 
-class ClassInfo : public TypeInfo
+class ClassInfo final : public TypeInfo, std::enable_shared_from_this<ClassInfo>
 {
 public:
 
     ClassInfo(const std::string&);
+    void init();
 
     void define(PyObject*, PyObject*, PyObject*);
 
@@ -516,11 +515,12 @@ public:
 // Value type information
 //
 
-class ValueInfo : public TypeInfo
+class ValueInfo final : public TypeInfo, std::enable_shared_from_this<ValueInfo>
 {
 public:
 
     ValueInfo(const std::string&);
+    void init();
 
     void define(PyObject*, int, bool, bool, PyObject*, PyObject*);
 
@@ -559,11 +559,12 @@ public:
 //
 // Proxy information.
 //
-class ProxyInfo : public TypeInfo
+class ProxyInfo final : public TypeInfo, std::enable_shared_from_this<ProxyInfo>
 {
 public:
 
     ProxyInfo(const std::string&);
+    void init();
 
     void define(PyObject*);
 
@@ -590,7 +591,7 @@ using ProxyInfoPtr = std::shared_ptr<ProxyInfo>;
 //
 // Exception information.
 //
-class ExceptionInfo
+class ExceptionInfo : std::enable_shared_from_this<ExceptionInfo>
 {
 public:
 
@@ -736,12 +737,7 @@ private:
     Ice::SlicedDataPtr _slicedData;
 };
 
-class IdResolver : public Ice::CompactIdResolver
-{
-public:
-
-    virtual ::std::string resolve(Ice::Int) const;
-};
+std::string resolveCompactId(Ice::Int id);
 
 ClassInfoPtr lookupClassInfo(const std::string&);
 ValueInfoPtr lookupValueInfo(const std::string&);

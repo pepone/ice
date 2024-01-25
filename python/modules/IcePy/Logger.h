@@ -5,16 +5,17 @@
 #ifndef ICEPY_LOGGER_H
 #define ICEPY_LOGGER_H
 
-#include <Config.h>
-#include <Util.h>
+#include "Config.h"
+#include "Util.h"
+
 #include <Ice/Logger.h>
+
+#include <memory>
 
 namespace IcePy
 {
 
-//
 // LoggerWrapper delegates to a Python implementation.
-//
 class LoggerWrapper : public Ice::Logger
 {
 public:
@@ -33,7 +34,7 @@ private:
 
     PyObjectHandle _logger;
 };
-typedef IceUtil::Handle<LoggerWrapper> LoggerWrapperPtr;
+using LoggerWrapperPtr = std::shared_ptr<LoggerWrapper>;
 
 bool initLogger(PyObject*);
 

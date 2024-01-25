@@ -22,9 +22,9 @@ struct ConnectionInfoObject
 
 }
 
-#ifdef WIN32
 extern "C"
-#endif
+{
+
 static ConnectionInfoObject*
 connectionInfoNew(PyTypeObject* /*type*/, PyObject* /*args*/, PyObject* /*kwds*/)
 {
@@ -32,9 +32,6 @@ connectionInfoNew(PyTypeObject* /*type*/, PyObject* /*args*/, PyObject* /*kwds*/
     return 0;
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static void
 connectionInfoDealloc(ConnectionInfoObject* self)
 {
@@ -42,150 +39,108 @@ connectionInfoDealloc(ConnectionInfoObject* self)
     Py_TYPE(self)->tp_free(reinterpret_cast<PyObject*>(self));
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 connectionInfoGetUnderlying(ConnectionInfoObject* self, PyObject* /*args*/)
 {
     return createConnectionInfo((*self->connectionInfo)->underlying);
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 connectionInfoGetIncoming(ConnectionInfoObject* self, PyObject* /*args*/)
 {
     return (*self->connectionInfo)->incoming ? incTrue() : incFalse();
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 connectionInfoGetAdapterName(ConnectionInfoObject* self, PyObject* /*args*/)
 {
     return createString((*self->connectionInfo)->adapterName);
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 ipConnectionInfoGetLocalAddress(ConnectionInfoObject* self, PyObject* /*args*/)
 {
-    Ice::IPConnectionInfoPtr info = Ice::IPConnectionInfoPtr::dynamicCast(*self->connectionInfo);
+    Ice::IPConnectionInfoPtr info = dynamic_pointer_cast<Ice::IPConnectionInfo>(*self->connectionInfo);
     assert(info);
     return createString(info->localAddress);
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 ipConnectionInfoGetLocalPort(ConnectionInfoObject* self, PyObject* /*args*/)
 {
-    Ice::IPConnectionInfoPtr info = Ice::IPConnectionInfoPtr::dynamicCast(*self->connectionInfo);
+    Ice::IPConnectionInfoPtr info = dynamic_pointer_cast<Ice::IPConnectionInfo>(*self->connectionInfo);
     assert(info);
     return PyLong_FromLong(info->localPort);
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 ipConnectionInfoGetRemoteAddress(ConnectionInfoObject* self, PyObject* /*args*/)
 {
-    Ice::IPConnectionInfoPtr info = Ice::IPConnectionInfoPtr::dynamicCast(*self->connectionInfo);
+    Ice::IPConnectionInfoPtr info = dynamic_pointer_cast<Ice::IPConnectionInfo>(*self->connectionInfo);
     assert(info);
     return createString(info->remoteAddress);
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 ipConnectionInfoGetRemotePort(ConnectionInfoObject* self, PyObject* /*args*/)
 {
-    Ice::IPConnectionInfoPtr info = Ice::IPConnectionInfoPtr::dynamicCast(*self->connectionInfo);
+    Ice::IPConnectionInfoPtr info = dynamic_pointer_cast<Ice::IPConnectionInfo>(*self->connectionInfo);
     assert(info);
     return PyLong_FromLong(info->remotePort);
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 tcpConnectionInfoGetRcvSize(ConnectionInfoObject* self, PyObject* /*args*/)
 {
-    Ice::TCPConnectionInfoPtr info = Ice::TCPConnectionInfoPtr::dynamicCast(*self->connectionInfo);
+    Ice::TCPConnectionInfoPtr info = dynamic_pointer_cast<Ice::TCPConnectionInfo>(*self->connectionInfo);
     assert(info);
     return PyLong_FromLong(info->rcvSize);
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 tcpConnectionInfoGetSndSize(ConnectionInfoObject* self, PyObject* /*args*/)
 {
-    Ice::TCPConnectionInfoPtr info = Ice::TCPConnectionInfoPtr::dynamicCast(*self->connectionInfo);
+    Ice::TCPConnectionInfoPtr info = dynamic_pointer_cast<Ice::TCPConnectionInfo>(*self->connectionInfo);
     assert(info);
     return PyLong_FromLong(info->sndSize);
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 udpConnectionInfoGetMcastAddress(ConnectionInfoObject* self, PyObject* /*args*/)
 {
-    Ice::UDPConnectionInfoPtr info = Ice::UDPConnectionInfoPtr::dynamicCast(*self->connectionInfo);
+    Ice::UDPConnectionInfoPtr info = dynamic_pointer_cast<Ice::UDPConnectionInfo>(*self->connectionInfo);
     assert(info);
     return createString(info->mcastAddress);
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 udpConnectionInfoGetMcastPort(ConnectionInfoObject* self, PyObject* /*args*/)
 {
-    Ice::UDPConnectionInfoPtr info = Ice::UDPConnectionInfoPtr::dynamicCast(*self->connectionInfo);
+    Ice::UDPConnectionInfoPtr info = dynamic_pointer_cast<Ice::UDPConnectionInfo>(*self->connectionInfo);
     assert(info);
     return PyLong_FromLong(info->mcastPort);
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 udpConnectionInfoGetRcvSize(ConnectionInfoObject* self, PyObject* /*args*/)
 {
-    Ice::UDPConnectionInfoPtr info = Ice::UDPConnectionInfoPtr::dynamicCast(*self->connectionInfo);
+    Ice::UDPConnectionInfoPtr info = dynamic_pointer_cast<Ice::UDPConnectionInfo>(*self->connectionInfo);
     assert(info);
     return PyLong_FromLong(info->rcvSize);
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 udpConnectionInfoGetSndSize(ConnectionInfoObject* self, PyObject* /*args*/)
 {
-    Ice::UDPConnectionInfoPtr info = Ice::UDPConnectionInfoPtr::dynamicCast(*self->connectionInfo);
+    Ice::UDPConnectionInfoPtr info = dynamic_pointer_cast<Ice::UDPConnectionInfo>(*self->connectionInfo);
     assert(info);
     return PyLong_FromLong(info->sndSize);
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 wsConnectionInfoGetHeaders(ConnectionInfoObject* self, PyObject* /*args*/)
 {
-    Ice::WSConnectionInfoPtr info = Ice::WSConnectionInfoPtr::dynamicCast(*self->connectionInfo);
+    Ice::WSConnectionInfoPtr info = dynamic_pointer_cast<Ice::WSConnectionInfo>(*self->connectionInfo);
     assert(info);
 
     PyObjectHandle result = PyDict_New();
@@ -205,24 +160,18 @@ wsConnectionInfoGetHeaders(ConnectionInfoObject* self, PyObject* /*args*/)
     return result.release();
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 sslConnectionInfoGetCipher(ConnectionInfoObject* self, PyObject* /*args*/)
 {
-    IceSSL::ConnectionInfoPtr info = IceSSL::ConnectionInfoPtr::dynamicCast(*self->connectionInfo);
+    IceSSL::ConnectionInfoPtr info = dynamic_pointer_cast<IceSSL::ConnectionInfo>(*self->connectionInfo);
     assert(info);
     return createString(info->cipher);
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 sslConnectionInfoGetCerts(ConnectionInfoObject* self, PyObject* /*args*/)
 {
-    IceSSL::ConnectionInfoPtr info = IceSSL::ConnectionInfoPtr::dynamicCast(*self->connectionInfo);
+    IceSSL::ConnectionInfoPtr info = dynamic_pointer_cast<IceSSL::ConnectionInfo>(*self->connectionInfo);
     assert(info);
     PyObject* certs = PyList_New(0);
     Ice::StringSeq encoded;
@@ -234,16 +183,15 @@ sslConnectionInfoGetCerts(ConnectionInfoObject* self, PyObject* /*args*/)
     return certs;
 }
 
-#ifdef WIN32
-extern "C"
-#endif
 static PyObject*
 sslConnectionInfoGetVerified(ConnectionInfoObject* self, PyObject* /*args*/)
 {
-    IceSSL::ConnectionInfoPtr info = IceSSL::ConnectionInfoPtr::dynamicCast(*self->connectionInfo);
+    IceSSL::ConnectionInfoPtr info = dynamic_pointer_cast<IceSSL::ConnectionInfo>(*self->connectionInfo);
     assert(info);
     return info->incoming ? incTrue() : incFalse();
 }
+
+} // End of extern "C".
 
 static PyGetSetDef ConnectionInfoGetters[] =
 {
@@ -685,23 +633,23 @@ IcePy::createConnectionInfo(const Ice::ConnectionInfoPtr& connectionInfo)
     }
 
     PyTypeObject* type;
-    if(Ice::WSConnectionInfoPtr::dynamicCast(connectionInfo))
+    if(dynamic_pointer_cast<Ice::WSConnectionInfo>(connectionInfo))
     {
         type = &WSConnectionInfoType;
     }
-    else if(Ice::TCPConnectionInfoPtr::dynamicCast(connectionInfo))
+    else if(dynamic_pointer_cast<Ice::TCPConnectionInfo>(connectionInfo))
     {
         type = &TCPConnectionInfoType;
     }
-    else if(Ice::UDPConnectionInfoPtr::dynamicCast(connectionInfo))
+    else if(dynamic_pointer_cast<Ice::UDPConnectionInfo>(connectionInfo))
     {
         type = &UDPConnectionInfoType;
     }
-    else if(IceSSL::ConnectionInfoPtr::dynamicCast(connectionInfo))
+    else if(dynamic_pointer_cast<IceSSL::ConnectionInfo>(connectionInfo))
     {
         type = &SSLConnectionInfoType;
     }
-    else if(Ice::IPConnectionInfoPtr::dynamicCast(connectionInfo))
+    else if(dynamic_pointer_cast<Ice::IPConnectionInfo>(connectionInfo))
     {
         type = &IPConnectionInfoType;
     }
