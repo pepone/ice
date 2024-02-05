@@ -22,8 +22,7 @@ public:
         const std::string&,
         const std::vector<std::string>&,
         const std::string&,
-        const std::string&,
-        bool);
+        const std::string&);
     ~Gen();
 
     void generate(const UnitPtr&);
@@ -51,19 +50,14 @@ private:
     ::IceUtilInternal::Output H;
     ::IceUtilInternal::Output C;
 
-    ::IceUtilInternal::Output implH;
-    ::IceUtilInternal::Output implC;
-
     std::string _base;
     std::string _headerExtension;
-    std::string _implHeaderExtension;
     std::string _sourceExtension;
     std::vector<std::string> _extraHeaders;
     std::string _include;
     std::vector<std::string> _includePaths;
     std::string _dllExport;
     std::string _dir;
-    bool _implCpp11;
 
     // Visitors
 
@@ -246,31 +240,6 @@ private:
 
         ::IceUtilInternal::Output& H;
         std::string _dllExport;
-    };
-
-    class ImplVisitor : private ::IceUtil::noncopyable, public ParserVisitor
-    {
-    public:
-
-        ImplVisitor(::IceUtilInternal::Output&, ::IceUtilInternal::Output&, const std::string&);
-
-        virtual bool visitModuleStart(const ModulePtr&);
-        virtual void visitModuleEnd(const ModulePtr&);
-        virtual bool visitInterfaceDefStart(const InterfaceDefPtr&);
-
-    private:
-
-        ::IceUtilInternal::Output& H;
-        ::IceUtilInternal::Output& C;
-
-        std::string _dllExport;
-        int _useWstring;
-        std::list<int> _useWstringHist;
-
-        //
-        // Get the default value returned for a type
-        //
-        std::string defaultValue(const TypePtr&, const std::string&, const StringList&) const;
     };
 
 private:

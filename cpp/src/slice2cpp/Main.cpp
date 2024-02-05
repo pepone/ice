@@ -55,7 +55,6 @@ usage(const string& n)
         "--source-ext EXT         Use EXT instead of the default `cpp' extension.\n"
         "--add-header HDR[,GUARD] Add #include for HDR (with guard GUARD) to generated source file.\n"
         "--include-dir DIR        Use DIR as the header include directory in source files.\n"
-        "--impl-c++11             Generate sample implementations for C++11 mapping.\n"
         "--dll-export SYMBOL      Use SYMBOL for DLL exports\n"
         "                         deprecated: use instead [[\"cpp:dll-export:SYMBOL\"]] metadata.\n"
         ;
@@ -78,7 +77,6 @@ compile(const vector<string>& argv)
     opts.addOpt("", "include-dir", IceUtilInternal::Options::NeedArg);
     opts.addOpt("", "output-dir", IceUtilInternal::Options::NeedArg);
     opts.addOpt("", "dll-export", IceUtilInternal::Options::NeedArg);
-    opts.addOpt("", "impl-c++11");
     opts.addOpt("", "depend");
     opts.addOpt("", "depend-xml");
     opts.addOpt("", "depend-file", IceUtilInternal::Options::NeedArg, "");
@@ -144,8 +142,6 @@ compile(const vector<string>& argv)
     string output = opts.optArg("output-dir");
 
     string dllExport = opts.optArg("dll-export");
-
-    bool implCpp11 = opts.isSet("impl-c++11");
 
     bool depend = opts.isSet("depend");
 
@@ -288,7 +284,7 @@ compile(const vector<string>& argv)
                     try
                     {
                         Gen gen(icecpp->getBaseName(), headerExtension, sourceExtension, extraHeaders, include,
-                                includePaths, dllExport, output, implCpp11);
+                                includePaths, dllExport, output);
                         gen.generate(u);
                     }
                     catch(const Slice::FileException& ex)
