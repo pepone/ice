@@ -612,6 +612,31 @@ IceInternal::ThreadPool::dispatchFromThisThread(const DispatchWorkItemPtr& workI
 }
 
 void
+IceInternal::ThreadPool::dispatchFromThisThread(function<void()> call)
+{
+    class WorkItem final : public IceInternal::DispatchWorkItem
+    {
+    public:
+
+        WorkItem(function<void()> call)
+            : _call(std::move(call))
+        {
+        }
+
+        void run() final
+        {
+            _call();
+        }
+
+    private:
+
+        function<void()> _call;
+
+    };
+    dispatchFromThisThread(make_shared<WorkItem>(std::move(call)));
+}
+
+void
 IceInternal::ThreadPool::dispatch(const DispatchWorkItemPtr& workItem)
 {
     lock_guard lock(_mutex);

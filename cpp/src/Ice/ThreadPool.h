@@ -107,6 +107,7 @@ public:
     void ready(const EventHandlerPtr&, SocketOperation, bool);
 
     void dispatchFromThisThread(const DispatchWorkItemPtr&);
+    void dispatchFromThisThread(std::function<void()>);
     void dispatch(const DispatchWorkItemPtr&);
     void dispatch(std::function<void()>);
 
