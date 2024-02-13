@@ -1539,11 +1539,10 @@ Ice::ConnectionI::message(ThreadPoolCurrent& current)
                 setState(StateHolding);
                 if(_connectionStartCompleted)
                 {
-                    swap(_connectionStartCompleted, connectionStartCompleted);
-                    if(connectionStartCompleted)
-                    {
-                        ++dispatchCount;
-                    }
+                    connectionStartCompleted = std::move(_connectionStartCompleted);
+                    ++dispatchCount;
+                    _connectionStartCompleted = nullptr;
+                    _connectionStartFailed = nullptr;
                 }
             }
             else
