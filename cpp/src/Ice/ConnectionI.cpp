@@ -1637,7 +1637,7 @@ Ice::ConnectionI::message(ThreadPoolCurrent& current)
 #ifdef ICE_SWIFT
     _threadPool->dispatchFromThisThread(
         [self = shared_from_this(),
-            connectionStartCompleted,
+            connectionStartCompleted = std::move(connectionStartCompleted),
             sentCBs,
             compress,
             requestId,
@@ -1649,7 +1649,7 @@ Ice::ConnectionI::message(ThreadPoolCurrent& current)
             &current]()
             {
                 self->dispatch(
-                    connectionStartCompleted,
+                    std::move(connectionStartCompleted),
                     sentCBs,
                     compress,
                     requestId,
@@ -1664,7 +1664,7 @@ Ice::ConnectionI::message(ThreadPoolCurrent& current)
     if(!_dispatcher) // Optimization, call dispatch() directly if there's no dispatcher.
     {
         dispatch(
-            connectionStartCompleted,
+            std::move(connectionStartCompleted),
             sentCBs,
             compress,
             requestId,
@@ -1679,7 +1679,7 @@ Ice::ConnectionI::message(ThreadPoolCurrent& current)
     {
         _threadPool->dispatchFromThisThread(
             [self = shared_from_this(),
-             connectionStartCompleted,
+             connectionStartCompleted = std::move(connectionStartCompleted),
              sentCBs,
              compress,
              requestId,
@@ -1691,7 +1691,7 @@ Ice::ConnectionI::message(ThreadPoolCurrent& current)
              &current]()
              {
                     self->dispatch(
-                        connectionStartCompleted,
+                        std::move(connectionStartCompleted),
                         sentCBs,
                         compress,
                         requestId,
@@ -1709,7 +1709,7 @@ Ice::ConnectionI::message(ThreadPoolCurrent& current)
 
 void
 ConnectionI::dispatch(
-    const function<void(ConnectionIPtr)>& connectionStartCompleted,
+    function<void(ConnectionIPtr)> connectionStartCompleted,
     const vector<OutgoingMessage>& sentCBs,
     Byte compress,
     Int requestId,
@@ -1950,9 +1950,9 @@ Ice::ConnectionI::finish(bool close)
     if(_connectionStartFailed)
     {
         assert(_exception);
-
         _connectionStartFailed(shared_from_this(), _exception);
         _connectionStartFailed = nullptr;
+        _connectionStartCompleted = nullptr;
     }
 
     if(!_sendStreams.empty())
