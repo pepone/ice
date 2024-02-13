@@ -208,7 +208,7 @@ public:
 
     void exception(std::exception_ptr);
 
-    void dispatch(const std::function<void(ConnectionIPtr)>&,
+    void dispatch(std::function<void(ConnectionIPtr)>,
                   const std::vector<OutgoingMessage>&,
                   Byte,
                   Int,
