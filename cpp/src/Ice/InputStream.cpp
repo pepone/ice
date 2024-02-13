@@ -137,6 +137,52 @@ Ice::InputStream::InputStream(Instance* instance, const EncodingVersion& encodin
     initialize(instance, encoding);
 }
 
+Ice::InputStream::InputStream(InputStream&& lhs) noexcept :
+    Buffer(std::move(lhs)),
+    _instance(std::move(lhs._instance)),
+    _encoding(std::move(lhs._encoding)),
+    _traceSlicing(std::move(lhs._traceSlicing)),
+    _classGraphDepthMax(std::move(lhs._classGraphDepthMax)),
+    _closure(std::move(lhs._closure)),
+    _sliceValues(std::move(lhs._sliceValues)),
+    _startSeq(std::move(lhs._startSeq)),
+    _minSeqSize(std::move(lhs._minSeqSize)),
+    _valueFactoryManager(std::move(lhs._valueFactoryManager)),
+    _logger(std::move(lhs._logger)),
+    _compactIdResolver(std::move(lhs._compactIdResolver)),
+    _deleters(std::move(lhs._deleters))
+{
+    // Move constructor is never called for streams that have encapsulations being read. However, encapsulations might
+    // still be set in case unmarshaling failed. We just reset the encapsulations if there are still some set.
+    resetEncapsulation();
+    lhs.resetEncapsulation();
+}
+
+InputStream&
+Ice::InputStream::InputStream::operator=(InputStream&& lhs) noexcept
+{
+    Buffer::operator=(std::move(lhs));
+    _instance = std::move(lhs._instance);
+    _encoding = std::move(lhs._encoding);
+    _traceSlicing = std::move(lhs._traceSlicing);
+    _classGraphDepthMax = std::move(lhs._classGraphDepthMax);
+    _closure = std::move(lhs._closure);
+    _sliceValues = std::move(lhs._sliceValues);
+    _startSeq = std::move(lhs._startSeq);
+    _minSeqSize = std::move(lhs._minSeqSize);
+    _valueFactoryManager = std::move(lhs._valueFactoryManager);
+    _logger = std::move(lhs._logger);
+    _compactIdResolver = std::move(lhs._compactIdResolver);
+    _deleters = std::move(lhs._deleters);
+
+    // Move constructor is never called for streams that have encapsulations being read. However, encapsulations might
+    // still be set in case unmarshaling failed. We just reset the encapsulations if there are still some set.
+    resetEncapsulation();
+    lhs.resetEncapsulation();
+
+    return *this;
+}
+
 void
 Ice::InputStream::initialize(const CommunicatorPtr& communicator)
 {

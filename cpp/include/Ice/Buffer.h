@@ -10,7 +10,7 @@
 namespace IceInternal
 {
 
-class ICE_API Buffer : private IceUtil::noncopyable
+class ICE_API Buffer
 {
 public:
 
@@ -19,9 +19,25 @@ public:
     Buffer(const std::vector<Ice::Byte>& v) : b(v), i(b.begin()) { }
     Buffer(Buffer& o, bool adopt) : b(o.b, adopt), i(b.begin()) { }
 
+    Buffer(const Buffer&) = delete;
+    void operator=(const Buffer&) = delete;
+
+    Buffer(Buffer&& o) noexcept :
+        b(std::move(o.b)),
+        i(std::move(o.i))
+    {
+    }
+
+    Buffer& operator=(Buffer&& o) noexcept
+    {
+        b = std::move(o.b);
+        i = std::move(o.i);
+        return *this;
+    }
+
     void swapBuffer(Buffer&);
 
-    class ICE_API Container : private IceUtil::noncopyable
+    class ICE_API Container
     {
     public:
 
@@ -41,6 +57,12 @@ public:
         Container(const_iterator, const_iterator);
         Container(const std::vector<value_type>&);
         Container(Container&, bool);
+
+        Container(const Container&) = delete;
+        void operator=(const Container&) = delete;
+
+        Container(Container&&) noexcept;
+        Container& operator=(Container&&) noexcept;
 
         ~Container();
 
@@ -134,8 +156,6 @@ public:
 
     private:
 
-        Container(const Container&);
-        void operator=(const Container&);
         void reserve(size_type);
 
         pointer _buf;

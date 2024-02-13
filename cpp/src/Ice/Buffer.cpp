@@ -34,6 +34,29 @@ IceInternal::Buffer::Container::Container(const_iterator beg, const_iterator end
 {
 }
 
+IceInternal::Buffer::Container::Container(Container&& other) noexcept :
+    _buf(std::move(other._buf)),
+    _size(std::move(other._size)),
+    _capacity(std::move(other._capacity)),
+    _shrinkCounter(std::move(other._shrinkCounter)),
+    _owned(std::move(other._owned))
+{
+    assert(other._owned);
+    other._owned = false;
+}
+
+IceInternal::Buffer::Container&
+IceInternal::Buffer::Container::operator=(Container&& other) noexcept
+{
+    _buf = std::move(other._buf);
+    _size = std::move(other._size);
+    _capacity = std::move(other._capacity);
+    _shrinkCounter = std::move(other._shrinkCounter);
+    _owned = std::move(other._owned);
+    other._owned = false;
+    return *this;
+}
+
 IceInternal::Buffer::Container::Container(const vector<value_type>& v) :
     _shrinkCounter(0)
 {

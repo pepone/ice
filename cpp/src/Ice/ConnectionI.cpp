@@ -1648,7 +1648,7 @@ Ice::ConnectionI::message(ThreadPoolCurrent& current)
          adapter,
          outAsync,
          heartbeatCallback,
-         &stream = current.stream]()
+         stream = std::move(current.stream)]() mutable
         {
             self->dispatch(
                 std::move(connectionStartCompleted),
@@ -1660,7 +1660,7 @@ Ice::ConnectionI::message(ThreadPoolCurrent& current)
                 adapter,
                 outAsync,
                 heartbeatCallback,
-                stream);
+                std::move(stream));
         });
 #else
     if(!_dispatcher) // Optimization, call dispatch() directly if there's no dispatcher.
@@ -1692,7 +1692,7 @@ Ice::ConnectionI::message(ThreadPoolCurrent& current)
              adapter,
              outAsync,
              heartbeatCallback,
-             &stream = current.stream]()
+             stream = std::move(current.stream)]() mutable
              {
                     self->dispatch(
                         std::move(connectionStartCompleted),

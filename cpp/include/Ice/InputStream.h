@@ -169,6 +169,12 @@ public:
     InputStream(const CommunicatorPtr&, const EncodingVersion&, IceInternal::Buffer&, bool = false);
     /// \endcond
 
+    InputStream(const InputStream&) = delete;
+    InputStream& operator=(const InputStream&) = delete;
+
+    InputStream(InputStream&&) noexcept;
+    InputStream& operator=(InputStream&&) noexcept;
+
     ~InputStream()
     {
         // Inlined for performance reasons.
