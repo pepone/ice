@@ -612,14 +612,15 @@ IceInternal::ThreadPool::dispatchFromThisThread(const DispatchWorkItemPtr& workI
 }
 
 void
-IceInternal::ThreadPool::dispatchFromThisThread(function<void()> call)
+IceInternal::ThreadPool::dispatchFromThisThread(ConnectionPtr connection, function<void()> call)
 {
     class WorkItem final : public IceInternal::DispatchWorkItem
     {
     public:
 
-        WorkItem(function<void()> call)
-            : _call(std::move(call))
+        WorkItem(function<void()> call, Ice::ConnectionPtr connection)
+            : DispatchWorkItem(std::move(connection)),
+            _call(std::move(call))
         {
         }
 
@@ -631,9 +632,8 @@ IceInternal::ThreadPool::dispatchFromThisThread(function<void()> call)
     private:
 
         function<void()> _call;
-
     };
-    dispatchFromThisThread(make_shared<WorkItem>(std::move(call)));
+    dispatchFromThisThread(make_shared<WorkItem>(std::move(call), std::move(connection)));
 }
 
 void

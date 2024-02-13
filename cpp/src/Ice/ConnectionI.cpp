@@ -1635,31 +1635,33 @@ Ice::ConnectionI::message(ThreadPoolCurrent& current)
 
 // dispatchFromThisThread dispatches to the correct DispatchQueue
 #ifdef ICE_SWIFT
+    auto self = shared_from_this();
     _threadPool->dispatchFromThisThread(
-        [self = shared_from_this(),
-            connectionStartCompleted = std::move(connectionStartCompleted),
-            sentCBs,
-            compress,
-            requestId,
-            invokeNum,
-            servantManager,
-            adapter,
-            outAsync,
-            heartbeatCallback,
-            &current]()
-            {
-                self->dispatch(
-                    std::move(connectionStartCompleted),
-                    sentCBs,
-                    compress,
-                    requestId,
-                    invokeNum,
-                    servantManager,
-                    adapter,
-                    outAsync,
-                    heartbeatCallback,
-                    current.stream);
-            });
+        self,
+        [self,
+         connectionStartCompleted = std::move(connectionStartCompleted),
+         sentCBs,
+         compress,
+         requestId,
+         invokeNum,
+         servantManager,
+         adapter,
+         outAsync,
+         heartbeatCallback,
+         &stream = current.stream]()
+        {
+            self->dispatch(
+                std::move(connectionStartCompleted),
+                sentCBs,
+                compress,
+                requestId,
+                invokeNum,
+                servantManager,
+                adapter,
+                outAsync,
+                heartbeatCallback,
+                stream);
+        });
 #else
     if(!_dispatcher) // Optimization, call dispatch() directly if there's no dispatcher.
     {
@@ -1677,8 +1679,10 @@ Ice::ConnectionI::message(ThreadPoolCurrent& current)
     }
     else
     {
+        auto self = shared_from_this();
         _threadPool->dispatchFromThisThread(
-            [self = shared_from_this(),
+            self,
+            [self,
              connectionStartCompleted = std::move(connectionStartCompleted),
              sentCBs,
              compress,
@@ -1688,7 +1692,7 @@ Ice::ConnectionI::message(ThreadPoolCurrent& current)
              adapter,
              outAsync,
              heartbeatCallback,
-             &current]()
+             &stream = current.stream]()
              {
                     self->dispatch(
                         std::move(connectionStartCompleted),
@@ -1700,7 +1704,7 @@ Ice::ConnectionI::message(ThreadPoolCurrent& current)
                         adapter,
                         outAsync,
                         heartbeatCallback,
-                        current.stream);
+                        stream);
              });
 
     }
@@ -1720,6 +1724,7 @@ ConnectionI::dispatch(
     const HeartbeatCallback& heartbeatCallback,
     InputStream& stream)
 {
+    cerr << "ConnectionI::dispatch" << endl;
     int dispatchedCount = 0;
 
     //
