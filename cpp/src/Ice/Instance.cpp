@@ -24,7 +24,6 @@
 #include <Ice/EndpointFactoryManager.h>
 #include <Ice/IPEndpointI.h> // For EndpointHostResolver
 #include <Ice/WSEndpoint.h>
-#include <Ice/RequestHandlerFactory.h>
 #include <Ice/RetryQueue.h>
 #include <Ice/DynamicLibrary.h>
 #include <Ice/PluginManagerI.h>
@@ -348,20 +347,6 @@ IceInternal::Instance::referenceFactory() const
 
     assert(_referenceFactory);
     return _referenceFactory;
-}
-
-RequestHandlerFactoryPtr
-IceInternal::Instance::requestHandlerFactory() const
-{
-    lock_guard lock(_mutex);
-
-    if(_state == StateDestroyed)
-    {
-        throw CommunicatorDestroyedException(__FILE__, __LINE__);
-    }
-
-    assert(_requestHandlerFactory);
-    return _requestHandlerFactory;
 }
 
 ProxyFactoryPtr
@@ -1227,8 +1212,6 @@ IceInternal::Instance::initialize(const Ice::CommunicatorPtr& communicator)
 
         _referenceFactory = make_shared<ReferenceFactory>(shared_from_this(), communicator);
 
-        _requestHandlerFactory = make_shared<RequestHandlerFactory>(shared_from_this());
-
         _proxyFactory = make_shared<ProxyFactory>(shared_from_this());
 
         const bool isIPv6Supported = IceInternal::isIPv6Supported();
@@ -1271,6 +1254,34 @@ IceInternal::Instance::initialize(const Ice::CommunicatorPtr& communicator)
 
         _retryQueue = make_shared<RetryQueue>(shared_from_this());
 
+        StringSeq retryValues = _initData.properties->getPropertyAsList("Ice.RetryIntervals");
+        if (retryValues.size() == 0)
+        {
+            _retryIntervals.push_back(0);
+        }
+        else
+        {
+            for (StringSeq::const_iterator p = retryValues.begin(); p != retryValues.end(); ++p)
+            {
+                istringstream value(*p);
+
+                int v;
+                if (!(value >> v) || !value.eof())
+                {
+                    v = 0;
+                }
+
+                //
+                // If -1 is the first value, no retry and wait intervals.
+                //
+                if (v == -1 && _retryIntervals.empty())
+                {
+                    break;
+                }
+
+                _retryIntervals.push_back(v > 0 ? v : 0);
+            }
+        }
     }
     catch(...)
     {
@@ -1713,7 +1724,6 @@ IceInternal::Instance::destroy()
         _timer = nullptr;
 
         _referenceFactory = nullptr;
-        _requestHandlerFactory = nullptr;
         _proxyFactory = nullptr;
         _routerManager = nullptr;
         _locatorManager = nullptr;

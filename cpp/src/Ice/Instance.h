@@ -49,9 +49,6 @@ using TimerPtr = std::shared_ptr<Timer>;
 class MetricsAdminI;
 using MetricsAdminIPtr = std::shared_ptr<MetricsAdminI>;
 
-class RequestHandlerFactory;
-using RequestHandlerFactoryPtr = std::shared_ptr<RequestHandlerFactory>;
-
 class ProxyFactory;
 using ProxyFactoryPtr = std::shared_ptr<ProxyFactory>;
 
@@ -86,7 +83,6 @@ public:
     RouterManagerPtr routerManager() const;
     LocatorManagerPtr locatorManager() const;
     ReferenceFactoryPtr referenceFactory() const;
-    RequestHandlerFactoryPtr requestHandlerFactory() const;
     ProxyFactoryPtr proxyFactory() const;
     OutgoingConnectionFactoryPtr outgoingConnectionFactory() const;
     ObjectAdapterFactoryPtr objectAdapterFactory() const;
@@ -97,6 +93,7 @@ public:
     ThreadPoolPtr serverThreadPool();
     EndpointHostResolverPtr endpointHostResolver();
     RetryQueuePtr retryQueue();
+    const std::vector<int>& retryIntervals() const { return _retryIntervals; }
     IceUtil::TimerPtr timer();
     EndpointFactoryManagerPtr endpointFactoryManager() const;
     DynamicLibraryListPtr dynamicLibraryList() const;
@@ -171,7 +168,6 @@ private:
     RouterManagerPtr _routerManager;
     LocatorManagerPtr _locatorManager;
     ReferenceFactoryPtr _referenceFactory;
-    RequestHandlerFactoryPtr _requestHandlerFactory;
     ProxyFactoryPtr _proxyFactory;
     OutgoingConnectionFactoryPtr _outgoingConnectionFactory;
     ObjectAdapterFactoryPtr _objectAdapterFactory;
@@ -182,6 +178,7 @@ private:
     ThreadPoolPtr _serverThreadPool;
     EndpointHostResolverPtr _endpointHostResolver;
     RetryQueuePtr _retryQueue;
+    std::vector<int> _retryIntervals;
     TimerPtr _timer;
     EndpointFactoryManagerPtr _endpointFactoryManager;
     DynamicLibraryListPtr _dynamicLibraryList;

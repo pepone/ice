@@ -51,6 +51,7 @@ public:
 
     Mode getMode() const { return _mode; }
     bool isBatch() const { return _mode == ModeBatchOneway || _mode == ModeBatchDatagram; }
+    bool isTwoway() const { return _mode == ModeTwoway; }
     bool getSecure() const { return _secure; }
     const Ice::ProtocolVersion& getProtocol() const { return _protocol; }
     const Ice::EncodingVersion& getEncoding() const { return _encoding; }
@@ -150,9 +151,12 @@ protected:
 
     virtual Ice::Int hashInit() const;
 
+    const InstancePtr _instance;
+    bool _overrideCompress;
+    bool _compress; // Only used if _overrideCompress == true
+
 private:
 
-    const InstancePtr _instance;
     const Ice::CommunicatorPtr _communicator;
 
     Mode _mode;
@@ -166,11 +170,6 @@ private:
     Ice::ProtocolVersion _protocol;
     Ice::EncodingVersion _encoding;
     int _invocationTimeout;
-
-protected:
-
-    bool _overrideCompress;
-    bool _compress; // Only used if _overrideCompress == true
 };
 
 class FixedReference : public Reference
