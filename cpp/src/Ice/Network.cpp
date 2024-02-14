@@ -1629,7 +1629,7 @@ IceInternal::setReuseAddress(SOCKET fd, bool reuse)
 }
 
 Address
-IceInternal::doBind(SOCKET fd, const Address& addr, const string&)
+IceInternal::doBind(SOCKET fd, const Address& addr)
 {
     int size = getAddressStorageSize(addr);
     assert(size != 0);
@@ -1654,8 +1654,7 @@ IceInternal::doBind(SOCKET fd, const Address& addr, const string&)
 Address
 IceInternal::getNumericAddress(const std::string& address)
 {
-    vector<Address> addrs = getAddresses(address, 0, EnableBoth, Ice::EndpointSelectionType::Ordered, false,
-                                         false);
+    vector<Address> addrs = getAddresses(address, 0, EnableBoth, Ice::EndpointSelectionType::Ordered, false, false);
     if(addrs.empty())
     {
         return Address();

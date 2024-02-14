@@ -96,7 +96,7 @@ IceInternal::UdpTransceiver::bind()
         const_cast<Address&>(_addr) = getAddressForServer("", _port, getProtocolSupport(_addr), false, false);
 #endif
 
-        const_cast<Address&>(_addr) = doBind(_fd, _addr, _mcastInterface);
+        const_cast<Address&>(_addr) = doBind(_fd, _addr);
         if(getPort(_mcastAddr) == 0)
         {
             setPort(_mcastAddr, getPort(_addr));

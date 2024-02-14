@@ -156,7 +156,7 @@ IceInternal::UdpEndpointI::transceiver() const
 AcceptorPtr
 IceInternal::UdpEndpointI::acceptor(const string&) const
 {
-    return 0;
+    return nullptr;
 }
 
 UdpEndpointIPtr
@@ -491,7 +491,7 @@ IceInternal::UdpEndpointFactory::read(InputStream* s) const
 void
 IceInternal::UdpEndpointFactory::destroy()
 {
-    _instance = 0;
+    _instance = nullptr;
 }
 
 EndpointFactoryPtr

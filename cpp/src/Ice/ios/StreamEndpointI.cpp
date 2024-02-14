@@ -202,7 +202,7 @@ IceObjC::StreamEndpointI::connectorsAsync(
     function<void(exception_ptr)>) const
 {
     vector<ConnectorPtr> connectors;
-    connectors.emplace_back(make_shared<StreamConnector>(_streamInstance, _host, _port, _timeout, _connectionId));
+    connectors.push_back(make_shared<StreamConnector>(_streamInstance, _host, _port, _timeout, _connectionId));
     response(std::move(connectors));
 }
 
