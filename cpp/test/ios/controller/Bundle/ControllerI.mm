@@ -102,7 +102,7 @@ namespace
         Ice::CommunicatorPtr _communicator;
     };
 
-    Test::StreamHelper streamRedirect;
+    // Test::StreamHelper streamRedirect;
 }
 
 ControllerHelperI::ControllerHelperI(id<ControllerView> controller, const string& dll, const StringSeq& args) :
@@ -193,7 +193,7 @@ ControllerHelperI::run()
 
     if(_dll.find("client") != string::npos || _dll.find("collocated") != string::npos)
     {
-        streamRedirect.setControllerHelper(this);
+        // streamRedirect.setControllerHelper(this);
     }
 
     CREATE_HELPER_ENTRY_POINT createHelper = (CREATE_HELPER_ENTRY_POINT)sym;
@@ -224,7 +224,7 @@ ControllerHelperI::run()
 
     if(_dll.find("client") != string::npos || _dll.find("collocated") != string::npos)
     {
-        streamRedirect.setControllerHelper(0);
+        // streamRedirect.setControllerHelper(0);
     }
 
     CFBundleUnloadExecutable(handle);
@@ -358,8 +358,9 @@ ControllerI::ControllerI(id<ControllerView> controller, NSString* ipv4, NSString
     initData.properties->setProperty("Ice.ThreadPool.Server.SizeMax", "10");
     initData.properties->setProperty("IceDiscovery.DomainId", "TestController");
     initData.properties->setProperty("ControllerAdapter.Endpoints", "tcp");
-    //initData.properties->setProperty("Ice.Trace.Network", "2");
-    //initData.properties->setProperty("Ice.Trace.Protocol", "2");
+    initData.properties->setProperty("Ice.Trace.Network", "2");
+    initData.properties->setProperty("Ice.Trace.Protocol", "2");
+    initData.properties->setProperty("Ice.Warn.Dispatch", "1");
     initData.properties->setProperty("ControllerAdapter.AdapterId", Ice::generateUUID());
 
     _communicator = Ice::initialize(initData);

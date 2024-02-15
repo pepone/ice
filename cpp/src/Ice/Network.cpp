@@ -843,7 +843,8 @@ IceInternal::getAddresses(const string& host, int port, ProtocolSupport protocol
     struct addrinfo* info = 0;
     int retry = 5;
 
-    struct addrinfo hints = {};
+    struct addrinfo hints;
+    memset(&hints, 0, sizeof(hints));
     if(protocol == EnableIPv4)
     {
         hints.ai_family = PF_INET;

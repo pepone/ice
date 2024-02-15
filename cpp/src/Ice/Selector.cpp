@@ -1058,10 +1058,6 @@ EventHandlerWrapper::EventHandlerWrapper(EventHandler* handler, Selector& select
     }
 }
 
-EventHandlerWrapper::~EventHandlerWrapper()
-{
-}
-
 void
 EventHandlerWrapper::updateRunLoop()
 {
@@ -1158,7 +1154,7 @@ EventHandlerWrapper::checkReady()
 {
     if((_ready | _handler->_ready) & ~_handler->_disabled & _handler->_registered)
     {
-        _selector.addReadyHandler(shared_from_this());
+        _selector.addReadyHandler(this);
         return false;
     }
     else
@@ -1201,7 +1197,9 @@ EventHandlerWrapper::finish()
     return _handler->getNativeInfo() != nullptr;
 }
 
-Selector::Selector(const InstancePtr& instance) : _instance(instance), _destroyed(false)
+Selector::Selector(const InstancePtr& instance) :
+    _instance(instance),
+    _destroyed(false)
 {
     CFRunLoopSourceContext ctx;
     memset(&ctx, 0, sizeof(CFRunLoopSourceContext));
@@ -1209,16 +1207,19 @@ Selector::Selector(const InstancePtr& instance) : _instance(instance), _destroye
     ctx.perform = selectorInterrupt;
     _source.reset(CFRunLoopSourceCreate(0, 0, &ctx));
     _runLoop = 0;
+}
 
+void
+Selector::start()
+{
     _thread = make_shared<SelectorHelperThread>(*this);
     _thread->start();
 
     unique_lock lock(_mutex);
-    _conditionVariable.wait(lock, [this] { return _runLoop != 0; });
-}
-
-Selector::~Selector()
-{
+    while(!_runLoop)
+    {
+        _condition.wait(lock);
+    }
 }
 
 void
@@ -1239,12 +1240,13 @@ Selector::destroy()
         {
             CFRunLoopSourceSignal(_source.get());
             CFRunLoopWakeUp(_runLoop);
-            _conditionVariable.wait(lock);
+
+            _condition.wait(lock);
         }
     }
 
     _thread->getThreadControl().join();
-    _thread = 0;
+    _thread = nullptr;
 
     lock_guard lock(_mutex);
     _source.reset(0);
@@ -1269,7 +1271,7 @@ Selector::update(EventHandler* handler, SocketOperation remove, SocketOperation 
     if(wrapper->update(remove, add))
     {
         _changes.insert(wrapper);
-        _conditionVariable.notify_one();
+        _condition.notify_one();
     }
 }
 
@@ -1310,7 +1312,7 @@ Selector::finish(EventHandler* handler, bool closeNow)
     if(wrapper->finish())
     {
         _changes.insert(wrapper);
-        _conditionVariable.notify_one();
+        _condition.notify_one();
     }
     _wrappers.erase(p);
     return closeNow;
@@ -1389,19 +1391,22 @@ Selector::select(int timeout)
             CFRunLoopSourceSignal(_source.get());
             CFRunLoopWakeUp(_runLoop);
 
-            _conditionVariable.wait(lock);
+            _condition.wait(lock);
         }
 
-        if(timeout > 0)
+        if(_readyHandlers.empty())
         {
-            if(_conditionVariable.wait_for(lock, chrono::seconds(timeout)) == cv_status::no_timeout)
+            if(timeout > 0)
             {
-                break;
+                if(_condition.wait_for(lock, chrono::seconds(timeout)) == cv_status::timeout)
+                {
+                    break;
+                }
             }
-        }
-        else
-        {
-            _conditionVariable.wait(lock, [this] { return !_readyHandlers.empty(); });
+            else
+            {
+                _condition.wait(lock);
+            }
         }
 
         if(_changes.empty())
@@ -1422,7 +1427,7 @@ Selector::processInterrupt()
             (*p)->updateRunLoop();
         }
         _changes.clear();
-        _conditionVariable.notify_one();
+        _condition.notify_one();
     }
     if(_destroyed)
     {
@@ -1436,7 +1441,7 @@ Selector::run()
     {
         lock_guard lock(_mutex);
         _runLoop = CFRunLoopGetCurrent();
-        _conditionVariable.notify_one();
+        _condition.notify_one();
     }
 
     CFRunLoopAddSource(CFRunLoopGetCurrent(), _source.get(), kCFRunLoopDefaultMode);
@@ -1452,13 +1457,13 @@ Selector::ready(EventHandlerWrapper* wrapper, SocketOperation op, int error)
 }
 
 void
-Selector::addReadyHandler(EventHandlerWrapperPtr wrapper)
+Selector::addReadyHandler(EventHandlerWrapper* wrapper)
 {
     // Called from ready()
-    _readyHandlers.insert(wrapper);
+    _readyHandlers.insert(wrapper->shared_from_this());
     if(_readyHandlers.size() == 1)
     {
-        _conditionVariable.notify_one();
+        _condition.notify_one();
     }
 }
 

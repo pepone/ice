@@ -302,7 +302,9 @@ IceInternal::ThreadPool::ThreadPool(const InstancePtr& instance, const string& p
 #endif
     _promote(true)
 {
-
+#if defined(ICE_USE_CFSTREAM)
+    _selector.start();
+#endif
 }
 
 void

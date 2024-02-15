@@ -34,18 +34,14 @@ typedef int ssize_t;
 #   include <netdb.h>
 #endif
 
-#if defined(__linux__) && !defined(ICE_NO_EPOLL)
+#if defined(__linux__)
 #   define ICE_USE_EPOLL 1
-#elif (defined(__APPLE__) || defined(__FreeBSD__) || defined(__FreeBSD_kernel__)) && TARGET_OS_IPHONE == 0 && !defined(ICE_NO_KQUEUE)
+#elif (defined(__APPLE__) || defined(__FreeBSD__) || defined(__FreeBSD_kernel__)) && TARGET_OS_IPHONE == 0
 #   define ICE_USE_KQUEUE 1
-#elif defined(__APPLE__) && !defined(ICE_NO_CFSTREAM)
+#elif defined(__APPLE__)
 #   define ICE_USE_CFSTREAM 1
 #elif defined(_WIN32)
-#  if !defined(ICE_NO_IOCP)
 #     define ICE_USE_IOCP 1
-#  else
-#     define ICE_USE_SELECT 1
-#  endif
 #else
 #   define ICE_USE_POLL 1
 #endif

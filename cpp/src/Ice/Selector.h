@@ -175,7 +175,6 @@ class SelectorReadyCallback
 {
 public:
 
-    virtual ~SelectorReadyCallback() { }
     virtual void readyCallback(SocketOperation, int = 0) = 0;
 };
 
@@ -203,16 +202,17 @@ private:
 };
 using StreamNativeInfoPtr = std::shared_ptr<StreamNativeInfo>;
 
-class EventHandlerWrapper final : public SelectorReadyCallback, public std::enable_shared_from_this<EventHandlerWrapper>
+class EventHandlerWrapper final :
+    public SelectorReadyCallback,
+    public std::enable_shared_from_this<EventHandlerWrapper>
 {
 public:
 
     EventHandlerWrapper(EventHandler*, Selector&);
-    ~EventHandlerWrapper();
 
     void updateRunLoop();
 
-    void readyCallback(SocketOperation, int = 0) final;
+    virtual void readyCallback(SocketOperation, int = 0);
     void ready(SocketOperation, int);
 
     SocketOperation readyOp();
@@ -220,11 +220,6 @@ public:
 
     bool update(SocketOperation, SocketOperation);
     bool finish();
-
-    bool operator<(const EventHandlerWrapper& o)
-    {
-        return this < &o;
-    }
 
 private:
 
@@ -240,14 +235,13 @@ private:
 };
 using EventHandlerWrapperPtr = std::shared_ptr<EventHandlerWrapper>;
 
-class Selector
+class Selector final
 {
 
 public:
 
     Selector(const InstancePtr&);
-    virtual ~Selector();
-
+    void start();
     void destroy();
 
     void initialize(EventHandler*);
@@ -268,7 +262,7 @@ public:
 private:
 
     void ready(EventHandlerWrapper*, SocketOperation, int = 0);
-    void addReadyHandler(EventHandlerWrapperPtr);
+    void addReadyHandler(EventHandlerWrapper*);
 
     friend class EventHandlerWrapper;
 
@@ -283,8 +277,9 @@ private:
     std::set<EventHandlerWrapperPtr> _readyHandlers;
     std::vector<std::pair<EventHandlerWrapperPtr, SocketOperation> > _selectedHandlers;
     std::map<EventHandler*, EventHandlerWrapperPtr> _wrappers;
+
     std::recursive_mutex _mutex;
-    std::condition_variable_any _conditionVariable;
+    std::condition_variable_any _condition;
 };
 
 #endif
