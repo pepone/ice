@@ -131,7 +131,6 @@ class StreamEndpointFactory final : public IceInternal::EndpointFactory
 public:
 
     StreamEndpointFactory(const InstancePtr&);
-    ~StreamEndpointFactory() = default;
 
     Ice::Short type() const final;
     std::string protocol() const final;

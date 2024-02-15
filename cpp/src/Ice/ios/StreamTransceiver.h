@@ -29,7 +29,10 @@ namespace IceObjC
 class Instance;
 using InstancePtr = std::shared_ptr<Instance>;
 
-class StreamTransceiver : public IceInternal::Transceiver, public IceInternal::StreamNativeInfo, public std::enable_shared_from_this<StreamTransceiver>
+class StreamTransceiver final :
+    public IceInternal::Transceiver,
+    public IceInternal::StreamNativeInfo,
+    public std::enable_shared_from_this<StreamTransceiver>
 {
     enum State
     {
@@ -43,7 +46,7 @@ public:
     StreamTransceiver(const InstancePtr&, CFReadStreamRef, CFWriteStreamRef, const std::string&, Ice::Int);
     StreamTransceiver(const InstancePtr&, CFReadStreamRef, CFWriteStreamRef, SOCKET);
 
-    virtual ~StreamTransceiver();
+    ~StreamTransceiver();
 
     IceInternal::NativeInfoPtr getNativeInfo() final;
 

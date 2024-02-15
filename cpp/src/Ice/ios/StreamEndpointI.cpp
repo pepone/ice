@@ -37,7 +37,7 @@ Plugin*
 createIceTCP(const CommunicatorPtr& com, const string&, const StringSeq&)
 {
     IceObjC::InstancePtr tcpInstance = make_shared<IceObjC::Instance>(com, TCPEndpointType, "tcp", false);
-    return new EndpointFactoryPlugin(com, make_shared<IceObjC::StreamEndpointFactory>(tcpInstance));
+    return new EndpointFactoryPlugin(com, make_shared<IceObjC::StreamEndpointFactory>(std::move(tcpInstance)));
 }
 
 }
@@ -49,7 +49,7 @@ namespace
 inline CFStringRef
 toCFString(const string& s)
 {
-    return CFStringCreateWithCString(nullptr, s.c_str(), kCFStringEncodingUTF8);
+    return CFStringCreateWithCString(0, s.c_str(), kCFStringEncodingUTF8);
 }
 
 }
@@ -209,7 +209,7 @@ IceObjC::StreamEndpointI::connectorsAsync(
 TransceiverPtr
 IceObjC::StreamEndpointI::transceiver() const
 {
-    return 0;
+    return nullptr;
 }
 
 AcceptorPtr
@@ -223,9 +223,9 @@ IceObjC::StreamEndpointI::acceptor(const string&) const
 }
 
 IceObjC::StreamEndpointIPtr
-IceObjC::StreamEndpointI::endpoint(const StreamAcceptorPtr& a) const
+IceObjC::StreamEndpointI::endpoint(const StreamAcceptorPtr& acceptor) const
 {
-    int port = a->effectivePort();
+    int port = acceptor->effectivePort();
     if(port == _port)
     {
         return dynamic_pointer_cast<StreamEndpointI>(const_cast<StreamEndpointI*>(this)->shared_from_this());

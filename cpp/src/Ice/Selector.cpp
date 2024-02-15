@@ -1199,6 +1199,7 @@ EventHandlerWrapper::finish()
 
 Selector::Selector(const InstancePtr& instance) :
     _instance(instance),
+    _runLoop(0),
     _destroyed(false)
 {
     CFRunLoopSourceContext ctx;
@@ -1206,7 +1207,6 @@ Selector::Selector(const InstancePtr& instance) :
     ctx.info = this;
     ctx.perform = selectorInterrupt;
     _source.reset(CFRunLoopSourceCreate(0, 0, &ctx));
-    _runLoop = 0;
 }
 
 void
@@ -1438,15 +1438,16 @@ Selector::processInterrupt()
 void
 Selector::run()
 {
+    auto runLoop = CFRunLoopGetCurrent();
     {
         lock_guard lock(_mutex);
-        _runLoop = CFRunLoopGetCurrent();
+        _runLoop = runLoop;
         _condition.notify_one();
     }
 
-    CFRunLoopAddSource(CFRunLoopGetCurrent(), _source.get(), kCFRunLoopDefaultMode);
+    CFRunLoopAddSource(runLoop, _source.get(), kCFRunLoopDefaultMode);
     CFRunLoopRun();
-    CFRunLoopRemoveSource(CFRunLoopGetCurrent(), _source.get(), kCFRunLoopDefaultMode);
+    CFRunLoopRemoveSource(runLoop, _source.get(), kCFRunLoopDefaultMode);
 }
 
 void

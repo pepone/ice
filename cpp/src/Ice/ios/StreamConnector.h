@@ -25,7 +25,6 @@ class StreamConnector final : public IceInternal::Connector
 public:
 
     StreamConnector(const InstancePtr&, const std::string&, Ice::Int, Ice::Int, const std::string&);
-    ~StreamConnector();
     IceInternal::TransceiverPtr connect() final;
 
     Ice::Short type() const final;

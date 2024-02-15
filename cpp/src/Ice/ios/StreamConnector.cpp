@@ -27,9 +27,9 @@ IceObjC::StreamConnector::connect()
 {
     UniqueRef<CFReadStreamRef> readStream;
     UniqueRef<CFWriteStreamRef> writeStream;
-    UniqueRef<CFStringRef> h(CFStringCreateWithCString(nullptr, _host.c_str(), kCFStringEncodingUTF8));
-    UniqueRef<CFHostRef> host(CFHostCreateWithName(nullptr, h.get()));
-    CFStreamCreatePairWithSocketToCFHost(nullptr, host.get(), _port, &readStream.get(), &writeStream.get());
+    UniqueRef<CFStringRef> h(CFStringCreateWithCString(0, _host.c_str(), kCFStringEncodingUTF8));
+    UniqueRef<CFHostRef> host(CFHostCreateWithName(0, h.get()));
+    CFStreamCreatePairWithSocketToCFHost(0, host.get(), _port, &readStream.get(), &writeStream.get());
     _instance->setupStreams(readStream.get(), writeStream.get(), false, _host);
     return make_shared<StreamTransceiver>(_instance, readStream.release(), writeStream.release(), _host, _port);
 }
@@ -137,10 +137,6 @@ IceObjC::StreamConnector::StreamConnector(const InstancePtr& instance,
     _port(port),
     _timeout(timeout),
     _connectionId(connectionId)
-{
-}
-
-IceObjC::StreamConnector::~StreamConnector()
 {
 }
 #endif
