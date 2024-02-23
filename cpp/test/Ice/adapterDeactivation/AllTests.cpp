@@ -10,20 +10,13 @@ using namespace std;
 using namespace Ice;
 using namespace Test;
 
-TestIntfPrxPtr
+TestIntfPrx
 allTests(Test::TestHelper* helper)
 {
     CommunicatorPtr communicator = helper->communicator();
-    cout << "testing stringToProxy... " << flush;
-    ObjectPrxPtr base = communicator->stringToProxy("test:" + helper->getTestEndpoint());
-    test(base);
-    cout << "ok" << endl;
 
-    cout << "testing checked cast... " << flush;
-    TestIntfPrxPtr obj = Ice::checkedCast<TestIntfPrx>(base);
-    test(obj);
-    test(Ice::targetEqualTo(obj, base));
-    cout << "ok" << endl;
+    auto obj = Ice::uncheckedCast<TestIntfPrx>(
+        communicator->stringToProxy("test:" + helper->getTestEndpoint()).value());
 
     {
         if(communicator->getProperties()->getProperty("Ice.Default.Protocol") != "ssl" &&
@@ -71,8 +64,8 @@ allTests(Test::TestHelper* helper)
         test(adapter->getPublishedEndpoints().size() == 1);
         Ice::EndpointPtr endpt = adapter->getPublishedEndpoints()[0];
         test(endpt->toString() == "tcp -h localhost -p 12345 -t 30000");
-        Ice::ObjectPrxPtr prx =
-            communicator->stringToProxy("dummy:tcp -h localhost -p 12346 -t 20000:tcp -h localhost -p 12347 -t 10000");
+        Ice::ObjectPrx prx = communicator->stringToProxy(
+            "dummy:tcp -h localhost -p 12346 -t 20000:tcp -h localhost -p 12347 -t 10000").value();
         adapter->setPublishedEndpoints(prx->ice_getEndpoints());
         test(adapter->getPublishedEndpoints().size() == 2);
         Ice::Identity id;
@@ -113,7 +106,7 @@ allTests(Test::TestHelper* helper)
     {
         Ice::Identity routerId;
         routerId.name = "router";
-        auto router = Ice::uncheckedCast<Ice::RouterPrx>(base->ice_identity(routerId)->ice_connectionId("rc"));
+        auto router = Ice::uncheckedCast<Ice::RouterPrx>(obj->ice_identity(routerId)->ice_connectionId("rc"));
         Ice::ObjectAdapterPtr adapter = communicator->createObjectAdapterWithRouter("", router);
         test(adapter->getPublishedEndpoints().size() == 1);
         test(adapter->getPublishedEndpoints()[0]->toString() == "tcp -h localhost -p 23456 -t 30000");
@@ -134,7 +127,7 @@ allTests(Test::TestHelper* helper)
         try
         {
             routerId.name = "test";
-            router = Ice::uncheckedCast<Ice::RouterPrx>(base->ice_identity(routerId));
+            router = Ice::uncheckedCast<Ice::RouterPrx>(obj->ice_identity(routerId));
             communicator->createObjectAdapterWithRouter("", router);
             test(false);
         }

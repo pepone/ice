@@ -9,29 +9,29 @@
 #include <mutex>
 #include <condition_variable>
 
-class RemoteCommunicatorI : public Test::RemoteCommunicator
+class RemoteCommunicatorI final : public Test::RemoteCommunicator
 {
 public:
 
-    virtual Test::RemoteObjectAdapterPrxPtr createObjectAdapter(int, int, int, const Ice::Current&);
-    virtual void shutdown(const Ice::Current&);
+    std::optional<Test::RemoteObjectAdapterPrx> createObjectAdapter(int, int, int, const Ice::Current&) final;
+    void shutdown(const Ice::Current&) final;
 };
 
-class RemoteObjectAdapterI : public Test::RemoteObjectAdapter
+class RemoteObjectAdapterI final : public Test::RemoteObjectAdapter
 {
 public:
 
     RemoteObjectAdapterI(const Ice::ObjectAdapterPtr&);
 
-    virtual Test::TestIntfPrxPtr getTestIntf(const Ice::Current&);
-    virtual void activate(const Ice::Current&);
-    virtual void hold(const Ice::Current&);
-    virtual void deactivate(const Ice::Current&);
+    std::optional<Test::TestIntfPrx> getTestIntf(const Ice::Current&) final;
+    void activate(const Ice::Current&) final;
+    void hold(const Ice::Current&) final;
+    void deactivate(const Ice::Current&) final;
 
 private:
 
     const Ice::ObjectAdapterPtr _adapter;
-    const Test::TestIntfPrxPtr _testIntf;
+    const Test::TestIntfPrx _testIntf;
 };
 
 class TestI : public Test::TestIntf
@@ -55,15 +55,13 @@ private:
         {
         }
 
-        void
-        waitForCount(int count)
+        void waitForCount(int count)
         {
             std::unique_lock lock(_mutex);
             _condition.wait(lock, [this, count] { return _count >= count; });
         }
 
-        virtual void
-        heartbeat(const Ice::ConnectionPtr&)
+        void heartbeat(const Ice::ConnectionPtr&)
         {
             std::lock_guard lock(_mutex);
             ++_count;

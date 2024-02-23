@@ -22,82 +22,75 @@ toString(int value)
     return os.str();
 }
 
-class LoggerI : public Ice::Logger, public std::enable_shared_from_this<LoggerI>
+class LoggerI final : public Ice::Logger, public std::enable_shared_from_this<LoggerI>
 {
 public:
 
-    LoggerI() : _started(false)
+    LoggerI() :
+        _started(false)
     {
     }
 
-    void
-    start()
+    void start()
     {
         lock_guard lock(_mutex);
         _started = true;
         dump();
     }
 
-    virtual void
-    print(const std::string& msg)
+    void print(const std::string& msg) final
     {
         lock_guard lock(_mutex);
         _messages.push_back(msg);
-        if(_started)
+        if (_started)
         {
             dump();
         }
     }
 
-    virtual void
-    trace(const std::string& category, const std::string& message)
+    void trace(const std::string& category, const std::string& message) final
     {
         lock_guard lock(_mutex);
         _messages.push_back("[" + category + "] " + message);
-        if(_started)
+        if (_started)
         {
             dump();
         }
     }
 
-    virtual void
-    warning(const std::string& message)
+    void warning(const std::string& message) final
     {
         lock_guard lock(_mutex);
         _messages.push_back("warning: " + message);
-        if(_started)
+        if (_started)
         {
             dump();
         }
     }
 
-    virtual void
-    error(const std::string& message)
+    void error(const std::string& message) final
     {
         lock_guard lock(_mutex);
         _messages.push_back("error: " + message);
-        if(_started)
+        if (_started)
         {
             dump();
         }
     }
 
-    virtual string
-    getPrefix()
+    string getPrefix() final
     {
         return "";
     }
 
-    virtual Ice::LoggerPtr
-    cloneWithPrefix(const std::string&)
+    Ice::LoggerPtr cloneWithPrefix(const std::string&) final
     {
         return shared_from_this();
     }
 
 private:
 
-    void
-    dump()
+    void dump()
     {
         for(vector<string>::const_iterator p = _messages.begin(); p != _messages.end(); ++p)
         {
@@ -116,7 +109,7 @@ class TestCase : public enable_shared_from_this<TestCase>
 {
 public:
 
-    TestCase(const string& name, const RemoteCommunicatorPrxPtr& com) :
+    TestCase(const string& name, const RemoteCommunicatorPrx& com) :
         _testCaseName(name), _com(com), _logger(new LoggerI()),
         _clientACMTimeout(-1), _clientACMClose(-1), _clientACMHeartbeat(-1),
         _serverACMTimeout(-1), _serverACMClose(-1), _serverACMHeartbeat(-1),
@@ -124,8 +117,7 @@ public:
     {
     }
 
-    void
-    init()
+    void init()
     {
         _adapter = _com->createObjectAdapter(_serverACMTimeout, _serverACMClose, _serverACMHeartbeat);
 
@@ -145,13 +137,10 @@ public:
         {
             initData.properties->setProperty("Ice.ACM.Client.Heartbeat", toString(_clientACMHeartbeat));
         }
-        //initData.properties->setProperty("Ice.Trace.Protocol", "2");
-        //initData.properties->setProperty("Ice.Trace.Network", "2");
         _communicator = Ice::initialize(initData);
     }
 
-    void
-    destroy()
+    void destroy()
     {
         _adapter->deactivate();
         _communicator->destroy();
@@ -173,11 +162,10 @@ public:
         }
     }
 
-    virtual void
-    run()
+    virtual void run()
     {
         auto proxy = Ice::uncheckedCast<TestIntfPrx>(
-            _communicator->stringToProxy(_adapter->getTestIntf()->ice_toString()));
+            _communicator->stringToProxy(_adapter->getTestIntf()->ice_toString()).value());
         try
         {
             auto self = shared_from_this();
@@ -191,7 +179,7 @@ public:
                 {
                     self->heartbeat(std::move(connection));
                 });
-            runTestCase(_adapter, proxy);
+            runTestCase(_adapter.value(), proxy);
         }
         catch(const std::exception& ex)
         {
@@ -203,23 +191,20 @@ public:
         }
     }
 
-    virtual void
-    heartbeat(const Ice::ConnectionPtr&)
+    virtual void heartbeat(const Ice::ConnectionPtr&)
     {
         lock_guard lock(_mutex);
         ++_heartbeat;
     }
 
-    virtual void
-    closed(const Ice::ConnectionPtr&)
+    virtual void closed(const Ice::ConnectionPtr&)
     {
         lock_guard lock(_mutex);
         _closed = true;
         _conditionVariable.notify_one();
     }
 
-    void
-    waitForClosed()
+    void waitForClosed()
     {
         unique_lock lock(_mutex);
         if (!_conditionVariable.wait_for(lock, chrono::seconds(30), [this] { return _closed; }))
@@ -228,18 +213,16 @@ public:
         }
     }
 
-    virtual void runTestCase(const RemoteObjectAdapterPrxPtr&, const TestIntfPrxPtr&) = 0;
+    virtual void runTestCase(const RemoteObjectAdapterPrx&, const TestIntfPrx&) = 0;
 
-    void
-    setClientACM(int timeout, int close, int heartbeat)
+    void setClientACM(int timeout, int close, int heartbeat)
     {
         _clientACMTimeout = timeout;
         _clientACMClose = close;
         _clientACMHeartbeat = heartbeat;
     }
 
-    void
-    setServerACM(int timeout, int close, int heartbeat)
+    void setServerACM(int timeout, int close, int heartbeat)
     {
         _serverACMTimeout = timeout;
         _serverACMClose = close;
@@ -249,12 +232,12 @@ public:
 protected:
 
     const string _testCaseName;
-    const RemoteCommunicatorPrxPtr _com;
+    const RemoteCommunicatorPrx _com;
     string _msg;
     LoggerIPtr _logger;
 
     Ice::CommunicatorPtr _communicator;
-    RemoteObjectAdapterPrxPtr _adapter;
+    optional<RemoteObjectAdapterPrx> _adapter;
 
     int _clientACMTimeout;
     int _clientACMClose;
@@ -274,13 +257,13 @@ class InvocationHeartbeatTest final : public TestCase
 {
 public:
 
-    InvocationHeartbeatTest(const RemoteCommunicatorPrxPtr& com) :
+    InvocationHeartbeatTest(const RemoteCommunicatorPrx& com) :
         TestCase("invocation heartbeat", com)
     {
         setServerACM(1, -1, -1); // Faster ACM to make sure we receive enough ACM heartbeats
     }
 
-    virtual void runTestCase(const RemoteObjectAdapterPrxPtr&, const TestIntfPrxPtr& proxy)
+    void runTestCase(const RemoteObjectAdapterPrx&, const TestIntfPrx& proxy) final
     {
         proxy->sleep(4);
 
@@ -293,13 +276,13 @@ class InvocationHeartbeatOnHoldTest final : public TestCase
 {
 public:
 
-    InvocationHeartbeatOnHoldTest(const RemoteCommunicatorPrxPtr& com) :
+    InvocationHeartbeatOnHoldTest(const RemoteCommunicatorPrx& com) :
         TestCase("invocation with heartbeat on hold", com)
     {
         // Use default ACM configuration.
     }
 
-    virtual void runTestCase(const RemoteObjectAdapterPrxPtr& adapter, const TestIntfPrxPtr& proxy)
+    void runTestCase(const RemoteObjectAdapterPrx& adapter, const TestIntfPrx& proxy) final
     {
         try
         {
@@ -323,13 +306,13 @@ class InvocationNoHeartbeatTest final : public TestCase
 {
 public:
 
-    InvocationNoHeartbeatTest(const RemoteCommunicatorPrxPtr& com) :
+    InvocationNoHeartbeatTest(const RemoteCommunicatorPrx& com) :
         TestCase("invocation with no heartbeat", com)
     {
         setServerACM(2, 2, 0); // Disable heartbeat on invocations
     }
 
-    virtual void runTestCase(const RemoteObjectAdapterPrxPtr&, const TestIntfPrxPtr& proxy)
+    virtual void runTestCase(const RemoteObjectAdapterPrx&, const TestIntfPrx& proxy)
     {
         try
         {
@@ -355,14 +338,14 @@ class InvocationHeartbeatCloseOnIdleTest final : public TestCase
 {
 public:
 
-    InvocationHeartbeatCloseOnIdleTest(const RemoteCommunicatorPrxPtr& com) :
+    InvocationHeartbeatCloseOnIdleTest(const RemoteCommunicatorPrx& com) :
         TestCase("invocation with no heartbeat and close on idle", com)
     {
         setClientACM(1, 1, 0); // Only close on idle.
         setServerACM(1, 2, 0); // Disable heartbeat on invocations
     }
 
-    virtual void runTestCase(const RemoteObjectAdapterPrxPtr&, const TestIntfPrxPtr& proxy)
+    virtual void runTestCase(const RemoteObjectAdapterPrx&, const TestIntfPrx& proxy)
     {
         // No close on invocation, the call should succeed this time.
         proxy->sleep(3);
@@ -377,12 +360,12 @@ class CloseOnIdleTest final : public TestCase
 {
 public:
 
-    CloseOnIdleTest(const RemoteCommunicatorPrxPtr& com) : TestCase("close on idle", com)
+    CloseOnIdleTest(const RemoteCommunicatorPrx& com) : TestCase("close on idle", com)
     {
         setClientACM(1, 1, 0); // Only close on idle
     }
 
-    virtual void runTestCase(const RemoteObjectAdapterPrxPtr&, const TestIntfPrxPtr&)
+    virtual void runTestCase(const RemoteObjectAdapterPrx&, const TestIntfPrx&)
     {
         waitForClosed();
 
@@ -395,12 +378,12 @@ class CloseOnInvocationTest final : public TestCase
 {
 public:
 
-    CloseOnInvocationTest(const RemoteCommunicatorPrxPtr& com) : TestCase("close on invocation", com)
+    CloseOnInvocationTest(const RemoteCommunicatorPrx& com) : TestCase("close on invocation", com)
     {
         setClientACM(1, 2, 0); // Only close on invocation
     }
 
-    virtual void runTestCase(const RemoteObjectAdapterPrxPtr&, const TestIntfPrxPtr&)
+    virtual void runTestCase(const RemoteObjectAdapterPrx&, const TestIntfPrx&)
     {
         this_thread::sleep_for(chrono::milliseconds(3000)); // Idle for 3 seconds
 
@@ -414,12 +397,12 @@ class CloseOnIdleAndInvocationTest final : public TestCase
 {
 public:
 
-    CloseOnIdleAndInvocationTest(const RemoteCommunicatorPrxPtr& com) : TestCase("close on idle and invocation", com)
+    CloseOnIdleAndInvocationTest(const RemoteCommunicatorPrx& com) : TestCase("close on idle and invocation", com)
     {
         setClientACM(3, 3, 0); // Only close on idle and invocation
     }
 
-    virtual void runTestCase(const RemoteObjectAdapterPrxPtr& adapter, const TestIntfPrxPtr&)
+    virtual void runTestCase(const RemoteObjectAdapterPrx& adapter, const TestIntfPrx&)
     {
         //
         // Put the adapter on hold. The server will not respond to
@@ -445,13 +428,13 @@ class ForcefulCloseOnIdleAndInvocationTest final : public TestCase
 {
 public:
 
-    ForcefulCloseOnIdleAndInvocationTest(const RemoteCommunicatorPrxPtr& com) :
+    ForcefulCloseOnIdleAndInvocationTest(const RemoteCommunicatorPrx& com) :
         TestCase("forceful close on idle and invocation", com)
     {
         setClientACM(1, 4, 0); // Only close on idle and invocation
     }
 
-    virtual void runTestCase(const RemoteObjectAdapterPrxPtr& adapter, const TestIntfPrxPtr&)
+    virtual void runTestCase(const RemoteObjectAdapterPrx& adapter, const TestIntfPrx&)
     {
         adapter->hold();
 
@@ -466,12 +449,12 @@ class HeartbeatOnIdleTest final : public TestCase
 {
 public:
 
-    HeartbeatOnIdleTest(const RemoteCommunicatorPrxPtr& com) : TestCase("heartbeat on idle", com)
+    HeartbeatOnIdleTest(const RemoteCommunicatorPrx& com) : TestCase("heartbeat on idle", com)
     {
         setServerACM(1, -1, 2); // Enable server heartbeats.
     }
 
-    virtual void runTestCase(const RemoteObjectAdapterPrxPtr&, const TestIntfPrxPtr&)
+    virtual void runTestCase(const RemoteObjectAdapterPrx&, const TestIntfPrx&)
     {
         this_thread::sleep_for(chrono::milliseconds(3000));
 
@@ -484,17 +467,17 @@ class HeartbeatAlwaysTest final : public TestCase
 {
 public:
 
-    HeartbeatAlwaysTest(const RemoteCommunicatorPrxPtr& com) : TestCase("heartbeat always", com)
+    HeartbeatAlwaysTest(const RemoteCommunicatorPrx& com) : TestCase("heartbeat always", com)
     {
         setServerACM(1, -1, 3); // Enable server heartbeats.
     }
 
-    virtual void runTestCase(const RemoteObjectAdapterPrxPtr&, const TestIntfPrxPtr& proxy)
+    virtual void runTestCase(const RemoteObjectAdapterPrx&, const TestIntfPrx& proxy)
     {
         for(int i = 0; i < 10; ++i)
         {
             proxy->ice_ping();
-            this_thread::sleep_for(chrono::milliseconds(300));
+            this_thread::sleep_for(300ms);
         }
 
         lock_guard lock(_mutex);
@@ -506,7 +489,7 @@ class HeartbeatManualTest final : public TestCase
 {
 public:
 
-    HeartbeatManualTest(const RemoteCommunicatorPrxPtr& com) : TestCase("manual heartbeats", com)
+    HeartbeatManualTest(const RemoteCommunicatorPrx& com) : TestCase("manual heartbeats", com)
     {
         //
         // Disable heartbeats.
@@ -515,7 +498,7 @@ public:
         setServerACM(10, -1, 0);
     }
 
-    virtual void runTestCase(const RemoteObjectAdapterPrxPtr&, const TestIntfPrxPtr& proxy)
+    virtual void runTestCase(const RemoteObjectAdapterPrx&, const TestIntfPrx& proxy)
     {
         proxy->startHeartbeatCount();
         Ice::ConnectionPtr con = proxy->ice_getConnection();
@@ -532,12 +515,12 @@ class SetACMTest final : public TestCase
 {
 public:
 
-    SetACMTest(const RemoteCommunicatorPrxPtr& com) : TestCase("setACM/getACM", com)
+    SetACMTest(const RemoteCommunicatorPrx& com) : TestCase("setACM/getACM", com)
     {
         setClientACM(15, 4, 0);
     }
 
-    virtual void runTestCase(const RemoteObjectAdapterPrxPtr&, const TestIntfPrxPtr& proxy)
+    virtual void runTestCase(const RemoteObjectAdapterPrx&, const TestIntfPrx& proxy)
     {
         Ice::ConnectionPtr con = proxy->ice_getConnection();
 
@@ -604,12 +587,11 @@ public:
 
 }
 
-void
-allTests(Test::TestHelper* helper)
+void allTests(Test::TestHelper* helper)
 {
     Ice::CommunicatorPtr communicator = helper->communicator();
-    string ref = "communicator:" + helper->getTestEndpoint();
-    RemoteCommunicatorPrxPtr com = Ice::uncheckedCast<RemoteCommunicatorPrx>(communicator->stringToProxy(ref));
+    auto com = Ice::uncheckedCast<RemoteCommunicatorPrx>(
+        communicator->stringToProxy("communicator:" + helper->getTestEndpoint()).value());
 
     vector<TestCasePtr> tests;
 
@@ -628,28 +610,29 @@ allTests(Test::TestHelper* helper)
     tests.push_back(make_shared<HeartbeatManualTest>(com));
     tests.push_back(make_shared<SetACMTest>(com));
 
-    for(vector<TestCasePtr>::const_iterator p = tests.begin(); p != tests.end(); ++p)
+    for (const auto& p : tests)
     {
-        (*p)->init();
+        p->init();
     }
+    
     vector<pair<std::thread, TestCasePtr>> threads;
-    for(auto p = tests.begin(); p != tests.end(); ++p)
+    for (const auto& testCase : tests)
     {
-        TestCasePtr testCase = *p;
         std::thread t([testCase]()
             {
                 testCase->run();
             });
-        threads.push_back(make_pair(std::move(t), testCase));
+        threads.emplace_back(make_pair(std::move(t), testCase));
     }
-    for(auto p = threads.begin(); p != threads.end(); ++p)
+    
+    for (auto p = threads.begin(); p != threads.end(); ++p)
     {
         p->second->join(p->first);
     }
 
-    for(vector<TestCasePtr>::const_iterator p = tests.begin(); p != tests.end(); ++p)
+    for (const auto& p : tests)
     {
-        (*p)->destroy();
+        p->destroy();
     }
 
     cout << "shutting down... " << flush;

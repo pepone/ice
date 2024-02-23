@@ -23,7 +23,7 @@ toString(int value)
 
 }
 
-RemoteObjectAdapterPrxPtr
+optional<RemoteObjectAdapterPrx>
 RemoteCommunicatorI::createObjectAdapter(int timeout, int close, int heartbeat, const Current& current)
 {
     Ice::CommunicatorPtr com = current.adapter->getCommunicator();
@@ -69,7 +69,7 @@ RemoteObjectAdapterI::RemoteObjectAdapterI(const Ice::ObjectAdapterPtr& adapter)
     _adapter->activate();
 }
 
-TestIntfPrxPtr
+optional<TestIntfPrx>
 RemoteObjectAdapterI::getTestIntf(const Ice::Current&)
 {
     return _testIntf;

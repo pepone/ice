@@ -13,7 +13,7 @@ using namespace Test;
 namespace
 {
 
-class RouterI : public Ice::Router
+class RouterI final : public Ice::Router
 {
 public:
 
@@ -21,22 +21,19 @@ public:
     {
     }
 
-    virtual Ice::ObjectPrxPtr
-    getClientProxy(optional<bool>&, const Ice::Current&) const
+    optional<Ice::ObjectPrx> getClientProxy(optional<bool>&, const Ice::Current&) const final
     {
         return nullopt;
     }
 
-    virtual Ice::ObjectPrxPtr
-    getServerProxy(const Ice::Current& c) const
+    optional<Ice::ObjectPrx> getServerProxy(const Ice::Current& c) const final
     {
         ostringstream os;
         os << "dummy:tcp -h localhost -p " << _nextPort++ << " -t 30000";
         return c.adapter->getCommunicator()->stringToProxy(os.str());
     }
 
-    virtual Ice::ObjectProxySeq
-    addProxies(Ice::ObjectProxySeq, const Ice::Current&)
+    Ice::ObjectProxySeq addProxies(Ice::ObjectProxySeq, const Ice::Current&) final
     {
         return Ice::ObjectProxySeq();
     }

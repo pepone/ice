@@ -7,12 +7,12 @@
 
 #include <Test.h>
 
-class TestI : public Test::TestIntf
+class TestI final : public Test::TestIntf
 {
 public:
 
-    virtual void transient(const Ice::Current&);
-    virtual void deactivate(const Ice::Current&);
+    void transient(const Ice::Current&);
+    void deactivate(const Ice::Current&);
 };
 
 class Cookie
