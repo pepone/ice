@@ -1311,7 +1311,7 @@ IceInternal::Instance::getImplicitContext() const
     if(_implicitContextKind == ImplicitContextKind::PerThread)
     {
         lock_guard lock(perThreadImplicitContextMutex);
-        auto it = perThreadImplicitContextMap.find(this);
+        const auto it = perThreadImplicitContextMap.find(this);
         if (it == perThreadImplicitContextMap.end())
         {
             auto r = perThreadImplicitContextMap.emplace(make_pair(this, std::make_shared<ImplicitContextI>()));
@@ -1734,6 +1734,16 @@ IceInternal::Instance::destroy()
     if(_pluginManager)
     {
         _pluginManager->destroy();
+    }
+
+    if (_implicitContextKind == ImplicitContextKind::PerThread)
+    {
+        lock_guard lock(perThreadImplicitContextMutex);
+        auto it = perThreadImplicitContextMap.find(this);
+        if (it != perThreadImplicitContextMap.end())
+        {
+            perThreadImplicitContextMap.erase(it);
+        }
     }
 
     {
