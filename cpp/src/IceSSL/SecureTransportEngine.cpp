@@ -970,17 +970,6 @@ IceSSL::SecureTransport::SSLEngine::newContext(bool incoming)
             "IceSSL: error while setting the SSL context certificate:\n" + sslErrorToString(err));
     }
 
-    if (!_ciphers.empty())
-    {
-        if ((err = SSLSetEnabledCiphers(ssl, &_ciphers[0], _ciphers.size())))
-        {
-            throw SecurityException(
-                __FILE__,
-                __LINE__,
-                "IceSSL: error while setting ciphers:\n" + sslErrorToString(err));
-        }
-    }
-
     if ((err = SSLSetSessionOption(
              ssl,
              incoming ? kSSLSessionOptionBreakOnClientAuth : kSSLSessionOptionBreakOnServerAuth,

@@ -58,10 +58,7 @@ IceSSL::SSLEngine::initialize()
 
     if (_verifyPeer < 0 || _verifyPeer > 2)
     {
-        throw PluginInitializationException(
-            __FILE__,
-            __LINE__,
-            "IceSSL: invalid value for " + propPrefix + "VerifyPeer");
+        throw InitializationException(__FILE__, __LINE__, "IceSSL: invalid value for " + propPrefix + "VerifyPeer");
     }
 
     _securityTraceLevel = properties->getPropertyAsInt("IceSSL.Trace.Security");

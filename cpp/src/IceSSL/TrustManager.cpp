@@ -48,10 +48,7 @@ TrustManager::TrustManager(const IceInternal::InstancePtr& instance) : _instance
     }
     catch (const ParseException& ex)
     {
-        throw Ice::PluginInitializationException(
-            __FILE__,
-            __LINE__,
-            "IceSSL: invalid property " + key + ":\n" + ex.reason);
+        throw Ice::InitializationException(__FILE__, __LINE__, "IceSSL: invalid property " + key + ":\n" + ex.reason);
     }
 }
 

@@ -57,8 +57,6 @@ namespace IceSSL::SChannel
         HCERTCHAINENGINE chainEngine() const;
 
     private:
-        void parseCiphers(const std::string&);
-
         std::vector<PCCERT_CONTEXT> _allCerts;
         std::vector<PCCERT_CONTEXT> _importedCerts;
 
