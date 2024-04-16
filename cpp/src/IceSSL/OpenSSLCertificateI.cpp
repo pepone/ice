@@ -3,7 +3,7 @@
 //
 
 #include "CertificateI.h"
-#include "IceSSL/OpenSSL.h"
+#include "Ice/OpenSSL.h"
 #include "OpenSSLUtil.h"
 #include "RFC2253.h"
 
