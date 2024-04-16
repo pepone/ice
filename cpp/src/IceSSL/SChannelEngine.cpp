@@ -393,9 +393,6 @@ namespace
         }
     }
 
-    const ALG_ID supportedCiphers[] = {CALG_3DES, CALG_AES_128, CALG_AES_256, CALG_DES, CALG_RC2, CALG_RC4};
-    const int supportedCiphersSize = sizeof(supportedCiphers) / sizeof(ALG_ID);
-
     ALG_ID
     algorithmId(const string& name)
     {
@@ -1081,12 +1078,6 @@ SChannel::SSLEngine::newCredentialsHandle(bool incoming)
     if (_strongCrypto)
     {
         cred.dwFlags |= SCH_USE_STRONG_CRYPTO;
-    }
-
-    if (!_ciphers.empty())
-    {
-        cred.cSupportedAlgs = static_cast<DWORD>(_ciphers.size());
-        cred.palgSupportedAlgs = &_ciphers[0];
     }
 
     CredHandle credHandle;
