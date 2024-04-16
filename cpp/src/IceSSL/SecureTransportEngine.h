@@ -35,11 +35,6 @@ namespace IceSSL::SecureTransport
 
         IceInternal::UniqueRef<CFArrayRef> _certificateAuthorities;
         IceInternal::UniqueRef<CFArrayRef> _chain;
-
-#    if TARGET_OS_IPHONE == 0
-        std::vector<char> _dhParams;
-#    endif
-        std::vector<SSLCipherSuite> _ciphers;
     };
 }
 #endif
