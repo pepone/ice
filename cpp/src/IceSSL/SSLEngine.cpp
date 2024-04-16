@@ -9,7 +9,7 @@
 #include "Ice/Logger.h"
 #include "Ice/LoggerUtil.h"
 #include "Ice/Properties.h"
-#include "IceSSL/ConnectionInfo.h"
+#include "Ice/SSLConnectionInfo.h"
 #include "IceUtil/StringUtil.h"
 #include "TrustManager.h"
 

@@ -3,12 +3,12 @@
 //
 
 #include "SecureTransportEngine.h"
+#include "Ice/Certificate.h"
 #include "Ice/Config.h"
 #include "Ice/LocalException.h"
 #include "Ice/Logger.h"
 #include "Ice/LoggerUtil.h"
 #include "Ice/Properties.h"
-#include "IceSSL/Certificate.h"
 #include "IceUtil/FileUtil.h"
 #include "IceUtil/StringUtil.h"
 #include "SSLEngine.h"

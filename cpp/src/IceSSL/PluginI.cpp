@@ -4,9 +4,9 @@
 
 #include "../Ice/ProtocolInstance.h"
 #include "../Ice/ProtocolPluginFacade.h"
+#include "Ice/Certificate.h"
 #include "Ice/LocalException.h"
 #include "Ice/RegisterPlugins.h"
-#include "IceSSL/Certificate.h"
 #include "SSLEndpointI.h"
 #include "SSLEngine.h"
 #include "SSLInstance.h"

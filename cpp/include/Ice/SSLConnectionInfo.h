@@ -6,8 +6,8 @@
 #define ICESSL_CONNECTION_INFO_H
 
 #include "Certificate.h"
-#include "ConnectionInfoF.h"
 #include "Ice/Connection.h"
+#include "SSLConnectionInfoF.h"
 
 #if defined(__clang__)
 #    pragma clang diagnostic push
