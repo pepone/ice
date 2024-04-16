@@ -31,8 +31,6 @@ namespace IceSSL::SecureTransport
         std::string getCipherName(SSLCipherSuite) const;
 
     private:
-        void parseCiphers(const std::string&);
-
         IceInternal::UniqueRef<CFArrayRef> _certificateAuthorities;
         IceInternal::UniqueRef<CFArrayRef> _chain;
     };

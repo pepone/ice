@@ -448,39 +448,6 @@ OpenSSL::SSLEngine::initialize()
             _ctx,
             reinterpret_cast<unsigned char*>(this),
             static_cast<unsigned int>(sizeof(this)));
-
-        //
-        // Establish the cipher list.
-        //
-        string ciphersStr = properties->getProperty(propPrefix + "Ciphers");
-        if (!ciphersStr.empty())
-        {
-            if (!SSL_CTX_set_cipher_list(_ctx, ciphersStr.c_str()))
-            {
-                throw PluginInitializationException(
-                    __FILE__,
-                    __LINE__,
-                    "IceSSL: unable to set ciphers using `" + ciphersStr + "':\n" + sslErrors());
-            }
-        }
-
-        if (securityTraceLevel() >= 1)
-        {
-            ostringstream os;
-            os << "enabling SSL ciphersuites:";
-
-            SSL* ssl = SSL_new(_ctx);
-            STACK_OF(SSL_CIPHER)* ciphers = SSL_get_ciphers(ssl);
-            if (ciphers)
-            {
-                for (int i = 0, length = sk_SSL_CIPHER_num(ciphers); i < length; ++i)
-                {
-                    os << "\n" << SSL_CIPHER_get_name(sk_SSL_CIPHER_value(ciphers, i));
-                }
-            }
-            SSL_free(ssl);
-            getLogger()->trace(securityTraceCategory(), os.str());
-        }
     }
     catch (...)
     {
