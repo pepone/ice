@@ -80,6 +80,7 @@ namespace Ice::SSL::Schannel
         {
             StateNotInitialized,
             StateHandshakeNotStarted,
+            StateHandshakeRenegotiateStarted,
             StateHandshakeReadContinue,
             StateHandshakeWriteContinue,
             StateHandshakeWriteNoContinue,
@@ -94,6 +95,7 @@ namespace Ice::SSL::Schannel
         const IceInternal::TransceiverPtr _delegate;
         State _state;
         DWORD _ctxFlags;
+        bool _sslConnectionRenegotiating;
 
         //
         // Buffered encrypted data that has not been written.

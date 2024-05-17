@@ -223,6 +223,11 @@ Schannel::TransceiverI::sslHandshake()
         }
     }
 
+    if (_state == StateHandshakeRenegotiateStarted)
+    {
+        _state == StateHandshakeReadContinue;
+    }
+
     while (true)
     {
         if (_state == StateHandshakeReadContinue)
@@ -457,6 +462,22 @@ Schannel::TransceiverI::sslHandshake()
     _writeBuffer.b.reset();
     _writeBuffer.i = _writeBuffer.b.begin();
 
+    if (_remoteCertificateValidationCallback &&
+        !_remoteCertificateValidationCallback(_ssl, dynamic_pointer_cast<Ice::SSL::ConnectionInfo>(getInfo())))
+    {
+        throw SecurityException(
+            __FILE__,
+            __LINE__,
+            "IceSSL: certificate verification failed. The certificate was rejected by the remote certificate "
+            "validation callback.");
+    }
+
+    _state = StateHandshakeComplete;
+
+    _delegate->getNativeInfo()->ready(
+        IceInternal::SocketOperationRead,
+        !_readUnprocessed.b.empty() || _readBuffer.i != _readBuffer.b.begin());
+
     return IceInternal::SocketOperationNone;
 }
 
@@ -506,7 +527,23 @@ Schannel::TransceiverI::decryptMessage(IceInternal::Buffer& buffer)
             assert(_readBuffer.i != _readBuffer.b.end());
             return length;
         }
-        else if (err == SEC_I_CONTEXT_EXPIRED || err == SEC_I_RENEGOTIATE)
+        else if (err == SEC_I_RENEGOTIATE)
+        {
+            // The peer has requested a renegotiation.
+            if (_sslConnectionRenegotiating)
+            {
+                throw ProtocolException(
+                    __FILE__,
+                    __LINE__,
+                    "SSL transport: protocol error during read: peer requested renegotiation while already "
+                    "renegotiating.");
+            }
+
+            _sslConnectionRenegotiating = true;
+            _state = StateHandshakeRenegotiateStarted;
+            return length;
+        }
+        else if (err == SEC_I_CONTEXT_EXPIRED)
         {
             // The message sender has finished using the connection and has initiated a shutdown.
             throw ConnectionLostException(__FILE__, __LINE__, 0);
@@ -610,30 +647,7 @@ Schannel::TransceiverI::initialize(IceInternal::Buffer& readBuffer, IceInternal:
         }
         _state = StateHandshakeNotStarted;
     }
-
-    IceInternal::SocketOperation op = sslHandshake();
-    if (op != IceInternal::SocketOperationNone)
-    {
-        return op;
-    }
-
-    if (_remoteCertificateValidationCallback &&
-        !_remoteCertificateValidationCallback(_ssl, dynamic_pointer_cast<Ice::SSL::ConnectionInfo>(getInfo())))
-    {
-        throw SecurityException(
-            __FILE__,
-            __LINE__,
-            "IceSSL: certificate verification failed. The certificate was rejected by the remote certificate "
-            "validation callback.");
-    }
-
-    _state = StateHandshakeComplete;
-
-    _delegate->getNativeInfo()->ready(
-        IceInternal::SocketOperationRead,
-        !_readUnprocessed.b.empty() || _readBuffer.i != _readBuffer.b.begin());
-
-    return IceInternal::SocketOperationNone;
+    return sslHandshake();
 }
 
 IceInternal::SocketOperation
@@ -700,6 +714,15 @@ Schannel::TransceiverI::write(IceInternal::Buffer& buf)
     {
         return _delegate->write(buf);
     }
+    else if (_state < StateHandshakeComplete)
+    {
+        IceInternal::SocketOperation op = sslHandshake();
+        if (op == IceInternal::SocketOperationNone)
+        {
+            _sslConnectionRenegotiating = false;
+        }
+        return op;
+    }
 
     if (buf.i == buf.b.end())
     {
@@ -735,6 +758,15 @@ Schannel::TransceiverI::read(IceInternal::Buffer& buf)
     {
         return _delegate->read(buf);
     }
+    else if (_state < StateHandshakeComplete)
+    {
+        IceInternal::SocketOperation op = sslHandshake();
+        if (op == IceInternal::SocketOperationNone)
+        {
+            _sslConnectionRenegotiating = false;
+        }
+        return op;
+    }
 
     if (buf.i == buf.b.end())
     {
@@ -751,6 +783,15 @@ Schannel::TransceiverI::read(IceInternal::Buffer& buf)
         }
 
         size_t decrypted = decryptMessage(buf);
+        if (_state == StateHandshakeRenegotiateStarted)
+        {
+            IceInternal::SocketOperation op = sslHandshake();
+            if (op == IceInternal::SocketOperationNone)
+            {
+                _sslConnectionRenegotiating = false;
+            }
+            return op;
+        }
         if (decrypted == 0)
         {
             if (!readRaw(_readBuffer))
@@ -919,7 +960,8 @@ Schannel::TransceiverI::TransceiverI(
       _remoteCertificateValidationCallback(serverAuthenticationOptions.clientCertificateValidationCallback),
       _rootStore(serverAuthenticationOptions.trustedRootCertificates),
       _ssl({}),
-      _chainEngine(nullptr)
+      _chainEngine(nullptr),
+      _sslConnectionRenegotiating(false)
 {
     if (!_remoteCertificateValidationCallback)
     {
@@ -966,7 +1008,8 @@ Schannel::TransceiverI::TransceiverI(
       _remoteCertificateValidationCallback(clientAuthenticationOptions.serverCertificateValidationCallback),
       _rootStore(clientAuthenticationOptions.trustedRootCertificates),
       _ssl({}),
-      _chainEngine(nullptr)
+      _chainEngine(nullptr),
+      _sslConnectionRenegotiating(false)
 {
     if (_rootStore && !_remoteCertificateValidationCallback)
     {
