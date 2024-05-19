@@ -13,15 +13,12 @@
 #include "SSLUtil.h"
 #include "SchannelEngine.h"
 
+#include <iostream>
 #include <sstream>
 
 using namespace std;
 using namespace Ice;
 using namespace Ice::SSL;
-
-#ifndef CERT_CHAIN_DISABLE_AIA
-#    define CERT_CHAIN_DISABLE_AIA 0x00002000
-#endif
 
 namespace
 {
@@ -61,7 +58,7 @@ namespace
                 return &desc.pBuffers[i];
             }
         }
-        return 0;
+        return nullptr;
     }
 
     HCERTCHAINENGINE defaultChainEngine(HCERTSTORE trustedRootCertificates)
@@ -113,7 +110,7 @@ Schannel::TransceiverI::getNativeInfo()
 }
 
 IceInternal::SocketOperation
-Schannel::TransceiverI::sslHandshake()
+Schannel::TransceiverI::sslHandshake(PSecBuffer initialBuffer)
 {
     DWORD flags = 0;
     if (_incoming)
@@ -130,6 +127,7 @@ Schannel::TransceiverI::sslHandshake()
     SECURITY_STATUS err = SEC_E_OK;
     if (_state == StateHandshakeNotStarted)
     {
+        assert(!initialBuffer); // Always null for the initial handshake.
         _credentials = _localCredentialsSelectionCallback(_incoming ? _adapterName : _host);
         if (_rootStore && !_credentials.hRootStore)
         {
@@ -225,23 +223,33 @@ Schannel::TransceiverI::sslHandshake()
 
     if (_state == StateHandshakeRenegotiateStarted)
     {
-        _state == StateHandshakeReadContinue;
+        _state = StateHandshakeReadContinue;
     }
 
     while (true)
     {
         if (_state == StateHandshakeReadContinue)
         {
-            // If read buffer is empty, try to read some data.
-            if (_readBuffer.i == _readBuffer.b.begin() && !readRaw(_readBuffer))
-            {
-                return IceInternal::SocketOperationRead;
-            }
-
-            SecBuffer inBuffers[2]{
-                {static_cast<DWORD>(_readBuffer.i - _readBuffer.b.begin()), SECBUFFER_TOKEN, _readBuffer.b.begin()},
-                {0, SECBUFFER_EMPTY, 0}};
+            SecBuffer inBuffers[2]{{0, SECBUFFER_EMPTY, 0}, {0, SECBUFFER_EMPTY, 0}};
             SecBufferDesc inBufferDesc{SECBUFFER_VERSION, 2, inBuffers};
+
+            if (initialBuffer)
+            {
+                inBuffers[0] = {initialBuffer->cbBuffer, SECBUFFER_TOKEN, initialBuffer->pvBuffer};
+            }
+            else
+            {
+                // If read buffer is empty, try to read some data.
+                if (_readBuffer.i == _readBuffer.b.begin() && !readRaw(_readBuffer))
+                {
+                    return IceInternal::SocketOperationRead;
+                }
+
+                inBuffers[0] = {
+                    static_cast<DWORD>(_readBuffer.i - _readBuffer.b.begin()),
+                    SECBUFFER_TOKEN,
+                    _readBuffer.b.begin()};
+            }
 
             SecBuffer outBuffers[2]{{0, SECBUFFER_TOKEN, 0}, {0, SECBUFFER_ALERT, 0}};
             SecBufferDesc outBufferDesc{SECBUFFER_VERSION, 2, outBuffers};
@@ -481,36 +489,29 @@ Schannel::TransceiverI::sslHandshake()
     return IceInternal::SocketOperationNone;
 }
 
-//
-// Try to decrypt a message and return the number of bytes decrypted, if the number of bytes
-// decrypted is less than the size requested it means that the application needs to read more
-// data before it can decrypt the complete message.
-//
-size_t
+// Try to decrypt a message and return the number of bytes decrypted, if the number of bytes decrypted is less than the
+// size requested it means that the application needs to read more data before it can decrypt the complete message.
+tuple<size_t, SecBuffer*>
 Schannel::TransceiverI::decryptMessage(IceInternal::Buffer& buffer)
 {
     assert(_readBuffer.i != _readBuffer.b.begin() || !_readUnprocessed.b.empty());
 
-    //
-    // First check if there is data in the unprocessed buffer.
-    //
+    std::byte* i = buffer.i;
+
+    // The number of bytes of the current message that are already decrypted.
     size_t length = std::min(static_cast<size_t>(buffer.b.end() - buffer.i), _readUnprocessed.b.size());
     if (length > 0)
     {
         memcpy(buffer.i, _readUnprocessed.b.begin(), length);
-        memmove(_readUnprocessed.b.begin(), _readUnprocessed.b.begin() + length, _readUnprocessed.b.size() - length);
-        _readUnprocessed.b.resize(_readUnprocessed.b.size() - length);
+        i += length;
+        // Move any remaining data to the beginning of the unprocessed buffer.
+        size_t remaining = _readUnprocessed.b.size() - length;
+        memmove(_readUnprocessed.b.begin(), _readUnprocessed.b.begin() + length, remaining);
+        _readUnprocessed.b.resize(remaining);
     }
 
-    while (true)
+    while (i != buffer.b.end() && _readBuffer.i != _readBuffer.b.begin())
     {
-        // If we have filled the buffer or if nothing left to read from the read buffer, we're done.
-        std::byte* i = buffer.i + length;
-        if (i == buffer.b.end() || _readBuffer.i == _readBuffer.b.begin())
-        {
-            break;
-        }
-
         // Try to decrypt the buffered data.
         SecBuffer inBuffers[4]{
             {static_cast<DWORD>(_readBuffer.i - _readBuffer.b.begin()), SECBUFFER_DATA, _readBuffer.b.begin()},
@@ -519,29 +520,18 @@ Schannel::TransceiverI::decryptMessage(IceInternal::Buffer& buffer)
             {0, SECBUFFER_EMPTY, 0}};
         SecBufferDesc inBufferDesc{SECBUFFER_VERSION, 4, inBuffers};
 
-        SECURITY_STATUS err = DecryptMessage(&_ssl, &inBufferDesc, 0, 0);
+        SECURITY_STATUS err = DecryptMessage(&_ssl, &inBufferDesc, 0, nullptr);
         if (err == SEC_E_INCOMPLETE_MESSAGE)
         {
             // There isn't enough data to decrypt the message. The input buffer is resized to the SSL max message size
             // after the SSL handshake completes so an incomplete message can only occur if the read buffer is not full.
             assert(_readBuffer.i != _readBuffer.b.end());
-            return length;
+            return make_tuple<size_t, SecBuffer*>(i - buffer.i, nullptr);
         }
         else if (err == SEC_I_RENEGOTIATE)
         {
             // The peer has requested a renegotiation.
-            if (_sslConnectionRenegotiating)
-            {
-                throw ProtocolException(
-                    __FILE__,
-                    __LINE__,
-                    "SSL transport: protocol error during read: peer requested renegotiation while already "
-                    "renegotiating.");
-            }
-
-            _sslConnectionRenegotiating = true;
-            _state = StateHandshakeRenegotiateStarted;
-            return length;
+            return make_tuple<size_t, SecBuffer*>(0, getSecBufferWithType(inBufferDesc, SECBUFFER_EXTRA));
         }
         else if (err == SEC_I_CONTEXT_EXPIRED)
         {
@@ -559,10 +549,10 @@ Schannel::TransceiverI::decryptMessage(IceInternal::Buffer& buffer)
         SecBuffer* dataBuffer = getSecBufferWithType(inBufferDesc, SECBUFFER_DATA);
         assert(dataBuffer);
         DWORD remaining = min(static_cast<DWORD>(buffer.b.end() - i), dataBuffer->cbBuffer);
-        length += remaining;
-        if (remaining)
+        if (remaining > 0)
         {
             memcpy(i, dataBuffer->pvBuffer, remaining);
+            i += remaining;
 
             // Copy remaining decrypted data to unprocessed buffer.
             if (dataBuffer->cbBuffer > remaining)
@@ -587,7 +577,7 @@ Schannel::TransceiverI::decryptMessage(IceInternal::Buffer& buffer)
             _readBuffer.i = _readBuffer.b.begin();
         }
     }
-    return length;
+    return make_tuple<size_t, SecBuffer*>(i - buffer.i, nullptr);
 }
 
 //
@@ -714,15 +704,6 @@ Schannel::TransceiverI::write(IceInternal::Buffer& buf)
     {
         return _delegate->write(buf);
     }
-    else if (_state < StateHandshakeComplete)
-    {
-        IceInternal::SocketOperation op = sslHandshake();
-        if (op == IceInternal::SocketOperationNone)
-        {
-            _sslConnectionRenegotiating = false;
-        }
-        return op;
-    }
 
     if (buf.i == buf.b.end())
     {
@@ -758,15 +739,6 @@ Schannel::TransceiverI::read(IceInternal::Buffer& buf)
     {
         return _delegate->read(buf);
     }
-    else if (_state < StateHandshakeComplete)
-    {
-        IceInternal::SocketOperation op = sslHandshake();
-        if (op == IceInternal::SocketOperationNone)
-        {
-            _sslConnectionRenegotiating = false;
-        }
-        return op;
-    }
 
     if (buf.i == buf.b.end())
     {
@@ -782,16 +754,20 @@ Schannel::TransceiverI::read(IceInternal::Buffer& buf)
             return IceInternal::SocketOperationRead;
         }
 
-        size_t decrypted = decryptMessage(buf);
-        if (_state == StateHandshakeRenegotiateStarted)
+        auto [decrypted, secBufferExtra] = decryptMessage(buf);
+        if (secBufferExtra)
         {
-            IceInternal::SocketOperation op = sslHandshake();
+            // The peer has requested a renegotiation.
+            _sslConnectionRenegotiating = true;
+            _state = StateHandshakeRenegotiateStarted;
+            IceInternal::SocketOperation op = sslHandshake(secBufferExtra);
             if (op == IceInternal::SocketOperationNone)
             {
                 _sslConnectionRenegotiating = false;
             }
             return op;
         }
+
         if (decrypted == 0)
         {
             if (!readRaw(_readBuffer))
@@ -808,8 +784,6 @@ Schannel::TransceiverI::read(IceInternal::Buffer& buf)
         !_readUnprocessed.b.empty() || _readBuffer.i != _readBuffer.b.begin());
     return IceInternal::SocketOperationNone;
 }
-
-#ifdef ICE_USE_IOCP
 
 bool
 Schannel::TransceiverI::startWrite(IceInternal::Buffer& buffer)
@@ -873,7 +847,20 @@ Schannel::TransceiverI::finishRead(IceInternal::Buffer& buf)
     _delegate->finishRead(_readBuffer);
     if (_state == StateHandshakeComplete)
     {
-        size_t decrypted = decryptMessage(buf);
+        auto [decrypted, secBufferExtra] = decryptMessage(buf);
+        if (secBufferExtra)
+        {
+            // The peer has requested a renegotiation.
+            _sslConnectionRenegotiating = true;
+            _state = StateHandshakeRenegotiateStarted;
+            IceInternal::SocketOperation op = sslHandshake(secBufferExtra);
+            if (op == IceInternal::SocketOperationNone)
+            {
+                _sslConnectionRenegotiating = false;
+            }
+            // TODO how do we handle renegotiation if it didn't finish here?
+        }
+
         if (decrypted > 0)
         {
             buf.i += decrypted;
@@ -887,7 +874,6 @@ Schannel::TransceiverI::finishRead(IceInternal::Buffer& buf)
         }
     }
 }
-#endif
 
 bool
 Schannel::TransceiverI::isWaitingToBeRead() const noexcept

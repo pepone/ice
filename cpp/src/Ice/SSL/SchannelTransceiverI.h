@@ -13,22 +13,11 @@
 #    include "../WSTransceiver.h"
 #    include "Ice/Buffer.h"
 #    include "Ice/Config.h"
+#    include "Ice/SSL/Config.h"
 #    include "SSLInstanceF.h"
 #    include "SchannelEngineF.h"
 
-#    ifdef SECURITY_WIN32
-#        undef SECURITY_WIN32
-#    endif
-
-#    ifdef SECURITY_KERNEL
-#        undef SECURITY_KERNEL
-#    endif
-
-#    define SECURITY_WIN32 1
-#    include <schannel.h>
-#    include <security.h>
-#    include <sspi.h>
-#    undef SECURITY_WIN32
+#    include <tuple>
 
 namespace Ice::SSL::Schannel
 {
@@ -47,18 +36,15 @@ namespace Ice::SSL::Schannel
             const Ice::SSL::ClientAuthenticationOptions&);
         ~TransceiverI();
         IceInternal::NativeInfoPtr getNativeInfo() final;
-
         IceInternal::SocketOperation initialize(IceInternal::Buffer&, IceInternal::Buffer&) final;
         IceInternal::SocketOperation closing(bool, std::exception_ptr) final;
         void close();
         IceInternal::SocketOperation write(IceInternal::Buffer&) final;
         IceInternal::SocketOperation read(IceInternal::Buffer&) final;
-#    ifdef ICE_USE_IOCP
         bool startWrite(IceInternal::Buffer&) final;
         void finishWrite(IceInternal::Buffer&) final;
         void startRead(IceInternal::Buffer&) final;
         void finishRead(IceInternal::Buffer&) final;
-#    endif
         bool isWaitingToBeRead() const noexcept final;
         std::string protocol() const final;
         std::string toString() const final;
@@ -68,9 +54,9 @@ namespace Ice::SSL::Schannel
         void setBufferSize(int rcvSize, int sndSize) final;
 
     private:
-        IceInternal::SocketOperation sslHandshake();
+        IceInternal::SocketOperation sslHandshake(PSecBuffer initialBuffer = nullptr);
 
-        size_t decryptMessage(IceInternal::Buffer&);
+        std::tuple<size_t, SecBuffer*> decryptMessage(IceInternal::Buffer&);
         size_t encryptMessage(IceInternal::Buffer&);
 
         bool writeRaw(IceInternal::Buffer&);
@@ -97,20 +83,14 @@ namespace Ice::SSL::Schannel
         DWORD _ctxFlags;
         bool _sslConnectionRenegotiating;
 
-        //
         // Buffered encrypted data that has not been written.
-        //
         IceInternal::Buffer _writeBuffer;
         size_t _bufferedW;
 
-        //
         // Buffered data that has not been decrypted.
-        //
         IceInternal::Buffer _readBuffer;
 
-        //
         // Buffered data that was decrypted but not yet processed.
-        //
         IceInternal::Buffer _readUnprocessed;
 
         std::function<SCH_CREDENTIALS(const std::string&)> _localCredentialsSelectionCallback;
