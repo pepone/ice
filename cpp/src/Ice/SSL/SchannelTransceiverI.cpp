@@ -785,6 +785,7 @@ Schannel::TransceiverI::read(IceInternal::Buffer& buf)
             _extraBuffer.b.clear();
             if (op == IceInternal::SocketOperationNone)
             {
+                _sslConnectionRenegotiating = false;
                 continue;
             }
             throw ConnectionLostException(__FILE__, __LINE__, 0);
