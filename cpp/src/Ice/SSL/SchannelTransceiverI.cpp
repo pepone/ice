@@ -99,7 +99,7 @@ namespace
             .dwVersion = SCH_CREDENTIALS_VERSION,
             // Don't set SCH_SEND_ROOT_CERT as it seems to cause problems with Java certificate validation and
             // Schannel doesn't seems to send the root certificate either way.
-            .dwFlags = SCH_CRED_NO_SYSTEM_MAPPER | SCH_CRED_DISABLE_RECONNECTS | SCH_USE_STRONG_CRYPTO};
+            .dwFlags = SCH_CRED_NO_SYSTEM_MAPPER | SCH_USE_STRONG_CRYPTO};
     }
 }
 
