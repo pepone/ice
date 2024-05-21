@@ -175,7 +175,11 @@ Schannel::TransceiverI::sslHandshake(PSecBuffer initialBuffer)
         _readBuffer.b.resize(2048);
         _readBuffer.i = _readBuffer.b.begin();
 
-        if (!_incoming)
+        if (_incoming)
+        {
+            _state = StateHandshakeReadContinue;
+        }
+        else
         {
             SecBuffer outBuffer = {0, SECBUFFER_TOKEN, 0};
             SecBufferDesc outBufferDesc = {SECBUFFER_VERSION, 1, &outBuffer};
@@ -215,15 +219,6 @@ Schannel::TransceiverI::sslHandshake(PSecBuffer initialBuffer)
 
             _state = StateHandshakeWriteContinue;
         }
-        else
-        {
-            _state = StateHandshakeReadContinue;
-        }
-    }
-
-    if (_state == StateHandshakeRenegotiateStarted)
-    {
-        _state = StateHandshakeReadContinue;
     }
 
     while (true)
@@ -236,6 +231,7 @@ Schannel::TransceiverI::sslHandshake(PSecBuffer initialBuffer)
             if (initialBuffer)
             {
                 inBuffers[0] = {initialBuffer->cbBuffer, SECBUFFER_TOKEN, initialBuffer->pvBuffer};
+                initialBuffer = nullptr;
             }
             else
             {
@@ -451,7 +447,13 @@ Schannel::TransceiverI::sslHandshake(PSecBuffer initialBuffer)
         throw SecurityException(__FILE__, __LINE__, os.str());
     }
 
-    assert(!_peerCertificate);
+    assert(!_peerCertificate || _sslConnectionRenegotiating);
+    if (_peerCertificate)
+    {
+        CertFreeCertificateContext(_peerCertificate);
+        _peerCertificate = nullptr;
+    }
+
     err = QueryContextAttributes(&_ssl, SECPKG_ATTR_REMOTE_CERT_CONTEXT, &_peerCertificate);
     if (err != SEC_E_OK && err != SEC_E_NO_CREDENTIALS)
     {
@@ -491,7 +493,7 @@ Schannel::TransceiverI::sslHandshake(PSecBuffer initialBuffer)
 
 // Try to decrypt a message and return the number of bytes decrypted, if the number of bytes decrypted is less than the
 // size requested it means that the application needs to read more data before it can decrypt the complete message.
-tuple<size_t, SecBuffer*>
+size_t
 Schannel::TransceiverI::decryptMessage(IceInternal::Buffer& buffer)
 {
     assert(_readBuffer.i != _readBuffer.b.begin() || !_readUnprocessed.b.empty());
@@ -526,12 +528,29 @@ Schannel::TransceiverI::decryptMessage(IceInternal::Buffer& buffer)
             // There isn't enough data to decrypt the message. The input buffer is resized to the SSL max message size
             // after the SSL handshake completes so an incomplete message can only occur if the read buffer is not full.
             assert(_readBuffer.i != _readBuffer.b.end());
-            return make_tuple<size_t, SecBuffer*>(i - buffer.i, nullptr);
+            return i - buffer.i;
         }
         else if (err == SEC_I_RENEGOTIATE)
         {
+            if (_sslConnectionRenegotiating)
+            {
+                throw ProtocolException(
+                    __FILE__,
+                    __LINE__,
+                    "SSL transport: peer requested renegotiation while we are already renegotiating.");
+            }
             // The peer has requested a renegotiation.
-            return make_tuple<size_t, SecBuffer*>(0, getSecBufferWithType(inBufferDesc, SECBUFFER_EXTRA));
+            SecBuffer* extraBuffer = getSecBufferWithType(inBufferDesc, SECBUFFER_EXTRA);
+            _sslConnectionRenegotiating = true;
+            _state = StateHandshakeReadContinue;
+            if (extraBuffer)
+            {
+                _extraBuffer.b.resize(extraBuffer->cbBuffer);
+                _extraBuffer.i = _extraBuffer.b.begin();
+                memcpy(_extraBuffer.i, extraBuffer->pvBuffer, extraBuffer->cbBuffer);
+                _extraBuffer.i += extraBuffer->cbBuffer;
+            }
+            return 0;
         }
         else if (err == SEC_I_CONTEXT_EXPIRED)
         {
@@ -577,7 +596,7 @@ Schannel::TransceiverI::decryptMessage(IceInternal::Buffer& buffer)
             _readBuffer.i = _readBuffer.b.begin();
         }
     }
-    return make_tuple<size_t, SecBuffer*>(i - buffer.i, nullptr);
+    return i - buffer.i;
 }
 
 //
@@ -754,18 +773,21 @@ Schannel::TransceiverI::read(IceInternal::Buffer& buf)
             return IceInternal::SocketOperationRead;
         }
 
-        auto [decrypted, secBufferExtra] = decryptMessage(buf);
-        if (secBufferExtra)
+        auto decrypted = decryptMessage(buf);
+        if (_sslConnectionRenegotiating)
         {
             // The peer has requested a renegotiation.
-            _sslConnectionRenegotiating = true;
-            _state = StateHandshakeRenegotiateStarted;
-            IceInternal::SocketOperation op = sslHandshake(secBufferExtra);
+            SecBuffer extraBuffer{
+                static_cast<DWORD>(_extraBuffer.i - _extraBuffer.b.begin()),
+                SECBUFFER_EXTRA,
+                _extraBuffer.b.begin()};
+            IceInternal::SocketOperation op = sslHandshake(&extraBuffer);
+            _extraBuffer.b.clear();
             if (op == IceInternal::SocketOperationNone)
             {
-                _sslConnectionRenegotiating = false;
+                continue;
             }
-            return op;
+            throw ConnectionLostException(__FILE__, __LINE__, 0);
         }
 
         if (decrypted == 0)
@@ -847,18 +869,27 @@ Schannel::TransceiverI::finishRead(IceInternal::Buffer& buf)
     _delegate->finishRead(_readBuffer);
     if (_state == StateHandshakeComplete)
     {
-        auto [decrypted, secBufferExtra] = decryptMessage(buf);
-        if (secBufferExtra)
+        size_t decrypted;
+        while (true)
         {
-            // The peer has requested a renegotiation.
-            _sslConnectionRenegotiating = true;
-            _state = StateHandshakeRenegotiateStarted;
-            IceInternal::SocketOperation op = sslHandshake(secBufferExtra);
-            if (op == IceInternal::SocketOperationNone)
+            decrypted = decryptMessage(buf);
+            if (_sslConnectionRenegotiating)
             {
-                _sslConnectionRenegotiating = false;
+                // The peer has requested a renegotiation.
+                SecBuffer extraBuffer{
+                    static_cast<DWORD>(_extraBuffer.i - _extraBuffer.b.begin()),
+                    SECBUFFER_EXTRA,
+                    _extraBuffer.b.begin()};
+                IceInternal::SocketOperation op = sslHandshake(&extraBuffer);
+                _extraBuffer.b.clear();
+                if (op == IceInternal::SocketOperationNone)
+                {
+                    _sslConnectionRenegotiating = false;
+                    continue;
+                }
+                throw ConnectionLostException(__FILE__, __LINE__, 0);
             }
-            // TODO how do we handle renegotiation if it didn't finish here?
+            break;
         }
 
         if (decrypted > 0)

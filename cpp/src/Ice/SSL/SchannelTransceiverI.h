@@ -56,7 +56,7 @@ namespace Ice::SSL::Schannel
     private:
         IceInternal::SocketOperation sslHandshake(PSecBuffer initialBuffer = nullptr);
 
-        std::tuple<size_t, SecBuffer*> decryptMessage(IceInternal::Buffer&);
+        size_t decryptMessage(IceInternal::Buffer&);
         size_t encryptMessage(IceInternal::Buffer&);
 
         bool writeRaw(IceInternal::Buffer&);
@@ -89,6 +89,9 @@ namespace Ice::SSL::Schannel
 
         // Buffered data that has not been decrypted.
         IceInternal::Buffer _readBuffer;
+
+        // Extra buffer used for SSL renegotiation.
+        IceInternal::Buffer _extraBuffer;
 
         // Buffered data that was decrypted but not yet processed.
         IceInternal::Buffer _readUnprocessed;

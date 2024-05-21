@@ -19,15 +19,6 @@
 #include <iostream>
 #include <mutex>
 
-//
-// SP_PROT_TLS1_3 is new in v10.0.15021 SDK
-//
-#ifndef SP_PROT_TLS1_3
-#    define SP_PROT_TLS1_3_SERVER 0x00001000
-#    define SP_PROT_TLS1_3_CLIENT 0x00002000
-#    define SP_PROT_TLS1_3 (SP_PROT_TLS1_3_SERVER | SP_PROT_TLS1_3_CLIENT)
-#endif
-
 #ifndef SECURITY_FLAG_IGNORE_CERT_CN_INVALID
 #    define SECURITY_FLAG_IGNORE_CERT_CN_INVALID 0x00001000
 #endif
@@ -1350,7 +1341,7 @@ Schannel::SSLEngine::createServerAuthenticationOptions() const
                     .paCred = const_cast<PCCERT_CONTEXT*>(_allCerts.size() > 0 ? &_allCerts[0] : nullptr),
                     // Don't set SCH_SEND_ROOT_CERT as it seems to cause problems with Java certificate validation and
                     // Schannel doesn't seems to send the root certificate either way.
-                    .dwFlags = SCH_CRED_NO_SYSTEM_MAPPER | SCH_CRED_DISABLE_RECONNECTS | SCH_USE_STRONG_CRYPTO};
+                    .dwFlags = SCH_CRED_NO_SYSTEM_MAPPER | SCH_USE_STRONG_CRYPTO};
             }
         },
         .clientCertificateRequired = getVerifyPeer() > 0,
