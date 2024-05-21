@@ -109,7 +109,7 @@ Schannel::TransceiverI::getNativeInfo()
 }
 
 IceInternal::SocketOperation
-Schannel::TransceiverI::sslHandshake(PSecBuffer initialBuffer)
+Schannel::TransceiverI::sslHandshake(SecBuffer* initialBuffer)
 {
     DWORD flags = 0;
     if (_incoming)

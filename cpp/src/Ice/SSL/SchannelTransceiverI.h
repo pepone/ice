@@ -52,7 +52,7 @@ namespace Ice::SSL::Schannel
         void setBufferSize(int rcvSize, int sndSize) final;
 
     private:
-        IceInternal::SocketOperation sslHandshake(PSecBuffer initialBuffer = nullptr);
+        IceInternal::SocketOperation sslHandshake(SecBuffer* initialBuffer = nullptr);
 
         size_t decryptMessage(IceInternal::Buffer&);
         size_t encryptMessage(IceInternal::Buffer&);
