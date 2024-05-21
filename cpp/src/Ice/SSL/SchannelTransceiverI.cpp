@@ -13,7 +13,6 @@
 #include "SSLUtil.h"
 #include "SchannelEngine.h"
 
-#include <iostream>
 #include <sstream>
 
 using namespace std;
@@ -773,7 +772,7 @@ Schannel::TransceiverI::read(IceInternal::Buffer& buf)
             return IceInternal::SocketOperationRead;
         }
 
-        auto decrypted = decryptMessage(buf);
+        size_t decrypted = decryptMessage(buf);
         if (_sslConnectionRenegotiating)
         {
             // The peer has requested a renegotiation.

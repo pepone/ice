@@ -17,8 +17,6 @@
 #    include "SSLInstanceF.h"
 #    include "SchannelEngineF.h"
 
-#    include <tuple>
-
 namespace Ice::SSL::Schannel
 {
     class TransceiverI final : public IceInternal::Transceiver
