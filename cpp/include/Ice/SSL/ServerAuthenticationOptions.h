@@ -30,28 +30,7 @@ namespace Ice::SSL
          * @param adapterName The name of the object adapter that accepted the connection.
          * @return The server's credentials.
          *
-         * Example of setting serverCertificateSelectionCallback:
-         * ```cpp
-         * PCCERT_CONTEXT _serverCertificate = ...; // Load the server certificate using WinCrypt API
-         *
-         * communicator->createObjectAdapterWithEndpoints(
-         *   "Hello",
-         *   "ssl -h 127.0.0.1 -p 10000",
-         *   ServerAuthenticationOptions {
-         *     .serverCertificateSelectionCallback = [this](const std::string&) {
-         *        // Increment the certificate context reference count to ensure it remains
-         *        // valid for the duration of the connection. The SSL transport will release
-         *        // it after closing the connection.
-         *        CertDuplicateCertificateContext(_serverCertificate);
-         *        SCH_CREDENTIALS credentials = _serverCredentials;
-         *        credentials.cCreds = 1;
-         *        credentials.paCred = &_serverCertificate;
-         *        return credentials;
-         *      }
-         * };
-         * ...
-         * CertFreeCertificateContext(_serverCertificate); // Release the certificate when no longer needed
-         * ```
+         * Example of setting serverCertificateSelectionCallback: TODO
          *
          * See Detailed Wincrypt documentation for [SCH_CREDENTIALS](
          * https://learn.microsoft.com/en-us/windows/win32/api/schannel/ns-schannel-sch_credentials)
@@ -62,29 +41,7 @@ namespace Ice::SSL
          * A callback that is invoked before initiating a new SSL handshake. This callback provides an opportunity to
          * customize the SSL parameters for the session based on specific server settings or requirements.
          *
-         * Example of setting sslNewSessionCallback:
-         * ```cpp
-         * communicator->createObjectAdapterWithEndpoints(
-         *   "Hello",
-         *   "ssl -h 127.0.0.1 -p 10000",
-         *   ServerAuthenticationOptions {
-         *     .sslNewSessionCallback =
-         *       [](CtxtHandle context, const std::string& host) {
-         *         SecPkgContext_ConnectionInfo connInfo;
-         *         connInfo.dwProtocol = SP_PROT_TLS1_3;
-         *         SECURITY_STATUS status = SetContextAttributes(
-         *           &ctxHandle,
-         *           SECPKG_ATTR_CONNECTION_INFO,
-         *           &connInfo,
-         *           sizeof(connInfo));
-         *
-         *         if (status != SEC_E_OK) {
-         *           // Handle error
-         *           ...
-         *         }
-         *       }
-         *     });
-         * ```
+         * Example of setting sslNewSessionCallback: TODO
          *
          * @param context The CtxtHandle representing the security context associated with the current connection.
          * @param adapterName The name of the object adapter that accepted the connection.
@@ -108,19 +65,7 @@ namespace Ice::SSL
          * It is also the application's responsibility to release the certificate store object after the ObjectAdapter
          * has been created to prevent memory leaks.
          *
-         * Example of setting trustedRootCertificates:
-         * ```cpp
-         * HCERTSTORE rootCerts = ...; // Populate with X.509 certificates
-         *
-         * communicator->createObjectAdapterWithEndpoints(
-         *   "Hello",
-         *   "ssl -h 127.0.0.1 -p 10000",
-         *   ServerAuthenticationOptions { .trustedRootCertificates = rootCerts; }
-         * });
-         *
-         * auto communicator = Ice::initialize(initData);
-         * CertCloseStore(rootCerts); // It is safe to close the rootCerts store now.
-         * ```
+         * Example of setting trustedRootCertificates: TODO
          */
         HCERTSTORE trustedRootCertificates = nullptr;
 
@@ -134,18 +79,7 @@ namespace Ice::SSL
          * certificates for validation. This setting can be modified by the application using
          * [SecTrustSetAnchorCertificates](https://developer.apple.com/documentation/security/1396098-sectrustsetanchorcertificates?language=objc)
          *
-         * Example of setting clientCertificateValidationCallback:
-         * ```cpp
-         * communicator->createObjectAdapterWithEndpoints(
-         *   "Hello",
-         *   "ssl -h 127.0.0.1 -p 10000",
-         *   ServerAuthenticationOptions {
-         *     .clientCertificateValidationCallback =
-         *       [](CtxtHandle context, const ConnectionInfoPtr& info) {
-         *          ...
-         *       }
-         * });
-         * ```
+         * Example of setting clientCertificateValidationCallback: TODO
          *
          * @param context A CtxtHandle representing the security context associated with the current connection. This
          * context contains security data relevant for validation, such as the client's certificate chain and cipher
@@ -184,10 +118,10 @@ namespace Ice::SSL
          * used.
          *
          * Example of setting serverCertificateSelectionCallback:
-         * @snippet examples/Ice/SSL/ServerAuthenticationOptions.cpp Setting server certificate selection callback
+         * @snippet Ice/SSL/SecureTransportServerAuthenticationOptions.cpp serverCertificateSelectionCallback
          *
          * See the Secure Transport documentation for requirements on the certificate chain format:
-         * [SSLSetCertificate](https://developer.apple.com/documentation/security/1392400-sslsetcertificate?changes=_3&language=objc)
+         * ![SSLSetCertificate](/security/1392400-sslsetcertificate?changes=_3&language=objc)
          */
         std::function<CFArrayRef(const std::string& adapterName)> serverCertificateSelectionCallback;
 
@@ -196,7 +130,7 @@ namespace Ice::SSL
          * customize the SSL parameters for the session based on specific server settings or requirements.
          *
          * Example of setting sslNewSessionCallback:
-         * @snippet examples/Ice/SSL/ServerAuthenticationOptions.cpp Setting server new session callback
+         * @snippet Ice/SSL/SecureTransportServerAuthenticationOptions.cpp sslNewSessionCallback
          *
          * @param context An opaque type that represents an SSL session context object.
          * @param adapterName The name of the object adapter that accepted the connection.
@@ -229,7 +163,7 @@ namespace Ice::SSL
          * created to prevent memory leaks.
          *
          * Example of setting trustedRootCertificates:
-         * @snippet examples/Ice/SSL/ServerAuthenticationOptions.cpp Setting server trusted root certificates
+         * @snippet Ice/SSL/SecureTransportServerAuthenticationOptions.cpp trustedRootCertificates
          */
         CFArrayRef trustedRootCertificates = nullptr;
 
@@ -244,7 +178,7 @@ namespace Ice::SSL
          * [SecTrustSetAnchorCertificates](https://developer.apple.com/documentation/security/1396098-sectrustsetanchorcertificates?language=objc)
          *
          * Example of setting clientCertificateValidationCallback:
-         * @snippet examples/Ice/SSL/ServerAuthenticationOptions.cpp Setting client certificate validation callback
+         * @snippet Ice/SSL/SecureTransportServerAuthenticationOptions.cpp clientCertificateValidationCallback
          *
          * @param trust The trust object that contains the client's certificate chain.
          * @param info The ConnectionInfoPtr object that provides additional connection-related data which might
@@ -253,8 +187,8 @@ namespace Ice::SSL
          * chain is invalid and the connection should be aborted.
          * @throws Ice::SecurityException if the certificate chain is invalid and the connection should be aborted.
          *
-         * [See
-         * SecTrustEvaluateWithError](https://developer.apple.com/documentation/security/2980705-sectrustevaluatewitherror?language=objc)
+         * See SecTrustEvaluateWithError
+         * https://developer.apple.com/documentation/security/2980705-sectrustevaluatewitherror?language=objc
          */
         std::function<bool(SecTrustRef trust, const ConnectionInfoPtr& info)> clientCertificateValidationCallback;
     };
@@ -285,7 +219,7 @@ namespace Ice::SSL
          * @return A pointer to a SSL_CTX objet representing the SSL configuration for the new incoming connection.
          *
          * Example of setting serverSSLContextSelectionCallback:
-         * @snippet examples/Ice/SSL/ServerAuthenticationOptions.cpp Setting server SSLContext selection callback
+         * @snippet Ice/SSL/OpenSSLServerAuthenticationOptions.cpp serverSSLContextSelectionCallback
          *
          * @see Detailed OpenSSL documentation on SSL_CTX management:
          * https://www.openssl.org/docs/manmaster/man3/SSL_CTX_new.html
@@ -300,7 +234,7 @@ namespace Ice::SSL
          * @param adapterName The name of the object adapter that accepted the connection.
          *
          * Example of setting sslNewSessionCallback:
-         * @snippet examples/Ice/SSL/ServerAuthenticationOptions.cpp Setting server new session callback
+         * @snippet Ice/SSL/OpenSSLServerAuthenticationOptions.cpp sslNewSessionCallback
          *
          * @see Detailed OpenSSL documentation on SSL object management:
          * https://www.openssl.org/docs/manmaster/man3/SSL_new.html
@@ -321,7 +255,7 @@ namespace Ice::SSL
          * @throws Ice::SecurityException if the certificate chain is invalid and the connection should be aborted.
          *
          * Example of setting clientCertificateValidationCallback:
-         * @snippet examples/Ice/SSL/ServerAuthenticationOptions.cpp Setting client certificate validation callback
+         * @snippet Ice/SSL/OpenSSLServerAuthenticationOptions.cpp clientCertificateValidationCallback
          *
          * @see More details on certificate verification in OpenSSL:
          * https://www.openssl.org/docs/manmaster/man3/SSL_set_verify.html
