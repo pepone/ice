@@ -2,6 +2,7 @@
 
 #include <Ice/Ice.h>
 
+#if defined(ICE_USE_SECURE_TRANSPORT)
 void
 clientCertificateSelectionCallbackExample()
 {
@@ -64,3 +65,54 @@ serverCertificateValidationCallbackExample()
             { return SecTrustEvaluateWithError(trust, nullptr); }}};
     //! [Setting server certificate validation callback]
 }
+#elif defined(ICE_USE_OPENSSL)
+void
+clientSSLContextSelectionCallbackExample()
+{
+    //! [Setting client SSLContext selection callback]
+    SSL_CTX* sslContext = SSL_CTX_new(TLS_method());
+    // ...
+    auto initData = Ice::InitializationData{
+        .clientAuthenticationOptions = Ice::SSL::ClientAuthenticationOptions{
+            .clientSSLContextSelectionCallback = [sslContext](const std::string&)
+            {
+                // Ensure the SSL context remains valid for the lifetime of the
+                // connection.
+                SSL_CTX_up_ref(sslContext);
+                return sslContext;
+            }}};
+
+    auto communicator = Ice::initialize(initData);
+    // ...
+    SSL_CTX_free(sslContext); // Release ssl context when no longer needed
+    //! [Setting client SSLContext selection callback]
+}
+
+void
+clientSetNewSessionCallbackExample()
+{
+    //! [Setting client new session callback]
+    auto initData = Ice::InitializationData{
+        .clientAuthenticationOptions = Ice::SSL::ClientAuthenticationOptions{
+            .sslNewSessionCallback = [](SSL* ssl, const std::string& host)
+            {
+                if (!SSL_set_tlsext_host_name(ssl, host.c_str()))
+                {
+                    // Handle error
+                }
+            }}};
+    //! [Setting client new session callback]
+}
+
+void
+serverCertificateValidationCallbackExample()
+{
+    //! [Setting server certificate validation callback]
+    auto initData = Ice::InitializationData{
+        .clientAuthenticationOptions = Ice::SSL::ClientAuthenticationOptions{
+            .serverCertificateValidationCallback =
+                [](bool verified, X509_STORE_CTX* ctx, const Ice::SSL::ConnectionInfoPtr& info) { return verified; }}};
+    //! [Setting server certificate validation callback]
+}
+#elif defined(ICE_USE_SCHANNEL)
+#endif
