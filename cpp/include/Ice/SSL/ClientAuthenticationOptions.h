@@ -129,7 +129,6 @@ namespace Ice::SSL
          *
          * Example of setting trustedRootCertificates:
          * @snippet Ice/SSL/SecureTransportClientAuthenticationOptions.cpp trustedRootCertificates
-         * ```
          */
         CFArrayRef trustedRootCertificates = nullptr;
 
@@ -138,7 +137,7 @@ namespace Ice::SSL
          * customize the SSL parameters for the session based on specific client settings or requirements.
          *
          * Example of setting sslNewSessionCallback:
-         * @snippet Ice/SSL/ClientAuthenticationOptions.cpp sslNewSessionCallback
+         * @snippet Ice/SSL/SecureTransportClientAuthenticationOptions.cpp sslNewSessionCallback
          *
          * @param context An opaque type that represents an SSL session context object.
          * @param host The target server host name.

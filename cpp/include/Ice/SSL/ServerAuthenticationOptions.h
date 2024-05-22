@@ -119,9 +119,8 @@ namespace Ice::SSL
          *
          * Example of setting serverCertificateSelectionCallback:
          * @snippet Ice/SSL/SecureTransportServerAuthenticationOptions.cpp serverCertificateSelectionCallback
-         *
          * See the Secure Transport documentation for requirements on the certificate chain format:
-         * ![SSLSetCertificate](/security/1392400-sslsetcertificate?changes=_3&language=objc)
+         * [SSLSetCertificate](https://developer.apple.com/documentation/security/1392400-sslsetcertificate?changes=_3&language=objc)
          */
         std::function<CFArrayRef(const std::string& adapterName)> serverCertificateSelectionCallback;
 
