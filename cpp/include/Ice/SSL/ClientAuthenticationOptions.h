@@ -179,25 +179,7 @@ namespace Ice::SSL
          * used.
          *
          * Example of setting clientCertificateSelectionCallback:
-         * ```cpp
-         * _clientCertificateChain = CFArrayCreate(...); // Populate with X.509 certificate/key pair
-         *
-         * auto initData = Ice::InitializationData {
-         *   ...
-         *   .clientAuthenticationOptions = ClientAuthenticationOptions {
-         *      .clientCertificateSelectionCallback = [this](const std::string&)
-         *      {
-         *        // Retain the client certificate chain to ensure it remains valid for the duration
-         *        // of the connection. The SSL transport will release it after closing the connection.
-         *        CFRetain(_clientCertificateChain);
-         *        return _clientCertificateChain;
-         *      }
-         * };
-         *
-         * auto communicator = Ice::initialize(initData);
-         * ...
-         * CFRelease(_clientCertificateChain); // Release the CFArrayRef when no longer needed
-         * ```
+         * @snippet examples/Ice/SSL/SecureTransportExamples.cpp Setting client certificate selection callback
          *
          * See the Secure Transport documentation for requirements on the certificate chain format:
          * [SSLSetCertificate](https://developer.apple.com/documentation/security/1392400-sslsetcertificate?changes=_3&language=objc)
@@ -219,18 +201,7 @@ namespace Ice::SSL
          * with the `anchorCertificatesOnly` parameter set to true.
          *
          * Example of setting trustedRootCertificates:
-         * ```cpp
-         * CFArrayRef rootCerts = CFArrayCreate(...); // Populate with X.509 certificates
-         *
-         * auto initData = Ice::InitializationData {
-         *   ...
-         *   .clientAuthenticationOptions = ClientAuthenticationOptions {
-         *      .trustedRootCertificates = rootCerts;
-         *   }
-         * };
-         *
-         * auto communicator = Ice::initialize(initData);
-         * CFRelease(rootCerts); // It is safe to release the rootCerts now.
+         * @snippet examples/Ice/SSL/SecureTransportExamples.cpp Setting client trusted root certificates
          * ```
          */
         CFArrayRef trustedRootCertificates = nullptr;
@@ -240,25 +211,7 @@ namespace Ice::SSL
          * customize the SSL parameters for the session based on specific client settings or requirements.
          *
          * Example of setting sslNewSessionCallback:
-         * ```cpp
-         * auto initData = Ice::InitializationData {
-         *   ...
-         *   .clientAuthenticationOptions = ClientAuthenticationOptions{
-         *     .sslNewSessionCallback =
-         *       [](SSLContextRef context, const std::string& host)
-         *       {
-         *         // Customize the ssl context using SecureTransport API.
-         *         OSStatus status = SSLSetProtocolVersionMin(context, kTLSProtocol13);
-         *         if(status != noErr)
-         *         {
-         *            // Handle error
-         *         }
-         *         ...
-         *       }
-         *     }
-         * };
-         * auto communicator = Ice::initialize(initData);
-         * ```
+         * @snippet examples/Ice/SSL/SecureTransportExamples.cpp Setting client new session callback
          *
          * @param context An opaque type that represents an SSL session context object.
          * @param host The target server host name.
@@ -276,19 +229,7 @@ namespace Ice::SSL
          * [SecTrustSetAnchorCertificates](https://developer.apple.com/documentation/security/1396098-sectrustsetanchorcertificates?language=objc)
          *
          * Example of setting serverCertificateValidationCallback:
-         * ```cpp
-         * auto initData = Ice::InitializationData {
-         *   ...
-         *   .clientAuthenticationOptions = ClientAuthenticationOptions{
-         *     .serverCertificateValidationCallback =
-         *       [](SecTrustRef trust, const ConnectionInfoPtr& info)
-         *       {
-         *          ...
-         *          return SecTrustEvaluateWithError(trust, nullptr);
-         *       }
-         * });
-         * auto communicator = Ice::initialize(initData);
-         * ```
+         * @snippet examples/Ice/SSL/SecureTransportExamples.cpp Setting server certificate validation callback
          *
          * @param trust The trust object that contains the server's certificate chain.
          * @param info The ConnectionInfoPtr object that provides additional connection-related data which might
