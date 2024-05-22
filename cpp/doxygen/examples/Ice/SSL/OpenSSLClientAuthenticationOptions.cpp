@@ -12,11 +12,9 @@ clientSSLContextSelectionCallbackExample()
     // ...
     auto initData = Ice::InitializationData{
         .clientAuthenticationOptions = Ice::SSL::ClientAuthenticationOptions{
-            .clientSSLContextSelectionCallback =
-                [sslContext](const std::string&)
+            .clientSSLContextSelectionCallback = [sslContext](const std::string&)
             {
-                // Ensure the SSL context remains valid for the lifetime of the
-                // connection.
+                // Keep the SSLContext alive for the lifetime of the connection.
                 SSL_CTX_up_ref(sslContext);
                 return sslContext;
             }}};
@@ -52,7 +50,6 @@ serverCertificateValidationCallbackExample()
             .serverCertificateValidationCallback =
                 [](bool verified,
                    X509_STORE_CTX* ctx,
-                   const Ice::SSL::ConnectionInfoPtr& info)
-            { return verified; }}};
+                   const Ice::SSL::ConnectionInfoPtr& info) { return verified; }}};
     //! [serverCertificateValidationCallback]
 }

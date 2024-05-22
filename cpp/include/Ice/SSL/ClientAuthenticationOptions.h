@@ -22,7 +22,7 @@ namespace Ice::SSL
          * A callback that allows selecting the client's SSL credentials based on the target server host name.
          *
          * @remarks This callback is invoked by the SSL transport for each new outgoing connection before starting the
-         * SSL handshake to determine the appropriate client credentials. The callback should return a SCH_CREDENTIALS
+         * SSL handshake to determine the appropriate client credentials. The callback should return a [SCH_CREDENTIALS]
          * that represents the client's credentials. The SSL transport takes ownership of the credentials' paCred and
          * and hRootStore, and releases them when the connection is closed.
          *
@@ -31,8 +31,8 @@ namespace Ice::SSL
          *
          * Example of setting clientCertificateSelectionCallback: TODO
          *
-         * See Detailed Wincrypt documentation for [SCH_CREDENTIALS](
-         * https://learn.microsoft.com/en-us/windows/win32/api/schannel/ns-schannel-sch_credentials)
+         * [SCH_CREDENTIALS]:
+         * https://learn.microsoft.com/en-us/windows/win32/api/schannel/ns-schannel-sch_credentials
          */
         std::function<SCH_CREDENTIALS(const std::string& host)> clientCredentialsSelectionCallback;
 
@@ -80,8 +80,8 @@ namespace Ice::SSL
          * chain is invalid and the connection should be aborted.
          * @throws Ice::SecurityException if the certificate chain is invalid and the connection should be aborted.
          *
-         * [See
-         * SecTrustEvaluateWithError](https://developer.apple.com/documentation/security/2980705-sectrustevaluatewitherror?language=objc)
+         * @see
+         * [SecTrustEvaluateWithError](https://developer.apple.com/documentation/security/2980705-sectrustevaluatewitherror?language=objc)
          */
         std::function<bool(CtxtHandle context, const ConnectionInfoPtr& info)> serverCertificateValidationCallback;
     };
@@ -109,7 +109,10 @@ namespace Ice::SSL
          * Example of setting clientCertificateSelectionCallback:
          * @snippet Ice/SSL/SecureTransportClientAuthenticationOptions.cpp clientCertificateSelectionCallback
          *
-         * See the Secure Transport documentation for requirements on the certificate chain format.
+         * See the [SSLSetCertificate] documentation for requirements on the certificate chain format.
+         *
+         * [SSLSetCertificate]:
+         * https://developer.apple.com/documentation/security/1392400-sslsetcertificate?changes=_3&language=objc
          */
         std::function<CFArrayRef(const std::string& host)> clientCertificateSelectionCallback;
 
@@ -121,14 +124,16 @@ namespace Ice::SSL
          * @remarks The trusted root certificates are used by both the default validation callback, and by custom
          * validation callback set in serverCertificateValidationCallback.
          *
-         * This is equivalent to calling
-         * [SecTrustSetAnchorCertificates](https://developer.apple.com/documentation/security/1396098-sectrustsetanchorcertificates?language=objc)
-         * with the CFArrayRef object; and
-         * [SecTrustSetAnchorCertificatesOnly](https://developer.apple.com/documentation/security/1399071-sectrustsetanchorcertificatesonl?language=objc)
-         * with the `anchorCertificatesOnly` parameter set to true.
+         * This is equivalent to calling [SecTrustSetAnchorCertificates] with the CFArrayRef object; and
+         * [SecTrustSetAnchorCertificatesOnly] with the `anchorCertificatesOnly` parameter set to true.
          *
          * Example of setting trustedRootCertificates:
          * @snippet Ice/SSL/SecureTransportClientAuthenticationOptions.cpp trustedRootCertificates
+         *
+         * [SecTrustSetAnchorCertificates]:
+         * https://developer.apple.com/documentation/security/1396098-sectrustsetanchorcertificates?language=objc
+         * [SecTrustSetAnchorCertificatesOnly]:
+         * https://developer.apple.com/documentation/security/1399071-sectrustsetanchorcertificatesonl?language=objc
          */
         CFArrayRef trustedRootCertificates = nullptr;
 
@@ -151,8 +156,7 @@ namespace Ice::SSL
          * @remarks The server certificate chain is validated using the trust object passed to the callback. When this
          * callback is set, it replaces the default validation callback and must perform all necessary validation
          * steps. If trustedRootCertificates is set, the passed trust object will use them as the anchor certificates
-         * for evaluating trust. This setting can be modified by the application using
-         * [SecTrustSetAnchorCertificates](https://developer.apple.com/documentation/security/1396098-sectrustsetanchorcertificates?language=objc)
+         * for evaluating trust. This setting can be modified by the application using [SecTrustSetAnchorCertificates]
          *
          * Example of setting serverCertificateValidationCallback:
          * @snippet Ice/SSL/SecureTransportClientAuthenticationOptions.cpp serverCertificateValidationCallback
@@ -164,8 +168,12 @@ namespace Ice::SSL
          * chain is invalid and the connection should be aborted.
          * @throws Ice::SecurityException if the certificate chain is invalid and the connection should be aborted.
          *
-         * [See
-         * SecTrustEvaluateWithError](https://developer.apple.com/documentation/security/2980705-sectrustevaluatewitherror?language=objc)
+         * @see [SecTrustEvaluateWithError]
+         *
+         * [SecTrustSetAnchorCertificates]:
+         * https://developer.apple.com/documentation/security/1396098-sectrustsetanchorcertificates?language=objc
+         * [SecTrustEvaluateWithError]:
+         * https://developer.apple.com/documentation/security/2980705-sectrustevaluatewitherror?language=objc
          */
         std::function<bool(SecTrustRef trust, const ConnectionInfoPtr& info)> serverCertificateValidationCallback;
     };
@@ -197,8 +205,9 @@ namespace Ice::SSL
          * Example of setting clientSSLContextSelectionCallback:
          * @snippet Ice/SSL/OpenSSLClientAuthenticationOptions.cpp clientSSLContextSelectionCallback
          *
-         * @see Detailed OpenSSL documentation on SSL_CTX management:
-         * https://www.openssl.org/docs/manmaster/man3/SSL_CTX_new.html
+         * @see Detailed OpenSSL documentation on [SSL_CTX management][SSL_CTX_new].
+         *
+         * [SSL_CTX_new]: https://www.openssl.org/docs/manmaster/man3/SSL_CTX_new.html
          */
         std::function<SSL_CTX*(const std::string& host)> clientSSLContextSelectionCallback;
 
@@ -212,8 +221,9 @@ namespace Ice::SSL
          * Example of setting sslNewSessionCallback:
          * @snippet Ice/SSL/OpenSSLClientAuthenticationOptions.cpp sslNewSessionCallback
          *
-         * @see Detailed OpenSSL documentation on SSL object management:
-         * https://www.openssl.org/docs/manmaster/man3/SSL_new.html
+         * @see Detailed OpenSSL documentation on [SSL object management][SSL_new].
+         *
+         * [SSL_new]: https://www.openssl.org/docs/manmaster/man3/SSL_new.html
          */
         std::function<void(::SSL* ssl, const std::string& host)> sslNewSessionCallback;
 
@@ -233,10 +243,9 @@ namespace Ice::SSL
          * Example of setting serverCertificateValidationCallback:
          * @snippet Ice/SSL/OpenSSLClientAuthenticationOptions.cpp serverCertificateValidationCallback
          *
-         * @see More details on certificate verification in OpenSSL:
-         * https://www.openssl.org/docs/manmaster/man3/SSL_set_verify.html
-         * @see More about X509_STORE_CTX management:
-         * https://www.openssl.org/docs/manmaster/man3/X509_STORE_CTX_new.html
+         * @see More details on [certificate verification][SSL_set_verify] in OpenSSL.
+         *
+         * [SSL_set_verify]: https://www.openssl.org/docs/manmaster/man3/SSL_set_verify.html
          */
         std::function<bool(bool verified, X509_STORE_CTX* ctx, const ConnectionInfoPtr& info)>
             serverCertificateValidationCallback;
