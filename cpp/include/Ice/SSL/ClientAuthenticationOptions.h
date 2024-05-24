@@ -14,7 +14,14 @@ namespace Ice::SSL
 {
 #if defined(ICE_USE_SCHANNEL)
     /**
-     * The SSL configuration properties for client connections.
+     * The %SSL transport configuration properties for client connections on Windows.
+     *
+     * The SchannelClientAuthenticationOptions structure is only available when the %Ice library is built on
+     * Windows. For macOS and iOS, see SecureTransportClientAuthenticationOptions, and for Linux, see
+     * OpenSSLClientAuthenticationOptions.
+     *
+     * Additionally, the `ClientAuthenticationOptions` alias is defined for use in portable code,
+     * representing the platform-specific options class.
      */
     struct SchannelClientAuthenticationOptions
     {
@@ -89,7 +96,14 @@ namespace Ice::SSL
     using ClientAuthenticationOptions = SchannelClientAuthenticationOptions;
 #elif defined(ICE_USE_SECURE_TRANSPORT)
     /**
-     * The SSL configuration properties for client connections.
+     * The %SSL transport configuration properties for client connections on macOS and iOS.
+     *
+     * The SecureTransportClientAuthenticationOptions structure is only available when the %Ice library is built on
+     * macOS or iOS. For Linux, see OpenSSLClientAuthenticationOptions, and for Windows, see
+     * SchannelClientAuthenticationOptions.
+     *
+     * Additionally, the `ClientAuthenticationOptions` alias is defined for use in portable code,
+     * representing the platform-specific options class.
      */
     struct SecureTransportClientAuthenticationOptions
     {
@@ -181,22 +195,29 @@ namespace Ice::SSL
     using ClientAuthenticationOptions = SecureTransportClientAuthenticationOptions;
 #else
     /**
-     * The SSL configuration properties for client connections.
+     * The %SSL transport configuration properties for client connections on Linux.
+     *
+     * The OpenSSLClientAuthenticationOptions structure is only available when the %Ice library is built on
+     * Linux. For macOS and iOS, see SecureTransportClientAuthenticationOptions, and for Windows, see
+     * SchannelClientAuthenticationOptions.
+     *
+     * Additionally, the `ClientAuthenticationOptions` alias is defined for use in portable code,
+     * representing the platform-specific options class.
      */
     struct OpenSSLClientAuthenticationOptions
     {
         /**
          * A callback that allows selecting the client's SSL_CTX object based on the target host name.
          *
-         * @remarks This callback is used to associate a specific SSL configuration with an outgoing connection
-         * identified by the target host name. The callback must return a pointer to a valid SSL_CTX object which was
-         * previously initialized using the OpenSSL API. The SSL transport takes ownership of the returned SSL_CTX
-         * pointer and releases it after closing the connection.
+         * This callback is used to associate a specific %SSL configuration with an outgoing connection
+         * identified by the target host name. The callback must return a pointer to a valid [SSL_CTX][SSL_CTX_new]
+         * object which was previously initialized using the OpenSSL API. The %SSL transport takes ownership of the
+         * returned SSL_CTX object and releases it after closing the connection.
          *
-         * If the application does not provide a callback, the Ice SSL transport will use a SSL_CTX object created
-         * with SSL_CTX_new() for the connection, which uses the default OpenSSL configuration.
+         * If the application does not provide a callback, the %SSL transport will use a SSL_CTX object created with
+         * SSL_CTX_new(), which uses the default OpenSSL configuration.
          *
-         * The SSL transport calls this callback for each new outgoing connection to obtain the SSL_CTX object before
+         * The %SSL transport calls this callback for each new outgoing connection to obtain the SSL_CTX object before
          * it starts the SSL handshake.
          *
          * @param host The target host name.
@@ -205,17 +226,15 @@ namespace Ice::SSL
          * Example of setting clientSSLContextSelectionCallback:
          * @snippet Ice/SSL/OpenSSLClientAuthenticationOptions.cpp clientSSLContextSelectionCallback
          *
-         * @see Detailed OpenSSL documentation on [SSL_CTX management][SSL_CTX_new].
-         *
          * [SSL_CTX_new]: https://www.openssl.org/docs/manmaster/man3/SSL_CTX_new.html
          */
         std::function<SSL_CTX*(const std::string& host)> clientSSLContextSelectionCallback;
 
         /**
-         * A callback that is invoked before initiating a new SSL handshake. This callback provides an opportunity to
-         * customize the SSL parameters for the connection.
+         * A callback that is invoked before initiating a new %SSL handshake. This callback provides an opportunity to
+         * customize the %SSL parameters for the connection.
          *
-         * @param ssl A pointer to the SSL object representing the connection.
+         * @param ssl A pointer to the %SSL object representing the connection.
          * @param host The target server host name.
          *
          * Example of setting sslNewSessionCallback:
@@ -228,7 +247,7 @@ namespace Ice::SSL
         std::function<void(::SSL* ssl, const std::string& host)> sslNewSessionCallback;
 
         /**
-         * A callback that allows manually validating the server certificate chain. When the verification callback
+         * A callback that allows applications to validate the server certificate chain. When the verification callback
          * returns false, the connection will be aborted with an Ice::SecurityException.
          *
          * @param verified A boolean indicating whether the preliminary certificate verification done by OpenSSL's
@@ -236,7 +255,7 @@ namespace Ice::SSL
          * @param ctx A pointer to an X509_STORE_CTX object, which contains the certificate chain to be verified.
          * @param info The ConnectionInfoPtr object that provides additional connection-related data
          * which might be relevant for contextual certificate validation.
-         * @return true if the certificate chain is valid and the connection should proceed; false if the certificate
+         * @return True if the certificate chain is valid and the connection should proceed; false if the certificate
          * chain is invalid and the connection should be aborted.
          * @throws Ice::SecurityException if the certificate chain is invalid and the connection should be aborted.
          *
