@@ -92,8 +92,11 @@ namespace Ice::SSL
          */
         std::function<bool(CtxtHandle context, const ConnectionInfoPtr& info)> serverCertificateValidationCallback;
     };
-    // Alias for portable code
+
+    /// Alias for the platform-specific implementation of ClientAuthenticationOptions on Windows.
+    /// \cond INTERNAL
     using ClientAuthenticationOptions = SchannelClientAuthenticationOptions;
+    /// \endcond
 #elif defined(ICE_USE_SECURE_TRANSPORT)
     /**
      * The %SSL transport configuration properties for client connections on macOS and iOS.
@@ -110,7 +113,7 @@ namespace Ice::SSL
         /**
          * A callback that allows selecting the client's SSL certificate chain based on the target server host name.
          *
-         * @remarks This callback is invoked by the SSL transport for each new outgoing connection before starting the
+         * This callback is invoked by the SSL transport for each new outgoing connection before starting the
          * SSL handshake to determine the appropriate client certificate chain. The callback should return a CFArrayRef
          * that represents the client's certificate chain, or nullptr if no certificate chain should be used for the
          * connection. The SSL transport takes ownership of the returned CFArrayRef and releases it when the connection
@@ -191,9 +194,12 @@ namespace Ice::SSL
          */
         std::function<bool(SecTrustRef trust, const ConnectionInfoPtr& info)> serverCertificateValidationCallback;
     };
-    // Alias for portable code
+
+    /// Alias for the platform-specific implementation of ClientAuthenticationOptions on macOS and iOS.
+    /// \cond INTERNAL
     using ClientAuthenticationOptions = SecureTransportClientAuthenticationOptions;
-#else
+    /// \endcond
+#elif defined(ICE_USE_OPENSSL)
     /**
      * The %SSL transport configuration properties for client connections on Linux.
      *
@@ -269,8 +275,13 @@ namespace Ice::SSL
         std::function<bool(bool verified, X509_STORE_CTX* ctx, const ConnectionInfoPtr& info)>
             serverCertificateValidationCallback;
     };
-    // Alias for portable code
+
+    /// Alias for the platform-specific implementation of ClientAuthenticationOptions on Linux.
+    /// \cond INTERNAL
     using ClientAuthenticationOptions = OpenSSLClientAuthenticationOptions;
+    /// \endcond
+#else
+#    error "unsupported platform"
 #endif
 
 }

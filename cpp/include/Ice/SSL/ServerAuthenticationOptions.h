@@ -95,8 +95,11 @@ namespace Ice::SSL
          */
         std::function<bool(CtxtHandle context, const ConnectionInfoPtr& info)> clientCertificateValidationCallback;
     };
-    // Alias for portable code
+
+    /// Alias for the platform-specific implementation of ClientAuthenticationOptions on Windows.
+    /// \cond INTERNAL
     using ServerAuthenticationOptions = SchannelServerAuthenticationOptions;
+    /// \endcond
 #elif defined(ICE_USE_SECURE_TRANSPORT)
     /**
      * The SSL configuration properties for server connections.
@@ -195,9 +198,12 @@ namespace Ice::SSL
          */
         std::function<bool(SecTrustRef trust, const ConnectionInfoPtr& info)> clientCertificateValidationCallback;
     };
-    // Alias for portable code
+
+    /// Alias for the platform-specific implementation of ClientAuthenticationOptions on macOS and iOS.
+    /// \cond INTERNAL
     using ServerAuthenticationOptions = SecureTransportServerAuthenticationOptions;
-#else // ICE_USE_OPENSSL
+    /// \endcond
+#elif defined(ICE_USE_OPENSSL)
     /**
      * The SSL configuration properties for server connections.
      */
@@ -268,8 +274,13 @@ namespace Ice::SSL
         std::function<bool(bool verified, X509_STORE_CTX* ctx, const ConnectionInfoPtr& info)>
             clientCertificateValidationCallback;
     };
-    // Alias for portable code
+
+    /// Alias for the platform-specific implementation of ClientAuthenticationOptions on Linux.
+    /// \cond INTERNAL
     using ServerAuthenticationOptions = OpenSSLServerAuthenticationOptions;
+    /// \endcond
+#else
+#    error "unsupported platform"
 #endif
 
 }
