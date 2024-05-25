@@ -41,8 +41,7 @@ serverSetTrustedRootCertificatesExample()
     communicator->createObjectAdapterWithEndpoints(
         "Hello",
         "ssl -h 127.0.0.1 -p 10000",
-        Ice::SSL::ServerAuthenticationOptions{
-            .trustedRootCertificates = rootCerts});
+        Ice::SSL::ServerAuthenticationOptions{.trustedRootCertificates = rootCerts});
     CFRelease(rootCerts); // It is safe to release the rootCerts now.
     //! [trustedRootCertificates]
 }
@@ -56,11 +55,9 @@ serverSetNewSessionCallbackExample()
         "Hello",
         "ssl -h 127.0.0.1 -p 10000",
         Ice::SSL::ServerAuthenticationOptions{
-            .sslNewSessionCallback =
-                [](SSLContextRef context, const std::string& host)
+            .sslNewSessionCallback = [](SSLContextRef context, const std::string& host)
             {
-                OSStatus status =
-                    SSLSetProtocolVersionMin(context, kTLSProtocol13);
+                OSStatus status = SSLSetProtocolVersionMin(context, kTLSProtocol13);
                 if (status != noErr)
                 {
                     // Handle error

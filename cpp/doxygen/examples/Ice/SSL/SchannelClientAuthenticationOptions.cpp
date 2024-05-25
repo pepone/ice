@@ -8,23 +8,25 @@ void
 clientCertificateSelectionCallbackExample()
 {
     //! [clientCertificateSelectionCallback]
-    CFArrayRef clientCertificateChain = {};
-    // Load the client certificate chain from the keychain using SecureTransport
-    // APIs.
+    PCCERT_CONTEXT clientCertificateChain{};
+    // Load the server certificate chain using Schannel APIs.
+    // ...
+
     auto initData = Ice::InitializationData{
         .clientAuthenticationOptions = Ice::SSL::ClientAuthenticationOptions{
             .clientCertificateSelectionCallback =
                 [clientCertificateChain](const std::string&)
             {
-                // Retain the client certificate chain to ensure it remains
-                // valid for the duration of the connection. The SSL transport
-                // will release it after closing the connection.
-                CFRetain(clientCertificateChain);
-                return clientCertificateChain;
+                CertDuplicateCertificateContext(clientCertificateChain);
+                return SCH_CREDENTIALS{
+                    .dwVersion = SCH_CREDENTIALS_VERSION,
+                    .cCreds = 1,
+                    .paCred = const_cast<PCCERT_CONTEXT*>(&clientCertificateChain)};
             }}};
     auto communicator = Ice::initialize(initData);
-    // ...
-    CFRelease(clientCertificateChain); // Release the CFArrayRef when no longer needed
+
+    // Release the client certificate chain when no longer needed
+    CFRelease(clientCertificateChain);
     //! [clientCertificateSelectionCallback]
 }
 
@@ -34,29 +36,14 @@ clientSetTrustedRootCertificatesExample()
     //! [trustedRootCertificates]
     CFArrayRef rootCerts = {};
     // Populate root certs with X.509 trusted root certificates
+    // ...
+
     auto initData = Ice::InitializationData{
         .clientAuthenticationOptions =
             Ice::SSL::ClientAuthenticationOptions{.trustedRootCertificates = rootCerts}};
     auto communicator = Ice::initialize(initData);
     CFRelease(rootCerts); // It is safe to release the rootCerts now.
     //! [trustedRootCertificates]
-}
-
-void
-clientSetNewSessionCallbackExample()
-{
-    //! [sslNewSessionCallback]
-    auto initData = Ice::InitializationData{
-        .clientAuthenticationOptions = Ice::SSL::ClientAuthenticationOptions{
-            .sslNewSessionCallback = [](SSLContextRef context, const std::string& host)
-            {
-                OSStatus status = SSLSetProtocolVersionMin(context, kTLSProtocol13);
-                if (status != noErr)
-                {
-                    // Handle error
-                }
-            }}};
-    //! [sslNewSessionCallback]
 }
 
 void

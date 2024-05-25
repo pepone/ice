@@ -21,7 +21,8 @@ clientSSLContextSelectionCallbackExample()
 
     auto communicator = Ice::initialize(initData);
     // ...
-    SSL_CTX_free(sslContext); // Release ssl context when no longer needed
+    // Release ssl context when no longer needed
+    SSL_CTX_free(sslContext);
     //! [clientSSLContextSelectionCallback]
 }
 
@@ -33,7 +34,8 @@ clientSetNewSessionCallbackExample()
         .clientAuthenticationOptions = Ice::SSL::ClientAuthenticationOptions{
             .sslNewSessionCallback = [](SSL* ssl, const std::string& host)
             {
-                if (!SSL_set_tlsext_host_name(ssl, host.c_str()))
+                X509_VERIFY_PARAM* param = SSL_get0_param(ssl);
+                if (!X509_VERIFY_PARAM_set1_host(param, host.c_str(), 0))
                 {
                     // Handle error
                 }
