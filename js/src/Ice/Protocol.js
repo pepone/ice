@@ -4,14 +4,14 @@
 
 import { StringUtil } from "./StringUtil";
 import { UnsupportedEncodingException, UnsupportedProtocolException, VersionParseException } from "./LocalException";
-import {EncodingVersion, ProtocolVersion} from "./Version";
+import { EncodingVersion, ProtocolVersion } from "./Version";
 
-const Protocol = {};
+export const Protocol = {};
 
-Encoding_1_0 = new EncodingVersion(1, 0);
-Encoding_1_1 = new EncodingVersion(1, 1);
+export const Encoding_1_0 = new EncodingVersion(1, 0);
+export const Encoding_1_1 = new EncodingVersion(1, 1);
 
-Protocol_1_0 = new ProtocolVersion(1, 0);
+export const Protocol_1_0 = new ProtocolVersion(1, 0);
 
 //
 // Size of the Ice protocol header
@@ -198,10 +198,10 @@ Protocol.isSupported = function(version, supported)
 *
 * @return The converted protocol version.
 **/
-function stringToProtocolVersion(version)
+export function stringToProtocolVersion(version)
 {
     return new ProtocolVersion(stringToMajor(version), stringToMinor(version));
-};
+}
 
 /**
 * Converts a string to an encoding version.
@@ -210,10 +210,10 @@ function stringToProtocolVersion(version)
 *
 * @return The converted object identity.
 **/
-function stringToEncodingVersion(version)
+export function stringToEncodingVersion(version)
 {
     return new EncodingVersion(stringToMajor(version), stringToMinor(version));
-};
+}
 
 /**
 * Converts a protocol version to a string.
@@ -222,10 +222,10 @@ function stringToEncodingVersion(version)
 *
 * @return The converted string.
 **/
-function protocolVersionToString(v)
+export function protocolVersionToString(v)
 {
     return majorMinorToString(v.major, v.minor);
-};
+}
 
 /**
  * Converts an encoding version to a string.
@@ -234,10 +234,10 @@ function protocolVersionToString(v)
  *
  * @return The converted string.
  **/
-function encodingVersionToString(v)
+export function encodingVersionToString(v)
 {
     return majorMinorToString(v.major, v.minor);
-};
+}
 
 Protocol.OPTIONAL_END_MARKER = 0xFF;
 Protocol.FLAG_HAS_TYPE_ID_STRING = (1 << 0);
@@ -297,12 +297,4 @@ function stringToMinor(str)
 function majorMinorToString(major, minor)
 {
     return major + "." + minor;
-}
-
-export { 
-    Protocol as default,
-    stringToProtocolVersion,
-    stringToEncodingVersion,
-    protocolVersionToString,
-    encodingVersionToString
 }

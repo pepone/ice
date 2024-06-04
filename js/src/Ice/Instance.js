@@ -13,7 +13,7 @@ import { ObjectAdapterFactory } from "./ObjectAdapterFactory";
 import { OutgoingConnectionFactory } from "./OutgoingConnectionFactory";
 import { Properties } from "./Properties";
 import { ProxyFactory } from "./ProxyFactory";
-import { ReferenceFactory } from "./ReferenceFactory";
+import { ReferenceFactory } from "./Reference";
 import { RequestHandlerFactory } from "./RequestHandlerFactory";
 import { RetryQueue } from "./RetryQueue";
 import { RouterManager } from "./RouterManager";

@@ -4,7 +4,7 @@
 
 import { LocalException } from "./Exception";
 
-class RetryException extends Error
+export class RetryException extends Error
 {
     constructor(ex)
     {
@@ -25,5 +25,3 @@ class RetryException extends Error
         return this._ex;
     }
 }
-
-export default RetryException;
