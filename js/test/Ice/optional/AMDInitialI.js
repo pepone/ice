@@ -2,284 +2,286 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Test = require("Test").Test;
-
-class AMDInitialI extends Test.Initial
+(function(module, require, exports)
 {
-    shutdown(current)
-    {
-        current.adapter.getCommunicator().shutdown();
-    }
+    const Test = require("Test").Test;
 
-    pingPong(obj, current)
+    class AMDInitialI extends Test.Initial
     {
-        return obj;
-    }
-
-    opOptionalException(a, b, current)
-    {
-        const ex = new Test.OptionalException();
-        if(a !== undefined)
+        shutdown(current)
         {
-            ex.a = a;
+            current.adapter.getCommunicator().shutdown();
         }
-        else
+
+        pingPong(obj, current)
         {
-            ex.a = undefined; // The member "a" has a default value.
+            return obj;
         }
-        if(b !== undefined)
+
+        opOptionalException(a, b, current)
         {
-            ex.b = b;
+            const ex = new Test.OptionalException();
+            if(a !== undefined)
+            {
+                ex.a = a;
+            }
+            else
+            {
+                ex.a = undefined; // The member "a" has a default value.
+            }
+            if(b !== undefined)
+            {
+                ex.b = b;
+            }
+            throw ex;
         }
-        throw ex;
-    }
 
-    opDerivedException(a, b, current)
-    {
-        const ex = new Test.DerivedException();
-        if(a !== undefined)
+        opDerivedException(a, b, current)
         {
-            ex.a = a;
+            const ex = new Test.DerivedException();
+            if(a !== undefined)
+            {
+                ex.a = a;
+            }
+            else
+            {
+                ex.a = undefined; // The member "a" has a default value.
+            }
+            if(b !== undefined)
+            {
+                ex.b = b;
+                ex.ss = b;
+            }
+            else
+            {
+                ex.ss = undefined; // The member "ss" has a default value.
+            }
+            ex.d1 = "d1";
+            ex.d2 = "d2";
+            throw ex;
         }
-        else
+
+        opRequiredException(a, b, current)
         {
-            ex.a = undefined; // The member "a" has a default value.
+            const ex = new Test.RequiredException();
+            if(a !== undefined)
+            {
+                ex.a = a;
+            }
+            else
+            {
+                ex.a = undefined; // The member "a" has a default value.
+            }
+            if(b !== undefined)
+            {
+                ex.b = b;
+                ex.ss = b;
+            }
+            throw ex;
         }
-        if(b !== undefined)
+
+        opByte(p1, current)
         {
-            ex.b = b;
-            ex.ss = b;
+            return [p1, p1];
         }
-        else
+
+        opBool(p1, current)
         {
-            ex.ss = undefined; // The member "ss" has a default value.
+            return [p1, p1];
         }
-        ex.d1 = "d1";
-        ex.d2 = "d2";
-        throw ex;
-    }
 
-    opRequiredException(a, b, current)
-    {
-        const ex = new Test.RequiredException();
-        if(a !== undefined)
+        opShort(p1, current)
         {
-            ex.a = a;
+            return [p1, p1];
         }
-        else
+
+        opInt(p1, current)
         {
-            ex.a = undefined; // The member "a" has a default value.
+            return [p1, p1];
         }
-        if(b !== undefined)
+
+        opLong(p1, current)
         {
-            ex.b = b;
-            ex.ss = b;
+            return [p1, p1];
         }
-        throw ex;
+
+        opFloat(p1, current)
+        {
+            return [p1, p1];
+        }
+
+        opDouble(p1, current)
+        {
+            return [p1, p1];
+        }
+
+        opString(p1, current)
+        {
+            return [p1, p1];
+        }
+
+        opMyEnum(p1, current)
+        {
+            return [p1, p1];
+        }
+
+        opSmallStruct(p1, current)
+        {
+            return [p1, p1];
+        }
+
+        opFixedStruct(p1, current)
+        {
+            return [p1, p1];
+        }
+
+        opVarStruct(p1, current)
+        {
+            return [p1, p1];
+        }
+
+        opOneOptional(p1, current)
+        {
+            return [p1, p1];
+        }
+
+        opMyInterfaceProxy(p1, current)
+        {
+            return [p1, p1];
+        }
+
+        opByteSeq(p1, current)
+        {
+            return [p1, p1];
+        }
+
+        opBoolSeq(p1, current)
+        {
+            return [p1, p1];
+        }
+
+        opShortSeq(p1, current)
+        {
+            return [p1, p1];
+        }
+
+        opIntSeq(p1, current)
+        {
+            return [p1, p1];
+        }
+
+        opLongSeq(p1, current)
+        {
+            return [p1, p1];
+        }
+
+        opFloatSeq(p1, current)
+        {
+            return [p1, p1];
+        }
+
+        opDoubleSeq(p1, current)
+        {
+            return [p1, p1];
+        }
+
+        opStringSeq(p1, current)
+        {
+            return [p1, p1];
+        }
+
+        opSmallStructSeq(p1, current)
+        {
+            return [p1, p1];
+        }
+
+        opSmallStructList(p1, current)
+        {
+            return [p1, p1];
+        }
+
+        opFixedStructSeq(p1, current)
+        {
+            return [p1, p1];
+        }
+
+        opFixedStructList(p1, current)
+        {
+            return [p1, p1];
+        }
+
+        opVarStructSeq(p1, current)
+        {
+            return [p1, p1];
+        }
+
+        opSerializable(p1, current)
+        {
+            return [p1, p1];
+        }
+
+        opIntIntDict(p1, current)
+        {
+            return [p1, p1];
+        }
+
+        opStringIntDict(p1, current)
+        {
+            return [p1, p1];
+        }
+
+        opClassAndUnknownOptional(p, current)
+        {
+        }
+
+        opG(g, current)
+        {
+            return g;
+        }
+
+        opVoid(current)
+        {
+        }
+
+        opMStruct1(current)
+        {
+            return new Test.SmallStruct();
+        }
+
+        opMStruct2(p1, current)
+        {
+            return [p1, p1];
+        }
+
+        opMSeq1(current)
+        {
+            return [];
+        }
+
+        opMSeq2(p1, current)
+        {
+            return [p1, p1];
+        }
+
+        opMDict1(current)
+        {
+            return new Map();
+        }
+
+        opMDict2(p1, current)
+        {
+            return [p1, p1];
+        }
+
+        supportsJavaSerializable(current)
+        {
+            return false;
+        }
     }
 
-    opByte(p1, current)
-    {
-        return [p1, p1];
-    }
-
-    opBool(p1, current)
-    {
-        return [p1, p1];
-    }
-
-    opShort(p1, current)
-    {
-        return [p1, p1];
-    }
-
-    opInt(p1, current)
-    {
-        return [p1, p1];
-    }
-
-    opLong(p1, current)
-    {
-        return [p1, p1];
-    }
-
-    opFloat(p1, current)
-    {
-        return [p1, p1];
-    }
-
-    opDouble(p1, current)
-    {
-        return [p1, p1];
-    }
-
-    opString(p1, current)
-    {
-        return [p1, p1];
-    }
-
-    opMyEnum(p1, current)
-    {
-        return [p1, p1];
-    }
-
-    opSmallStruct(p1, current)
-    {
-        return [p1, p1];
-    }
-
-    opFixedStruct(p1, current)
-    {
-        return [p1, p1];
-    }
-
-    opVarStruct(p1, current)
-    {
-        return [p1, p1];
-    }
-
-    opOneOptional(p1, current)
-    {
-        return [p1, p1];
-    }
-
-    opMyInterfaceProxy(p1, current)
-    {
-        return [p1, p1];
-    }
-
-    opByteSeq(p1, current)
-    {
-        return [p1, p1];
-    }
-
-    opBoolSeq(p1, current)
-    {
-        return [p1, p1];
-    }
-
-    opShortSeq(p1, current)
-    {
-        return [p1, p1];
-    }
-
-    opIntSeq(p1, current)
-    {
-        return [p1, p1];
-    }
-
-    opLongSeq(p1, current)
-    {
-        return [p1, p1];
-    }
-
-    opFloatSeq(p1, current)
-    {
-        return [p1, p1];
-    }
-
-    opDoubleSeq(p1, current)
-    {
-        return [p1, p1];
-    }
-
-    opStringSeq(p1, current)
-    {
-        return [p1, p1];
-    }
-
-    opSmallStructSeq(p1, current)
-    {
-        return [p1, p1];
-    }
-
-    opSmallStructList(p1, current)
-    {
-        return [p1, p1];
-    }
-
-    opFixedStructSeq(p1, current)
-    {
-        return [p1, p1];
-    }
-
-    opFixedStructList(p1, current)
-    {
-        return [p1, p1];
-    }
-
-    opVarStructSeq(p1, current)
-    {
-        return [p1, p1];
-    }
-
-    opSerializable(p1, current)
-    {
-        return [p1, p1];
-    }
-
-    opIntIntDict(p1, current)
-    {
-        return [p1, p1];
-    }
-
-    opStringIntDict(p1, current)
-    {
-        return [p1, p1];
-    }
-
-    opClassAndUnknownOptional(p, current)
-    {
-    }
-
-    opG(g, current)
-    {
-        return g;
-    }
-
-    opVoid(current)
-    {
-    }
-
-    opMStruct1(current)
-    {
-        return new Test.SmallStruct();
-    }
-
-    opMStruct2(p1, current)
-    {
-        return [p1, p1];
-    }
-
-    opMSeq1(current)
-    {
-        return [];
-    }
-
-    opMSeq2(p1, current)
-    {
-        return [p1, p1];
-    }
-
-    opMDict1(current)
-    {
-        return new Map();
-    }
-
-    opMDict2(p1, current)
-    {
-        return [p1, p1];
-    }
-
-    supportsJavaSerializable(current)
-    {
-        return false;
-    }
-
-    supportsCsharpSerializable(current)
-    {
-        return false;
-    }
-}
-
-exports.AMDInitialI = AMDInitialI;
+    exports.AMDInitialI = AMDInitialI;
+}(typeof global !== "undefined" && typeof global.process !== "undefined" ? module : undefined,
+  typeof global !== "undefined" && typeof global.process !== "undefined" ? require :
+  (typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope) ? self.Ice._require : window.Ice._require,
+  typeof global !== "undefined" && typeof global.process !== "undefined" ? exports :
+  (typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope) ? self : window));
