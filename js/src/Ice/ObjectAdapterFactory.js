@@ -2,7 +2,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { ObjectAdapterI } from "./ObjectAdapter";
+import { ObjectAdapter } from "./ObjectAdapter";
 import { Promise } from "./Promise";
 import { ObjectAdapterDeactivatedException, AlreadyRegisteredException } from "./LocalException";
 import { generateUUID } from "./UUID";
@@ -65,7 +65,7 @@ export class ObjectAdapterFactory
         {
             if(name.length === 0)
             {
-                adapter = new ObjectAdapterI(this._instance, this._communicator, this, generateUUID(), null, true,
+                adapter = new ObjectAdapter(this._instance, this._communicator, this, generateUUID(), null, true,
                                              promise);
             }
             else
@@ -74,7 +74,7 @@ export class ObjectAdapterFactory
                 {
                     throw new AlreadyRegisteredException("object adapter", name);
                 }
-                adapter = new ObjectAdapterI(this._instance, this._communicator, this, name, router, false, promise);
+                adapter = new ObjectAdapter(this._instance, this._communicator, this, name, router, false, promise);
                 this._adapterNamesInUse.push(name);
             }
             this._adapters.push(adapter);

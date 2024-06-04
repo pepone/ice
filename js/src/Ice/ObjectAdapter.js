@@ -2,29 +2,25 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/ModuleRegistry").Ice;
-
-require("../Ice/ArrayUtil");
-require("../Ice/AsyncResultBase");
-require("../Ice/Debug");
-require("../Ice/Identity");
-require("../Ice/LocalException");
-require("../Ice/Promise");
-require("../Ice/PropertyNames");
-require("../Ice/Router");
-require("../Ice/ServantManager");
-require("../Ice/StringUtil");
-require("../Ice/Timer");
-require("../Ice/UUID");
-
-const ArrayUtil = Ice.ArrayUtil;
-const AsyncResultBase = Ice.AsyncResultBase;
-const Debug = Ice.Debug;
-const Identity = Ice.Identity;
-const PropertyNames = Ice.PropertyNames;
-const ServantManager = Ice.ServantManager;
-const StringUtil = Ice.StringUtil;
-const Timer = Ice.Timer;
+import { ArrayUtil } from "./ArrayUtil";
+import { AsyncResultBase } from "./AsyncResultBase";
+import { Identity } from "./Identity";
+import { generateUUID } from "./UUID";
+import { 
+    AlreadyRegisteredException,
+    IllegalServantException,
+    FeatureNotSupportedException,
+    IllegalServantException,
+    InitializationException,
+    ObjectAdapterDeactivatedException,
+    ProxyParseException } from "./LocalException";
+import { RouterPrx } from "./Router";
+import { Promise } from "./Promise";
+import { PropertyNames } from "./PropertyNames";
+import { ServantManager } from "./ServantManager";
+import { StringUtil } from "./StringUtil";
+import { Timer } from "./Timer";
+import { identityToString } from "./IdentityUtil";
 
 const _suffixes =
 [
@@ -75,7 +71,7 @@ const StateDestroyed = 6;
 //
 // Only for use by IceInternal.ObjectAdapterFactory
 //
-class ObjectAdapterI
+export class ObjectAdapter
 {
     constructor(instance, communicator, objectAdapterFactory, name, router, noConfig, promise)
     {
@@ -117,7 +113,7 @@ class ObjectAdapterI
         //
         if(router === null && noProps)
         {
-            throw new Ice.InitializationException(`object adapter \`${this._name}' requires configuration`);
+            throw new InitializationException(`object adapter \`${this._name}' requires configuration`);
         }
 
         //
@@ -131,9 +127,9 @@ class ObjectAdapterI
         }
         catch(e)
         {
-            if(e instanceof Ice.ProxyParseException)
+            if(e instanceof ProxyParseException)
             {
-                throw new Ice.InitializationException(
+                throw new InitializationException(
                     `invalid proxy options \`${proxyOptions}' for object adapter \`${name}'`);
             }
             else
@@ -159,23 +155,23 @@ class ObjectAdapterI
         {
             if(router === null)
             {
-                router = Ice.RouterPrx.uncheckedCast(
+                router = RouterPrx.uncheckedCast(
                     this._instance.proxyFactory().propertyToProxy(this._name + ".Router"));
             }
             let p;
             if(router !== null)
             {
                 this._routerInfo = this._instance.routerManager().find(router);
-                Debug.assert(this._routerInfo !== null);
+                console.assert(this._routerInfo !== null);
 
                 //
                 // Make sure this router is not already registered with another adapter.
                 //
                 if(this._routerInfo.getAdapter() !== null)
                 {
-                    throw new Ice.AlreadyRegisteredException(
+                    throw new AlreadyRegisteredException(
                         "object adapter with router",
-                        Ice.identityToString(router.ice_getIdentity(), this._instance.toStringMode()));
+                        identityToString(router.ice_getIdentity(), this._instance.toStringMode()));
                 }
 
                 //
@@ -197,7 +193,7 @@ class ObjectAdapterI
                 const endpoints = properties.getProperty(this._name + ".Endpoints");
                 if(endpoints.length > 0)
                 {
-                    throw new Ice.FeatureNotSupportedException("object adapter endpoints not supported");
+                    throw new FeatureNotSupportedException("object adapter endpoints not supported");
                 }
                 p = Ice.Promise.resolve();
             }
@@ -333,7 +329,7 @@ class ObjectAdapterI
 
     addFacetWithUUID(object, facet)
     {
-        return this.addFacet(object, new Identity(Ice.generateUUID(), ""), facet);
+        return this.addFacet(object, new Identity(generateUUID(), ""), facet);
     }
 
     addDefaultServant(servant, category)
@@ -436,12 +432,12 @@ class ObjectAdapterI
 
     createIndirectProxy(ident)
     {
-        throw new Ice.FeatureNotSupportedException("createIndirectProxy not supported");
+        throw new FeatureNotSupportedException("createIndirectProxy not supported");
     }
 
     setLocator(locator)
     {
-        throw new Ice.FeatureNotSupportedException("setLocator not supported");
+        throw new FeatureNotSupportedException("setLocator not supported");
     }
 
     getEndpoints()
@@ -511,7 +507,7 @@ class ObjectAdapterI
     {
         if(this._state >= StateDeactivated)
         {
-            const ex = new Ice.ObjectAdapterDeactivatedException();
+            const ex = new ObjectAdapterDeactivatedException();
             ex.name = this.getName();
             throw ex;
         }
@@ -534,7 +530,7 @@ class ObjectAdapterI
     {
         if(servant === undefined || servant === null)
         {
-            throw new Ice.IllegalServantException("cannot add null servant to Object Adapter");
+            throw new IllegalServantException("cannot add null servant to Object Adapter");
         }
     }
 
@@ -580,7 +576,7 @@ class ObjectAdapterI
                 {
                     if(s != "")
                     {
-                        throw new Ice.EndpointParseException("invalid empty object adapter endpoint");
+                        throw new EndpointParseException("invalid empty object adapter endpoint");
                     }
                     break;
                 }
@@ -632,12 +628,12 @@ class ObjectAdapterI
                 const endp = this._instance.endpointFactoryManager().create(es, false);
                 if(endp === null)
                 {
-                    throw new Ice.EndpointParseException("invalid object adapter endpoint `" + s + "'");
+                    throw new EndpointParseException("invalid object adapter endpoint `" + s + "'");
                 }
                 endpoints.push(endp);
             }
 
-            p = Ice.Promise.resolve(endpoints);
+            p = Promise.resolve(endpoints);
         }
 
         return p.then(
@@ -749,6 +745,3 @@ class ObjectAdapterI
         }
     }
 }
-
-Ice.ObjectAdapterI = ObjectAdapterI;
-module.exports.Ice = Ice;
