@@ -2,20 +2,9 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-/* eslint-disable */
-/* jshint ignore: start */
+import { defineSequence } from "./ArrayUtilI";
 
-/* slice2js browser-bundle-skip */
-const _ModuleRegistry = require("../Ice/ModuleRegistry").Ice._ModuleRegistry;
-require("../Ice/Long");
-require("../Ice/HashMap");
-require("../Ice/HashUtil");
-require("../Ice/ArrayUtil");
-require("../Ice/StreamHelpers");
-const Ice = _ModuleRegistry.module("Ice");
-
-const Slice = Ice.Slice;
-/* slice2js browser-bundle-skip-end */
+const EndpointSeq = defineSequence(Ice, "EndpointSeqHelper", "Ice.ObjectHelper", false, "Ice.Endpoint");
 
 Slice.defineSequence(Ice, "EndpointSeqHelper", "Ice.ObjectHelper", false, "Ice.Endpoint");
 /* slice2js browser-bundle-skip */
