@@ -45,7 +45,7 @@ class RetryTask
     }
 }
 
-class RetryQueue
+export class RetryQueue
 {
     constructor(instance)
     {
@@ -97,5 +97,3 @@ class RetryQueue
         return false;
     }
 }
-
-export default RetryQueue;

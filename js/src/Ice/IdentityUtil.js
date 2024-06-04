@@ -13,7 +13,7 @@ import { Identity } from "./Identity";
 *
 * @return The converted object identity.
 **/
-function stringToIdentity(s)
+export function stringToIdentity(s)
 {
     const ident = new Identity();
 
@@ -102,7 +102,7 @@ function stringToIdentity(s)
 *
 * @return The string representation of the object identity.
 **/
-function identityToString(ident, toStringMode = Ice.ToStringMode.Unicode)
+export function identityToString(ident, toStringMode = Ice.ToStringMode.Unicode)
 {
     if(ident.category === null || ident.category.length === 0)
     {
@@ -112,7 +112,7 @@ function identityToString(ident, toStringMode = Ice.ToStringMode.Unicode)
     {
         return StringUtil.escapeString(ident.category, "/", toStringMode) + '/' + StringUtil.escapeString(ident.name, "/", toStringMode);
     }
-};
+}
 
 /**
 * Compares the object identities of two proxies.
@@ -127,7 +127,7 @@ function identityToString(ident, toStringMode = Ice.ToStringMode.Unicode)
 * @see ProxyIdentityAndFacetKey
 * @see ProxyIdentityAndFacetCompare
 **/
-function proxyIdentityCompare(lhs, rhs)
+export function proxyIdentityCompare(lhs, rhs)
 {
     if(lhs === rhs)
     {
@@ -148,7 +148,7 @@ function proxyIdentityCompare(lhs, rhs)
         const n = lhsIdentity.name.localeCompare(rhsIdentity.name);
         return (n !== 0) ? n : lhsIdentity.category.localeCompare(rhsIdentity.category);
     }
-};
+}
 
 /**
 * Compares the object identities and facets of two proxies.
@@ -163,7 +163,7 @@ function proxyIdentityCompare(lhs, rhs)
 * @see ProxyIdentityKey
 * @see ProxyIdentityCompare
 **/
-function proxyIdentityAndFacetCompare(lhs, rhs)
+export function proxyIdentityAndFacetCompare(lhs, rhs)
 {
     if(lhs === rhs)
     {
@@ -208,6 +208,4 @@ function proxyIdentityAndFacetCompare(lhs, rhs)
         }
         return lhsFacet.localeCompare(rhsFacet);
     }
-};
-
-export { stringToIdentity, identityToString, proxyIdentityCompare, proxyIdentityAndFacetCompare }
+}

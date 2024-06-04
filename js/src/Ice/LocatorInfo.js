@@ -2,23 +2,20 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/ModuleRegistry").Ice;
+import { HashMap } from "./HashMap";
+import { LocatorRegistryPrx } from "./Locator";
+import { Protocol } from "./Protocol";
+import { EndpointSelectionType } from "./EndpointSelectionType";
+import { Promise } from "./Promise";
+import { identityToString } from "./IdentityUtil";
+import {
+    AdapterNotFoundException,
+    NotRegisteredException,
+    ObjectNotFoundException,
+    LocalException,
+    UserException } from "./LocalException";
 
-require("../Ice/Debug");
-require("../Ice/Exception");
-require("../Ice/HashMap");
-require("../Ice/IdentityUtil");
-require("../Ice/LocalException");
-require("../Ice/Locator");
-require("../Ice/Promise");
-require("../Ice/Protocol");
-
-const Debug = Ice.Debug;
-const HashMap = Ice.HashMap;
-const LocatorRegistryPrx = Ice.LocatorRegisterPrx;
-const Protocol = Ice.Protocol;
-
-class LocatorInfo
+export class LocatorInfo
 {
     constructor(locator, table, background)
     {
@@ -66,7 +63,7 @@ class LocatorInfo
     {
         if(this._locatorRegistry !== null)
         {
-            return Ice.Promise.resolve(this._locatorRegistry);
+            return Promise.resolve(this._locatorRegistry);
         }
 
         return this._locator.getRegistry().then(reg =>
@@ -74,19 +71,19 @@ class LocatorInfo
                 //
                 // The locator registry can't be located. We use ordered
                 // endpoint selection in case the locator returned a proxy
-                // with some endpoints which are prefered to be tried first.
+                // with some endpoints which are preferred to be tried first.
                 //
                 this._locatorRegistry = LocatorRegistryPrx.uncheckedCast(reg.ice_locator(null).ice_endpointSelection(
-                    Ice.EndpointSelectionType.Ordered));
+                    EndpointSelectionType.Ordered));
                 return this._locatorRegistry;
             });
     }
 
     getEndpoints(ref, wellKnownRef, ttl, p)
     {
-        const promise = p || new Ice.Promise(); // success callback receives (endpoints, cached)
+        const promise = p || new Promise(); // success callback receives (endpoints, cached)
 
-        Debug.assert(ref.isIndirect());
+        console.assert(ref.isIndirect());
         let endpoints = null;
         const cached = {value: false};
         if(!ref.isWellKnown())
@@ -136,7 +133,7 @@ class LocatorInfo
             }
         }
 
-        Debug.assert(endpoints !== null);
+        console.assert(endpoints !== null);
         if(ref.getInstance().traceLevels().location >= 1)
         {
             this.getEndpointsTrace(ref, endpoints, true);
@@ -148,7 +145,7 @@ class LocatorInfo
 
     clearCache(ref)
     {
-        Debug.assert(ref.isIndirect());
+        console.assert(ref.isIndirect());
 
         if(!ref.isWellKnown())
         {
@@ -185,7 +182,7 @@ class LocatorInfo
 
     trace(msg, ref, endpoints)
     {
-        Debug.assert(ref.isIndirect());
+        console.assert(ref.isIndirect());
 
         const s = [];
         s.push(msg);
@@ -210,7 +207,7 @@ class LocatorInfo
 
     traceWellKnown(msg, ref, resolved)
     {
-        Debug.assert(ref.isWellKnown());
+        console.assert(ref.isWellKnown());
 
         const s = [];
         s.push(msg);
@@ -226,7 +223,7 @@ class LocatorInfo
 
     getEndpointsException(ref, exc)
     {
-        Debug.assert(ref.isIndirect());
+        console.assert(ref.isIndirect());
 
         const instance = ref.getInstance();
         try
@@ -235,7 +232,7 @@ class LocatorInfo
         }
         catch(ex)
         {
-            if(ex instanceof Ice.AdapterNotFoundException)
+            if(ex instanceof AdapterNotFoundException)
             {
                 if(instance.traceLevels().location >= 1)
                 {
@@ -246,32 +243,32 @@ class LocatorInfo
                     instance.initializationData().logger.trace(instance.traceLevels().locationCat, s.join(""));
                 }
 
-                const e = new Ice.NotRegisteredException();
+                const e = new NotRegisteredException();
                 e.kindOfObject = "object adapter";
                 e.id = ref.getAdapterId();
                 throw e;
             }
-            else if(ex instanceof Ice.ObjectNotFoundException)
+            else if(ex instanceof ObjectNotFoundException)
             {
                 if(instance.traceLevels().location >= 1)
                 {
                     const s = [];
                     s.push("object not found\n");
                     s.push("object = ");
-                    s.push(Ice.identityToString(ref.getIdentity(), instance.toStringMode()));
+                    s.push(identityToString(ref.getIdentity(), instance.toStringMode()));
                     instance.initializationData().logger.trace(instance.traceLevels().locationCat, s.join(""));
                 }
 
-                const e = new Ice.NotRegisteredException();
+                const e = new NotRegisteredException();
                 e.kindOfObject = "object";
-                e.id = Ice.identityToString(ref.getIdentity(), instance.toStringMode());
+                e.id = identityToString(ref.getIdentity(), instance.toStringMode());
                 throw e;
             }
-            else if(ex instanceof Ice.NotRegisteredException)
+            else if(ex instanceof NotRegisteredException)
             {
                 throw ex;
             }
-            else if(ex instanceof Ice.LocalException)
+            else if(ex instanceof LocalException)
             {
                 if(instance.traceLevels().location >= 1)
                 {
@@ -296,7 +293,7 @@ class LocatorInfo
             }
             else
             {
-                Debug.assert(false);
+                console.assert(false);
             }
         }
     }
@@ -420,7 +417,7 @@ class LocatorInfo
                 this._table.removeAdapterEndpoints(ref.getAdapterId());
             }
 
-            Debug.assert(this._adapterRequests.has(ref.getAdapterId()));
+            console.assert(this._adapterRequests.has(ref.getAdapterId()));
             this._adapterRequests.delete(ref.getAdapterId());
         }
         else
@@ -435,13 +432,11 @@ class LocatorInfo
                 this._table.removeObjectReference(ref.getIdentity());
             }
 
-            Debug.assert(this._objectRequests.has(ref.getIdentity()));
+            console.assert(this._objectRequests.has(ref.getIdentity()));
             this._objectRequests.delete(ref.getIdentity());
         }
     }
 }
-
-Ice.LocatorInfo = LocatorInfo;
 
 class RequestCallback
 {
@@ -582,7 +577,7 @@ class Request
 
     exception(ex)
     {
-        this._locatorInfo.finishRequest(this._ref, this._wellKnownRefs, null, ex instanceof Ice.UserException);
+        this._locatorInfo.finishRequest(this._ref, this._wellKnownRefs, null, ex instanceof UserException);
         this._exception = ex;
         for(let i = 0; i < this._callbacks.length; ++i)
         {
@@ -596,7 +591,7 @@ class ObjectRequest extends Request
     constructor(locatorInfo, reference)
     {
         super(locatorInfo, reference);
-        Debug.assert(reference.isWellKnown());
+        console.assert(reference.isWellKnown());
     }
 
     send()
@@ -619,7 +614,7 @@ class AdapterRequest extends Request
     constructor(locatorInfo, reference)
     {
         super(locatorInfo, reference);
-        Debug.assert(reference.isIndirect());
+        console.assert(reference.isIndirect());
     }
 
     send()
@@ -636,5 +631,3 @@ class AdapterRequest extends Request
         }
     }
 }
-
-module.exports.Ice = Ice;

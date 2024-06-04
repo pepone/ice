@@ -2,22 +2,15 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/ModuleRegistry").Ice;
 
-require("../Ice/Debug");
-require("../Ice/HashMap");
-require("../Ice/IdentityUtil");
-require("../Ice/LocalException");
-require("../Ice/StringUtil");
-
-const Debug = Ice.Debug;
-const HashMap = Ice.HashMap;
-const StringUtil = Ice.StringUtil;
+import { HashMap } from "./HashMap";
+import { StringUtil } from "./StringUtil";
+import { AlreadyRegisteredException } from "./LocalException";
 
 //
 // Only for use by Ice.ObjectAdapter.
 //
-class ServantManager
+export class ServantManager
 {
     constructor(instance, adapterName)
     {
@@ -33,7 +26,7 @@ class ServantManager
 
     addServant(servant, ident, facet)
     {
-        Debug.assert(this._instance !== null); // Must not be called after destruction.
+        console.assert(this._instance !== null); // Must not be called after destruction.
 
         if(facet === null)
         {
@@ -48,7 +41,7 @@ class ServantManager
         }
         else if(m.has(facet))
         {
-            const ex = new Ice.AlreadyRegisteredException();
+            const ex = new AlreadyRegisteredException();
             ex.id = Ice.identityToString(ident, this._instance.toStringMode());
             ex.kindOfObject = "servant";
             if(facet.length > 0)
@@ -63,7 +56,7 @@ class ServantManager
 
     addDefaultServant(servant, category)
     {
-        Debug.assert(this._instance !== null); // Must not be called after destruction
+        console.assert(this._instance !== null); // Must not be called after destruction
 
         if(this._defaultServantMap.has(category))
         {
@@ -78,7 +71,7 @@ class ServantManager
 
     removeServant(ident, facet)
     {
-        Debug.assert(this._instance !== null); // Must not be called after destruction.
+        console.assert(this._instance !== null); // Must not be called after destruction.
 
         if(facet === null)
         {
@@ -111,7 +104,7 @@ class ServantManager
 
     removeDefaultServant(category)
     {
-        Debug.assert(this._instance !== null); // Must not be called after destruction.
+        console.assert(this._instance !== null); // Must not be called after destruction.
 
         const obj = this._defaultServantMap.get(category);
         if(obj === undefined)
@@ -128,7 +121,7 @@ class ServantManager
 
     removeAllFacets(ident)
     {
-        Debug.assert(this._instance !== null); // Must not be called after destruction.
+        console.assert(this._instance !== null); // Must not be called after destruction.
 
         const m = this._servantMapMap.get(ident);
         if(m === undefined)
@@ -171,7 +164,7 @@ class ServantManager
 
     findDefaultServant(category)
     {
-        Debug.assert(this._instance !== null); // Must not be called after destruction.
+        console.assert(this._instance !== null); // Must not be called after destruction.
 
         const ds = this._defaultServantMap.get(category);
         return ds === undefined ? null : ds;
@@ -179,7 +172,7 @@ class ServantManager
 
     findAllFacets(ident)
     {
-        Debug.assert(this._instance !== null); // Must not be called after destruction.
+        console.assert(this._instance !== null); // Must not be called after destruction.
 
         const m = this._servantMapMap.get(ident);
         if(m !== undefined)
@@ -199,14 +192,14 @@ class ServantManager
         }
         else
         {
-            Debug.assert(m.size > 0);
+            console.assert(m.size > 0);
             return true;
         }
     }
 
     addServantLocator(locator, category)
     {
-        Debug.assert(this._instance !== null); // Must not be called after destruction.
+        console.assert(this._instance !== null); // Must not be called after destruction.
 
         if(this._locatorMap.has(category))
         {
@@ -221,7 +214,7 @@ class ServantManager
 
     removeServantLocator(category)
     {
-        Debug.assert(this._instance !== null); // Must not be called after destruction.
+        console.assert(this._instance !== null); // Must not be called after destruction.
 
         const l = this._locatorMap.get(category);
         if(l === undefined)
@@ -246,7 +239,7 @@ class ServantManager
     //
     destroy()
     {
-        Debug.assert(this._instance !== null); // Must not be called after destruction.
+        console.assert(this._instance !== null); // Must not be called after destruction.
         const logger = this._instance.initializationData().logger;
         this._servantMapMap.clear();
 
@@ -271,6 +264,3 @@ class ServantManager
         }
     }
 }
-
-Ice.ServantManager = ServantManager;
-module.exports.Ice = Ice;

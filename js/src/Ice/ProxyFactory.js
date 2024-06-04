@@ -24,7 +24,7 @@ import ReferenceMode from "./ReferenceMode";
 //
 // Only for use by Instance.
 //
-class ProxyFactory
+export class ProxyFactory
 {
     constructor(instance)
     {
@@ -281,5 +281,3 @@ class ProxyFactory
         return cnt;
     }
 }
-
-export default ProxyFactory;

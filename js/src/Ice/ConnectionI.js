@@ -9,10 +9,22 @@ import {
     CommunicatorDestroyedException,
     CloseConnectionException,
     ConnectionManuallyClosedException,
+    ConnectTimeoutException,
     ConnectionTimeoutException,
+    CloseTimeoutException,
+    TimeoutException,
     SocketException,
-    LocalException
+    LocalException,
+    FeatureNotSupportedException,
+    UnmarshalOutOfBoundsException,
+    BadMagicException,
+    ConnectionNotValidatedException,
+    UnknownMessageException,
+    UnknownException
  } from './LocalException';
+
+import { ACM, ACMClose, ACMHeartbeat } from './Connection';
+
 import { BatchRequestQueue } from './BatchRequestQueue';
 import { InputStream, OutputStream } from './Stream';
 import { Protocol } from './Protocol';
@@ -43,7 +55,7 @@ class MessageInfo
     }
 }
 
-class ConnectionI
+export class ConnectionI
 {
     constructor(communicator, instance, monitor, transceiver, endpoint, incoming, adapter)
     {
@@ -294,11 +306,11 @@ class ConnectionI
         // per timeout period because the monitor() method is still only
         // called every (timeout / 2) period.
         //
-        if(acm.heartbeat == Ice.ACMHeartbeat.HeartbeatAlways ||
-           (acm.heartbeat != Ice.ACMHeartbeat.HeartbeatOff && this._writeStream.isEmpty() &&
+        if(acm.heartbeat == ACMHeartbeat.HeartbeatAlways ||
+           (acm.heartbeat != ACMHeartbeat.HeartbeatOff && this._writeStream.isEmpty() &&
             now >= (this._acmLastActivity + (acm.timeout / 4))))
         {
-            if(acm.heartbeat != Ice.ACMHeartbeat.HeartbeatOnDispatch || this._dispatchCount > 0)
+            if(acm.heartbeat != ACMHeartbeat.HeartbeatOnDispatch || this._dispatchCount > 0)
             {
                 this.sendHeartbeatNow(); // Send heartbeat if idle in the last timeout / 2 period.
             }
@@ -315,10 +327,10 @@ class ConnectionI
             return;
         }
 
-        if(acm.close != Ice.ACMClose.CloseOff && now >= (this._acmLastActivity + acm.timeout))
+        if(acm.close != ACMClose.CloseOff && now >= (this._acmLastActivity + acm.timeout))
         {
-            if(acm.close == Ice.ACMClose.CloseOnIdleForceful ||
-               (acm.close != Ice.ACMClose.CloseOnIdle && this._asyncRequests.size > 0))
+            if(acm.close == ACMClose.CloseOnIdleForceful ||
+               (acm.close != ACMClose.CloseOnIdle && this._asyncRequests.size > 0))
             {
                 //
                 // Close the connection if we didn't receive a heartbeat in
@@ -326,7 +338,7 @@ class ConnectionI
                 //
                 this.setState(StateClosed, new ConnectionTimeoutException());
             }
-            else if(acm.close != Ice.ACMClose.CloseOnInvocation &&
+            else if(acm.close != ACMClose.CloseOnInvocation &&
                     this._dispatchCount === 0 && this._batchRequestQueue.isEmpty() && this._asyncRequests.size === 0)
             {
                 //
@@ -537,7 +549,7 @@ class ConnectionI
             }
         }
 
-        if(outAsync instanceof Ice.OutgoingAsync)
+        if(outAsync instanceof OutgoingAsync)
         {
             for(const [key, value] of this._asyncRequests)
             {
@@ -741,7 +753,7 @@ class ConnectionI
                     if(magic0 !== Protocol.magic[0] || magic1 !== Protocol.magic[1] ||
                        magic2 !== Protocol.magic[2] || magic3 !== Protocol.magic[3])
                     {
-                        throw new Ice.BadMagicException("", new Uint8Array([magic0, magic1, magic2, magic3]));
+                        throw new BadMagicException("", new Uint8Array([magic0, magic1, magic2, magic3]));
                     }
 
                     this._readProtocol._read(this._readStream);
@@ -1066,15 +1078,15 @@ class ConnectionI
     {
         if(this._state <= StateNotValidated)
         {
-            this.setState(StateClosed, new Ice.ConnectTimeoutException());
+            this.setState(StateClosed, new ConnectTimeoutException());
         }
         else if(this._state < StateClosing)
         {
-            this.setState(StateClosed, new Ice.TimeoutException());
+            this.setState(StateClosed, new TimeoutException());
         }
         else if(this._state === StateClosing)
         {
-            this.setState(StateClosed, new Ice.CloseTimeoutException());
+            this.setState(StateClosed, new CloseTimeoutException());
         }
     }
 
@@ -1487,7 +1499,7 @@ class ConnectionI
             if(m[0] !== Protocol.magic[0] || m[1] !== Protocol.magic[1] ||
                 m[2] !== Protocol.magic[2] || m[3] !== Protocol.magic[3])
             {
-                throw new Ice.BadMagicException("", m);
+                throw new BadMagicException("", m);
             }
 
             this._readProtocol._read(this._readStream);
@@ -1499,12 +1511,12 @@ class ConnectionI
             const messageType = this._readStream.readByte();
             if(messageType !== Protocol.validateConnectionMsg)
             {
-                throw new Ice.ConnectionNotValidatedException();
+                throw new ConnectionNotValidatedException();
             }
             this._readStream.readByte(); // Ignore compression status for validate connection.
             if(this._readStream.readInt() !== Protocol.headerSize)
             {
-                throw new Ice.IllegalMessageSizeException();
+                throw new IllegalMessageSizeException();
             }
             TraceUtil.traceRecv(this._readStream, this._logger, this._traceLevels);
         }
@@ -1688,7 +1700,7 @@ class ConnectionI
             const compress = info.stream.readByte();
             if(compress === 2)
             {
-                throw new Ice.FeatureNotSupportedException("Cannot uncompress compressed message");
+                throw new FeatureNotSupportedException("Cannot uncompress compressed message");
             }
             info.stream.pos = Protocol.headerSize;
 
@@ -1697,7 +1709,7 @@ class ConnectionI
                 case Protocol.closeConnectionMsg:
                 {
                     TraceUtil.traceRecv(info.stream, this._logger, this._traceLevels);
-                    this.setState(StateClosed, new Ice.CloseConnectionException());
+                    this.setState(StateClosed, new CloseConnectionException());
                     break;
                 }
 
@@ -1736,7 +1748,7 @@ class ConnectionI
                         if(info.invokeNum < 0)
                         {
                             info.invokeNum = 0;
-                            throw new Ice.UnmarshalOutOfBoundsException();
+                            throw new UnmarshalOutOfBoundsException();
                         }
                         info.servantManager = this._servantManager;
                         info.adapter = this._adapter;
@@ -1778,7 +1790,7 @@ class ConnectionI
                 {
                     TraceUtil.traceIn("received unknown message\n(invalid, closing connection)",
                                       info.stream, this._logger, this._traceLevels);
-                    throw new Ice.UnknownMessageException();
+                    throw new UnknownMessageException();
                 }
             }
         }
@@ -1834,7 +1846,7 @@ class ConnectionI
                 // Attempt to log the error and clean up.
                 //
                 this._logger.error("unexpected exception:\n" + ex.toString());
-                this.invokeException(new Ice.UnknownException(ex), invokeNum);
+                this.invokeException(new UnknownException(ex), invokeNum);
             }
         }
     }
@@ -1995,8 +2007,6 @@ class ConnectionI
 // DestructionReason.
 ConnectionI.ObjectAdapterDeactivated = 0;
 ConnectionI.CommunicatorDestroyed = 1;
-
-Ice.ConnectionI = ConnectionI;
 
 class OutgoingMessage
 {

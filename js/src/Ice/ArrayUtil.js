@@ -27,7 +27,7 @@ const eq = function(e1, e2)
     return false;
 };
 
-class ArrayUtil
+export class ArrayUtil
 {
     static clone(arr)
     {
@@ -78,7 +78,7 @@ class ArrayUtil
 
 ArrayUtil.eq = eq;
 
-function defineSequence(module, name, valueHelper, fixed, elementType)
+export function defineSequence(module, name, valueHelper, fixed, elementType)
 {
     let helper = null;
     Object.defineProperty(module, name,
@@ -94,7 +94,4 @@ function defineSequence(module, name, valueHelper, fixed, elementType)
                     return helper;
                 }
         });
-};
-
-export { ArrayUtil, defineSequence };
-
+}

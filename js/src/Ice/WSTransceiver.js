@@ -285,12 +285,12 @@ if (typeof WebSocket !== 'undefined')
         {
             console.assert(this._fd !== null);
             const info = new WSConnectionInfo();
-            const tcpinfo = new TCPConnectionInfo();
-            tcpinfo.localAddress = "";
-            tcpinfo.localPort = -1;
-            tcpinfo.remoteAddress = this._addr.host;
-            tcpinfo.remotePort = this._addr.port;
-            info.underlying = this._secure ? new SSLConnectionInfo(tcpinfo, tcpinfo.timeout, tcpinfo.compress) : tcpinfo;
+            const tcpInfo = new TCPConnectionInfo();
+            tcpInfo.localAddress = "";
+            tcpInfo.localPort = -1;
+            tcpInfo.remoteAddress = this._addr.host;
+            tcpInfo.remotePort = this._addr.port;
+            info.underlying = this._secure ? new SSLConnectionInfo(tcpInfo, tcpInfo.timeout, tcpInfo.compress) : tcpInfo;
             info.rcvSize = -1;
             info.sndSize = this._maxSendPacketSize;
             info.headers = {};

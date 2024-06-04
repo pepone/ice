@@ -2,55 +2,35 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/ModuleRegistry").Ice;
 
-require("../Ice/ACM");
-require("../Ice/AsyncResultBase");
-require("../Ice/Debug");
-require("../Ice/DefaultsAndOverrides");
-require("../Ice/EndpointFactoryManager");
-require("../Ice/EndpointInfo");
-require("../Ice/Exception");
-require("../Ice/IdentityUtil");
-require("../Ice/ImplicitContext");
-require("../Ice/LocalException");
-require("../Ice/LocatorManager");
-require("../Ice/ObjectAdapterFactory");
-require("../Ice/OutgoingConnectionFactory");
-require("../Ice/ProcessLogger");
-require("../Ice/Promise");
-require("../Ice/Properties");
-require("../Ice/ProtocolInstance");
-require("../Ice/ProxyFactory");
-require("../Ice/Reference");
-require("../Ice/RequestHandlerFactory");
-require("../Ice/RetryQueue");
-require("../Ice/RouterManager");
-require("../Ice/TcpEndpointFactory");
-require("../Ice/Timer");
-require("../Ice/ToStringMode");
-require("../Ice/TraceLevels");
-require("../Ice/ValueFactoryManagerI");
-require("../Ice/WSEndpointFactory");
-
-const ACMConfig = Ice.ACMConfig;
-const AsyncResultBase = Ice.AsyncResultBase;
-const Debug = Ice.Debug;
-const DefaultsAndOverrides = Ice.DefaultsAndOverrides;
-const EndpointFactoryManager = Ice.EndpointFactoryManager;
-const ImplicitContext = Ice.ImplicitContext;
-const LocatorManager = Ice.LocatorManager;
-const ObjectAdapterFactory = Ice.ObjectAdapterFactory;
-const OutgoingConnectionFactory = Ice.OutgoingConnectionFactory;
-const Properties = Ice.Properties;
-const ProxyFactory = Ice.ProxyFactory;
-const ReferenceFactory = Ice.ReferenceFactory;
-const RequestHandlerFactory = Ice.RequestHandlerFactory;
-const RetryQueue = Ice.RetryQueue;
-const RouterManager = Ice.RouterManager;
-const Timer = Ice.Timer;
-const TraceLevels = Ice.TraceLevels;
-const ValueFactoryManagerI = Ice.ValueFactoryManagerI;
+import { ACMConfig } from "./ACM";
+import { AsyncResultBase } from "./AsyncResultBase";
+import { DefaultsAndOverrides } from "./DefaultsAndOverrides";
+import { EndpointFactoryManager } from "./EndpointFactoryManager";
+import { ImplicitContext } from "./ImplicitContext";
+import { LocatorManager } from "./LocatorManager";
+import { ObjectAdapterFactory } from "./ObjectAdapterFactory";
+import { OutgoingConnectionFactory } from "./OutgoingConnectionFactory";
+import { Properties } from "./Properties";
+import { ProxyFactory } from "./ProxyFactory";
+import { ReferenceFactory } from "./ReferenceFactory";
+import { RequestHandlerFactory } from "./RequestHandlerFactory";
+import { RetryQueue } from "./RetryQueue";
+import { RouterManager } from "./RouterManager";
+import { Timer } from "./Timer";
+import { TraceLevels } from "./TraceLevels";
+import { ValueFactoryManager } from "./ValueFactoryManager";
+import { ProtocolInstance } from "./ProtocolInstance";
+import { TcpEndpointFactory } from "./TcpEndpointFactory";
+import { WSEndpointFactory } from "./WSEndpointFactory";
+import { RouterPrx } from "./Router";
+import { LocatorPrx } from "./Locator";
+import { TCPEndpointType, WSEndpointType, SSLEndpointType, WSSEndpointType } from "./EndpointTypes";
+import { LocalException } from "./Exception";
+import { CommunicatorDestroyedException, InitializationException } from "./LocalException";
+import { Promise } from "./Promise";
+import { ToStringMode } from "./ToStringMode";
+import { getProcessLogger } from "./ProcessLogger";
 
 const StateActive = 0;
 const StateDestroyInProgress = 1;
@@ -59,7 +39,7 @@ const StateDestroyed = 2;
 //
 // Instance - only for use by Communicator
 //
-class Instance
+export class Instance
 {
     constructor(initData)
     {
@@ -71,7 +51,7 @@ class Instance
         this._messageSizeMax = 0;
         this._batchAutoFlushSize = 0;
         this._clientACM = null;
-        this._toStringMode = Ice.ToStringMode.Unicode;
+        this._toStringMode = ToStringMode.Unicode;
         this._implicitContext = null;
         this._routerManager = null;
         this._locatorManager = null;
@@ -100,14 +80,14 @@ class Instance
     traceLevels()
     {
         // This value is immutable.
-        Debug.assert(this._traceLevels !== null);
+        console.assert(this._traceLevels !== null);
         return this._traceLevels;
     }
 
     defaultsAndOverrides()
     {
         // This value is immutable.
-        Debug.assert(this._defaultsAndOverrides !== null);
+        console.assert(this._defaultsAndOverrides !== null);
         return this._defaultsAndOverrides;
     }
 
@@ -115,10 +95,10 @@ class Instance
     {
         if(this._state === StateDestroyed)
         {
-            throw new Ice.CommunicatorDestroyedException();
+            throw new CommunicatorDestroyedException();
         }
 
-        Debug.assert(this._routerManager !== null);
+        console.assert(this._routerManager !== null);
         return this._routerManager;
     }
 
@@ -126,10 +106,10 @@ class Instance
     {
         if(this._state === StateDestroyed)
         {
-            throw new Ice.CommunicatorDestroyedException();
+            throw new CommunicatorDestroyedException();
         }
 
-        Debug.assert(this._locatorManager !== null);
+        console.assert(this._locatorManager !== null);
         return this._locatorManager;
     }
 
@@ -137,10 +117,10 @@ class Instance
     {
         if(this._state === StateDestroyed)
         {
-            throw new Ice.CommunicatorDestroyedException();
+            throw new CommunicatorDestroyedException();
         }
 
-        Debug.assert(this._referenceFactory !== null);
+        console.assert(this._referenceFactory !== null);
         return this._referenceFactory;
     }
 
@@ -148,10 +128,10 @@ class Instance
     {
         if(this._state === StateDestroyed)
         {
-            throw new Ice.CommunicatorDestroyedException();
+            throw new CommunicatorDestroyedException();
         }
 
-        Debug.assert(this._requestHandlerFactory !== null);
+        console.assert(this._requestHandlerFactory !== null);
         return this._requestHandlerFactory;
     }
 
@@ -159,10 +139,10 @@ class Instance
     {
         if(this._state === StateDestroyed)
         {
-            throw new Ice.CommunicatorDestroyedException();
+            throw new CommunicatorDestroyedException();
         }
 
-        Debug.assert(this._proxyFactory !== null);
+        console.assert(this._proxyFactory !== null);
         return this._proxyFactory;
     }
 
@@ -170,10 +150,10 @@ class Instance
     {
         if(this._state === StateDestroyed)
         {
-            throw new Ice.CommunicatorDestroyedException();
+            throw new CommunicatorDestroyedException();
         }
 
-        Debug.assert(this._outgoingConnectionFactory !== null);
+        console.assert(this._outgoingConnectionFactory !== null);
         return this._outgoingConnectionFactory;
     }
 
@@ -181,10 +161,10 @@ class Instance
     {
         if(this._state === StateDestroyed)
         {
-            throw new Ice.CommunicatorDestroyedException();
+            throw new CommunicatorDestroyedException();
         }
 
-        Debug.assert(this._objectAdapterFactory !== null);
+        console.assert(this._objectAdapterFactory !== null);
         return this._objectAdapterFactory;
     }
 
@@ -192,10 +172,10 @@ class Instance
     {
         if(this._state === StateDestroyed)
         {
-            throw new Ice.CommunicatorDestroyedException();
+            throw new CommunicatorDestroyedException();
         }
 
-        Debug.assert(this._retryQueue !== null);
+        console.assert(this._retryQueue !== null);
         return this._retryQueue;
     }
 
@@ -203,10 +183,10 @@ class Instance
     {
         if(this._state === StateDestroyed)
         {
-            throw new Ice.CommunicatorDestroyedException();
+            throw new CommunicatorDestroyedException();
         }
 
-        Debug.assert(this._timer !== null);
+        console.assert(this._timer !== null);
         return this._timer;
     }
 
@@ -214,10 +194,10 @@ class Instance
     {
         if(this._state === StateDestroyed)
         {
-            throw new Ice.CommunicatorDestroyedException();
+            throw new CommunicatorDestroyedException();
         }
 
-        Debug.assert(this._endpointFactoryManager !== null);
+        console.assert(this._endpointFactoryManager !== null);
         return this._endpointFactoryManager;
     }
 
@@ -254,7 +234,7 @@ class Instance
     {
         if(this._state == StateDestroyed)
         {
-            throw new Ice.CommunicatorDestroyedException();
+            throw new CommunicatorDestroyedException();
         }
 
         this._referenceFactory = this._referenceFactory.setDefaultLocator(locator);
@@ -264,7 +244,7 @@ class Instance
     {
         if(this._state == StateDestroyed)
         {
-            throw new Ice.CommunicatorDestroyedException();
+            throw new CommunicatorDestroyedException();
         }
 
         this._referenceFactory = this._referenceFactory.setDefaultRouter(router);
@@ -298,7 +278,7 @@ class Instance
 
             if(this._initData.logger === null)
             {
-                this._initData.logger = Ice.getProcessLogger();
+                this._initData.logger = getProcessLogger();
             }
 
             this._traceLevels = new TraceLevels(this._initData.properties);
@@ -345,18 +325,18 @@ class Instance
                                             new ACMConfig(this._initData.properties, this._initData.logger,
                                                             "Ice.ACM", new ACMConfig()));
 
-            const toStringModeStr = this._initData.properties.getPropertyWithDefault("Ice.ToStringMode", "Unicode");
+            const toStringModeStr = this._initData.properties.getPropertyWithDefault("ToStringMode", "Unicode");
             if(toStringModeStr === "ASCII")
             {
-                this._toStringMode = Ice.ToStringMode.ASCII;
+                this._toStringMode = ToStringMode.ASCII;
             }
             else if(toStringModeStr === "Compat")
             {
-                this._toStringMode = Ice.ToStringMode.Compat;
+                this._toStringMode = ToStringMode.Compat;
             }
             else if(toStringModeStr !== "Unicode")
             {
-                throw new Ice.InitializationException("The value for Ice.ToStringMode must be Unicode, ASCII or Compat");
+                throw new InitializationException("The value for ToStringMode must be Unicode, ASCII or Compat");
             }
 
             this._implicitContext =
@@ -374,27 +354,27 @@ class Instance
 
             this._endpointFactoryManager = new EndpointFactoryManager(this);
 
-            const tcpInstance = new Ice.ProtocolInstance(this, Ice.TCPEndpointType, "tcp", false);
-            const tcpEndpointFactory = new Ice.TcpEndpointFactory(tcpInstance);
+            const tcpInstance = new ProtocolInstance(this, TCPEndpointType, "tcp", false);
+            const tcpEndpointFactory = new TcpEndpointFactory(tcpInstance);
             this._endpointFactoryManager.add(tcpEndpointFactory);
 
-            const wsInstance = new Ice.ProtocolInstance(this, Ice.WSEndpointType, "ws", false);
-            const wsEndpointFactory = new Ice.WSEndpointFactory(wsInstance, tcpEndpointFactory.clone(wsInstance));
+            const wsInstance = new ProtocolInstance(this, WSEndpointType, "ws", false);
+            const wsEndpointFactory = new WSEndpointFactory(wsInstance, tcpEndpointFactory.clone(wsInstance));
             this._endpointFactoryManager.add(wsEndpointFactory);
 
-            const sslInstance = new Ice.ProtocolInstance(this, Ice.SSLEndpointType, "ssl", true);
-            const sslEndpointFactory = new Ice.TcpEndpointFactory(sslInstance);
+            const sslInstance = new ProtocolInstance(this, SSLEndpointType, "ssl", true);
+            const sslEndpointFactory = new TcpEndpointFactory(sslInstance);
             this._endpointFactoryManager.add(sslEndpointFactory);
 
-            const wssInstance = new Ice.ProtocolInstance(this, Ice.WSSEndpointType, "wss", true);
-            const wssEndpointFactory = new Ice.WSEndpointFactory(wssInstance, sslEndpointFactory.clone(wssInstance));
+            const wssInstance = new ProtocolInstance(this, WSSEndpointType, "wss", true);
+            const wssEndpointFactory = new WSEndpointFactory(wssInstance, sslEndpointFactory.clone(wssInstance));
             this._endpointFactoryManager.add(wssEndpointFactory);
 
             this._outgoingConnectionFactory = new OutgoingConnectionFactory(communicator, this);
 
             if(this._initData.valueFactoryManager === null)
             {
-                this._initData.valueFactoryManager = new ValueFactoryManagerI();
+                this._initData.valueFactoryManager = new ValueFactoryManager();
             }
 
             this._objectAdapterFactory = new ObjectAdapterFactory(this, communicator);
@@ -402,13 +382,13 @@ class Instance
             this._retryQueue = new RetryQueue(this);
             this._timer = new Timer(this._initData.logger);
 
-            const router = Ice.RouterPrx.uncheckedCast(this._proxyFactory.propertyToProxy("Ice.Default.Router"));
+            const router = RouterPrx.uncheckedCast(this._proxyFactory.propertyToProxy("Ice.Default.Router"));
             if(router !== null)
             {
                 this._referenceFactory = this._referenceFactory.setDefaultRouter(router);
             }
 
-            const loc = Ice.LocatorPrx.uncheckedCast(this._proxyFactory.propertyToProxy("Ice.Default.Locator"));
+            const loc = LocatorPrx.uncheckedCast(this._proxyFactory.propertyToProxy("Ice.Default.Locator"));
             if(loc !== null)
             {
                 this._referenceFactory = this._referenceFactory.setDefaultLocator(loc);
@@ -423,7 +403,7 @@ class Instance
         {
             if(promise !== null)
             {
-                if(ex instanceof Ice.LocalException)
+                if(ex instanceof LocalException)
                 {
                     this.destroy().finally(() => promise.reject(ex));
                 }
@@ -434,7 +414,7 @@ class Instance
             }
             else
             {
-                if(ex instanceof Ice.LocalException)
+                if(ex instanceof LocalException)
                 {
                     this.destroy();
                 }
@@ -470,7 +450,7 @@ class Instance
         // Shutdown and destroy all the incoming and outgoing Ice
         // connections and wait for the connections to be finished.
         //
-        Ice.Promise.try(() =>
+        Promise.try(() =>
             {
                 if(this._objectAdapterFactory)
                 {
@@ -569,6 +549,3 @@ class Instance
         return promise;
     }
 }
-
-Ice.Instance = Instance;
-module.exports.Ice = Ice;

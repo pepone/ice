@@ -2,18 +2,13 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/ModuleRegistry").Ice;
-
-require("../Ice/Current");
-require("../Ice/LocalException");
-
-const Context = Ice.Context;
-const InitializationException = Ice.InitializationException;
+import { Context, ContextHelper } from "./Context";
+import { InitializationException } from "./LocalException";
 
 //
 // The base class for all ImplicitContext implementations
 //
-class ImplicitContext
+export class ImplicitContext
 {
     constructor()
     {
@@ -106,7 +101,7 @@ class ImplicitContext
     {
         if(prxContext.size === 0)
         {
-            Ice.ContextHelper.write(os, this._context);
+            ContextHelper.write(os, this._context);
         }
         else
         {
@@ -123,7 +118,7 @@ class ImplicitContext
                     ctx.set(key, value);
                 }
             }
-            Ice.ContextHelper.write(os, ctx);
+            ContextHelper.write(os, ctx);
         }
     }
 
@@ -143,6 +138,3 @@ class ImplicitContext
         }
     }
 }
-
-Ice.ImplicitContext = ImplicitContext;
-module.exports.Ice = Ice;

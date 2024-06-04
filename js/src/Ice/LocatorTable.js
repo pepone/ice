@@ -2,14 +2,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/ModuleRegistry").Ice;
-
-require("../Ice/Debug");
-require("../Ice/HashMap");
-require("../Ice/IdentityUtil");
-
-const Debug = Ice.Debug;
-const HashMap = Ice.HashMap;
+import { HashMap } from "./HashMap";
 
 class EndpointTableEntry
 {
@@ -29,7 +22,7 @@ class ReferenceTableEntry
     }
 }
 
-class LocatorTable
+export class LocatorTable
 {
     constructor()
     {
@@ -105,7 +98,7 @@ class LocatorTable
 
     checkTTL(time, ttl)
     {
-        Debug.assert(ttl !== 0);
+        console.assert(ttl !== 0);
         if(ttl < 0) // TTL = infinite
         {
             return true;
@@ -116,6 +109,3 @@ class LocatorTable
         }
     }
 }
-
-Ice.LocatorTable = LocatorTable;
-module.exports.Ice = Ice;

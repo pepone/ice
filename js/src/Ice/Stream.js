@@ -2621,7 +2621,7 @@ class EncapsEncoder11 extends EncapsEncoder
         console.assert(slicedData !== null && slicedData !== undefined);
 
         //
-        // We only remarshal preserved slices if we are using the sliced
+        // We only marshal preserved slices if we are using the sliced
         // format. Otherwise, we ignore the preserved slices, which
         // essentially "slices" the instance into the most-derived type
         // known by the sender.

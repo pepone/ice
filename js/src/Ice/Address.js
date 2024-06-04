@@ -2,7 +2,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-class Address
+export class Address
 {
     constructor(host, port)
     {
@@ -10,5 +10,3 @@ class Address
         this.port = port;
     }
 }
-
-export default Address;

@@ -6,13 +6,13 @@ import { FormatType } from "./FormatType";
 import { EndpointSelectionType } from "./EndpointSelectionType";
 import { Protocol } from "./Protocol";
 import { EndpointSelectionTypeParseException } from "./LocalException";
+import { TcpTransceiver } from "./TcpTransceiver";
 
-class DefaultsAndOverrides
+export class DefaultsAndOverrides
 {
     constructor(properties, logger)
     {
-        this.defaultProtocol = properties.getPropertyWithDefault("Ice.Default.Protocol",
-                                                                 Ice.TcpTransceiver !== null ? "tcp" : "ws");
+        this.defaultProtocol = properties.getPropertyWithDefault("Ice.Default.Protocol", TcpTransceiver !== null ? "tcp" : "ws");
 
         let value = properties.getProperty("Ice.Default.Host");
         this.defaultHost = value.length > 0 ? value : null;
@@ -127,5 +127,3 @@ class DefaultsAndOverrides
         this.defaultFormat = slicedFormat ? FormatType.SlicedFormat : FormatType.CompactFormat;
     }
 }
-
-export { DefaultsAndOverrides };

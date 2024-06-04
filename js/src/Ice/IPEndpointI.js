@@ -2,20 +2,13 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/ModuleRegistry").Ice;
+import { Address } from "./Address";
+import { EndpointParseException } from "./LocalException";
+import { HashUtil } from "./HashUtil";
+import { StringUtil } from "./StringUtil";
+import { EndpointI } from "./EndpointI";
 
-require("../Ice/Address");
-require("../Ice/EndpointI");
-require("../Ice/HashUtil");
-require("../Ice/LocalException");
-require("../Ice/StringUtil");
-
-const Address = Ice.Address;
-const EndpointParseException = Ice.EndpointParseException;
-const HashUtil = Ice.HashUtil;
-const StringUtil = Ice.StringUtil;
-
-class IPEndpointI extends Ice.EndpointI
+export class IPEndpointI extends EndpointI
 {
     constructor(instance, ho, po, sa, conId)
     {
@@ -39,7 +32,7 @@ class IPEndpointI extends Ice.EndpointI
 
     getInfo()
     {
-        const info = new Ice.IPEndpointInfo();
+        const info = new IPEndpointInfo();
         this.fillEndpointInfo(info);
         return info;
     }
@@ -320,6 +313,3 @@ class IPEndpointI extends Ice.EndpointI
         return true;
     }
 }
-
-Ice.IPEndpointI = IPEndpointI;
-module.exports.Ice = Ice;

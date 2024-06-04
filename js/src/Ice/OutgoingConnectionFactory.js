@@ -2,28 +2,18 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/ModuleRegistry").Ice;
-
-require("../Ice/ACM");
-require("../Ice/AsyncResultBase");
-require("../Ice/ConnectionI");
-require("../Ice/Debug");
-require("../Ice/EndpointSelectionType");
-require("../Ice/Exception");
-require("../Ice/HashMap");
-require("../Ice/LocalException");
-require("../Ice/Promise");
-
-const AsyncResultBase = Ice.AsyncResultBase;
-const ConnectionI = Ice.ConnectionI;
-const Debug = Ice.Debug;
-const FactoryACMMonitor = Ice.FactoryACMMonitor;
-const HashMap = Ice.HashMap;
+import { ConnectionI } from "./ConnectionI";
+import { FactoryACMMonitor } from "./ACM";
+import { HashMap } from "./HashMap";
+import { AsyncResultBase } from "./AsyncResultBase";
+import { Promise } from "./Promise";
+import { LocalException } from "./Exception";
+import { CommunicatorDestroyedException } from "./LocalException";
 
 //
 // Only for use by Instance.
 //
-class OutgoingConnectionFactory
+export class OutgoingConnectionFactory
 {
     constructor(communicator, instance)
     {
@@ -56,7 +46,7 @@ class OutgoingConnectionFactory
 
     waitUntilFinished()
     {
-        this._waitPromise = new Ice.Promise();
+        this._waitPromise = new Promise();
         this.checkFinished();
         return this._waitPromise;
     }
@@ -66,7 +56,7 @@ class OutgoingConnectionFactory
     //
     create(endpts, hasMore, selType)
     {
-        Debug.assert(endpts.length > 0);
+        console.assert(endpts.length > 0);
 
         //
         // Apply the overrides.
@@ -81,12 +71,12 @@ class OutgoingConnectionFactory
             const connection = this.findConnectionByEndpoint(endpoints);
             if(connection !== null)
             {
-                return Ice.Promise.resolve(connection);
+                return Promise.resolve(connection);
             }
         }
         catch(ex)
         {
-            return Ice.Promise.reject(ex);
+            return Promise.reject(ex);
         }
 
         return new ConnectCallback(this, endpoints, hasMore, selType).start();
@@ -94,11 +84,11 @@ class OutgoingConnectionFactory
 
     setRouterInfo(routerInfo)
     {
-        return Ice.Promise.try(() =>
+        return Promise.try(() =>
             {
                 if(this._destroyed)
                 {
-                    throw new Ice.CommunicatorDestroyedException();
+                    throw new CommunicatorDestroyedException();
                 }
                 return routerInfo.getClientEndpoints();
             }
@@ -169,7 +159,7 @@ class OutgoingConnectionFactory
             return promise;
         }
 
-        Ice.Promise.all(
+        Promise.all(
             this._connectionsByEndpoint.map(
                 connection =>
                 {
@@ -178,7 +168,7 @@ class OutgoingConnectionFactory
                         return connection.flushBatchRequests().catch(
                             ex =>
                             {
-                                if(ex instanceof Ice.LocalException)
+                                if(ex instanceof LocalException)
                                 {
                                     // Ignore
                                 }
@@ -213,10 +203,10 @@ class OutgoingConnectionFactory
     {
         if(this._destroyed)
         {
-            throw new Ice.CommunicatorDestroyedException();
+            throw new CommunicatorDestroyedException();
         }
 
-        Debug.assert(endpoints.length > 0);
+        console.assert(endpoints.length > 0);
 
         for(let i = 0; i < endpoints.length; ++i)
         {
@@ -257,7 +247,7 @@ class OutgoingConnectionFactory
 
         if(this._destroyed)
         {
-            throw new Ice.CommunicatorDestroyedException();
+            throw new CommunicatorDestroyedException();
         }
         ++this._pendingConnectCount;
     }
@@ -265,7 +255,7 @@ class OutgoingConnectionFactory
     decPendingConnectCount()
     {
         --this._pendingConnectCount;
-        Debug.assert(this._pendingConnectCount >= 0);
+        console.assert(this._pendingConnectCount >= 0);
         if(this._destroyed && this._pendingConnectCount === 0)
         {
             this.checkFinished();
@@ -276,7 +266,7 @@ class OutgoingConnectionFactory
     {
         if(this._destroyed)
         {
-            throw new Ice.CommunicatorDestroyedException();
+            throw new CommunicatorDestroyedException();
         }
 
         //
@@ -299,7 +289,7 @@ class OutgoingConnectionFactory
         {
             if(this._destroyed)
             {
-                throw new Ice.CommunicatorDestroyedException();
+                throw new CommunicatorDestroyedException();
             }
 
             //
@@ -342,7 +332,7 @@ class OutgoingConnectionFactory
 
     createConnection(transceiver, endpoint)
     {
-        Debug.assert(this._pending.has(endpoint) && transceiver !== null);
+        console.assert(this._pending.has(endpoint) && transceiver !== null);
 
         //
         // Create and add the connection to the connection map. Adding the connection to the map
@@ -354,7 +344,7 @@ class OutgoingConnectionFactory
         {
             if(this._destroyed)
             {
-                throw new Ice.CommunicatorDestroyedException();
+                throw new CommunicatorDestroyedException();
             }
 
             connection = new ConnectionI(this._communicator, this._instance, this._monitor, transceiver,
@@ -362,7 +352,7 @@ class OutgoingConnectionFactory
         }
         catch(ex)
         {
-            if(ex instanceof Ice.LocalException)
+            if(ex instanceof LocalException)
             {
                 try
                 {
@@ -469,7 +459,7 @@ class OutgoingConnectionFactory
 
         callbacks.forEach(cc =>
             {
-                Debug.assert(failedCallbacks.indexOf(cc) === -1);
+                console.assert(failedCallbacks.indexOf(cc) === -1);
                 cc.removeFromPending();
             });
         this.checkFinished();
@@ -546,7 +536,7 @@ class OutgoingConnectionFactory
         {
             const s = [];
             s.push("connection to endpoint failed");
-            if(ex instanceof Ice.CommunicatorDestroyedException)
+            if(ex instanceof CommunicatorDestroyedException)
             {
                 s.push("\n");
             }
@@ -570,7 +560,7 @@ class OutgoingConnectionFactory
         {
             const s = [];
             s.push("couldn't resolve endpoint host");
-            if(ex instanceof Ice.CommunicatorDestroyedException)
+            if(ex instanceof CommunicatorDestroyedException)
             {
                 s.push("\n");
             }
@@ -597,9 +587,9 @@ class OutgoingConnectionFactory
             return;
         }
 
-        Ice.Promise.all(
+        Promise.all(
             this._connectionsByEndpoint.map(
-                connection => connection.waitUntilFinished().catch(ex => Debug.assert(false)))
+                connection => connection.waitUntilFinished().catch(ex => console.assert(false)))
         ).then(
             () =>
             {
@@ -614,23 +604,20 @@ class OutgoingConnectionFactory
                             arr.push(connection);
                         }
                     });
-                    Debug.assert(cons.length === arr.length);
+                    console.assert(cons.length === arr.length);
                     this._connectionsByEndpoint.clear();
                 }
                 else
                 {
-                    Debug.assert(this._connectionsByEndpoint.size === 0);
+                    console.assert(this._connectionsByEndpoint.size === 0);
                 }
 
-                Debug.assert(this._waitPromise !== null);
+                console.assert(this._waitPromise !== null);
                 this._waitPromise.resolve();
                 this._monitor.destroy();
             });
     }
 }
-
-Ice.OutgoingConnectionFactory = OutgoingConnectionFactory;
-module.exports.Ice = Ice;
 
 //
 // Value is a Vector<Ice.ConnectionI>
@@ -650,7 +637,7 @@ class ConnectionListMap extends HashMap
             list = [];
             super.set(key, list);
         }
-        Debug.assert(value instanceof ConnectionI);
+        console.assert(value instanceof ConnectionI);
         list.push(value);
         return undefined;
     }
@@ -658,9 +645,9 @@ class ConnectionListMap extends HashMap
     removeConnection(key, conn)
     {
         const list = this.get(key);
-        Debug.assert(list !== null);
+        console.assert(list !== null);
         const idx = list.indexOf(conn);
-        Debug.assert(idx !== -1);
+        console.assert(idx !== -1);
         list.splice(idx, 1);
         if(list.length === 0)
         {
@@ -692,7 +679,7 @@ class ConnectCallback
         this._endpoints = endpoints;
         this._hasMore = more;
         this._selType = selType;
-        this._promise = new Ice.Promise();
+        this._promise = new Promise();
         this._index = 0;
         this._current = null;
     }
@@ -708,7 +695,7 @@ class ConnectCallback
 
     connectionStartFailed(connection, ex)
     {
-        Debug.assert(this._current !== null);
+        console.assert(this._current !== null);
         if(this.connectionStartFailedImpl(ex))
         {
             this.nextEndpoint();
@@ -834,7 +821,7 @@ class ConnectCallback
             const traceLevels = this._factory._instance.traceLevels();
             try
             {
-                Debug.assert(this._index < this._endpoints.length);
+                console.assert(this._index < this._endpoints.length);
                 this._current = this._endpoints[this._index++];
 
                 if(traceLevels.network >= 2)
@@ -874,10 +861,10 @@ class ConnectCallback
 
     connectionStartFailedImpl(ex)
     {
-        if(ex instanceof Ice.LocalException)
+        if(ex instanceof LocalException)
         {
             this._factory.handleConnectionException(ex, this._hasMore || this._index < this._endpoints.length);
-            if(ex instanceof Ice.CommunicatorDestroyedException) // No need to continue.
+            if(ex instanceof CommunicatorDestroyedException) // No need to continue.
             {
                 this._factory.finishGetConnectionEx(this._endpoints, ex, this);
             }

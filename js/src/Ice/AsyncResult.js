@@ -2,21 +2,13 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/ModuleRegistry").Ice;
+import { AsyncResultBase } from "./AsyncResultBase";
+import { OutputStream } from "./Stream";
+import { Protocol } from "./Protocol";
+import { UserException } from "./Exception";
+import { InvocationCanceledException } from "./LocalException";
 
-require("../Ice/AsyncResultBase");
-require("../Ice/Debug");
-require("../Ice/Exception");
-require("../Ice/Protocol");
-require("../Ice/Stream");
-
-const AsyncResultBase = Ice.AsyncResultBase;
-const Debug = Ice.Debug;
-const Protocol = Ice.Protocol;
-const UserException = Ice.UserException;
-const OutputStream = Ice.OutputStream;
-
-class AsyncResult extends AsyncResultBase
+export class AsyncResult extends AsyncResultBase
 {
     constructor(com, op, connection, proxy, adapter, completedFn)
     {
@@ -31,7 +23,7 @@ class AsyncResult extends AsyncResultBase
 
     cancel()
     {
-        this.cancelWithException(new Ice.InvocationCanceledException());
+        this.cancelWithException(new InvocationCanceledException());
     }
 
     isCompleted()

@@ -5,11 +5,12 @@
 
 import { CommunicatorDestroyedException } from "./LocalException";
 import { Instance } from "./Instance";
+import { AsyncResultBase } from "./AsyncResultBase";
 
 //
 // Ice.Communicator
 //
-class Communicator
+export class Communicator
 {
     constructor(initData)
     {
@@ -51,7 +52,7 @@ class Communicator
         }
         catch(ex)
         {
-            console.assert(ex instanceof Ice.CommunicatorDestroyedException);
+            console.assert(ex instanceof CommunicatorDestroyedException);
             return Ice.Promise.resolve();
         }
     }
@@ -64,7 +65,7 @@ class Communicator
         }
         catch(ex)
         {
-            if(!(ex instanceof Ice.CommunicatorDestroyedException))
+            if(!(ex instanceof CommunicatorDestroyedException))
             {
                 throw ex;
             }
@@ -99,7 +100,7 @@ class Communicator
 
     createObjectAdapter(name)
     {
-        const promise = new Ice.AsyncResultBase(this, "createObjectAdapter", this, null, null);
+        const promise = new AsyncResultBase(this, "createObjectAdapter", this, null, null);
         this._instance.objectAdapterFactory().createObjectAdapter(name, null, promise);
         return promise;
     }
@@ -112,7 +113,7 @@ class Communicator
         }
 
         this.getProperties().setProperty(name + ".Endpoints", endpoints);
-        const promise = new Ice.AsyncResultBase(this, "createObjectAdapterWithEndpoints", this, null, null);
+        const promise = new AsyncResultBase(this, "createObjectAdapterWithEndpoints", this, null, null);
         this._instance.objectAdapterFactory().createObjectAdapter(name, null, promise);
         return promise;
     }
@@ -124,7 +125,7 @@ class Communicator
             name = Ice.generateUUID();
         }
 
-        const promise = new Ice.AsyncResultBase(this, "createObjectAdapterWithRouter", this, null, null);
+        const promise = new AsyncResultBase(this, "createObjectAdapterWithRouter", this, null, null);
 
         //
         // We set the proxy properties here, although we still use the proxy supplied.
@@ -188,6 +189,3 @@ class Communicator
         return this._instance;
     }
 }
-
-Ice.Communicator = Communicator;
-module.exports.Ice = Ice;

@@ -12,7 +12,7 @@ import { EncodingVersion } from "./Version";
  *  <code>Current</code> as its implicit final parameter. <code>Current</code> is mostly used for Ice services. Most
  *  applications ignore this parameter.
  **/
-class Current
+export class Current
 {
     constructor(
         adapter = null,
@@ -38,5 +38,3 @@ class Current
 };
 
 defineStruct(Current, false, true);
-
-export default Current;

@@ -7,10 +7,7 @@ import { Communicator } from './Communicator';
 import { Protocol } from './Protocol';
 import { InitializationException } from './LocalException';
 
-//
-// Ice.InitializationData
-//
-class InitializationData
+export class InitializationData
 {
     constructor()
     {
@@ -29,10 +26,8 @@ class InitializationData
     }
 };
 
-//
-// Ice.initialize()
-//
-function initialize(arg1, arg2)
+
+export function initialize(arg1, arg2)
 {
     let args = null;
     let initData = null;
@@ -77,30 +72,27 @@ function initialize(arg1, arg2)
     return result;
 };
 
-//
-// Ice.createProperties()
-//
-function createProperties(args, defaults)
+export function createProperties(args, defaults)
 {
-    return new Ice.Properties(args, defaults);
+    return new Properties(args, defaults);
 }
 
-function currentProtocol()
+export function currentProtocol()
 {
     return Protocol.currentProtocol.clone();
 }
 
-function currentEncoding()
+export function currentEncoding()
 {
     return Protocol.currentEncoding.clone();
-};
+}
 
-function stringVersion()
+export function stringVersion()
 {
     return "3.8.0-alpha.0"; // "A.B.C", with A=major, B=minor, C=patch
 }
 
-function intVersion()
+export function intVersion()
 {
     return 30850; // AABBCC, with AA=major, BB=minor, CC=patch
 };

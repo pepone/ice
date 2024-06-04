@@ -2,7 +2,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-class ProtocolInstance
+export class ProtocolInstance
 {
     constructor(instance, type, protocol, secure)
     {
@@ -76,5 +76,3 @@ class ProtocolInstance
         return this._instance.messageSizeMax();
     }
 }
-
-export default ProtocolInstance;

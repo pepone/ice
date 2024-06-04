@@ -54,7 +54,7 @@ export class ACM
         this.close = close;
         this.heartbeat = heartbeat;
     }
-};
+}
 
 defineStruct(ACM, true, true);
 
