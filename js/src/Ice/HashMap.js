@@ -4,11 +4,11 @@
 
 const Ice = require("../Ice/ModuleRegistry").Ice;
 
-require("../Ice/StringUtil");
-require("../Ice/UUID");
 
 const _ModuleRegistry = Ice._ModuleRegistry;
-const StringUtil = Ice.StringUtil;
+
+import { StringUtil } from "./StringUtil";
+import { generateUUID } from "./UUID";
 
 function setInternal(map, key, value, hash, index)
 {
@@ -52,7 +52,7 @@ function compareIdentity(v1, v2)
     return v1 === v2;
 }
 
-class HashMap
+export class HashMap
 {
     constructor(arg1, arg2)
     {
@@ -387,7 +387,7 @@ class HashMap
         {
             if(HashMap._null === null)
             {
-                const uuid = Ice.generateUUID();
+                const uuid = generateUUID();
                 HashMap._null = {key: uuid, hash: StringUtil.hashCode(uuid)};
             }
             return HashMap._null;
@@ -414,7 +414,7 @@ class HashMap
             {
                 if(HashMap._nan === null)
                 {
-                    const uuid = Ice.generateUUID();
+                    const uuid = generateUUID();
                     HashMap._nan = {key: uuid, hash: StringUtil.hashCode(uuid)};
                 }
                 return HashMap._nan;
@@ -441,17 +441,12 @@ class HashMap
 }
 
 HashMap.prototype[Symbol.iterator] = HashMap.prototype.entries;
-
-Ice.HashMap = HashMap;
-
 HashMap.compareEquals = compareEquals;
 HashMap.compareIdentity = compareIdentity;
 HashMap._null = null;
 HashMap._nan = null;
 
-const Slice = Ice.Slice;
-
-Slice.defineDictionary = function(module, name, helperName, keyHelper, valueHelper, fixed, keysEqual, valueType)
+export function defineDictionary(module, name, helperName, keyHelper, valueHelper, fixed, keysEqual, valueType)
 {
     if(keysEqual === undefined)
     {
@@ -487,4 +482,3 @@ Slice.defineDictionary = function(module, name, helperName, keyHelper, valueHelp
         }
     });
 };
-module.exports.Ice = Ice;

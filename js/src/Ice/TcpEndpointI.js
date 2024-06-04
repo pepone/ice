@@ -2,25 +2,15 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/ModuleRegistry").Ice;
-
-require("../Ice/Debug");
-require("../Ice/EndpointInfo");
-require("../Ice/HashUtil");
-require("../Ice/IPEndpointI");
-require("../Ice/LocalException");
-require("../Ice/StringUtil");
-require("../Ice/TcpTransceiver");
-
-const IceSSL = require("../Ice/EndpointInfo").IceSSL;
-
-const Debug = Ice.Debug;
-const HashUtil = Ice.HashUtil;
-const StringUtil = Ice.StringUtil;
+import { HashUtil } from "./HashUtil";
+import { StringUtil } from "./StringUtil";
+import { TCPEndpointInfo } from "./Endpoint";
+import { EndpointParseException } from "./LocalException";
+import { IPEndpointI } from "./IPEndpointI";
 
 const TcpTransceiver = typeof Ice.TcpTransceiver !== "undefined" ? Ice.TcpTransceiver : null;
 
-class TcpEndpointI extends Ice.IPEndpointI
+export class TcpEndpointI extends IPEndpointI
 {
     constructor(instance, ho, po, sif, ti, conId, co)
     {
@@ -34,9 +24,10 @@ class TcpEndpointI extends Ice.IPEndpointI
     //
     getInfo()
     {
-        const info = new Ice.TCPEndpointInfo();
+        const info = new TCPEndpointInfo();
         this.fillEndpointInfo(info);
-        return this.secure() ? new IceSSL.EndpointInfo(info, info.timeout, info.compress) : info;
+        console.assert(!this.secure); // Secure endpoints are not supported in NodeJS
+        return info;
     }
 
     //
@@ -238,7 +229,7 @@ class TcpEndpointI extends Ice.IPEndpointI
         {
             if(argument === null)
             {
-                throw new Ice.EndpointParseException("no argument provided for -t option in endpoint " + endpoint);
+                throw new EndpointParseException("no argument provided for -t option in endpoint " + endpoint);
             }
 
             if(argument == "infinite")
@@ -258,8 +249,8 @@ class TcpEndpointI extends Ice.IPEndpointI
                 }
                 if(invalid || this._timeout < 1)
                 {
-                    throw new Ice.EndpointParseException("invalid timeout value `" + argument + "' in endpoint " +
-                                                         endpoint);
+                    throw new EndpointParseException(
+                        "invalid timeout value `" + argument + "' in endpoint " + endpoint);
                 }
             }
         }
@@ -267,8 +258,8 @@ class TcpEndpointI extends Ice.IPEndpointI
         {
             if(argument !== null)
             {
-                throw new Ice.EndpointParseException("unexpected argument `" + argument +
-                                                     "' provided for -z option in " + endpoint);
+                throw new EndpointParseException(
+                    "unexpected argument `" + argument + "' provided for -z option in " + endpoint);
             }
 
             this._compress = true;

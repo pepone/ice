@@ -2,23 +2,21 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("../Ice/ModuleRegistry").Ice;
-
-require("../Ice/Connection");
-require("../Ice/Exception");
-require("../Ice/SocketOperation");
-require("../Ice/Timer");
-
 import { TCPConnectionInfo } from './TCPConnectionInfo';
+import { SocketOperation } from './SocketOperation';
+import { Timer } from './Timer';
+import {
+    ConnectionLostException,
+    ConnectionRefusedException,
+    ConnectFailedException,
+    SocketException
+ } from './LocalException';
 
 let TcpTransceiver = {};
 
 if (typeof process !== 'undefined')
 {
     const net = require("net");
-
-    const SocketOperation = Ice.SocketOperation;
-    const Timer = Ice.Timer;
 
     const StateNeedConnect = 0;
     const StateConnectPending = 1;
@@ -270,7 +268,7 @@ if (typeof process !== 'undefined')
         getInfo()
         {
             console.assert(this._fd !== null);
-            const info = new Ice.TCPConnectionInfo();
+            const info = new TCPConnectionInfo();
             info.localAddress = this._fd.localAddress;
             info.localPort = this._fd.localPort;
             info.remoteAddress = this._fd.remoteAddress;
@@ -385,24 +383,24 @@ if (typeof process !== 'undefined')
     {
         if(!err)
         {
-            return new Ice.ConnectionLostException();
+            return new ConnectionLostException();
         }
         else if(state < StateConnected)
         {
             if(connectionRefused(err.code))
             {
-                return new Ice.ConnectionRefusedException(err.code, err);
+                return new ConnectionRefusedException(err.code, err);
             }
             else if(connectionFailed(err.code))
             {
-                return new Ice.ConnectFailedException(err.code, err);
+                return new ConnectFailedException(err.code, err);
             }
         }
         else if(connectionLost(err.code))
         {
-            return new Ice.ConnectionLostException(err.code, err);
+            return new ConnectionLostException(err.code, err);
         }
-        return new Ice.SocketException(err.code, err);
+        return new SocketException(err.code, err);
     }
 
     function addressesToString(localHost, localPort, remoteHost, remotePort, targetAddr)
