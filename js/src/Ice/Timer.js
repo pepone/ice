@@ -2,11 +2,11 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import TimerUtil from "../Ice/TimerUtil";
+import { TimerUtil } from "./TimerUtil.js";
 
 const CommunicatorDestroyedException = Ice.CommunicatorDestroyedException;
 
-class Timer
+export class Timer
 {
     constructor(logger)
     {
@@ -122,5 +122,3 @@ Timer.clearTimeout = TimerUtil.clearTimeout;
 Timer.setInterval = TimerUtil.setInterval;
 Timer.clearInterval = TimerUtil.clearInterval;
 Timer.setImmediate = TimerUtil.setImmediate;
-
-export default Timer;

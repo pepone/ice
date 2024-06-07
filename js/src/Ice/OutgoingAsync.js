@@ -2,9 +2,9 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { OutputStream } from "./Stream";
-import { AsyncResult } from "./AsyncResult";
-import { RetryException } from "./RetryException";
+import { OutputStream } from "./Stream.js";
+import { AsyncResult } from "./AsyncResult.js";
+import { RetryException } from "./RetryException.js";
 import { 
     InvocationTimeoutException,
     MarshalException,
@@ -15,11 +15,12 @@ import {
     UnknownLocalException,
     UnknownUserException,
     UnknownReplyStatusException
-} from "./LocalException";
-import { ContextHelper } from "./Context";
-import { Protocol } from "./Protocol";
-import { StringSeqHelper } from "./StringSeqHelper";
-
+} from "./LocalException.js";
+import { Ice as Ice_Context } from "./Context.js";
+const { ContextHelper } = Ice_Context;
+import { Protocol } from "./Protocol.js";
+import { Ice as Ice_BuiltinSequences } from "./BuiltinSequences.js";
+const { StringSeqHelper } = Ice_BuiltinSequences;
 export class OutgoingAsyncBase extends AsyncResult
 {
     constructor(communicator, operation, connection, proxy, adapter)

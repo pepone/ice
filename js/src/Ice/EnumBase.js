@@ -77,7 +77,7 @@ class EnumHelper
     }
 }
 
-function defineEnum(enumerators)
+export function defineEnum(enumerators)
 {
     const type = class extends EnumBase
     {
@@ -163,6 +163,4 @@ function defineEnum(enumerators)
     });
 
     return type;
-};
-
-export default defineEnum;
+}

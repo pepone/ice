@@ -2,10 +2,10 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { StringUtil } from "./StringUtil";
-import { PropertyNames } from "./PropertyNames";
-import { getProcessLogger } from "./ProcessLogger";
-import { InitializationException } from "./LocalException";
+import { StringUtil } from "./StringUtil.js";
+import { PropertyNames } from "./PropertyNames.js";
+import { getProcessLogger } from "./ProcessLogger.js";
+import { InitializationException } from "./LocalException.js";
 
 const ParseStateKey = 0;
 const ParseStateValue = 1;

@@ -2,10 +2,12 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { Identity } from "./Identity";
-import { StringUtil } from "./StringUtil";
-import { Protocol } from "./Protocol";
-import { OperationMode } from "./OperationMode";
+import { Identity } from "./Identity.js";
+import { StringUtil } from "./StringUtil.js";
+import { Protocol } from "./Protocol.js";
+import { Ice as Ice_OperationMode } from "./OperationMode.js";
+
+const OperationMode = Ice_OperationMode.OperationMode;
 
 const slicingIds = new Map();
 

@@ -2,27 +2,26 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { throwUOE } from "./ExUtil";
-import { ArrayUtil } from "./ArrayUtil";
-import { Buffer } from "./Buffer";
-import { CompactIdRegistry } from "./CompactIdRegistry";
-import { FormatType } from "./FormatType";
-import { OptionalFormat } from "./OptionalFormat";
-import { Encoding_1_0, Protocol } from "./Protocol";
-import { EncodingVersion } from "./Version";
-import { SlicedData, SliceInfo } from "./UnknownSlicedValue";
-import { TraceUtil } from "./TraceUtil";
-import { LocalException } from "./Exception";
-import { Value } from "./Value";
+import { throwUOE } from "./ExUtil.js";
+import { ArrayUtil } from "./ArrayUtil.js";
+import { Buffer } from "./Buffer.js";
+import { CompactIdRegistry } from "./CompactIdRegistry.js";
+import { FormatType } from "./FormatType.js";
+import { OptionalFormat } from "./OptionalFormat.js";
+import { Encoding_1_0, Protocol } from "./Protocol.js";
+import { SlicedData, SliceInfo } from "./UnknownSlicedValue.js";
+import { TraceUtil } from "./TraceUtil.js";
+import { LocalException } from "./Exception.js";
+import { Value } from "./Value.js";
 import {
     EncapsulationException,
     InitializationException,
     MarshalException,
     UnmarshalOutOfBoundsException,
     UnknownUserException,
-    NoValueFactoryException } from "./LocalException";
-import { Identity } from "./Identity";
-import { OptionalFormat } from "./OptionalFormat";
+    NoValueFactoryException } from "./LocalException.js";
+import { Identity } from "./Identity.js";
+import { EncodingVersion } from "./Version.js";
 
 const SliceType =
 {
@@ -1084,7 +1083,7 @@ class ReadEncaps
     }
 }
 
-class InputStream
+export class InputStream
 {
     constructor(arg1, arg2, arg3)
     {
@@ -2763,7 +2762,7 @@ class WriteEncaps
     }
 }
 
-class OutputStream
+export class OutputStream
 {
     constructor(arg1, arg2)
     {
@@ -3373,7 +3372,7 @@ class OutputStream
     }
 }
 
-const defineBuiltinHelper = function(write, read, sz, format, min, max)
+function defineBuiltinHelper(write, read, sz, format, min, max)
 {
     const helper = class
     {
@@ -3412,7 +3411,7 @@ const defineBuiltinHelper = function(write, read, sz, format, min, max)
     }
 
     return helper;
-};
+}
 
 const istr = InputStream.prototype;
 const ostr = OutputStream.prototype;
@@ -3435,34 +3434,34 @@ const MAX_INT32_VALUE = 0x7FFFFFFF;
 const MIN_FLOAT32_VALUE = -3.4028234664e+38;
 const MAX_FLOAT32_VALUE = 3.4028234664e+38;
 
-Ice.ByteHelper = defineBuiltinHelper(ostr.writeByte, istr.readByte, 1, OptionalFormat.F1,
+export const ByteHelper = defineBuiltinHelper(ostr.writeByte, istr.readByte, 1, OptionalFormat.F1,
                                      MIN_UINT8_VALUE, MAX_UINT8_VALUE);
 
-Ice.ShortHelper = defineBuiltinHelper(ostr.writeShort, istr.readShort, 2, OptionalFormat.F2,
+export const ShortHelper = defineBuiltinHelper(ostr.writeShort, istr.readShort, 2, OptionalFormat.F2,
                                       MIN_INT16_VALUE, MAX_INT16_VALUE);
 
-Ice.IntHelper = defineBuiltinHelper(ostr.writeInt, istr.readInt, 4, OptionalFormat.F4,
+export const IntHelper = defineBuiltinHelper(ostr.writeInt, istr.readInt, 4, OptionalFormat.F4,
                                     MIN_INT32_VALUE, MAX_INT32_VALUE);
 
-Ice.FloatHelper = defineBuiltinHelper(ostr.writeFloat, istr.readFloat, 4, OptionalFormat.F4,
+export const FloatHelper = defineBuiltinHelper(ostr.writeFloat, istr.readFloat, 4, OptionalFormat.F4,
                                       MIN_FLOAT32_VALUE, MAX_FLOAT32_VALUE);
-Ice.FloatHelper.validate = function(v)
+FloatHelper.validate = function(v)
 {
     return Number.isNaN(v) || v == Number.POSITIVE_INFINITY || v == Number.NEGATIVE_INFINITY ||
         (v >= MIN_FLOAT32_VALUE && v <= MAX_FLOAT32_VALUE);
 };
 
-Ice.DoubleHelper = defineBuiltinHelper(ostr.writeDouble, istr.readDouble, 8, OptionalFormat.F8,
+export const DoubleHelper = defineBuiltinHelper(ostr.writeDouble, istr.readDouble, 8, OptionalFormat.F8,
                                        -Number.MAX_VALUE, Number.MAX_VALUE);
-Ice.DoubleHelper.validate = function(v)
+DoubleHelper.validate = function(v)
 {
     return Number.isNaN(v) || v == Number.POSITIVE_INFINITY || v == Number.NEGATIVE_INFINITY ||
         (v >= -Number.MAX_VALUE && v <= Number.MAX_VALUE);
 };
 
-Ice.BoolHelper = defineBuiltinHelper(ostr.writeBool, istr.readBool, 1, OptionalFormat.F1);
-Ice.LongHelper = defineBuiltinHelper(ostr.writeLong, istr.readLong, 8, OptionalFormat.F8);
-Ice.LongHelper.validate = function(v)
+export const BoolHelper = defineBuiltinHelper(ostr.writeBool, istr.readBool, 1, OptionalFormat.F1);
+export const LongHelper = defineBuiltinHelper(ostr.writeLong, istr.readLong, 8, OptionalFormat.F8);
+LongHelper.validate = function(v)
 {
     //
     // For a long to be valid both words must be within the range of UINT32
@@ -3471,9 +3470,8 @@ Ice.LongHelper.validate = function(v)
            v.high >= MIN_UINT32_VALUE && v.high <= MAX_UINT32_VALUE;
 };
 
-Ice.StringHelper = defineBuiltinHelper(ostr.writeString, istr.readString, 1, OptionalFormat.VSize);
-
-Ice.ObjectHelper = class
+export const StringHelper = defineBuiltinHelper(ostr.writeString, istr.readString, 1, OptionalFormat.VSize);
+export const ObjectHelper = class
 {
     static write(os, v)
     {
@@ -3510,7 +3508,3 @@ Ice.ObjectHelper = class
         return 1;
     }
 };
-
-Ice.InputStream = InputStream;
-Ice.OutputStream = OutputStream;
-module.exports.Ice = Ice;

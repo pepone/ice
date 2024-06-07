@@ -3,9 +3,9 @@
 //
 
 
-import { Communicator } from './Communicator';
-import { Protocol } from './Protocol';
-import { InitializationException } from './LocalException';
+import { Communicator } from "./Communicator.js";
+import { Protocol } from "./Protocol.js";
+import { InitializationException } from "./LocalException.js";
 
 export class InitializationData
 {

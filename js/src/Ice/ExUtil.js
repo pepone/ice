@@ -2,7 +2,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { UnexpectedObjectException, MemoryLimitException } from "./LocalException";
+import { UnexpectedObjectException, MemoryLimitException } from "./LocalException.js";
 
 
 export function throwUOE(expectedType, v)

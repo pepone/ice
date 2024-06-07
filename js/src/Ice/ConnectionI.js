@@ -3,6 +3,7 @@
 //
 
 
+import { LocalException } from "./Exception.js"
 import {
     IllegalMessageSizeException,
     ObjectAdapterDeactivatedException,
@@ -14,24 +15,23 @@ import {
     CloseTimeoutException,
     TimeoutException,
     SocketException,
-    LocalException,
     FeatureNotSupportedException,
     UnmarshalOutOfBoundsException,
     BadMagicException,
     ConnectionNotValidatedException,
     UnknownMessageException,
     UnknownException
- } from './LocalException';
+ } from "./LocalException.js";
 
-import { ACM, ACMClose, ACMHeartbeat } from './Connection';
+import { ACM, ACMClose, ACMHeartbeat } from "./Connection.js";
 
-import { BatchRequestQueue } from './BatchRequestQueue';
-import { InputStream, OutputStream } from './Stream';
-import { Protocol } from './Protocol';
-import { ProtocolVersion, EncodingVersion } from './Version';
-import { throwMemoryLimitException } from './ExUtil';
-import { Timer } from './Timer';
-import { IcePromise } from './Promise';
+import { BatchRequestQueue } from "./BatchRequestQueue.js";
+import { InputStream, OutputStream } from "./Stream.js";
+import { Protocol } from "./Protocol.js";
+import { ProtocolVersion, EncodingVersion } from "./Version.js";
+import { throwMemoryLimitException } from "./ExUtil.js";
+import { Timer } from "./Timer.js";
+import { Promise } from "./Promise.js";
 
 const StateNotInitialized = 0;
 const StateNotValidated = 1;
@@ -134,10 +134,10 @@ export class ConnectionI
             if(this._state >= StateClosed)
             {
                 console.assert(this._exception !== null);
-                return IcePromise.reject(this._exception);
+                return Promise.reject(this._exception);
             }
 
-            this._startPromise = new IcePromise();
+            this._startPromise = new Promise();
             this._transceiver.setCallbacks(
                 () => this.message(SocketOperation.Write), // connected callback
                 () => this.message(SocketOperation.Read), // read callback
@@ -280,7 +280,7 @@ export class ConnectionI
 
     waitUntilFinished()
     {
-        const promise = new IcePromise();
+        const promise = new Promise();
         this._finishedPromises.push(promise);
         this.checkState();
         return promise;

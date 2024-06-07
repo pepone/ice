@@ -2,7 +2,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { AlreadyRegisteredException } from "./LocalException";
+import { AlreadyRegisteredException } from "./LocalException.js";
 
 // Only for use by Instance
 export class ValueFactoryManager

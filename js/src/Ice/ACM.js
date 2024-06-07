@@ -2,7 +2,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { ACMClose, ACMHeartbeat, ACM } from "./Connection";
+import { ACMClose, ACMHeartbeat, ACM } from "./Connection.js";
 
 export class ACMConfig
 {

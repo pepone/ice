@@ -2,7 +2,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { LocalException } from "./Exception";
+import { LocalException } from "./Exception.js";
 
 export class RetryException extends Error
 {

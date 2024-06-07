@@ -2,10 +2,10 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { ObjectAdapter } from "./ObjectAdapter";
-import { Promise } from "./Promise";
-import { ObjectAdapterDeactivatedException, AlreadyRegisteredException } from "./LocalException";
-import { generateUUID } from "./UUID";
+import { ObjectAdapter } from "./ObjectAdapter.js";
+import { Promise } from "./Promise.js";
+import { ObjectAdapterDeactivatedException, AlreadyRegisteredException } from "./LocalException.js";
+import { generateUUID } from "./UUID.js";
 
 //
 // Only for use by Instance.

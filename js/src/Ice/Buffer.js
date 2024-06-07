@@ -2,13 +2,13 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import Long from './Long.js';
+import { Long } from "./Long.js";
 
 const bufferOverflowExceptionMsg = "BufferOverflowException";
 const bufferUnderflowExceptionMsg = "BufferUnderflowException";
 const indexOutOfBoundsExceptionMsg = "IndexOutOfBoundsException";
 
-class Buffer
+export class Buffer
 {
     constructor(buffer)
     {
@@ -397,5 +397,3 @@ class Buffer
         return this._limit - this._position;
     }
 }
-
-export default Buffer;

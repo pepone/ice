@@ -2,7 +2,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { defineEnum } from "./EnumBase";
+import { defineEnum } from "./EnumBase.js";
 
 /**
  *  The output mode for xxxToString method such as identityToString and proxyToString. The actual encoding format for

@@ -2,9 +2,9 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { Timer } from "./Timer";
+import { Timer } from "./Timer.js";
 
-export class P extends Promise
+class P extends Promise
 {
     constructor(cb)
     {
@@ -47,3 +47,5 @@ export class P extends Promise
         return P.resolve().then(cb);
     }
 }
+
+export { P as Promise };

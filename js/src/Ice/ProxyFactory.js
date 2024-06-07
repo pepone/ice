@@ -2,10 +2,9 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { StringUtil } from "./StringUtil";
-
+import { StringUtil } from "./StringUtil.js";
+import { FixedReference } from "./Reference.js";
 import {
-    FixedReference,
     ObjectNotExistException,
     RequestFailedException,
     MarshalException,
@@ -15,11 +14,12 @@ import {
     InvocationTimeoutException,
     InvocationCanceledException,
     CloseConnectionException
- } from "./LocalException";
+ } from "./LocalException.js";
 
-import { Identity } from "./Identity";
-import { ObjectPrx } from "./ObjectPrx";
-import ReferenceMode from "./ReferenceMode";
+import { Ice as Ice_Identity } from "./Identity.js";
+const { Identity } = Ice_Identity;
+import { ObjectPrx } from "./ObjectPrx.js";
+import { ReferenceMode } from "./ReferenceMode.js";
 
 //
 // Only for use by Instance.

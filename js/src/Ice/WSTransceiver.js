@@ -3,11 +3,11 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { ConnectFailedException, ConnectionLostException, SocketException } from "./LocalException";
-import { WSConnectionInfo, TCPConnectionInfo } from "./Connection";
-import { ConnectionInfo as SSLConnectionInfo } from "./SSL/ConnectionInfo";
-import { SocketOperation } from "./SocketOperation";
-import { Timer } from "./Timer";
+import { ConnectFailedException, ConnectionLostException, SocketException } from "./LocalException.js";
+import { WSConnectionInfo, TCPConnectionInfo } from "./Connection.js";
+import { ConnectionInfo as SSLConnectionInfo } from "./SSL/ConnectionInfo.js";
+import { SocketOperation } from "./SocketOperation.js";
+import { Timer } from "./Timer.js";
 
 let WSTransceiver = {};
 

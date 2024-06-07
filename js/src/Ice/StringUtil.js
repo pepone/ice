@@ -2,7 +2,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-class StringUtil
+export class StringUtil
 {
     //
     // Return the index of the first character in str to
@@ -264,8 +264,7 @@ class StringUtil
         }
         return n;
     }
-};
-module.exports.Ice = Ice;
+}
 
 function encodeChar(c, sb, special, toStringMode)
 {
@@ -640,5 +639,3 @@ function decodeChar(s, start, end, special, result)
 
     return start;
 }
-
-export default StringUtil;

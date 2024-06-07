@@ -2,7 +2,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { HashMap } from "./HashMap";
+import { HashMap } from "./HashMap.js";
 
 class EndpointTableEntry
 {

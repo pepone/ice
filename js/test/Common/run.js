@@ -2,7 +2,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-require("ice");
+import { Ice } from "ice";
 
 class ControllerHelper
 {
@@ -27,7 +27,8 @@ class ControllerHelper
      try
      {
          const name = process.argv[2];
-         const cls = module.require(name)[name];
+         const module = await import(name);
+         const cls = module[name];
          const test = new cls();
          test.setControllerHelper(new ControllerHelper());
          await test.run(process.argv);

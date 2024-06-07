@@ -2,15 +2,15 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { TCPConnectionInfo } from './TCPConnectionInfo';
-import { SocketOperation } from './SocketOperation';
-import { Timer } from './Timer';
+import { TCPConnectionInfo } from "./Connection.js";
+import { SocketOperation } from "./SocketOperation.js";
+import { Timer } from "./Timer.js";
 import {
     ConnectionLostException,
     ConnectionRefusedException,
     ConnectFailedException,
     SocketException
- } from './LocalException';
+ } from "./LocalException.js";
 
 let TcpTransceiver = {};
 

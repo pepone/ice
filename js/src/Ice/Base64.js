@@ -2,7 +2,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import Buffer from "./Buffer";
+import { Buffer } from "./Buffer.js";
 
 const _codeA = "A".charCodeAt(0);
 const _codea = "a".charCodeAt(0);

@@ -2,8 +2,10 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { Context, ContextHelper } from "./Context";
-import { InitializationException } from "./LocalException";
+import { Ice as Ice_Context } from "./Context.js";
+const { Context, ContextHelper } = Ice_Context;
+
+import { InitializationException } from "./LocalException.js";
 
 //
 // The base class for all ImplicitContext implementations

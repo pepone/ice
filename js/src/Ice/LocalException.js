@@ -2,7 +2,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { LocalException } from "./Exception";
+import { LocalException } from "./Exception.js";
 
 /**
  *  This exception is raised when a failure occurs during initialization.
@@ -519,7 +519,7 @@ export class ConnectTimeoutException extends TimeoutException
 /**
  *  This exception indicates a connection closure timeout condition.
  **/
-class CloseTimeoutException extends TimeoutException
+export class CloseTimeoutException extends TimeoutException
 {
     constructor(_cause = "")
     {
@@ -567,7 +567,7 @@ export class InvocationTimeoutException extends TimeoutException
 /**
  *  This exception indicates that an asynchronous invocation failed because it was canceled explicitly by the user.
  **/
-class InvocationCanceledException extends LocalException
+export class InvocationCanceledException extends LocalException
 {
     constructor(_cause = "")
     {

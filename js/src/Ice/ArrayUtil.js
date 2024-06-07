@@ -2,8 +2,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { generateSeqHelper } from "./StreamHelpers";
-
 const eq = function(e1, e2)
 {
     if(e1 === e2)
@@ -79,21 +77,3 @@ export class ArrayUtil
 }
 
 ArrayUtil.eq = eq;
-
-export function defineSequence(module, name, valueHelper, fixed, elementType)
-{
-    let helper = null;
-    Object.defineProperty(
-        module,
-        name,
-        {
-            get: () =>
-                {
-                    if(helper === null)
-                    {
-                        helper = generateSeqHelper(_ModuleRegistry.type(valueHelper), fixed, _ModuleRegistry.type(elementType));
-                    }
-                    return helper;
-                }
-        });
-}

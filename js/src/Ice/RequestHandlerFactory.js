@@ -2,8 +2,8 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { HashMap } from "./HashMap";
-import { ConnectRequestHandler } from "./ConnectRequestHandler";
+import { HashMap } from "./HashMap.js";
+import { ConnectRequestHandler } from "./ConnectRequestHandler.js";
 
 export class RequestHandlerFactory
 {

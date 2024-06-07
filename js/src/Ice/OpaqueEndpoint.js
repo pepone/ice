@@ -2,14 +2,14 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { Base64 } from "./Base64";
-import { EndpointParseException } from "./LocalException";
-import { HashUtil } from "./HashUtil";
-import { StringUtil } from "./StringUtil";
-import { EndpointI } from "./EndpointI";
-import { FormatType } from "./FormatType";
-import { Encoding_1_0, encodingVersionToString } from "./Protocol";
-import { OpaqueEndpointInfo } from "./Endpoint";
+import { Base64 } from "./Base64.js";
+import { EndpointParseException } from "./LocalException.js";
+import { HashUtil } from "./HashUtil.js";
+import { StringUtil } from "./StringUtil.js";
+import { EndpointI } from "./EndpointI.js";
+import { FormatType } from "./FormatType.js";
+import { Encoding_1_0, encodingVersionToString } from "./Protocol.js";
+import { OpaqueEndpointInfo } from "./Endpoint.js";
 
 export class OpaqueEndpointI extends EndpointI
 {

@@ -2,28 +2,31 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { ArrayUtil } from "./ArrayUtil";
-import { BatchRequestQueue } from "./BatchRequestQueue";
-import { ConnectionRequestHandler } from "./ConnectionRequestHandler";
-import { EndpointSelectionType } from "./EndpointSelectionType";
-import { HashUtil } from "./HashUtil";
-import { Identity } from "./Identity";
-import { identityToString, stringToIdentity } from "./IdentityUtil";
-import { LocatorPrx } from "./Locator";
-import { MapUtil } from "./MapUtil";
-import { OpaqueEndpointI } from "./OpaqueEndpointI";
-import { PropertyNames } from "./PropertyNames";
-import { ReferenceMode } from "./ReferenceMode";
-import { RouterPrx } from "./Router";
-import { StringSeqHelper } from "./BuiltinSequences";
-import { StringUtil } from "./StringUtil";
+import { ArrayUtil } from "./ArrayUtil.js";
+import { BatchRequestQueue } from "./BatchRequestQueue.js";
+import { ConnectionRequestHandler } from "./ConnectionRequestHandler.js";
+import { EndpointSelectionType } from "./EndpointSelectionType.js";
+import { HashUtil } from "./HashUtil.js";
+import { Identity } from "./Identity.js";
+import { identityToString, stringToIdentity } from "./IdentityUtil.js";
+import { Ice as Ice_Locator } from "./Locator.js";
+const { LocatorPrx } = Ice_Locator;
+import { MapUtil } from "./MapUtil.js";
+import { OpaqueEndpointI } from "./OpaqueEndpoint.js";
+import { PropertyNames } from "./PropertyNames.js";
+import { ReferenceMode } from "./ReferenceMode.js";
+import { Ice as Ice_Router } from "./Router.js";
+const { RouterPrx } = Ice_Router;
+import { Ice as Ice_BuiltinSequences } from "./BuiltinSequences.js";
+const { StringSeqHelper } = Ice_BuiltinSequences;
+import { StringUtil } from "./StringUtil.js";
 import {
     Encoding_1_0,
     Protocol_1_0,
     encodingVersionToString,
     protocolVersionToString,
     stringToEncodingVersion,
-    stringToProtocolVersion } from "./Protocol";
+    stringToProtocolVersion } from "./Protocol.js";
 import {
     EndpointSelectionTypeParseException,
     EndpointParseException,
@@ -31,9 +34,10 @@ import {
     IllegalIdentityException,
     NoEndpointException,
     ProxyParseException,
-    ProxyUnmarshalException } from "./LocalException";
-import { ProtocolVersion, EncodingVersion } from "./Version";
-import { Promise } from "./Promise";
+    ProxyUnmarshalException } from "./LocalException.js";
+import { Ice as Ice_Version } from "./Version.js";
+const  = Ice_Version;
+import { Promise } from "./Promise.js";
 
 const suffixes =
 [

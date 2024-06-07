@@ -2,11 +2,11 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { FormatType } from "./FormatType";
-import { EndpointSelectionType } from "./EndpointSelectionType";
-import { Protocol } from "./Protocol";
-import { EndpointSelectionTypeParseException } from "./LocalException";
-import { TcpTransceiver } from "./TcpTransceiver";
+import { FormatType } from "./FormatType.js";
+import { EndpointSelectionType } from "./EndpointSelectionType.js";
+import { Protocol } from "./Protocol.js";
+import { EndpointSelectionTypeParseException } from "./LocalException.js";
+import { TcpTransceiver } from "./TcpTransceiver.js";
 
 export class DefaultsAndOverrides
 {

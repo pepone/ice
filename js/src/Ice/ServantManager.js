@@ -3,9 +3,9 @@
 //
 
 
-import { HashMap } from "./HashMap";
-import { StringUtil } from "./StringUtil";
-import { AlreadyRegisteredException } from "./LocalException";
+import { HashMap } from "./HashMap.js";
+import { StringUtil } from "./StringUtil.js";
+import { AlreadyRegisteredException } from "./LocalException.js";
 
 //
 // Only for use by Ice.ObjectAdapter.

@@ -2,7 +2,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { EncodingVersion } from './Version';
+import { EncodingVersion } from './Version.js';
 
 /**
  *  Base class providing access to the endpoint details.

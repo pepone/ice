@@ -559,8 +559,7 @@ function addProxyOperation(proxyType, name, data)
     };
 }
 
-const Slice = Ice.Slice;
-Slice.defineOperations = function(classType, proxyType, ids, id, ops)
+export function defineOperations(classType, proxyType, ids, id, ops)
 {
     if(ops)
     {
@@ -637,12 +636,10 @@ Slice.defineOperations = function(classType, proxyType, ids, id, ops)
 //
 // Define the "built-in" operations for all Ice objects.
 //
-Slice.defineOperations(Ice.Object, Ice.ObjectPrx, ["::Ice::Object"], "::Ice::Object",
+defineOperations(Ice.Object, Ice.ObjectPrx, ["::Ice::Object"], "::Ice::Object",
 {
     ice_ping: [undefined, 2, undefined, undefined, undefined, undefined, undefined],
     ice_isA: [undefined, 2, undefined, [1], [[7]], undefined, undefined],
     ice_id: [undefined, 2, undefined, [7], undefined, undefined, undefined],
     ice_ids: [undefined, 2, undefined, ["Ice.StringSeqHelper"], undefined, undefined, undefined]
 });
-
-module.exports.Ice = Ice;

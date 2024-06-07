@@ -3,10 +3,11 @@
 //
 
 
-import { HashMap } from "./HashMap";
-import { LocatorInfo } from "./LocatorInfo";
-import { LocatorPrx } from " ./Locator";
-import { LocatorTable } from "./LocatorTable";
+import { HashMap } from "./HashMap.js";
+import { LocatorInfo } from "./LocatorInfo.js";
+import { Ice as Ice_Locator } from "./Locator.js";
+const { LocatorPrx } = Ice_Locator;
+import { LocatorTable } from "./LocatorTable.js";
 
 export class LocatorManager
 {

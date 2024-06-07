@@ -2,11 +2,12 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { OptionalFormat } from "./OptionalFormat";
+import { OptionalFormat } from "./OptionalFormat.js";
+import { ByteHelper, ObjectHelper } from "./Stream.js";
 
 const defineProperty = Object.defineProperty;
 
-const StreamHelpers = {};
+export const StreamHelpers = {};
 
 StreamHelpers.FSizeOptHelper = function()
 {
@@ -151,7 +152,7 @@ const byteSeqHelper = new SequenceHelper();
 byteSeqHelper.write = (os, v) => os.writeByteSeq(v);
 byteSeqHelper.read = is => is.readByteSeq();
 
-defineProperty(byteSeqHelper, "elementHelper", {get: () => Ice.ByteHelper});
+defineProperty(byteSeqHelper, "elementHelper", {get: () => ByteHelper});
 StreamHelpers.VSizeContainer1OptHelper.call(byteSeqHelper);
 
 // Read method for value sequences
@@ -178,7 +179,7 @@ const valueSequenceHelperRead = function(is)
 
 StreamHelpers.generateSeqHelper = function(elementHelper, fixed, elementType)
 {
-    if(elementHelper === Ice.ByteHelper)
+    if(elementHelper === ByteHelper)
     {
         return byteSeqHelper;
     }
@@ -202,7 +203,7 @@ StreamHelpers.generateSeqHelper = function(elementHelper, fixed, elementType)
 
     defineProperty(helper, "elementHelper", {get: () => elementHelper});
 
-    if(elementHelper == Ice.ObjectHelper)
+    if(elementHelper == ObjectHelper)
     {
         defineProperty(helper, "elementType", {get: () => elementType});
         helper.read = valueSequenceHelperRead;
@@ -321,5 +322,3 @@ StreamHelpers.generateDictHelper = function(keyHelper, valueHelper, fixed, value
 
     return helper;
 };
-
-export default StreamHelpers;

@@ -2,7 +2,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { StringUtil } from "./StringUtil";
+import { StringUtil } from "./StringUtil.js";
 
 class HashUtil
 {

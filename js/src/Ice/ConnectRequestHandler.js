@@ -2,11 +2,11 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { ReferenceMode } from "./ReferenceMode";
-import { AsyncStatus } from "./AsyncStatus";
-import { RetryException } from "./RetryException";
-import { LocalException } from "./LocalException";
-import { ConnectionRequestHandler } from "./ConnectionRequestHandler";
+import { ReferenceMode } from "./ReferenceMode.js";
+import { AsyncStatus } from "./AsyncStatus.js";
+import { LocalException } from "./Exception.js";
+import { RetryException } from "./RetryException.js";
+import { ConnectionRequestHandler } from "./ConnectionRequestHandler.js";
 
 export class ConnectRequestHandler
 {

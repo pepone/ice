@@ -2,9 +2,9 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { EndpointParseException } from "./LocalException";
-import { StringUtil } from "./StringUtil";
-import { OpaqueEndpointI } from "./OpaqueEndpointI";
+import { EndpointParseException } from "./LocalException.js";
+import { StringUtil } from "./StringUtil.js";
+import { OpaqueEndpointI } from "./OpaqueEndpoint.js";
 
 export class EndpointFactoryManager
 {

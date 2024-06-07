@@ -2,9 +2,9 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { StringUtil } from "./StringUtil";
-import { UnsupportedEncodingException, UnsupportedProtocolException, VersionParseException } from "./LocalException";
-import { EncodingVersion, ProtocolVersion } from "./Version";
+import { StringUtil } from "./StringUtil.js";
+import { UnsupportedEncodingException, UnsupportedProtocolException, VersionParseException } from "./LocalException.js";
+import { EncodingVersion, ProtocolVersion } from "./Version.js";
 
 export const Protocol = {};
 

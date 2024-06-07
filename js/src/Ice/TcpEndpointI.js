@@ -2,11 +2,11 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { HashUtil } from "./HashUtil";
-import { StringUtil } from "./StringUtil";
-import { TCPEndpointInfo } from "./Endpoint";
-import { EndpointParseException } from "./LocalException";
-import { IPEndpointI } from "./IPEndpointI";
+import { HashUtil } from "./HashUtil.js";
+import { StringUtil } from "./StringUtil.js";
+import { TCPEndpointInfo } from "./Endpoint.js";
+import { EndpointParseException } from "./LocalException.js";
+import { IPEndpointI } from "./IPEndpointI.js";
 
 const TcpTransceiver = typeof Ice.TcpTransceiver !== "undefined" ? Ice.TcpTransceiver : null;
 

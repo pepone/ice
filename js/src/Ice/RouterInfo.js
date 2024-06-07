@@ -3,9 +3,9 @@
 //
 
 
-import { HashMap } from './HashMap';
-import { IcePromise } from './Promise';
-import { NoEndpointException } from './LocalException';
+import { HashMap } from './HashMap.js';
+import { Promise } from './Promise.js';
+import { NoEndpointException } from './LocalException.js';
 export class RouterInfo
 {
     constructor(router)
@@ -55,7 +55,7 @@ export class RouterInfo
 
     getClientEndpoints()
     {
-        const promise = new IcePromise();
+        const promise = new Promise();
         if(this._clientEndpoints !== null)
         {
             promise.resolve(this._clientEndpoints);
@@ -87,14 +87,14 @@ export class RouterInfo
         console.assert(proxy !== null);
         if(!this._hasRoutingTable)
         {
-            return IcePromise.resolve(); // The router implementation doesn't maintain a routing table.
+            return Promise.resolve(); // The router implementation doesn't maintain a routing table.
         }
         else if(this._identities.has(proxy.ice_getIdentity()))
         {
             //
             // Only add the proxy to the router if it's not already in our local map.
             //
-            return IcePromise.resolve();
+            return Promise.resolve();
         }
         else
         {

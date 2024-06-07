@@ -233,15 +233,16 @@ else
         //
         // If we are running in a worker don't spawn a separate worker for the timer
         //
-        Ice.Timer = createTimerObject();
+        Timer = createTimerObject();
     }
     else if(worker === undefined)
     {
         const url = URL.createObjectURL(new Blob([workerCode()], {type: 'text/javascript'}));
         worker = new Worker(url);
         worker.onmessage = Timer.onmessage;
-        Ice.Timer = Timer;
+        // TODO do we need this?
+        // Ice.Timer = Timer;
     }
 }
 
-export default Timer;
+export { Timer as TimerUtil };

@@ -2,11 +2,11 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { AsyncResultBase } from "./AsyncResultBase";
-import { OutputStream } from "./Stream";
-import { Protocol } from "./Protocol";
-import { UserException } from "./Exception";
-import { InvocationCanceledException } from "./LocalException";
+import { AsyncResultBase } from "./AsyncResultBase.js";
+import { OutputStream } from "./Stream.js";
+import { Protocol } from "./Protocol.js";
+import { UserException } from "./Exception.js";
+import { InvocationCanceledException } from "./LocalException.js";
 
 export class AsyncResult extends AsyncResultBase
 {

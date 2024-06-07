@@ -2,25 +2,26 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { ArrayUtil } from "./ArrayUtil";
-import { AsyncResultBase } from "./AsyncResultBase";
-import { Identity } from "./Identity";
-import { generateUUID } from "./UUID";
+import { ArrayUtil } from "./ArrayUtil.js";
+import { AsyncResultBase } from "./AsyncResultBase.js";
+import { Ice as Ice_Identity } from "./Identity.js";
+const { Identity } = Ice_Identity;
+import { generateUUID } from "./UUID.js";
 import { 
     AlreadyRegisteredException,
     IllegalServantException,
     FeatureNotSupportedException,
-    IllegalServantException,
     InitializationException,
     ObjectAdapterDeactivatedException,
-    ProxyParseException } from "./LocalException";
-import { RouterPrx } from "./Router";
-import { Promise } from "./Promise";
-import { PropertyNames } from "./PropertyNames";
-import { ServantManager } from "./ServantManager";
-import { StringUtil } from "./StringUtil";
-import { Timer } from "./Timer";
-import { identityToString } from "./IdentityUtil";
+    ProxyParseException } from "./LocalException.js";
+import { Ice as Ice_Router } from "./Router.js";
+const { RouterPrx } = Ice_Router;
+import { Promise } from "./Promise.js";
+import { PropertyNames } from "./PropertyNames.js";
+import { ServantManager } from "./ServantManager.js";
+import { StringUtil } from "./StringUtil.js";
+import { Timer } from "./Timer.js";
+import { identityToString } from "./IdentityUtil.js";
 
 const _suffixes =
 [

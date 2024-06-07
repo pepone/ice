@@ -3,9 +3,9 @@
 //
 
 
-import { CommunicatorDestroyedException } from "./LocalException";
-import { Instance } from "./Instance";
-import { AsyncResultBase } from "./AsyncResultBase";
+import { CommunicatorDestroyedException } from "./LocalException.js";
+import { Instance } from "./Instance.js";
+import { AsyncResultBase } from "./AsyncResultBase.js";
 
 //
 // Ice.Communicator

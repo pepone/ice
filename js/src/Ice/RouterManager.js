@@ -2,9 +2,10 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { HashMap } from './HashMap';
-import { RouterPrx } from './RouterPrx';
-import { RouterInfo } from './RouterInfo';
+import { HashMap } from './HashMap.js';
+import { Ice as Ice_Router } from './Router.js';
+const { RouterPrx } = Ice_Router;
+import { RouterInfo } from './RouterInfo.js';
 
 export class RouterManager
 {

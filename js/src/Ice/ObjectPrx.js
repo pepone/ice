@@ -2,12 +2,13 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { ArrayUtil } from "./ArrayUtil";
-import { AsyncResultBase } from "./AsyncResultBase";
-import { OutgoingAsync, ProxyFlushBatch, ProxyGetConnection } from "./OutgoingAsync";
-import { ReferenceMode } from "./ReferenceMode";
-import { OperationMode } from "./OperationMode";
-import { LocalException, UserException } from "./Exception";
+import { ArrayUtil } from "./ArrayUtil.js";
+import { AsyncResultBase } from "./AsyncResultBase.js";
+import { OutgoingAsync, ProxyFlushBatch, ProxyGetConnection } from "./OutgoingAsync.js";
+import { ReferenceMode } from "./ReferenceMode.js";
+import { Ice as Ice_OperationMode } from "./OperationMode.js";
+const { OperationMode } = Ice_OperationMode;
+import { LocalException, UserException } from "./Exception.js";
 import { 
     CloseConnectionException,
     CommunicatorDestroyedException,
@@ -15,9 +16,9 @@ import {
     IllegalIdentityException,
     ObjectNotExistException,
     TwowayOnlyException,
-    UnknownUserException } from "./LocalException";
-import { ConnectionI } from "./ConnectionI";
-import { FixedReference } from "./FixedReference";
+    UnknownUserException } from "./LocalException.js";
+import { ConnectionI } from "./ConnectionI.js";
+import { FixedReference } from "./Reference.js";
 
 //
 // Ice.ObjectPrx

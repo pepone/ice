@@ -2,9 +2,9 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { IcePromise } from './Promise';
+import { Promise } from './Promise.js';
 
-export class AsyncResultBase extends IcePromise
+export class AsyncResultBase extends Promise
 {
     constructor(communicator, op, connection, proxy, adapter)
     {

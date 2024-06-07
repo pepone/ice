@@ -2,11 +2,11 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { Address } from "./Address";
-import { EndpointParseException } from "./LocalException";
-import { HashUtil } from "./HashUtil";
-import { StringUtil } from "./StringUtil";
-import { EndpointI } from "./EndpointI";
+import { Address } from "./Address.js";
+import { EndpointParseException } from "./LocalException.js";
+import { HashUtil } from "./HashUtil.js";
+import { StringUtil } from "./StringUtil.js";
+import { EndpointI } from "./EndpointI.js";
 
 export class IPEndpointI extends EndpointI
 {

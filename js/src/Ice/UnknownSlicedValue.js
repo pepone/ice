@@ -2,7 +2,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { Value } from "./Value";
+import { Value } from "./Value.js";
 
 export class SliceInfo
 {

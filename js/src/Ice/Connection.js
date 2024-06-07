@@ -2,8 +2,8 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { defineStruct } from "./Struct";
-import { defineEnum } from "./EnumBase";
+import { defineStruct } from "./Struct.js";
+import { defineEnum } from "./EnumBase.js";
 
 /**
  *  The batch compression option when flushing queued batch requests.

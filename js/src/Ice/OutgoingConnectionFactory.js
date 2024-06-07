@@ -2,13 +2,13 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { ConnectionI } from "./ConnectionI";
-import { FactoryACMMonitor } from "./ACM";
-import { HashMap } from "./HashMap";
-import { AsyncResultBase } from "./AsyncResultBase";
-import { Promise } from "./Promise";
-import { LocalException } from "./Exception";
-import { CommunicatorDestroyedException } from "./LocalException";
+import { ConnectionI } from "./ConnectionI.js";
+import { FactoryACMMonitor } from "./ACM.js";
+import { HashMap } from "./HashMap.js";
+import { AsyncResultBase } from "./AsyncResultBase.js";
+import { Promise } from "./Promise.js";
+import { LocalException } from "./Exception.js";
+import { CommunicatorDestroyedException } from "./LocalException.js";
 
 //
 // Only for use by Instance.

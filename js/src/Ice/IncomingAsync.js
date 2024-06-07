@@ -2,13 +2,16 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { Current } from "./Current";
-import { Context } from "./Context";
-import { OperationMode } from "./OperationMode";
-import { Identity } from "./Identity";
-import { identityToString } from "./IdentityUtil";
-import { FormatType } from "./FormatType";
-import { LocalException, UserException } from "./Exception";
+import { Current } from "./Current.js";
+import { Ice as Ice_Context } from "./Context.js";
+const { Context } = Ice_Context;
+import { Ice as Ice_OperationMode } from "./OperationMode.js";
+const { OperationMode } = Ice_OperationMode;
+import { Ice as Ice_Identity } from "./Identity.js";
+const { Identity } = Ice_Identity;
+import { identityToString } from "./IdentityUtil.js";
+import { FormatType } from "./FormatType.js";
+import { LocalException, UserException } from "./Exception.js";
 import {
     FacetNotExistException, 
     MarshalException,
@@ -17,14 +20,16 @@ import {
     RequestFailedException,
     UnknownException,
     UnknownLocalException,
-    UnknownUserException } from "./LocalException";
+    UnknownUserException } from "./LocalException.js";
 
-import { Protocol } from "./Protocol";
-import { OutputStream } from "./Stream";
-import { StringUtil } from "./StringUtil";
-import { IPConnectionInfo } from "./Connection";
-import { EncodingVersion } from "./Version";
-import { StringSeqHelper } from "./BuiltinSequences"
+import { Protocol } from "./Protocol.js";
+import { OutputStream } from "./Stream.js";
+import { StringUtil } from "./StringUtil.js";
+import { IPConnectionInfo } from "./Connection.js";
+import { Ice as Ice_Version } from "./Version.js";
+const { EncodingVersion } = Ice_Version;
+import { Ice as Ice_BuiltinSequences } from "./BuiltinSequences.js"
+const { StringSeqHelper } = Ice_BuiltinSequences;
 
 export class IncomingAsync
 {

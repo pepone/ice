@@ -2,18 +2,15 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { HashMap } from "./HashMap";
-import { LocatorRegistryPrx } from "./Locator";
-import { Protocol } from "./Protocol";
-import { EndpointSelectionType } from "./EndpointSelectionType";
-import { Promise } from "./Promise";
-import { identityToString } from "./IdentityUtil";
-import {
-    AdapterNotFoundException,
-    NotRegisteredException,
-    ObjectNotFoundException,
-    LocalException,
-    UserException } from "./LocalException";
+import { HashMap } from "./HashMap.js";
+import { Ice as Ice_Locator } from "./Locator.js";
+const { LocatorRegistryPrx, AdapterNotFoundException, ObjectNotFoundException } = Ice_Locator;
+import { Protocol } from "./Protocol.js";
+import { EndpointSelectionType } from "./EndpointSelectionType.js";
+import { Promise } from "./Promise.js";
+import { identityToString } from "./IdentityUtil.js";
+import { LocalException, UserException } from "./Exception.js";
+import { NotRegisteredException } from "./LocalException.js";
 
 export class LocatorInfo
 {

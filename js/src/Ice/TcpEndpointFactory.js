@@ -2,7 +2,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { TcpEndpointI } from './TcpEndpointI';
+import { TcpEndpointI } from "./TcpEndpointI.js";
 
 export class TcpEndpointFactory
 {

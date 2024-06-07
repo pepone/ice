@@ -145,4 +145,3 @@ function readImpl(obj, is, type)
     is.endSlice();
     readImpl(obj, is, Object.getPrototypeOf(type));
 }
-

@@ -2,9 +2,9 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { IdentityParseException } from "./LocalException";
-import { StringUtil } from "./StringUtil";
-import { Identity } from "./Identity";
+import { IdentityParseException } from "./LocalException.js";
+import { StringUtil } from "./StringUtil.js";
+import { Identity } from "./Identity.js";
 
 /**
 * Converts a string to an object identity.

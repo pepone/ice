@@ -2,7 +2,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { CommunicatorDestroyedException } from "./LocalException";
+import { CommunicatorDestroyedException } from "./LocalException.js";
 
 class RetryTask
 {

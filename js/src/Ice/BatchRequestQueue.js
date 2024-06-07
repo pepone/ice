@@ -2,8 +2,8 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { Protocol } from './Protocol';
-import { OutputStream } from './Stream';
+import { Protocol } from './Protocol.js';
+import { OutputStream } from './Stream.js';
 
 export class BatchRequestQueue
 {

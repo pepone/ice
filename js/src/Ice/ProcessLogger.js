@@ -3,7 +3,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { Logger } from "./Logger";
+import { Logger } from "./Logger.js";
 
 let processLogger = null;
 

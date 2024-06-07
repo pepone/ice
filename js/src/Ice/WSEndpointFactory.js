@@ -2,7 +2,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { WSEndpoint } from "./WSEndpoint";
+import { WSEndpoint } from "./WSEndpoint.js";
 
 export class WSEndpointFactory
 {
