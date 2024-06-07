@@ -4,7 +4,8 @@
 
 import { StringUtil } from "./StringUtil.js";
 import { UnsupportedEncodingException, UnsupportedProtocolException, VersionParseException } from "./LocalException.js";
-import { EncodingVersion, ProtocolVersion } from "./Version.js";
+import { Ice as Ice_Version } from "./Version.js";
+const { EncodingVersion, ProtocolVersion } = Ice_Version;
 
 export const Protocol = {};
 

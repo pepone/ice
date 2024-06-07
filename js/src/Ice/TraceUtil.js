@@ -2,7 +2,8 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { Identity } from "./Identity.js";
+import { Ice as Ice_Identity } from "./Identity.js";
+const { Identity } = Ice_Identity;
 import { StringUtil } from "./StringUtil.js";
 import { Protocol } from "./Protocol.js";
 import { Ice as Ice_OperationMode } from "./OperationMode.js";

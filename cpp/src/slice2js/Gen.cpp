@@ -755,8 +755,11 @@ Slice::Gen::ImportVisitor::ImportVisitor(
       _seenStruct(false),
       _seenUserException(false),
       _seenEnum(false),
+      _seenSeq(false),
+      _seenDict(false),
       _seenObjectSeq(false),
       _seenObjectDict(false),
+      _seenObjectProxyDict(false),
       _includePaths(includePaths)
 {
     for (vector<string>::iterator p = _includePaths.begin(); p != _includePaths.end(); ++p)
@@ -821,6 +824,7 @@ Slice::Gen::ImportVisitor::visitSequence(const SequencePtr& seq)
                 break;
         }
     }
+    _seenSeq = true;
 }
 
 void
@@ -841,6 +845,7 @@ Slice::Gen::ImportVisitor::visitDictionary(const DictionaryPtr& dict)
                 break;
         }
     }
+    _seenDict = true;
 }
 
 void
@@ -905,10 +910,12 @@ Slice::Gen::ImportVisitor::writeImports(const UnitPtr& p)
     map<string, set<string>> imports;
     if (_icejs)
     {
+        bool needStreamHelpers = false;
         if (_seenClass || _seenInterface || _seenObjectSeq || _seenObjectDict)
         {
             jsIceRequires.push_back("Object");
             jsIceRequires.push_back("Value");
+            needStreamHelpers = true;
         }
 
         if (_seenInterface)
@@ -942,10 +949,24 @@ Slice::Gen::ImportVisitor::writeImports(const UnitPtr& p)
         }
 
         jsIceRequires.push_back("Long");
-        jsIceRequires.push_back("HashMap");
-        jsIceRequires.push_back("HashUtil");
-        jsIceRequires.push_back("ArrayUtil");
-        jsIceRequires.push_back("StreamHelpers");
+        if (_seenDict || _seenObjectDict || _seenObjectProxyDict)
+        {
+            jsIceRequires.push_back("HashMap");
+            jsIceRequires.push_back("HashUtil");
+            needStreamHelpers = true;
+        }
+
+        if (_seenSeq || _seenObjectSeq)
+        {
+            jsIceRequires.push_back("ArrayUtil");
+            needStreamHelpers = true;
+        }
+
+        if (needStreamHelpers)
+        {
+            jsIceRequires.push_back("StreamHelpers");
+            jsIceRequires.push_back("Stream");
+        }
     }
     else
     {

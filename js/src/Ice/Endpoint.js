@@ -2,7 +2,8 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { EncodingVersion } from './Version.js';
+import { Ice as Ice_Version } from "./Version.js";
+const { EncodingVersion } = Ice_Version;
 
 /**
  *  Base class providing access to the endpoint details.

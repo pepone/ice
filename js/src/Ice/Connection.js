@@ -4,6 +4,8 @@
 
 import { defineStruct } from "./Struct.js";
 import { defineEnum } from "./EnumBase.js";
+import { defineDictionary } from "./HashMap.js";
+import { StreamHelpers } from "./StreamHelpers.js";
 
 /**
  *  The batch compression option when flushing queued batch requests.
@@ -91,7 +93,7 @@ export class TCPConnectionInfo extends IPConnectionInfo
     }
 }
 
-Slice.defineDictionary(Ice, "HeaderDict", "HeaderDictHelper", "Ice.StringHelper", "Ice.StringHelper", false, undefined, undefined);
+export const [HeaderDict, HeaderDictHelper] = defineDictionary(StreamHelpers.StringHelper, StreamHelpers.StringHelper, false);
 
 /**
  *  Provides access to the connection details of a WebSocket connection

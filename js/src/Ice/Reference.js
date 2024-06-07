@@ -7,7 +7,8 @@ import { BatchRequestQueue } from "./BatchRequestQueue.js";
 import { ConnectionRequestHandler } from "./ConnectionRequestHandler.js";
 import { EndpointSelectionType } from "./EndpointSelectionType.js";
 import { HashUtil } from "./HashUtil.js";
-import { Identity } from "./Identity.js";
+import { Ice as Ice_Identity } from "./Identity.js";
+const { Identity } = Ice_Identity;
 import { identityToString, stringToIdentity } from "./IdentityUtil.js";
 import { Ice as Ice_Locator } from "./Locator.js";
 const { LocatorPrx } = Ice_Locator;
@@ -36,7 +37,7 @@ import {
     ProxyParseException,
     ProxyUnmarshalException } from "./LocalException.js";
 import { Ice as Ice_Version } from "./Version.js";
-const  = Ice_Version;
+const { ProtocolVersion, EncodingVersion } = Ice_Version;
 import { Promise } from "./Promise.js";
 
 const suffixes =

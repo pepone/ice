@@ -20,8 +20,10 @@ import {
     UnmarshalOutOfBoundsException,
     UnknownUserException,
     NoValueFactoryException } from "./LocalException.js";
-import { Identity } from "./Identity.js";
-import { EncodingVersion } from "./Version.js";
+import { Ice as Ice_Identity } from "./Identity.js";
+const { Identity } = Ice_Identity;
+import { Ice as Ice_Version } from "./Version.js";
+const { EncodingVersion } = Ice_Version;
 
 const SliceType =
 {

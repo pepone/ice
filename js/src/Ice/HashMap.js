@@ -4,6 +4,7 @@
 
 import { StringUtil } from "./StringUtil.js";
 import { generateUUID } from "./UUID.js";
+import { StreamHelpers } from "./StreamHelpers.js";
 
 function setInternal(map, key, value, hash, index)
 {

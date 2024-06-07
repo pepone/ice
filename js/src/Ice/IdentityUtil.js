@@ -4,7 +4,8 @@
 
 import { IdentityParseException } from "./LocalException.js";
 import { StringUtil } from "./StringUtil.js";
-import { Identity } from "./Identity.js";
+import { Ice as Ice_Identity } from "./Identity.js";
+const { Identity } = Ice_Identity;
 
 /**
 * Converts a string to an object identity.

@@ -3,8 +3,7 @@
 //
 
 import { TimerUtil } from "./TimerUtil.js";
-
-const CommunicatorDestroyedException = Ice.CommunicatorDestroyedException;
+import { CommunicatorDestroyedException } from "./LocalException.js";
 
 export class Timer
 {

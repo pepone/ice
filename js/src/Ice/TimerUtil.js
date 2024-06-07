@@ -15,7 +15,6 @@ if (typeof process != 'undefined')
     Timer.setInterval = setInterval;
     Timer.clearInterval = clearInterval;
     Timer.setImmediate = setImmediate;
-    Ice.Timer = Timer;
 }
 else
 {

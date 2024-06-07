@@ -84,6 +84,8 @@ namespace Slice
             bool _seenStruct;
             bool _seenUserException;
             bool _seenEnum;
+            bool _seenSeq;
+            bool _seenDict;
             bool _seenObjectSeq;
             bool _seenObjectProxySeq;
             bool _seenObjectDict;
