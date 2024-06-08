@@ -12,12 +12,13 @@ import {
     SocketException
  } from "./LocalException.js";
 
+// TODO: How do we handle this for the browser?
+import net from "net";
+
 let TcpTransceiver = {};
 
 if (typeof process !== 'undefined')
 {
-    const net = require("net");
-
     const StateNeedConnect = 0;
     const StateConnectPending = 1;
     const StateProxyConnectRequest = 2;

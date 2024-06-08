@@ -2074,5 +2074,3 @@ class OutgoingMessage
         return m;
     }
 }
-
-module.exports.Ice = Ice;
