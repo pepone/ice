@@ -7,8 +7,7 @@ import { StringUtil } from "./StringUtil.js";
 import { TCPEndpointInfo } from "./Endpoint.js";
 import { EndpointParseException } from "./LocalException.js";
 import { IPEndpointI } from "./IPEndpointI.js";
-
-const TcpTransceiver = typeof Ice.TcpTransceiver !== "undefined" ? Ice.TcpTransceiver : null;
+import { TcpTransceiver } from "./TcpTransceiver.js";
 
 export class TcpEndpointI extends IPEndpointI
 {

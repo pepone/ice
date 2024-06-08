@@ -6,8 +6,7 @@ import { Ice as Ice_OperationMode } from './OperationMode.js';
 const { OperationMode } = Ice_OperationMode;
 import { FormatType } from './FormatType.js';
 import { UnknownException, MarshalException, OperationNotExistException } from './LocalException.js';
-//import { ObjectPrx } from './ObjectPrx.js';
-const ObjectPrx = {};
+import { ObjectPrx } from './ObjectPrx.js';
 import { Object as Ice_Object } from './Object.js';
 
 import { 

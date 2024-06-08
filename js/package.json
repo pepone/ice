@@ -43,5 +43,8 @@
     "build": "gulp",
     "dist": "gulp dist",
     "clean": "gulp clean"
+  },
+  "dependencies": {
+    "trace-deps": "^0.5.2"
   }
 }

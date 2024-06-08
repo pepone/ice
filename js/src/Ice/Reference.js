@@ -1187,6 +1187,11 @@ class Reference
     //
     // Utility methods
     //
+    isFixed()
+    {
+        return false;
+    }
+
     isIndirect()
     {
         // Abstract
@@ -1566,6 +1571,11 @@ export class FixedReference extends Reference
         const r = this.getInstance().referenceFactory().copy(this);
         r._fixedConnection = newConnection;
         return r;
+    }
+
+    isFixed()
+    {
+        return true;
     }
 
     isIndirect()

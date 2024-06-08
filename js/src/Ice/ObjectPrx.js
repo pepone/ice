@@ -18,7 +18,6 @@ import {
     TwowayOnlyException,
     UnknownUserException } from "./LocalException.js";
 import { ConnectionI } from "./ConnectionI.js";
-import { FixedReference } from "./Reference.js";
 
 //
 // Ice.ObjectPrx
@@ -442,7 +441,7 @@ export class ObjectPrx
 
     ice_isFixed()
     {
-        return this._reference instanceof FixedReference;
+        return this._reference.isFixed()
     }
 
     ice_getConnectionId()

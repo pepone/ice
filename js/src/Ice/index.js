@@ -45,8 +45,6 @@ import * as Ice_LocatorTable from "./LocatorTable.js";
 import * as Ice_Logger from "./Logger.js";
 import * as Ice_Long from "./Long.js";
 import * as Ice_MapUtil from "./MapUtil.js";
-import * as Ice_Metrics from "./Metrics.js";
-import * as Ice_ModuleRegistry from "./ModuleRegistry.js";
 import * as Ice_Object from "./Object.js";
 import * as Ice_ObjectAdapter from "./ObjectAdapter.js";
 import * as Ice_ObjectAdapterFactory from "./ObjectAdapterFactory.js";
@@ -142,7 +140,6 @@ export const Ice = {
     ...Ice_Logger,
     ...Ice_Long,
     ...Ice_MapUtil,
-    ...Ice_ModuleRegistry,
     ...Ice_Object,
     ...Ice_ObjectAdapter,
     ...Ice_ObjectAdapterFactory,
