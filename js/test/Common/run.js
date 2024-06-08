@@ -27,8 +27,6 @@ class ControllerHelper
         const path = process.argv[2];
         const name = process.argv[3];
         const module = await import(path);
-        console.log(`import ${name} ${path}`);
-        console.log(module);
         const cls = module[name];
 
         const test = new cls();
