@@ -187,7 +187,6 @@ StreamHelpers.generateSeqHelper = function(elementHelper, fixed, elementType)
     const helper = new SequenceHelper();
     if(fixed)
     {
-        console.trace("fixed sequence");
         if(elementHelper.minWireSize === 1)
         {
             StreamHelpers.VSizeContainer1OptHelper.call(helper);

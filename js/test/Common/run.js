@@ -2,8 +2,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-import { Ice } from "ice";
-
 class ControllerHelper
 {
     write(msg)
@@ -26,12 +24,16 @@ class ControllerHelper
  {
      try
      {
-         const name = process.argv[2];
-         const module = await import(name);
-         const cls = module[name];
-         const test = new cls();
-         test.setControllerHelper(new ControllerHelper());
-         await test.run(process.argv);
+        const path = process.argv[2];
+        const name = process.argv[3];
+        const module = await import(path);
+        console.log(`import ${name} ${path}`);
+        console.log(module);
+        const cls = module[name];
+
+        const test = new cls();
+        test.setControllerHelper(new ControllerHelper());
+        await test.run(process.argv);
      }
      catch(ex)
      {

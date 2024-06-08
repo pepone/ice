@@ -6,6 +6,7 @@
 import { Communicator } from "./Communicator.js";
 import { Protocol } from "./Protocol.js";
 import { InitializationException } from "./LocalException.js";
+import { Properties } from "./Properties.js";
 
 export class InitializationData
 {
@@ -95,4 +96,4 @@ export function stringVersion()
 export function intVersion()
 {
     return 30850; // AABBCC, with AA=major, BB=minor, CC=patch
-};
+}

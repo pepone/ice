@@ -4,7 +4,7 @@
 
 import { FormatType } from "./FormatType.js";
 import { EndpointSelectionType } from "./EndpointSelectionType.js";
-import { Protocol } from "./Protocol.js";
+import { Protocol, stringToEncodingVersion, encodingVersionToString } from "./Protocol.js";
 import { EndpointSelectionTypeParseException } from "./LocalException.js";
 import { TcpTransceiver } from "./TcpTransceiver.js";
 
@@ -118,9 +118,10 @@ export class DefaultsAndOverrides
 
         this.defaultPreferSecure = properties.getPropertyAsIntWithDefault("Ice.Default.PreferSecure", 0) > 0;
 
-        value = properties.getPropertyWithDefault("Ice.Default.EncodingVersion",
-                                                Ice.encodingVersionToString(Protocol.currentEncoding));
-        this.defaultEncoding = Ice.stringToEncodingVersion(value);
+        value = properties.getPropertyWithDefault(
+            "Ice.Default.EncodingVersion",
+            encodingVersionToString(Protocol.currentEncoding));
+        this.defaultEncoding = stringToEncodingVersion(value);
         Protocol.checkSupportedEncoding(this.defaultEncoding);
 
         const slicedFormat = properties.getPropertyAsIntWithDefault("Ice.Default.SlicedFormat", 0) > 0;

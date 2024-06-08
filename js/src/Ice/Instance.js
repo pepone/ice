@@ -2,7 +2,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-
 import { ACMConfig } from "./ACM.js";
 import { AsyncResultBase } from "./AsyncResultBase.js";
 import { DefaultsAndOverrides } from "./DefaultsAndOverrides.js";
@@ -38,6 +37,9 @@ import { getProcessLogger } from "./ProcessLogger.js";
 const StateActive = 0;
 const StateDestroyInProgress = 1;
 const StateDestroyed = 2;
+
+let _oneOfDone = undefined;
+let _printStackTraces = false;
 
 //
 // Instance - only for use by Communicator
@@ -271,12 +273,12 @@ export class Instance
                 this._initData.properties = Properties.createProperties();
             }
 
-            if(Ice._oneOfDone === undefined)
+            if(_oneOfDone === undefined)
             {
-                Ice._printStackTraces =
+                _printStackTraces =
                     this._initData.properties.getPropertyAsIntWithDefault("Ice.PrintStackTraces", 0) > 0;
 
-                Ice._oneOfDone = true;
+                _oneOfDone = true;
             }
 
             if(this._initData.logger === null)

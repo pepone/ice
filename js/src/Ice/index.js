@@ -35,7 +35,7 @@ import * as Ice_Identity from "./Identity.js";
 import * as Ice_IdentityUtil from "./IdentityUtil.js";
 import * as Ice_ImplicitContext from "./ImplicitContext.js";
 import * as Ice_IncomingAsync from "./IncomingAsync.js";
-import * as Ice_Initialize from "./Endpoint.js";
+import * as Ice_Initialize from "./Initialize.js";
 import * as Ice_Instance from  "./Instance.js";
 import * as Ice_LocalException from "./LocalException.js";
 import * as Ice_Locator from "./Locator.js";

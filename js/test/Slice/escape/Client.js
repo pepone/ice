@@ -2,12 +2,13 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("ice").Ice;
-const TestHelper = require("TestHelper").TestHelper;
-const _await = require("Key")._await;
+import { Ice } from "ice";
+import { TestHelper } from "../../Common/TestHelper.js";
+import { _await } from "./Key.js";
+
 const test = TestHelper.test;
 
-class Client extends TestHelper
+export class Client extends TestHelper
 {
     async allTests()
     {
@@ -96,4 +97,3 @@ class Client extends TestHelper
         }
     }
 }
-exports.Client = Client;
