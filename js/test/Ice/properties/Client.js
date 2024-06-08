@@ -2,11 +2,14 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("ice").Ice;
-const TestHelper = require("TestHelper").TestHelper;
+import { Ice } from "ice";
+import { TestHelper } from "../../Common/TestHelper.js";
+import { readFileSync } from "fs";
+import path from "path";
+
 const test = TestHelper.test;
 
-class Client extends TestHelper
+export class Client extends TestHelper
 {
     async allTests(args)
     {
@@ -37,14 +40,14 @@ class Client extends TestHelper
 
         const properties = Ice.createProperties();
         /* eslint-disable no-sync */
-        if(typeof require("fs").readFileSync == "function")
+        if(typeof readFileSync == "function")
         {
-            const path = require("path");
+            
             //
             // We are running with NodeJS we load the properties file from the file system.
             //
-            properties.parse(require("fs").readFileSync(path.join(args[3], "config", "escapes.cfg"),
-                                                        {encoding: "utf8"}));
+            properties.parse(readFileSync(path.join(args[4], "config", "escapes.cfg"),
+                                        {encoding: "utf8"}));
             for(const [key, value] of props)
             {
                 test(properties.getProperty(key) == value);
@@ -54,11 +57,11 @@ class Client extends TestHelper
         else if(typeof window !== 'undefined')
         {
             //
-            // Skiped when running in a worker, we don't load JQuery in the workers
+            // Skipped when running in a worker, we don't load JQuery in the workers
             //
 
             //
-            // We are runing in a web browser load the properties file from the web server.
+            // We are running in a web browser load the properties file from the web server.
             //
             await new Promise(
                 (resolve, reject) =>
@@ -146,4 +149,3 @@ class Client extends TestHelper
         }
     }
 }
-exports.Client = Client;

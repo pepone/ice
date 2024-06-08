@@ -2,11 +2,12 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("ice").Ice;
-const TestHelper = require("TestHelper").TestHelper;
+import { Ice } from "ice";
+import { TestHelper } from "../../Common/TestHelper.js";
+
 const test = TestHelper.test;
 
-class Client extends TestHelper
+export class Client extends TestHelper
 {
     run(args)
     {
@@ -83,4 +84,3 @@ class Client extends TestHelper
         out.writeLine("ok");
     }
 }
-exports.Client = Client;
