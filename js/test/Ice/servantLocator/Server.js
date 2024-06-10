@@ -2,14 +2,14 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("ice").Ice;
-const Test = require("Test").Test;
-const TestHelper = require("TestHelper").TestHelper;
-const TestI = require("TestI").TestI;
-const TestActivationI = require("TestActivationI").TestActivationI;
-const ServantLocatorI = require("ServantLocatorI").ServantLocatorI;
+import { Ice } from "ice";
+import { Test } from "./Test.js";
+import { TestHelper } from "../../Common/TestHelper.js";
+import { TestI } from "./TestI.js";
+import { TestActivationI } from "./TestActivationI.js";
+import { ServantLocatorI } from "./ServantLocatorI.js";
 
-class Server extends TestHelper
+export class Server extends TestHelper
 {
     async run(args)
     {
@@ -48,4 +48,3 @@ class Server extends TestHelper
         }
     }
 }
-exports.Server = Server;

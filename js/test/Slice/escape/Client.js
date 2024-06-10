@@ -38,7 +38,6 @@ export class Client extends TestHelper
         }
         catch(ex)
         {
-            console.log(ex);
             test(ex instanceof Ice.LocalException);
         }
 

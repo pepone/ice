@@ -2,10 +2,11 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-
 import { CommunicatorDestroyedException } from "./LocalException.js";
-import { Instance } from "./Instance.js";
-import { AsyncResultBase } from "./AsyncResultBase.js";
+import { generateUUID } from "./UUID.js";
+import { identityToString } from "./IdentityUtil.js";
+import { Promise } from "./Promise.js";
+import { Debug } from "./Debug.js";
 
 //
 // Ice.Communicator
@@ -14,7 +15,7 @@ export class Communicator
 {
     constructor(initData)
     {
-        this._instance = new Instance(initData);
+        this._instance = this.createInstance(initData);
     }
 
     //
@@ -39,8 +40,8 @@ export class Communicator
         }
         catch(ex)
         {
-            console.assert(ex instanceof CommunicatorDestroyedException);
-            return Ice.Promise.resolve();
+            Debug.assert(ex instanceof CommunicatorDestroyedException);
+            return Promise.resolve();
         }
     }
 
@@ -52,8 +53,8 @@ export class Communicator
         }
         catch(ex)
         {
-            console.assert(ex instanceof CommunicatorDestroyedException);
-            return Ice.Promise.resolve();
+            Debug.assert(ex instanceof CommunicatorDestroyedException);
+            return Promise.resolve();
         }
     }
 
@@ -95,12 +96,12 @@ export class Communicator
 
     identityToString(ident)
     {
-        return Ice.identityToString(ident, this._instance.toStringMode());
+        return identityToString(ident, this._instance.toStringMode());
     }
 
     createObjectAdapter(name)
     {
-        const promise = new AsyncResultBase(this, "createObjectAdapter", this, null, null);
+        const promise = this.createAsyncResultBase(this, "createObjectAdapter", this, null, null);
         this._instance.objectAdapterFactory().createObjectAdapter(name, null, promise);
         return promise;
     }
@@ -109,11 +110,11 @@ export class Communicator
     {
         if(name.length === 0)
         {
-            name = Ice.generateUUID();
+            name = generateUUID();
         }
 
         this.getProperties().setProperty(name + ".Endpoints", endpoints);
-        const promise = new AsyncResultBase(this, "createObjectAdapterWithEndpoints", this, null, null);
+        const promise = this.createAsyncResultBase(this, "createObjectAdapterWithEndpoints", this, null, null);
         this._instance.objectAdapterFactory().createObjectAdapter(name, null, promise);
         return promise;
     }
@@ -122,10 +123,10 @@ export class Communicator
     {
         if(name.length === 0)
         {
-            name = Ice.generateUUID();
+            name = generateUUID();
         }
 
-        const promise = new AsyncResultBase(this, "createObjectAdapterWithRouter", this, null, null);
+        const promise = this.createAsyncResultBase(this, "createObjectAdapterWithRouter", this, null, null);
 
         //
         // We set the proxy properties here, although we still use the proxy supplied.

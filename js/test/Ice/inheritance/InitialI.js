@@ -2,9 +2,9 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Test = require("Test").Test;
+import { Test } from "./Test.js";
 
-class IAI extends Test.MA.IA
+export class IAI extends Test.MA.IA
 {
     iaop(p, current)
     {
@@ -12,7 +12,7 @@ class IAI extends Test.MA.IA
     }
 }
 
-class IB1I extends Test.MB.IB1
+export class IB1I extends Test.MB.IB1
 {
     iaop(p, current)
     {
@@ -25,7 +25,7 @@ class IB1I extends Test.MB.IB1
     }
 }
 
-class IB2I extends Test.MB.IB2
+export class IB2I extends Test.MB.IB2
 {
     iaop(p, current)
     {
@@ -38,7 +38,7 @@ class IB2I extends Test.MB.IB2
     }
 }
 
-class ICI extends Test.MA.IC
+export class ICI extends Test.MA.IC
 {
     iaop(p, current)
     {
@@ -61,7 +61,7 @@ class ICI extends Test.MA.IC
     }
 }
 
-class InitialI extends Test.Initial
+export class InitialI extends Test.Initial
 {
     constructor(adapter, obj)
     {
@@ -98,5 +98,3 @@ class InitialI extends Test.Initial
         current.adapter.getCommunicator().shutdown();
     }
 }
-
-exports.InitialI = InitialI;

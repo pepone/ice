@@ -2,11 +2,18 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("ice").Ice;
-const Test = require("Test").Test;
-require("Forward");
-const TestHelper = require("TestHelper").TestHelper;
-const InitialI = require("InitialI").InitialI;
+import { Ice } from "ice";
+import { Test as Test_Test } from "./Test.js";
+import { Test as Test_Forward } from "./Forward.js";
+
+const Test = {
+    ...Test_Test,
+    ...Test_Forward
+};
+Test.Inner = Test_Test.Inner;
+
+import { TestHelper } from "../../Common/TestHelper.js";
+import { InitialI } from "./InitialI.js";
 
 class UnexpectedObjectExceptionTestI extends Test.UnexpectedObjectExceptionTest
 {
@@ -23,7 +30,7 @@ class F2I extends Test.F2
     }
 }
 
-class Server extends TestHelper
+export class Server extends TestHelper
 {
     async run(args)
     {
@@ -59,4 +66,3 @@ class Server extends TestHelper
         }
     }
 }
-exports.Server = Server;

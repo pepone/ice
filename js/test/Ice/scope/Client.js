@@ -2,12 +2,12 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Test = require("Test").Test;
-const Inner = require("Test").Inner;
-const TestHelper = require("TestHelper").TestHelper;
+import { Test, Inner } from "./Test.js";
+import { TestHelper } from "../../Common/TestHelper.js";
+
 const test = TestHelper.test;
 
-class Client extends TestHelper
+export class Client extends TestHelper
 {
     async allTests()
     {
@@ -185,4 +185,3 @@ class Client extends TestHelper
         }
     }
 }
-exports.Client = Client;

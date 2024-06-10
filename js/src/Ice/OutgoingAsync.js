@@ -4,6 +4,8 @@
 
 import { OutputStream } from "./Stream.js";
 import { AsyncResult } from "./AsyncResult.js";
+import { AsyncStatus } from "./AsyncStatus.js";
+import { UserException } from "./Exception.js";
 import { RetryException } from "./RetryException.js";
 import { 
     InvocationTimeoutException,
@@ -21,6 +23,12 @@ const { ContextHelper } = Ice_Context;
 import { Protocol } from "./Protocol.js";
 import { Ice as Ice_BuiltinSequences } from "./BuiltinSequences.js";
 const { StringSeqHelper } = Ice_BuiltinSequences;
+import { InputStream } from "./Stream.js";
+
+import { Ice as Ice_Identity } from "./Identity.js";
+const { Identity } = Ice_Identity;
+import { Debug } from "./Debug.js";
+
 export class OutgoingAsyncBase extends AsyncResult
 {
     constructor(communicator, operation, connection, proxy, adapter)
@@ -308,7 +316,7 @@ export class OutgoingAsync extends ProxyOutgoingAsyncBase
 
     completed(istr)
     {
-        console.assert(this._proxy.ice_isTwoway()); // Can only be called for twoways.
+        Debug.assert(this._proxy.ice_isTwoway()); // Can only be called for twoways.
 
         let replyStatus;
         try
@@ -378,7 +386,7 @@ export class OutgoingAsync extends ProxyOutgoingAsyncBase
 
                     default:
                     {
-                        console.assert(false);
+                        Debug.assert(false);
                         break;
                     }
                     }
@@ -418,7 +426,7 @@ export class OutgoingAsync extends ProxyOutgoingAsyncBase
 
                     default:
                     {
-                        console.assert(false);
+                        Debug.assert(false);
                         break;
                     }
                     }
@@ -475,7 +483,7 @@ export class OutgoingAsync extends ProxyOutgoingAsyncBase
 
     throwUserException()
     {
-        console.assert((this._state & AsyncResult.Done) !== 0);
+        Debug.assert((this._state & AsyncResult.Done) !== 0);
         if((this._state & AsyncResult.OK) === 0)
         {
             try
@@ -485,7 +493,7 @@ export class OutgoingAsync extends ProxyOutgoingAsyncBase
             }
             catch(ex)
             {
-                if(ex instanceof Ice.UserException)
+                if(ex instanceof UserException)
                 {
                     this._is.endEncapsulation();
                 }

@@ -2,11 +2,13 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("ice").Ice;
-const Test = require("Test").Test;
-const test = require("TestHelper").TestHelper.test;
+import { Ice } from "ice";
+import { Test } from "./Test.js";
+import { TestHelper } from "../../Common/TestHelper.js";
 
-class AMDMyDerivedClassI extends Test.MyDerivedClass
+const test = TestHelper.test;
+
+export class AMDMyDerivedClassI extends Test.MyDerivedClass
 {
     constructor(endpoints)
     {
@@ -480,5 +482,3 @@ class AMDMyDerivedClassI extends Test.MyDerivedClass
         return [p1, p1];
     }
 }
-
-exports.AMDMyDerivedClassI = AMDMyDerivedClassI;

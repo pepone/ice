@@ -8,6 +8,7 @@ import { FormatType } from './FormatType.js';
 import { UnknownException, MarshalException, OperationNotExistException } from './LocalException.js';
 import { ObjectPrx } from './ObjectPrx.js';
 import { Object as Ice_Object } from './Object.js';
+import { TypeRegistry } from './TypeRegistry.js';
 
 import { 
     ByteHelper,
@@ -46,7 +47,12 @@ function parseParam(p)
     }
     else if(t === 'string')
     {
-        console.trace("parseParam string", t);
+        const typeName = p[0];
+        type = TypeRegistry.getProxyType(typeName);
+        if (type === undefined)
+        {
+            type = TypeRegistry.getValueType(typeName);
+        }
     }
 
     return {
@@ -564,8 +570,8 @@ function addProxyOperation(proxyType, name, data)
                 return results.length == 1 ? results[0] : results;
             };
         }
-        //return ObjectPrx._invoke(this, op.name, op.mode, op.format, ctx, marshalFn, unmarshalFn,
-        //                          op.exceptions, Array.prototype.slice.call(args));
+        return ObjectPrx._invoke(this, op.name, op.mode, op.format, ctx, marshalFn, unmarshalFn,
+                                  op.exceptions, Array.prototype.slice.call(args));
     };
 }
 
@@ -642,14 +648,3 @@ export function defineOperations(classType, proxyType, ids, id, ops)
         });
     }
 };
-
-//
-// Define the "built-in" operations for all Ice objects.
-//
-defineOperations(Ice_Object, ObjectPrx, ["::Ice::Object"], "::Ice::Object",
-{
-    ice_ping: [undefined, 2, undefined, undefined, undefined, undefined, undefined],
-    ice_isA: [undefined, 2, undefined, [1], [[7]], undefined, undefined],
-    ice_id: [undefined, 2, undefined, [7], undefined, undefined, undefined],
-    ice_ids: [undefined, 2, undefined, ["Ice.StringSeqHelper"], undefined, undefined, undefined]
-});

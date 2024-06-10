@@ -5,7 +5,9 @@
 
 import { HashMap } from "./HashMap.js";
 import { StringUtil } from "./StringUtil.js";
-import { AlreadyRegisteredException } from "./LocalException.js";
+import { AlreadyRegisteredException, NotRegisteredException } from "./LocalException.js";
+import { identityToString } from "./IdentityUtil.js";
+import { Debug } from "./Debug.js";
 
 //
 // Only for use by Ice.ObjectAdapter.
@@ -26,7 +28,7 @@ export class ServantManager
 
     addServant(servant, ident, facet)
     {
-        console.assert(this._instance !== null); // Must not be called after destruction.
+        Debug.assert(this._instance !== null); // Must not be called after destruction.
 
         if(facet === null)
         {
@@ -42,7 +44,7 @@ export class ServantManager
         else if(m.has(facet))
         {
             const ex = new AlreadyRegisteredException();
-            ex.id = Ice.identityToString(ident, this._instance.toStringMode());
+            ex.id = identityToString(ident, this._instance.toStringMode());
             ex.kindOfObject = "servant";
             if(facet.length > 0)
             {
@@ -56,11 +58,11 @@ export class ServantManager
 
     addDefaultServant(servant, category)
     {
-        console.assert(this._instance !== null); // Must not be called after destruction
+        Debug.assert(this._instance !== null); // Must not be called after destruction
 
         if(this._defaultServantMap.has(category))
         {
-            const ex = new Ice.AlreadyRegisteredException();
+            const ex = new AlreadyRegisteredException();
             ex.kindOfObject = "default servant";
             ex.id = category;
             throw ex;
@@ -71,7 +73,7 @@ export class ServantManager
 
     removeServant(ident, facet)
     {
-        console.assert(this._instance !== null); // Must not be called after destruction.
+        Debug.assert(this._instance !== null); // Must not be called after destruction.
 
         if(facet === null)
         {
@@ -81,8 +83,8 @@ export class ServantManager
         const m = this._servantMapMap.get(ident);
         if(m === undefined || !m.has(facet))
         {
-            const ex = new Ice.NotRegisteredException();
-            ex.id = Ice.identityToString(ident, this._instance.toStringMode());
+            const ex = new NotRegisteredException();
+            ex.id = identityToString(ident, this._instance.toStringMode());
             ex.kindOfObject = "servant";
             if(facet.length > 0)
             {
@@ -104,12 +106,12 @@ export class ServantManager
 
     removeDefaultServant(category)
     {
-        console.assert(this._instance !== null); // Must not be called after destruction.
+        Debug.assert(this._instance !== null); // Must not be called after destruction.
 
         const obj = this._defaultServantMap.get(category);
         if(obj === undefined)
         {
-            const ex = new Ice.NotRegisteredException();
+            const ex = new NotRegisteredException();
             ex.kindOfObject = "default servant";
             ex.id = category;
             throw ex;
@@ -121,13 +123,13 @@ export class ServantManager
 
     removeAllFacets(ident)
     {
-        console.assert(this._instance !== null); // Must not be called after destruction.
+        Debug.assert(this._instance !== null); // Must not be called after destruction.
 
         const m = this._servantMapMap.get(ident);
         if(m === undefined)
         {
-            const ex = new Ice.NotRegisteredException();
-            ex.id = Ice.identityToString(ident, this._instance.toStringMode());
+            const ex = new NotRegisteredException();
+            ex.id = identityToString(ident, this._instance.toStringMode());
             ex.kindOfObject = "servant";
             throw ex;
         }
@@ -164,7 +166,7 @@ export class ServantManager
 
     findDefaultServant(category)
     {
-        console.assert(this._instance !== null); // Must not be called after destruction.
+        Debug.assert(this._instance !== null); // Must not be called after destruction.
 
         const ds = this._defaultServantMap.get(category);
         return ds === undefined ? null : ds;
@@ -172,7 +174,7 @@ export class ServantManager
 
     findAllFacets(ident)
     {
-        console.assert(this._instance !== null); // Must not be called after destruction.
+        Debug.assert(this._instance !== null); // Must not be called after destruction.
 
         const m = this._servantMapMap.get(ident);
         if(m !== undefined)
@@ -192,18 +194,18 @@ export class ServantManager
         }
         else
         {
-            console.assert(m.size > 0);
+            Debug.assert(m.size > 0);
             return true;
         }
     }
 
     addServantLocator(locator, category)
     {
-        console.assert(this._instance !== null); // Must not be called after destruction.
+        Debug.assert(this._instance !== null); // Must not be called after destruction.
 
         if(this._locatorMap.has(category))
         {
-            const ex = new Ice.AlreadyRegisteredException();
+            const ex = new AlreadyRegisteredException();
             ex.id = StringUtil.escapeString(category, "", this._instance.toStringMode());
             ex.kindOfObject = "servant locator";
             throw ex;
@@ -214,12 +216,12 @@ export class ServantManager
 
     removeServantLocator(category)
     {
-        console.assert(this._instance !== null); // Must not be called after destruction.
+        Debug.assert(this._instance !== null); // Must not be called after destruction.
 
         const l = this._locatorMap.get(category);
         if(l === undefined)
         {
-            const ex = new Ice.NotRegisteredException();
+            const ex = new NotRegisteredException();
             ex.id = StringUtil.escapeString(category, "", this._instance.toStringMode());
             ex.kindOfObject = "servant locator";
             throw ex;
@@ -239,7 +241,7 @@ export class ServantManager
     //
     destroy()
     {
-        console.assert(this._instance !== null); // Must not be called after destruction.
+        Debug.assert(this._instance !== null); // Must not be called after destruction.
         const logger = this._instance.initializationData().logger;
         this._servantMapMap.clear();
 

@@ -6,13 +6,15 @@
 import { HashMap } from './HashMap.js';
 import { Promise } from './Promise.js';
 import { NoEndpointException } from './LocalException.js';
+import { Debug } from "./Debug.js";
+
 export class RouterInfo
 {
     constructor(router)
     {
         this._router = router;
 
-        console.assert(this._router !== null);
+        Debug.assert(this._router !== null);
 
         this._clientEndpoints = null;
         this._adapter = null;
@@ -84,7 +86,7 @@ export class RouterInfo
 
     addProxy(proxy)
     {
-        console.assert(proxy !== null);
+        Debug.assert(proxy !== null);
         if(!this._hasRoutingTable)
         {
             return Promise.resolve(); // The router implementation doesn't maintain a routing table.

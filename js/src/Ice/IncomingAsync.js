@@ -30,6 +30,7 @@ import { Ice as Ice_Version } from "./Version.js";
 const { EncodingVersion } = Ice_Version;
 import { Ice as Ice_BuiltinSequences } from "./BuiltinSequences.js"
 const { StringSeqHelper } = Ice_BuiltinSequences;
+import { Debug } from "./Debug.js";
 
 export class IncomingAsync
 {
@@ -61,7 +62,7 @@ export class IncomingAsync
             throw new MarshalException("can't marshal out parameters for oneway dispatch");
         }
 
-        console.assert(this._current.encoding !== null); // Encoding for reply is known.
+        Debug.assert(this._current.encoding !== null); // Encoding for reply is known.
         this._os = new OutputStream(this._instance, Protocol.currentProtocolEncoding);
         this._os.writeBlob(Protocol.replyHdr);
         this._os.writeInt(this._current.requestId);
@@ -82,7 +83,7 @@ export class IncomingAsync
     {
         if(this._response)
         {
-            console.assert(this._current.encoding !== null); // Encoding for reply is known.
+            Debug.assert(this._current.encoding !== null); // Encoding for reply is known.
             this._os = new OutputStream(this._instance, Protocol.currentProtocolEncoding);
             this._os.writeBlob(Protocol.replyHdr);
             this._os.writeInt(this._current.requestId);
@@ -95,7 +96,7 @@ export class IncomingAsync
     {
         if(this._response)
         {
-            console.assert(this._current.encoding !== null); // Encoding for reply is known.
+            Debug.assert(this._current.encoding !== null); // Encoding for reply is known.
             this._os = new OutputStream(this._instance, Protocol.currentProtocolEncoding);
             this._os.writeBlob(Protocol.replyHdr);
             this._os.writeInt(this._current.requestId);
@@ -118,7 +119,7 @@ export class IncomingAsync
 
     warning(ex)
     {
-        console.assert(this._instance !== null);
+        Debug.assert(this._instance !== null);
 
         const s = [];
         s.push("dispatch exception:");
@@ -152,7 +153,7 @@ export class IncomingAsync
 
     handleException(ex, amd)
     {
-        console.assert(this._connection !== null);
+        Debug.assert(this._connection !== null);
 
         const props = this._instance.initializationData().properties;
         if(ex instanceof RequestFailedException)
@@ -196,7 +197,7 @@ export class IncomingAsync
                 }
                 else
                 {
-                    console.assert(false);
+                    Debug.assert(false);
                 }
                 ex.id._write(this._os);
 
@@ -448,7 +449,7 @@ export class IncomingAsync
 
         try
         {
-            console.assert(this._servant !== null);
+            Debug.assert(this._servant !== null);
             const promise = this._servant._iceDispatch(this, this._current);
             if(promise !== null)
             {
@@ -457,7 +458,7 @@ export class IncomingAsync
                 return;
             }
 
-            console.assert(!this._response || this._os !== null);
+            Debug.assert(!this._response || this._os !== null);
             this.completed(null, false);
         }
         catch(ex)
@@ -503,7 +504,7 @@ export class IncomingAsync
         {
             if(this._locator !== null)
             {
-                console.assert(this._locator !== null && this._servant !== null);
+                Debug.assert(this._locator !== null && this._servant !== null);
                 try
                 {
                     this._locator.finished(this._current, this._servant, this._cookie.value);
@@ -515,7 +516,7 @@ export class IncomingAsync
                 }
             }
 
-            console.assert(this._connection !== null);
+            Debug.assert(this._connection !== null);
 
             if(exc !== null)
             {

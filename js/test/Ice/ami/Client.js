@@ -2,12 +2,13 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("ice").Ice;
-const Test = require("Test").Test;
-const TestHelper = require("TestHelper").TestHelper;
+import { Ice } from "ice";
+import { Test } from "./Test.js";
+import { TestHelper } from "../../Common/TestHelper.js";
+
 const test = TestHelper.test;
 
-class Client extends TestHelper
+export class Client extends TestHelper
 {
     async allTests()
     {
@@ -162,7 +163,7 @@ class Client extends TestHelper
             let r2;
             if(!TestHelper.isSafari())
             {
-                // Safari WebSocket implementation accepts lots of data before apply backpresure
+                // Safari WebSocket implementation accepts lots of data before apply back-pressure
                 // making this test very slow.
                 await testController.holdAdapter();
                 try
@@ -257,7 +258,7 @@ class Client extends TestHelper
 
         if(!TestHelper.isSafari())
         {
-            // Safari WebSocket implementation accepts lots of data before apply backpresure
+            // Safari WebSocket implementation accepts lots of data before apply backpressure
             // making this test very slow.
             await testController.holdAdapter();
             const seq = new Uint8Array(new Array(100000));
@@ -339,4 +340,3 @@ class Client extends TestHelper
         }
     }
 }
-exports.Client = Client;

@@ -2,10 +2,12 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("ice").Ice;
-const Test = require("Test").Test;
-const TestI = require("TestI").TestI;
-const test = require("TestHelper").TestHelper.test;
+import { Ice } from "ice";
+import { Test } from "./Test.js";
+import { TestHelper } from "../../Common/TestHelper.js";
+import { TestI } from "./TestI.js";
+
+const test = TestHelper.test;
 
 class MyError
 {
@@ -19,7 +21,7 @@ class Cookie
     }
 }
 
-class ServantLocatorI
+export class ServantLocatorI
 {
     constructor(category)
     {
@@ -142,5 +144,3 @@ class ServantLocatorI
         }
     }
 }
-
-exports.ServantLocatorI = ServantLocatorI;

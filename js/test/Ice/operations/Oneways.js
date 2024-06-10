@@ -2,10 +2,12 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("ice").Ice;
-const test = require("TestHelper").TestHelper.test;
+import { Ice } from "ice";
+import { TestHelper } from "../../Common/TestHelper.js";
 
-async function run(communicator, prx, Test, bidir)
+const test = TestHelper.test;
+
+export async function oneways(communicator, prx, Test, bidir)
 {
     prx = prx.ice_oneway();
     await prx.ice_ping();
@@ -57,5 +59,3 @@ async function run(communicator, prx, Test, bidir)
         test(ex instanceof Ice.TwowayOnlyException, ex);
     }
 }
-
-exports.Oneways = {run: run};

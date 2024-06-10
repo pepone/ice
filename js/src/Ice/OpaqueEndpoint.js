@@ -8,8 +8,9 @@ import { HashUtil } from "./HashUtil.js";
 import { StringUtil } from "./StringUtil.js";
 import { EndpointI } from "./EndpointI.js";
 import { FormatType } from "./FormatType.js";
-import { Encoding_1_0, encodingVersionToString } from "./Protocol.js";
+import { Encoding_1_0, encodingVersionToString, stringToEncodingVersion } from "./Protocol.js";
 import { OpaqueEndpointInfo } from "./Endpoint.js";
+import { Debug } from "./Debug.js";
 
 export class OpaqueEndpointI extends EndpointI
 {
@@ -349,7 +350,7 @@ export class OpaqueEndpointI extends EndpointI
                 }
                 try
                 {
-                    this._rawEncoding = Ice.stringToEncodingVersion(argument);
+                    this._rawEncoding = stringToEncodingVersion(argument);
                 }
                 catch(e)
                 {

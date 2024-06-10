@@ -10,6 +10,8 @@ import * as Ice_BatchRequestQueue from "./BatchRequestQueue.js";
 import * as Ice_Buffer from "./Buffer.js";
 import * as Ice_BuiltinSequences from "./BuiltinSequences.js";
 import * as Ice_Communicator from "./Communicator.js";
+// Must be imported after Communicator.js for the prototype extensions.
+import "./CommunicatorExtensions.js";
 import * as Ice_CompactIdRegistry from "./CompactIdRegistry.js";
 import * as Ice_ConnectRequestHandler from "./ConnectRequestHandler.js";
 import * as Ice_Connection from "./Connection.js";
@@ -37,6 +39,8 @@ import * as Ice_ImplicitContext from "./ImplicitContext.js";
 import * as Ice_IncomingAsync from "./IncomingAsync.js";
 import * as Ice_Initialize from "./Initialize.js";
 import * as Ice_Instance from  "./Instance.js";
+// Must be imported after Instance.js for the prototype extensions.
+import "./InstanceExtensions.js";
 import * as Ice_LocalException from "./LocalException.js";
 import * as Ice_Locator from "./Locator.js";
 import * as Ice_LocatorInfo from "./LocatorInfo.js";
@@ -46,9 +50,13 @@ import * as Ice_Logger from "./Logger.js";
 import * as Ice_Long from "./Long.js";
 import * as Ice_MapUtil from "./MapUtil.js";
 import * as Ice_Object from "./Object.js";
+// Must be imported after Object.js for the prototype extensions.
+import "./ObjectExtensions.js";
 import * as Ice_ObjectAdapter from "./ObjectAdapter.js";
 import * as Ice_ObjectAdapterFactory from "./ObjectAdapterFactory.js";
 import * as Ice_ObjectPrx from "./ObjectPrx.js";
+// Must be imported after ObjectPrx.js for the prototype extensions.
+import "./ObjectPrxExtensions.js";
 import * as Ice_OpaqueEndpointI from "./OpaqueEndpoint.js";
 import * as Ice_Operation from "./Operation.js";
 import * as Ice_OperationMode from "./OperationMode.js";
@@ -89,6 +97,7 @@ import * as Ice_TimerUtil from "./TimerUtil.js";
 import * as Ice_ToStringMode from "./ToStringMode.js";
 import * as Ice_TraceLevels from "./TraceLevels.js";
 import * as Ice_TraceUtil from "./TraceUtil.js";
+import * as Ice_TypeRegistry from "./TypeRegistry.js";
 import * as Ice_UUID from "./UUID.js";
 import * as Ice_UnknownSlicedValue from "./UnknownSlicedValue.js";
 import * as Ice_Value from "./Value.js";
@@ -178,8 +187,9 @@ export const Ice = {
     ...Ice_ToStringMode,
     ...Ice_TraceLevels,
     ...Ice_TraceUtil,
+    ...Ice_TypeRegistry,
     ...Ice_UUID,
-    ...Ice_UnknownSlicedValue ,
+    ...Ice_UnknownSlicedValue,
     ...Ice_Value,
     ...Ice_ValueFactoryManager,
     ...Ice_WSEndpoint,

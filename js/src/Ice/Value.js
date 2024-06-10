@@ -2,6 +2,9 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
+import { CompactIdRegistry } from "./CompactIdRegistry.js";
+import { TypeRegistry } from "./TypeRegistry.js";
+
 //
 // Ice.Value
 //
@@ -92,10 +95,11 @@ export function defineValue(valueType, id, compactId = 0)
 
     if(compactId > 0)
     {
-        Ice.CompactIdRegistry.set(compactId, id);
+        CompactIdRegistry.set(compactId, id);
     }
 };
 defineValue(Value, "::Ice::Object");
+TypeRegistry.declareValueType("Ice.Value", Value);
 
 //
 // Private methods
@@ -108,14 +112,14 @@ function writeImpl(obj, os, type)
     // generated _iceWriteMemberImpl method.
     //
 
-    if(type === undefined || type === Ice.Value)
+    if(type === undefined || type === Value)
     {
         return; // Don't marshal anything for Ice.Value
     }
 
     os.startSlice(type.ice_staticId(),
                   Object.prototype.hasOwnProperty.call(type, '_iceCompactId') ? type._iceCompactId : -1,
-                  Object.getPrototypeOf(type) === Ice.Value);
+                  Object.getPrototypeOf(type) === Value);
     if(type.prototype.hasOwnProperty('_iceWriteMemberImpl'))
     {
         type.prototype._iceWriteMemberImpl.call(obj, os);
@@ -132,7 +136,7 @@ function readImpl(obj, is, type)
     // generated _iceReadMemberImpl method.
     //
 
-    if(type === undefined || type === Ice.Value)
+    if(type === undefined || type === Value)
     {
         return; // Don't unmarshal anything for Ice.Value
     }

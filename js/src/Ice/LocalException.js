@@ -3,6 +3,13 @@
 //
 
 import { LocalException } from "./Exception.js";
+import { Ice as Ice_Identity } from "./Identity.js";
+import { Ice as Ice_Version } from "./Version.js";
+
+const Ice = {
+    ...Ice_Identity,
+    ...Ice_Version,
+};
 
 /**
  *  This exception is raised when a failure occurs during initialization.
@@ -337,7 +344,7 @@ export class IllegalServantException extends LocalException
  **/
 export class RequestFailedException extends LocalException
 {
-    constructor(id, facet, operation, _cause)
+    constructor(id = new Ice.Identity(), facet = "", operation = "", _cause = "")
     {
         super(_cause);
         this.id = id;
@@ -619,7 +626,7 @@ export class BadMagicException extends ProtocolException
  **/
 export class UnsupportedProtocolException extends ProtocolException
 {
-    constructor(reason, bad, supported, _cause = "")
+    constructor(reason, bad = new Ice.ProtocolVersion(), supported = new Ice.ProtocolVersion(), _cause = "")
     {
         super(reason, _cause);
         this.bad = bad;
@@ -637,7 +644,7 @@ export class UnsupportedProtocolException extends ProtocolException
  **/
 export class UnsupportedEncodingException extends ProtocolException
 {
-    constructor(reason, bad, supported, _cause = "")
+    constructor(reason, bad = new Ice.EncodingVersion(), supported = new Ice.EncodingVersion(), _cause = "")
     {
         super(reason, _cause);
         this.bad = bad;

@@ -2,10 +2,10 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Test = require("Test").Test;
-const ServantLocatorI = require("ServantLocatorI").ServantLocatorI;
+import { Test } from "./Test.js";
+import { ServantLocatorI } from "./ServantLocatorI.js";
 
-class TestActivationI extends Test.TestActivation
+export class TestActivationI extends Test.TestActivation
 {
     activateServantLocator(activate, current)
     {
@@ -23,5 +23,3 @@ class TestActivationI extends Test.TestActivation
         }
     }
 }
-
-exports.TestActivationI = TestActivationI;

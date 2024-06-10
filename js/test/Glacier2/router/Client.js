@@ -2,14 +2,13 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("ice").Ice;
-const Glacier2 = require("ice").Glacier2;
-const Test = require("Callback").Test;
-const TestHelper = require("TestHelper").TestHelper;
+import { Ice, Glacier2 } from "ice";
+import { Test } from "./Callback.js";
+import { TestHelper } from "../../Common/TestHelper.js";
+
 const test = TestHelper.test;
 
-const CallbackPrx = Test.CallbackPrx;
-const CallbackReceiverPrx = Test.CallbackReceiverPrx;
+const { CallbackPrx, CallbackReceiverPrx } = Test;
 
 class CallbackReceiverI extends Test.CallbackReceiver
 {
@@ -42,7 +41,7 @@ class CallbackReceiverI extends Test.CallbackReceiver
     }
 }
 
-class Client extends TestHelper
+export class Client extends TestHelper
 {
     async allTests(shutdown)
     {
@@ -325,4 +324,3 @@ class Client extends TestHelper
         }
     }
 }
-exports.Client = Client;

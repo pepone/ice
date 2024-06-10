@@ -12,6 +12,7 @@ const { Identity } = Ice_Identity;
 const { EncodingVersion, ProtocolVersion } = Ice_Version;
 
 import { defineStruct } from "./Struct.js";
+import { TypeRegistry } from "./TypeRegistry.js";
 
 const defineProperty = Object.defineProperty;
 
@@ -213,7 +214,7 @@ StreamHelpers.generateSeqHelper = function(elementHelper, fixed, elementType)
 
     if(elementHelper == ObjectHelper)
     {
-        defineProperty(helper, "elementType", {get: () => elementType});
+        defineProperty(helper, "elementType", {get: () => TypeRegistry.getValueType(elementType) });
         helper.read = valueSequenceHelperRead;
     }
 
@@ -322,7 +323,7 @@ StreamHelpers.generateDictHelper = function(keyHelper, valueHelper, fixed, value
     {
         defineProperty(helper, "valueType",
                        {
-                           get: () => valueType
+                           get: () => TypeRegistry.getValueType(valueType)
                        });
 
         helper.read = valueDictionaryHelperRead;

@@ -2,10 +2,10 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("ice").Ice;
-const Test = require("Test").Test;
+import { Ice } from "ice";
+import { Test } from "./Test.js";
 
-class TestI extends Test.TestIntf
+export class TestI extends Test.TestIntf
 {
     requestFailedException(current)
     {
@@ -83,5 +83,3 @@ class TestI extends Test.TestIntf
         current.adapter.getCommunicator().shutdown();
     }
 }
-
-exports.TestI = TestI;

@@ -2,13 +2,12 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
+import { Ice } from "ice";
+import { Test } from "./Test.js";
+import { TestHelper } from "../../Common/TestHelper.js";
+import { AMDMyDerivedClassI } from "./AMDMyDerivedClassI.js";
 
-const Ice = require("ice").Ice;
-const Test = require("Test").Test;
-const TestHelper = require("TestHelper").TestHelper;
-const AMDMyDerivedClassI = require("AMDMyDerivedClassI").AMDMyDerivedClassI;
-
-class ServerAMD extends TestHelper
+export class ServerAMD extends TestHelper
 {
     async run(args)
     {
@@ -41,4 +40,3 @@ class ServerAMD extends TestHelper
         }
     }
 }
-exports.ServerAMD = ServerAMD;

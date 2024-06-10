@@ -2,10 +2,12 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("ice").Ice;
-const test = require("TestHelper").TestHelper.test;
+import { Ice } from "ice";
+import { TestHelper } from "../../Common/TestHelper.js";
 
-async function run(communicator, prx, Test, bidir)
+const test = TestHelper.test;
+
+export async function batchOneways(communicator, prx, Test, bidir)
 {
     const bs1 = new Uint8Array(10 * 1024);
     for(let i = 0; i < bs1.length; ++i)
@@ -66,4 +68,3 @@ async function run(communicator, prx, Test, bidir)
     await batch.ice_flushBatchRequests();
     await batch.ice_ping();
 }
-exports.BatchOneways = {run: run};

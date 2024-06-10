@@ -5,6 +5,7 @@
 import { IdentityParseException } from "./LocalException.js";
 import { StringUtil } from "./StringUtil.js";
 import { Ice as Ice_Identity } from "./Identity.js";
+import { ToStringMode } from "./ToStringMode.js";
 const { Identity } = Ice_Identity;
 
 /**
@@ -103,7 +104,7 @@ export function stringToIdentity(s)
 *
 * @return The string representation of the object identity.
 **/
-export function identityToString(ident, toStringMode = Ice.ToStringMode.Unicode)
+export function identityToString(ident, toStringMode = ToStringMode.Unicode)
 {
     if(ident.category === null || ident.category.length === 0)
     {

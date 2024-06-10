@@ -11,6 +11,7 @@ import {
     ConnectFailedException,
     SocketException
  } from "./LocalException.js";
+ import { Debug } from "./Debug.js";
 
 // TODO: How do we handle this for the browser?
 import net from "net";
@@ -114,7 +115,7 @@ if (typeof process !== 'undefined')
                 throw this._exception;
             }
 
-            console.assert(this._state === StateConnected);
+            Debug.assert(this._state === StateConnected);
             return SocketOperation.None;
         }
 
@@ -132,7 +133,7 @@ if (typeof process !== 'undefined')
         {
             if(this._fd === null)
             {
-                console.assert(this._exception); // Socket creation failed.
+                Debug.assert(this._exception); // Socket creation failed.
                 return;
             }
             this._registered = false;
@@ -143,7 +144,7 @@ if (typeof process !== 'undefined')
         {
             if(this._fd === null)
             {
-                console.assert(this._exception); // Socket creation failed.
+                Debug.assert(this._exception); // Socket creation failed.
                 return;
             }
 
@@ -172,7 +173,7 @@ if (typeof process !== 'undefined')
             }
 
             let packetSize = byteBuffer.remaining;
-            console.assert(packetSize > 0);
+            Debug.assert(packetSize > 0);
 
             if(this._maxSendPacketSize > 0 && packetSize > this._maxSendPacketSize)
             {
@@ -225,7 +226,7 @@ if (typeof process !== 'undefined')
             }
 
             let avail = this._readBuffers[0].length - this._readPosition;
-            console.assert(avail > 0);
+            Debug.assert(avail > 0);
 
             while(byteBuffer.remaining > 0)
             {
@@ -268,7 +269,7 @@ if (typeof process !== 'undefined')
 
         getInfo()
         {
-            console.assert(this._fd !== null);
+            Debug.assert(this._fd !== null);
             const info = new TCPConnectionInfo();
             info.localAddress = this._fd.localAddress;
             info.localPort = this._fd.localPort;
@@ -295,13 +296,13 @@ if (typeof process !== 'undefined')
 
         socketConnected()
         {
-            console.assert(this._connectedCallback !== null);
+            Debug.assert(this._connectedCallback !== null);
             this._connectedCallback();
         }
 
         socketBytesAvailable(buf)
         {
-            console.assert(this._bytesAvailableCallback !== null);
+            Debug.assert(this._bytesAvailableCallback !== null);
 
             //
             // TODO: Should we set a limit on how much data we can read?

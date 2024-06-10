@@ -107,7 +107,6 @@
         "WSTransceiver.js",
         "Debug.js",
         "Ice.js",
-        "ModuleRegistry.js",
         "TcpTransceiver.js",
         "TimerUtil.js"
     ]

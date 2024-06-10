@@ -20,6 +20,7 @@ import { Ice as Ice_Identity } from "./Identity.js";
 const { Identity } = Ice_Identity;
 import { ObjectPrx } from "./ObjectPrx.js";
 import { ReferenceMode } from "./ReferenceMode.js";
+import { Debug } from "./Debug.js";
 
 //
 // Only for use by Instance.
@@ -239,7 +240,7 @@ export class ProxyFactory
         }
 
         ++cnt;
-        console.assert(cnt > 0);
+        Debug.assert(cnt > 0);
 
         let interval;
         if(cnt === (this._retryIntervals.length + 1) && ex instanceof CloseConnectionException)
@@ -275,7 +276,7 @@ export class ProxyFactory
             logger.trace(traceLevels.retryCat, msg);
         }
 
-        console.assert(sleepInterval !== null);
+        Debug.assert(sleepInterval !== null);
         sleepInterval.value = interval;
 
         return cnt;

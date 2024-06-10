@@ -2,9 +2,16 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("ice").Ice;
-const Test = require("Test").Test;
-require("Forward");
+import { Ice } from "ice";
+
+import { Test as Test_Test } from "./Test.js";
+import { Test as Test_Forward } from "./Forward.js";
+
+const Test = {
+    ...Test_Test,
+    ...Test_Forward
+};
+Test.Inner = Test_Test.Inner;
 
 class BI extends Test.B
 {
@@ -71,22 +78,6 @@ class FI extends Test.F
     }
 }
 
-class II extends Ice.InterfaceByValue
-{
-    constructor()
-    {
-        super(Test.I.ice_staticId());
-    }
-}
-
-class JI extends Ice.InterfaceByValue
-{
-    constructor()
-    {
-        super(Test.J.ice_staticId());
-    }
-}
-
 function MyValueFactory(type)
 {
     switch(type)
@@ -101,10 +92,6 @@ function MyValueFactory(type)
             return new EI();
         case "::Test::F":
             return new FI();
-        case "::Test::I":
-            return new II();
-        case "::Test::J":
-            return new JI();
         case "::Test::Inner::A":
             return new Test.Inner.A();
         case "::Test::Inner::Sub::A":
@@ -115,7 +102,7 @@ function MyValueFactory(type)
     return null;
 }
 
-class InitialI extends Test.Initial
+export class InitialI extends Test.Initial
 {
     constructor(communicator)
     {
@@ -127,8 +114,6 @@ class InitialI extends Test.Initial
             communicator.getValueFactoryManager().add(MyValueFactory, "::Test::D");
             communicator.getValueFactoryManager().add(MyValueFactory, "::Test::E");
             communicator.getValueFactoryManager().add(MyValueFactory, "::Test::F");
-            communicator.getValueFactoryManager().add(MyValueFactory, "::Test::I");
-            communicator.getValueFactoryManager().add(MyValueFactory, "::Test::J");
             communicator.getValueFactoryManager().add(MyValueFactory, "::Test::Inner::A");
             communicator.getValueFactoryManager().add(MyValueFactory, "::Test::Inner::Sub::A");
         }
@@ -336,5 +321,3 @@ class InitialI extends Test.Initial
         current.adapter.getCommunicator().shutdown();
     }
 }
-
-exports.InitialI = InitialI;

@@ -445,12 +445,12 @@ HashMap._nan = null;
 export function defineDictionary(keyHelper, valueHelper, fixed, keysEqual, valueType)
 {
     const dictionaryConstructor = keysEqual === undefined ? 
-        HashMap :
+        Map :
         // Define a constructor function for a dictionary whose key type requires comparison using an equals() method
         // instead of the native comparison operators.
         function(h)
         {
             return new HashMap(h || keysEqual);
         };
-    return [dictionaryConstructor, StreamHelpers.generateDictHelper(keyHelper, valueHelper, fixed, valueType)];
+    return [dictionaryConstructor, StreamHelpers.generateDictHelper(keyHelper, valueHelper, fixed, valueType, dictionaryConstructor)];
 }

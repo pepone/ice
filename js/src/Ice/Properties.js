@@ -6,6 +6,7 @@ import { StringUtil } from "./StringUtil.js";
 import { PropertyNames } from "./PropertyNames.js";
 import { getProcessLogger } from "./ProcessLogger.js";
 import { InitializationException } from "./LocalException.js";
+import { Debug } from "./Debug.js";
 
 const ParseStateKey = 0;
 const ParseStateValue = 1;
@@ -400,7 +401,7 @@ export class Properties
 
                 default:
                 {
-                    console.assert(false);
+                    Debug.assert(false);
                     break;
                 }
             }
@@ -470,7 +471,7 @@ export class Properties
 
             // Each top level prefix describes a non-empty namespace. Having a string without a
             // prefix followed by a dot is an error.
-            console.assert(dotPos != -1);
+            Debug.assert(dotPos != -1);
 
             const propPrefix = pattern.substring(0, dotPos).replace(/\\|^/g, "");
 

@@ -7,9 +7,10 @@
     isWorker : false
 */
 
-const Ice = require("ice").Ice;
-const Test = require("Test").Test;
-const TestHelper = require("TestHelper").TestHelper;
+import { Ice } from "ice";
+import { Test } from "./Test.js";
+import { TestHelper } from "../../Common/TestHelper.js";
+
 const ArrayUtil = Ice.ArrayUtil;
 const test = TestHelper.test;
 
@@ -19,7 +20,7 @@ const isConnectionFailed = ex =>
         (isBrowser && ex instanceof Ice.ConnectFailedException) ||
         (ex instanceof Ice.ConnectTimeoutException);
 
-class Client extends TestHelper
+export class Client extends TestHelper
 {
     async allTests()
     {
@@ -606,4 +607,3 @@ class Client extends TestHelper
         }
     }
 }
-exports.Client = Client;

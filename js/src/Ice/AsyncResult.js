@@ -7,6 +7,7 @@ import { OutputStream } from "./Stream.js";
 import { Protocol } from "./Protocol.js";
 import { UserException } from "./Exception.js";
 import { InvocationCanceledException } from "./LocalException.js";
+import { Debug } from "./Debug.js";
 
 export class AsyncResult extends AsyncResultBase
 {
@@ -51,7 +52,7 @@ export class AsyncResult extends AsyncResultBase
 
     markSent(done)
     {
-        console.assert((this._state & AsyncResult.Done) === 0);
+        Debug.assert((this._state & AsyncResult.Done) === 0);
         this._state |= AsyncResult.Sent;
         if(done)
         {
@@ -63,7 +64,7 @@ export class AsyncResult extends AsyncResultBase
 
     markFinished(ok, completed)
     {
-        console.assert((this._state & AsyncResult.Done) === 0);
+        Debug.assert((this._state & AsyncResult.Done) === 0);
         this._state |= AsyncResult.Done;
         if(ok)
         {
@@ -82,7 +83,7 @@ export class AsyncResult extends AsyncResultBase
 
     markFinishedEx(ex)
     {
-        console.assert((this._state & AsyncResult.Done) === 0);
+        Debug.assert((this._state & AsyncResult.Done) === 0);
         this._exception = ex;
         this._state |= AsyncResult.Done;
         this._cancellationHandler = null;
@@ -140,7 +141,7 @@ export class AsyncResult extends AsyncResultBase
 
     throwUserException()
     {
-        console.assert((this._state & AsyncResult.Done) !== 0);
+        Debug.assert((this._state & AsyncResult.Done) !== 0);
         if((this._state & AsyncResult.OK) === 0)
         {
             try

@@ -5,6 +5,9 @@
 import { EndpointParseException } from "./LocalException.js";
 import { StringUtil } from "./StringUtil.js";
 import { OpaqueEndpointI } from "./OpaqueEndpoint.js";
+import { Protocol } from "./Protocol.js";
+import { OutputStream, InputStream } from "./Stream.js";
+import { Debug } from "./Debug.js";
 
 export class EndpointFactoryManager
 {
@@ -16,7 +19,7 @@ export class EndpointFactoryManager
 
     add(factory)
     {
-        console.assert(this._factories.find(f => factory.type() == f.type()) === undefined);
+        Debug.assert(this._factories.find(f => factory.type() == f.type()) === undefined);
         this._factories.push(factory);
     }
 

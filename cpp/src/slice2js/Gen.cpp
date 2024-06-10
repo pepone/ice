@@ -695,7 +695,14 @@ Slice::Gen::generate(const UnitPtr& p)
         p->visit(&requireVisitor, false);
         set<string> importedModules = requireVisitor.writeImports(p);
 
-        TypesVisitor typesVisitor(_jsout, importedModules);
+        ExportsVisitor exportsVisitor(_jsout, importedModules);
+        p->visit(&exportsVisitor, false);
+        set<string> exportedModules = exportsVisitor.exportedModules();
+
+        set<string> seenModules = importedModules;
+        seenModules.merge(exportedModules);
+
+        TypesVisitor typesVisitor(_jsout);
         p->visit(&typesVisitor, false);
     }
 
@@ -905,7 +912,7 @@ Slice::Gen::ImportVisitor::writeImports(const UnitPtr& p)
 {
     set<string> importedModules = {"Ice"};
 
-    vector<string> jsIceRequires;
+    set<string> jsIceRequires;
     // The imports map maps JsModules to the set of Slice top-level modules that are imported from that JsModule.
     map<string, set<string>> imports;
     if (_icejs)
@@ -913,59 +920,67 @@ Slice::Gen::ImportVisitor::writeImports(const UnitPtr& p)
         bool needStreamHelpers = false;
         if (_seenClass || _seenInterface || _seenObjectSeq || _seenObjectDict)
         {
-            jsIceRequires.push_back("Object");
-            jsIceRequires.push_back("Value");
+            jsIceRequires.insert("Object");
+            jsIceRequires.insert("Value");
+            jsIceRequires.insert("TypeRegistry");
             needStreamHelpers = true;
         }
 
         if (_seenInterface)
         {
-            jsIceRequires.push_back("ObjectPrx");
+            jsIceRequires.insert("ObjectPrx");
+            jsIceRequires.insert("TypeRegistry");
+        }
+
+        if (_seenObjectProxySeq || _seenObjectProxyDict)
+        {
+            jsIceRequires.insert("ObjectPrx");
         }
 
         if (_seenOperation)
         {
-            jsIceRequires.push_back("Operation");
+            jsIceRequires.insert("Operation");
         }
 
         if (_seenStruct)
         {
-            jsIceRequires.push_back("Struct");
+            jsIceRequires.insert("Struct");
         }
 
         if (_seenUserException)
         {
-            jsIceRequires.push_back("Exception");
+            jsIceRequires.insert("Exception");
+            jsIceRequires.insert("TypeRegistry");
         }
 
         if (_seenEnum)
         {
-            jsIceRequires.push_back("EnumBase");
+            jsIceRequires.insert("EnumBase");
         }
 
         if (_seenCompactId)
         {
-            jsIceRequires.push_back("CompactIdRegistry");
+            jsIceRequires.insert("CompactIdRegistry");
         }
 
-        jsIceRequires.push_back("Long");
+        jsIceRequires.insert("Long");
         if (_seenDict || _seenObjectDict || _seenObjectProxyDict)
         {
-            jsIceRequires.push_back("HashMap");
-            jsIceRequires.push_back("HashUtil");
+            jsIceRequires.insert("HashMap");
+            jsIceRequires.insert("HashUtil");
             needStreamHelpers = true;
         }
 
         if (_seenSeq || _seenObjectSeq)
         {
-            jsIceRequires.push_back("ArrayUtil");
+            jsIceRequires.insert("ArrayUtil");
             needStreamHelpers = true;
         }
 
         if (needStreamHelpers)
         {
-            jsIceRequires.push_back("StreamHelpers");
-            jsIceRequires.push_back("Stream");
+            jsIceRequires.insert("StreamHelpers");
+            jsIceRequires.insert("Stream");
         }
     }
     else
@@ -1149,14 +1164,14 @@ Slice::Gen::ImportVisitor::writeImports(const UnitPtr& p)
     return importedModules;
 }
 
-Slice::Gen::TypesVisitor::TypesVisitor(IceUtilInternal::Output& out, set<string> importedModules)
+Slice::Gen::ExportsVisitor::ExportsVisitor(::IceUtilInternal::Output& out, std::set<std::string> importedModules)
     : JsVisitor(out),
       _importedModules(importedModules)
 {
 }
 
 bool
-Slice::Gen::TypesVisitor::visitModuleStart(const ModulePtr& p)
+Slice::Gen::ExportsVisitor::visitModuleStart(const ModulePtr& p)
 {
     //
     // For a top-level module we write the following:
@@ -1191,6 +1206,17 @@ Slice::Gen::TypesVisitor::visitModuleStart(const ModulePtr& p)
         }
     }
     return true;
+}
+
+set<string>
+Slice::Gen::ExportsVisitor::exportedModules() const
+{
+    return _exportedModules;
+}
+
+Slice::Gen::TypesVisitor::TypesVisitor(IceUtilInternal::Output& out)
+    : JsVisitor(out)
+{
 }
 
 bool
@@ -1306,6 +1332,9 @@ Slice::Gen::TypesVisitor::visitClassDefStart(const ClassDefPtr& p)
         _out << ", " << p->compactId();
     }
     _out << ");";
+    _out << nl << "Ice.TypeRegistry.declareValueType(\""
+        << localScope << '.' << name << "\", "
+        << localScope << '.' << name << ");";
 
     return false;
 }
@@ -1316,8 +1345,8 @@ Slice::Gen::TypesVisitor::visitInterfaceDefStart(const InterfaceDefPtr& p)
     const string scope = p->scope();
     const string scoped = p->scoped();
     const string localScope = getLocalScope(scope);
-    const string name = fixId(p->name());
-    const string prxName = p->name() + "Prx";
+    const string serviceType = localScope + '.' + fixId(p->name());
+    const string proxyType = localScope + '.' + p->name() + "Prx";
 
     InterfaceList bases = p->bases();
     StringList ids = p->ids();
@@ -1344,8 +1373,7 @@ Slice::Gen::TypesVisitor::visitInterfaceDefStart(const InterfaceDefPtr& p)
 
     _out << sp;
     writeDocCommentFor(p);
-    _out << nl << localScope << "." << p->name() << " = class extends ";
-    _out << "Ice.Object";
+    _out << nl << serviceType << " = class extends Ice.Object";
     _out << sb;
 
     if (!bases.empty())
@@ -1373,12 +1401,8 @@ Slice::Gen::TypesVisitor::visitInterfaceDefStart(const InterfaceDefPtr& p)
     //
     // Generate a proxy class for interfaces
     //
-    string proxyType = "undefined";
-    proxyType = localScope + '.' + prxName;
-    string baseProxy = "Ice.ObjectPrx";
-
     _out << sp;
-    _out << nl << proxyType << " = class extends " << baseProxy;
+    _out << nl << proxyType << " = class extends Ice.ObjectPrx";
     _out << sb;
 
     if (!bases.empty())
@@ -1405,9 +1429,15 @@ Slice::Gen::TypesVisitor::visitInterfaceDefStart(const InterfaceDefPtr& p)
     }
 
     _out << eb << ";";
+    _out << nl << "Ice.TypeRegistry.declareProxyType(\"" << proxyType << "\", " << proxyType << ");";
 
-    _out << sp << nl << "Ice.defineOperations(" << localScope << "." << p->name() << ", " << proxyType << ", "
-         << "iceC_" << getLocalScope(scoped, "_") << "_ids, \"" << scoped << "\"";
+    _out << sp;
+    _out << nl << "Ice.defineOperations(";
+    _out.inc();
+    _out << nl << serviceType << ","
+         << nl << proxyType << ","
+         << nl << "iceC_" << getLocalScope(scoped, "_") << "_ids,"
+         << nl << "\"" << scoped << "\"";
 
     const OperationList ops = p->operations();
     if (!ops.empty())
@@ -1606,6 +1636,7 @@ Slice::Gen::TypesVisitor::visitInterfaceDefStart(const InterfaceDefPtr& p)
         _out << eb;
     }
     _out << ");";
+    _out.dec();
 
     return false;
 }
@@ -1764,6 +1795,9 @@ Slice::Gen::TypesVisitor::visitExceptionStart(const ExceptionPtr& p)
     }
 
     _out << eb << ";";
+    _out << nl << "Ice.TypeRegistry.declareUserExceptionType(\""
+        << localScope << '.' << name << "\","
+        << localScope << '.' << name << ");";
 
     return false;
 }
@@ -1942,6 +1976,7 @@ Slice::Gen::TypesVisitor::visitConst(const ConstPtr& p)
     _out << sp;
     _out << nl << "Object.defineProperty(" << localScope << ", '" << name << "', {";
     _out.inc();
+    _out << nl << "enumerable: true,";
     _out << nl << "value: ";
     _out << writeConstantValue(scope, p->type(), p->valueType(), p->value());
     _out.dec();
@@ -1982,13 +2017,13 @@ Slice::Gen::TypesVisitor::encodeTypeForOperation(const TypePtr& type)
     SequencePtr seq = dynamic_pointer_cast<Sequence>(type);
     if (seq)
     {
-        return "\"" + fixId(seq->scoped() + "Helper") + "\"";
+        return fixId(seq->scoped() + "Helper");
     }
 
     DictionaryPtr d = dynamic_pointer_cast<Dictionary>(type);
     if (d)
     {
-        return "\"" + fixId(d->scoped() + "Helper") + "\"";
+        return fixId(d->scoped() + "Helper");
     }
 
     EnumPtr e = dynamic_pointer_cast<Enum>(type);

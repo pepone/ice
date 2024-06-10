@@ -93,12 +93,27 @@ namespace Slice
             std::vector<std::string> _includePaths;
         };
 
+        class ExportsVisitor : public JsVisitor
+        {
+        public:
+            ExportsVisitor(::IceUtilInternal::Output&, std::set<std::string>);
+
+            bool visitModuleStart(const ModulePtr&) final;
+
+            std::set<std::string> exportedModules() const;
+
+        private:
+            std::string encodeTypeForOperation(const TypePtr&);
+
+            std::set<std::string> _importedModules;
+            std::set<std::string> _exportedModules;
+        };
+
         class TypesVisitor : public JsVisitor
         {
         public:
-            TypesVisitor(::IceUtilInternal::Output&, std::set<std::string>);
+            TypesVisitor(::IceUtilInternal::Output&);
 
-            virtual bool visitModuleStart(const ModulePtr&);
             virtual bool visitClassDefStart(const ClassDefPtr&);
             virtual bool visitInterfaceDefStart(const InterfaceDefPtr&);
             virtual bool visitExceptionStart(const ExceptionPtr&);
@@ -110,9 +125,6 @@ namespace Slice
 
         private:
             std::string encodeTypeForOperation(const TypePtr&);
-
-            std::set<std::string> _importedModules;
-            std::set<std::string> _exportedModules;
         };
 
         class TypeScriptImportVisitor : public JsVisitor

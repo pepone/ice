@@ -7,6 +7,7 @@ import { AsyncStatus } from "./AsyncStatus.js";
 import { LocalException } from "./Exception.js";
 import { RetryException } from "./RetryException.js";
 import { ConnectionRequestHandler } from "./ConnectionRequestHandler.js";
+import { Debug } from "./Debug.js";
 
 export class ConnectRequestHandler
 {
@@ -70,7 +71,7 @@ export class ConnectRequestHandler
                     return;
                 }
             }
-            console.assert(false); // The request has to be queued if it timed out and we're not initialized yet.
+            Debug.assert(false); // The request has to be queued if it timed out and we're not initialized yet.
         }
         this._connection.asyncRequestCanceled(out, ex);
     }
@@ -97,7 +98,7 @@ export class ConnectRequestHandler
     //
     setConnection(connection)
     {
-        console.assert(this._exception === null && this._connection === null);
+        Debug.assert(this._exception === null && this._connection === null);
 
         this._connection = connection;
 
@@ -127,7 +128,7 @@ export class ConnectRequestHandler
 
     setException(ex)
     {
-        console.assert(!this._initialized && this._exception === null);
+        Debug.assert(!this._initialized && this._exception === null);
 
         this._exception = ex;
         this._proxies.length = 0;
@@ -162,7 +163,7 @@ export class ConnectRequestHandler
     {
         if(this._initialized)
         {
-            console.assert(this._connection !== null);
+            Debug.assert(this._connection !== null);
             return true;
         }
         else if(this._exception !== null)
@@ -187,7 +188,7 @@ export class ConnectRequestHandler
 
     flushRequests()
     {
-        console.assert(this._connection !== null && !this._initialized);
+        Debug.assert(this._connection !== null && !this._initialized);
 
         let exception = null;
         this._requests.forEach(request =>
@@ -208,7 +209,7 @@ export class ConnectRequestHandler
                     }
                     else
                     {
-                        console.assert(ex instanceof LocalException);
+                        Debug.assert(ex instanceof LocalException);
                         exception = ex;
                         request.out.completedEx(ex);
                     }
@@ -222,7 +223,7 @@ export class ConnectRequestHandler
             this._proxies.forEach(proxy => proxy._updateRequestHandler(this, this._requestHandler));
         }
 
-        console.assert(!this._initialized);
+        Debug.assert(!this._initialized);
         this._exception = exception;
         this._initialized = this._exception === null;
 

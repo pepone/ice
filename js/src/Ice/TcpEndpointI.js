@@ -8,6 +8,7 @@ import { TCPEndpointInfo } from "./Endpoint.js";
 import { EndpointParseException } from "./LocalException.js";
 import { IPEndpointI } from "./IPEndpointI.js";
 import { TcpTransceiver } from "./TcpTransceiver.js";
+import { Debug } from "./Debug.js";
 
 export class TcpEndpointI extends IPEndpointI
 {
@@ -25,7 +26,7 @@ export class TcpEndpointI extends IPEndpointI
     {
         const info = new TCPEndpointInfo();
         this.fillEndpointInfo(info);
-        console.assert(!this.secure); // Secure endpoints are not supported in NodeJS
+        Debug.assert(!this.secure()); // Secure endpoints are not supported in NodeJS
         return info;
     }
 
@@ -117,7 +118,7 @@ export class TcpEndpointI extends IPEndpointI
 
     connect()
     {
-        console.assert(!this.secure());
+        Debug.assert(!this.secure());
         return TcpTransceiver.createOutgoing(this._instance, this.getAddress(), this._sourceAddr);
     }
 

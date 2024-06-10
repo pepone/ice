@@ -2,9 +2,9 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Test = require("Test").Test;
+import { Test } from "./Test.js";
 
-class DI extends Test.D
+export class DI extends Test.D
 {
     callA(current)
     {
@@ -27,11 +27,11 @@ class DI extends Test.D
     }
 }
 
-class EmptyI extends Test.Empty
+export class EmptyI extends Test.Empty
 {
 }
 
-class FI extends Test.F
+export class FI extends Test.F
 {
     callE(current)
     {
@@ -44,7 +44,7 @@ class FI extends Test.F
     }
 }
 
-class HI extends Test.H
+export class HI extends Test.H
 {
     callG(current)
     {
@@ -61,8 +61,3 @@ class HI extends Test.H
         current.adapter.getCommunicator().shutdown();
     }
 }
-
-exports.DI = DI;
-exports.EmptyI = EmptyI;
-exports.FI = FI;
-exports.HI = HI;

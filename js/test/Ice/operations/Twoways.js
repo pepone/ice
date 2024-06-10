@@ -2,10 +2,12 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("ice").Ice;
-const test = require("TestHelper").TestHelper.test;
+import { Ice } from "ice";
+import { TestHelper } from "../../Common/TestHelper.js";
 
-async function run(communicator, prx, Test, bidir, helper)
+const test = TestHelper.test;
+
+export async function twoways(communicator, prx, Test, bidir, helper)
 {
     const literals = await prx.opStringLiterals();
 
@@ -1470,5 +1472,3 @@ async function run(communicator, prx, Test, bidir, helper)
         await prx.opDoubleMarshaling(1278312346.0 / 13.0, ds);
     }
 }
-
-exports.Twoways = {run: run};

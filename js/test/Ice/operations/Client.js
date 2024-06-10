@@ -2,14 +2,15 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("ice").Ice;
-const Test = require("Test").Test;
-const TestHelper = require("TestHelper").TestHelper;
-const Twoways = require("Twoways").Twoways;
-const Oneways = require("Oneways").Oneways;
-const BatchOneways = require("BatchOneways").BatchOneways;
+import { Ice } from "ice";
+import { Test } from "./Test.js";
+import { TestHelper } from "../../Common/TestHelper.js";
 
-class Client extends TestHelper
+import { twoways } from "./Twoways.js";
+import { oneways } from "./Oneways.js";
+import { batchOneways } from "./BatchOneways.js";
+
+export class Client extends TestHelper
 {
     async allTests(Test, bidir)
     {
@@ -21,16 +22,16 @@ class Client extends TestHelper
         const cl = await Test.MyClassPrx.checkedCast(base);
         const derived = await Test.MyDerivedClassPrx.checkedCast(cl);
 
-        await Twoways.run(communicator, cl, Test, bidir, this);
-        await Twoways.run(communicator, derived, Test, bidir, this);
+        await twoways(communicator, cl, Test, bidir, this);
+        await twoways(communicator, derived, Test, bidir, this);
         out.writeLine("ok");
 
         out.write("testing oneway operations... ");
-        await Oneways.run(communicator, cl, Test, bidir);
+        await oneways(communicator, cl, Test, bidir);
         out.writeLine("ok");
 
         out.write("testing batch oneway operations... ");
-        await BatchOneways.run(communicator, cl, Test, bidir);
+        await batchOneways(communicator, cl, Test, bidir);
         out.writeLine("ok");
 
         out.write("testing server shutdown... ");
@@ -72,4 +73,3 @@ class Client extends TestHelper
         }
     }
 }
-exports.Client = Client;

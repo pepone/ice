@@ -2,6 +2,10 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
+// Declared here to avoid circular dependencies when importing OptionalFormat enum.
+const OptionalFormat_Size = {};
+Object.defineProperty(OptionalFormat_Size, 'value', {value: 4});
+
 //
 // Ice.EnumBase
 //
@@ -130,7 +134,7 @@ export function defineEnum(enumerators)
     {
         if(v !== undefined)
         {
-            if(os.writeOptional(tag, Ice.OptionalFormat.Size))
+            if(os.writeOptional(tag, OptionalFormat_Size))
             {
                 type._write(os, v);
             }

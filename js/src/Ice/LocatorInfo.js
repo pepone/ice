@@ -11,6 +11,7 @@ import { Promise } from "./Promise.js";
 import { identityToString } from "./IdentityUtil.js";
 import { LocalException, UserException } from "./Exception.js";
 import { NotRegisteredException } from "./LocalException.js";
+import { Debug } from "./Debug.js";
 
 export class LocatorInfo
 {
@@ -80,7 +81,7 @@ export class LocatorInfo
     {
         const promise = p || new Promise(); // success callback receives (endpoints, cached)
 
-        console.assert(ref.isIndirect());
+        Debug.assert(ref.isIndirect());
         let endpoints = null;
         const cached = {value: false};
         if(!ref.isWellKnown())
@@ -130,7 +131,7 @@ export class LocatorInfo
             }
         }
 
-        console.assert(endpoints !== null);
+        Debug.assert(endpoints !== null);
         if(ref.getInstance().traceLevels().location >= 1)
         {
             this.getEndpointsTrace(ref, endpoints, true);
@@ -142,7 +143,7 @@ export class LocatorInfo
 
     clearCache(ref)
     {
-        console.assert(ref.isIndirect());
+        Debug.assert(ref.isIndirect());
 
         if(!ref.isWellKnown())
         {
@@ -179,7 +180,7 @@ export class LocatorInfo
 
     trace(msg, ref, endpoints)
     {
-        console.assert(ref.isIndirect());
+        Debug.assert(ref.isIndirect());
 
         const s = [];
         s.push(msg);
@@ -204,7 +205,7 @@ export class LocatorInfo
 
     traceWellKnown(msg, ref, resolved)
     {
-        console.assert(ref.isWellKnown());
+        Debug.assert(ref.isWellKnown());
 
         const s = [];
         s.push(msg);
@@ -220,7 +221,7 @@ export class LocatorInfo
 
     getEndpointsException(ref, exc)
     {
-        console.assert(ref.isIndirect());
+        Debug.assert(ref.isIndirect());
 
         const instance = ref.getInstance();
         try
@@ -290,7 +291,7 @@ export class LocatorInfo
             }
             else
             {
-                console.assert(false);
+                Debug.assert(false);
             }
         }
     }
@@ -414,7 +415,7 @@ export class LocatorInfo
                 this._table.removeAdapterEndpoints(ref.getAdapterId());
             }
 
-            console.assert(this._adapterRequests.has(ref.getAdapterId()));
+            Debug.assert(this._adapterRequests.has(ref.getAdapterId()));
             this._adapterRequests.delete(ref.getAdapterId());
         }
         else
@@ -429,7 +430,7 @@ export class LocatorInfo
                 this._table.removeObjectReference(ref.getIdentity());
             }
 
-            console.assert(this._objectRequests.has(ref.getIdentity()));
+            Debug.assert(this._objectRequests.has(ref.getIdentity()));
             this._objectRequests.delete(ref.getIdentity());
         }
     }
@@ -588,7 +589,7 @@ class ObjectRequest extends Request
     constructor(locatorInfo, reference)
     {
         super(locatorInfo, reference);
-        console.assert(reference.isWellKnown());
+        Debug.assert(reference.isWellKnown());
     }
 
     send()
@@ -611,7 +612,7 @@ class AdapterRequest extends Request
     constructor(locatorInfo, reference)
     {
         super(locatorInfo, reference);
-        console.assert(reference.isIndirect());
+        Debug.assert(reference.isIndirect());
     }
 
     send()

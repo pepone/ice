@@ -3,12 +3,13 @@
 //
 
 
-const Ice = require("ice").Ice;
-const Test = require("Test").Test;
-const TestHelper = require("TestHelper").TestHelper;
+import { Ice } from "ice";
+import { Test } from "./Test.js";
+import { TestHelper } from "../../Common/TestHelper.js";
+
 const test = TestHelper.test;
 
-class Client extends TestHelper
+export class Client extends TestHelper
 {
     async allTests()
     {
@@ -81,7 +82,7 @@ class Client extends TestHelper
             {
                 test(ex instanceof Ice.UnknownLocalException, ex);
                 test(ex.unknown.indexOf("Ice::SocketException") >= 0 ||
-                        ex.unknown.indexOf("Ice.SocketException") >= 0);
+                     ex.unknown.indexOf("Ice.SocketException") >= 0);
             }
 
             try
@@ -92,7 +93,7 @@ class Client extends TestHelper
             catch(ex)
             {
                 test((ex instanceof Ice.OperationNotExistException) ||
-                        (ex instanceof Ice.UnknownException || ex.unknown.indexOf("") >= 0), ex);
+                     (ex instanceof Ice.UnknownException || ex.unknown.indexOf("") >= 0), ex);
             }
 
             try
@@ -303,4 +304,3 @@ class Client extends TestHelper
         }
     }
 }
-exports.Client = Client;

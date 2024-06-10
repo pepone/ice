@@ -2,11 +2,13 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("ice").Ice;
-const Test = require("Test").Test;
-const test = require("TestHelper").TestHelper.test;
+import { Ice } from "ice";
+import { Test } from "./Test.js";
+import { TestHelper } from "../../Common/TestHelper.js";
 
-class AMDThrowerI extends Test.Thrower
+const test = TestHelper.test;
+
+export class AMDThrowerI extends Test.Thrower
 {
     shutdown(current)
     {
@@ -114,4 +116,3 @@ class AMDThrowerI extends Test.Thrower
         throw new Test.A();
     }
 }
-exports.AMDThrowerI = AMDThrowerI;

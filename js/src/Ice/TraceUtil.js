@@ -7,6 +7,7 @@ const { Identity } = Ice_Identity;
 import { StringUtil } from "./StringUtil.js";
 import { Protocol } from "./Protocol.js";
 import { Ice as Ice_OperationMode } from "./OperationMode.js";
+import { Debug } from "./Debug.js";
 
 const OperationMode = Ice_OperationMode.OperationMode;
 
@@ -107,7 +108,7 @@ function printReply(s, stream)
 
         default:
         {
-            console.assert(false);
+            Debug.assert(false);
             break;
         }
         }
@@ -142,7 +143,7 @@ function printReply(s, stream)
 
         default:
         {
-            console.assert(false);
+            Debug.assert(false);
             break;
         }
         }

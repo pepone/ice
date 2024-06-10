@@ -3,9 +3,10 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-const Ice = require("ice").Ice;
-const Test = require("Test").Test;
-const TestHelper = require("TestHelper").TestHelper;
+import { Ice } from "ice";
+import { Test } from "./Test.js";
+import { TestHelper } from "../../Common/TestHelper.js";
+
 const test = TestHelper.test;
 const isBrowser = (typeof window !== 'undefined' || typeof WorkerGlobalScope !== 'undefined');
 
@@ -33,7 +34,7 @@ function getTCPConnectionInfo(info)
     return null;
 }
 
-class Client extends TestHelper
+export class Client extends TestHelper
 {
     async allTests()
     {
@@ -56,12 +57,12 @@ class Client extends TestHelper
         test(ipEndpoint.compress);
         test(!ipEndpoint.datagram());
         test(ipEndpoint.type() == Ice.TCPEndpointType && !ipEndpoint.secure() ||
-                ipEndpoint.type() == Ice.WSEndpointType && !ipEndpoint.secure() ||
-                ipEndpoint.type() == Ice.WSSEndpointType && ipEndpoint.secure());
+             ipEndpoint.type() == Ice.WSEndpointType && !ipEndpoint.secure() ||
+             ipEndpoint.type() == Ice.WSSEndpointType && ipEndpoint.secure());
 
         test(ipEndpoint.type() == Ice.TCPEndpointType && endpoint instanceof Ice.TCPEndpointInfo ||
-                ipEndpoint.type() == Ice.WSEndpointType && endpoint instanceof Ice.WSEndpointInfo ||
-                ipEndpoint.type() == Ice.WSSEndpointType && endpoint instanceof Ice.WSEndpointInfo);
+             ipEndpoint.type() == Ice.WSEndpointType && endpoint instanceof Ice.WSEndpointInfo ||
+             ipEndpoint.type() == Ice.WSSEndpointType && endpoint instanceof Ice.WSEndpointInfo);
 
         let ic = Ice.initialize();
         ic.stringToProxy("test:default");
@@ -156,4 +157,3 @@ class Client extends TestHelper
         }
     }
 }
-exports.Client = Client;

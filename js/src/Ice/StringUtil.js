@@ -2,6 +2,9 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
+import { ToStringMode } from "./ToStringMode.js";
+import { Debug } from "./Debug.js";
+
 export class StringUtil
 {
     //
@@ -61,7 +64,7 @@ export class StringUtil
 
         const result = [];
 
-        if(toStringMode === Ice.ToStringMode.Compat)
+        if(toStringMode === ToStringMode.Compat)
         {
             // Encode UTF-8 bytes
             const bytes = unescape(encodeURIComponent(s));
@@ -76,13 +79,13 @@ export class StringUtil
             for(let i = 0; i < s.length; ++i)
             {
                 const c = s.charCodeAt(i);
-                if(toStringMode === Ice.ToStringMode.Unicode || c < 0xD800 || c > 0xDFFF)
+                if(toStringMode === ToStringMode.Unicode || c < 0xD800 || c > 0xDFFF)
                 {
                     encodeChar(c, result, special, toStringMode);
                 }
                 else
                 {
-                    console.assert(toStringMode === Ice.ToStringMode.ASCII && c >= 0xD800 && c <= 0xDFFF);
+                    Debug.assert(toStringMode === ToStringMode.ASCII && c >= 0xD800 && c <= 0xDFFF);
                     if(i + 1 === s.length)
                     {
                         throw new RangeError("High surrogate without low surrogate");
@@ -90,7 +93,7 @@ export class StringUtil
                     else
                     {
                         const codePoint = s.codePointAt(i);
-                        console.assert(codePoint > 0xFFFF);
+                        Debug.assert(codePoint > 0xFFFF);
                         i++;
 
                         // append \Unnnnnnnn
@@ -118,7 +121,7 @@ export class StringUtil
         end = end === undefined ? s.length : end;
         special = special === undefined ? null : special;
 
-        console.assert(start >= 0 && start <= end && end <= s.length);
+        Debug.assert(start >= 0 && start <= end && end <= s.length);
 
         if(special !== null)
         {
@@ -287,7 +290,7 @@ function encodeChar(c, sb, special, toStringMode)
         }
         case 7: // '\a'
         {
-            if(toStringMode == Ice.ToStringMode.Compat)
+            if(toStringMode == ToStringMode.Compat)
             {
                 // Octal escape for compatibility with 3.6 and earlier
                 sb.push("\\007");
@@ -325,7 +328,7 @@ function encodeChar(c, sb, special, toStringMode)
         }
         case 11: // '\v'
         {
-            if(toStringMode == Ice.ToStringMode.Compat)
+            if(toStringMode == ToStringMode.Compat)
             {
                 // Octal escape for compatibility with 3.6 and earlier
                 sb.push("\\013");
@@ -347,12 +350,12 @@ function encodeChar(c, sb, special, toStringMode)
             }
             else if(c < 32 || c > 126)
             {
-                if(toStringMode === Ice.ToStringMode.Compat)
+                if(toStringMode === ToStringMode.Compat)
                 {
                     //
                     // When ToStringMode=Compat, c is a UTF-8 byte
                     //
-                    console.assert(c < 256);
+                    Debug.assert(c < 256);
                     sb.push('\\');
                     const octal = c.toString(8);
                     //
@@ -369,7 +372,7 @@ function encodeChar(c, sb, special, toStringMode)
                     }
                     sb.push(octal);
                 }
-                else if(c < 32 || c == 127 || toStringMode === Ice.ToStringMode.ASCII)
+                else if(c < 32 || c == 127 || toStringMode === ToStringMode.ASCII)
                 {
                     // append \\unnnn
                     sb.push("\\u");
@@ -422,9 +425,9 @@ function checkChar(s, pos)
 //
 function decodeChar(s, start, end, special, result)
 {
-    console.assert(start >= 0);
-    console.assert(start < end);
-    console.assert(end <= s.length);
+    Debug.assert(start >= 0);
+    Debug.assert(start < end);
+    Debug.assert(end <= s.length);
 
     if(s.charAt(start) != '\\')
     {
@@ -595,7 +598,7 @@ function decodeChar(s, start, end, special, result)
                             if(charVal < 0 || charVal > 7)
                             {
                                 --start; // move back
-                                console.assert(j !== 0); // must be at least one digit
+                                Debug.assert(j !== 0); // must be at least one digit
                                 break; // for
                             }
                             val = val * 8 + charVal;

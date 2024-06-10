@@ -3,6 +3,7 @@
 //
 
 import { LocalException } from "./Exception.js";
+import { Debug } from "./Debug.js";
 
 export class RetryException extends Error
 {
@@ -15,7 +16,7 @@ export class RetryException extends Error
         }
         else
         {
-            console.assert(ex instanceof RetryException);
+            Debug.assert(ex instanceof RetryException);
             this._ex = ex._ex;
         }
     }

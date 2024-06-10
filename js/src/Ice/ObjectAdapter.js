@@ -12,6 +12,7 @@ import {
     IllegalServantException,
     FeatureNotSupportedException,
     InitializationException,
+    IllegalIdentityException,
     ObjectAdapterDeactivatedException,
     ProxyParseException } from "./LocalException.js";
 import { Ice as Ice_Router } from "./Router.js";
@@ -22,6 +23,7 @@ import { ServantManager } from "./ServantManager.js";
 import { StringUtil } from "./StringUtil.js";
 import { Timer } from "./Timer.js";
 import { identityToString } from "./IdentityUtil.js";
+import { Debug } from "./Debug.js";
 
 const _suffixes =
 [
@@ -163,7 +165,7 @@ export class ObjectAdapter
             if(router !== null)
             {
                 this._routerInfo = this._instance.routerManager().find(router);
-                console.assert(this._routerInfo !== null);
+                Debug.assert(this._routerInfo !== null);
 
                 //
                 // Make sure this router is not already registered with another adapter.
@@ -196,7 +198,7 @@ export class ObjectAdapter
                 {
                     throw new FeatureNotSupportedException("object adapter endpoints not supported");
                 }
-                p = Ice.Promise.resolve();
+                p = Promise.resolve();
             }
 
             p.then(() => this.computePublishedEndpoints()).then(endpoints =>
@@ -518,7 +520,7 @@ export class ObjectAdapter
     {
         if(ident.name === undefined || ident.name === null || ident.name.length === 0)
         {
-            throw new Ice.IllegalIdentityException();
+            throw new IllegalIdentityException();
         }
 
         if(ident.category === undefined || ident.category === null)

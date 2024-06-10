@@ -3,6 +3,7 @@
 //
 
 import { HashMap } from "./HashMap.js";
+import { Debug } from "./Debug.js";
 
 class EndpointTableEntry
 {
@@ -98,7 +99,7 @@ export class LocatorTable
 
     checkTTL(time, ttl)
     {
-        console.assert(ttl !== 0);
+        Debug.assert(ttl !== 0);
         if(ttl < 0) // TTL = infinite
         {
             return true;

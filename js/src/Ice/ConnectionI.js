@@ -23,7 +23,7 @@ import {
     UnknownException
  } from "./LocalException.js";
 
-import { ACM, ACMClose, ACMHeartbeat } from "./Connection.js";
+import { ACM, ACMClose, ACMHeartbeat, ConnectionClose } from "./Connection.js";
 
 import { BatchRequestQueue } from "./BatchRequestQueue.js";
 import { InputStream, OutputStream } from "./Stream.js";
@@ -33,6 +33,15 @@ const { ProtocolVersion, EncodingVersion } = Ice_Version;
 import { throwMemoryLimitException } from "./ExUtil.js";
 import { Timer } from "./Timer.js";
 import { Promise } from "./Promise.js";
+import { HashMap } from "./HashMap.js";
+import { SocketOperation } from "./SocketOperation.js";
+import { TraceUtil } from "./TraceUtil.js";
+import { AsyncStatus } from "./AsyncStatus.js";
+import { AsyncResultBase } from "./AsyncResultBase.js";
+import { RetryException } from "./RetryException.js";
+import { ConnectionFlushBatch, OutgoingAsync } from "./OutgoingAsync.js";
+import { IncomingAsync } from "./IncomingAsync.js";
+import { Debug } from "./Debug.js";
 
 const StateNotInitialized = 0;
 const StateNotValidated = 1;
@@ -127,14 +136,14 @@ export class ConnectionI
 
     start()
     {
-        console.assert(this._startPromise === null);
+        Debug.assert(this._startPromise === null);
 
         try
         {
             // The connection might already be closed if the communicator was destroyed.
             if(this._state >= StateClosed)
             {
-                console.assert(this._exception !== null);
+                Debug.assert(this._exception !== null);
                 return Promise.reject(this._exception);
             }
 
@@ -197,7 +206,7 @@ export class ConnectionI
 
             default:
             {
-                console.assert(false);
+                Debug.assert(false);
                 break;
             }
         }
@@ -219,7 +228,7 @@ export class ConnectionI
         }
         else
         {
-            console.assert(mode == ConnectionClose.GracefullyWithWait);
+            Debug.assert(mode == ConnectionClose.GracefullyWithWait);
 
             //
             // Wait until all outstanding requests have been completed.
@@ -266,7 +275,7 @@ export class ConnectionI
             return false;
         }
 
-        console.assert(this._state === StateFinished);
+        Debug.assert(this._state === StateFinished);
         return true;
     }
 
@@ -274,7 +283,7 @@ export class ConnectionI
     {
         if(this._exception !== null)
         {
-            console.assert(this._state >= StateClosing);
+            Debug.assert(this._state >= StateClosing);
             throw this._exception;
         }
     }
@@ -365,8 +374,8 @@ export class ConnectionI
             throw new RetryException(this._exception);
         }
 
-        console.assert(this._state > StateNotValidated);
-        console.assert(this._state < StateClosing);
+        Debug.assert(this._state > StateNotValidated);
+        Debug.assert(this._state < StateClosing);
 
         //
         // Ensure the message isn't bigger than what we can send with the
@@ -414,7 +423,7 @@ export class ConnectionI
             if(ex instanceof LocalException)
             {
                 this.setState(StateClosed, ex);
-                console.assert(this._exception !== null);
+                Debug.assert(this._exception !== null);
                 throw this._exception;
             }
             else
@@ -567,7 +576,7 @@ export class ConnectionI
 
     sendResponse(os)
     {
-        console.assert(this._state > StateNotValidated);
+        Debug.assert(this._state > StateNotValidated);
 
         try
         {
@@ -582,7 +591,7 @@ export class ConnectionI
 
             if(this._state >= StateClosed)
             {
-                console.assert(this._exception !== null);
+                Debug.assert(this._exception !== null);
                 throw this._exception;
             }
 
@@ -608,7 +617,7 @@ export class ConnectionI
 
     sendNoResponse()
     {
-        console.assert(this._state > StateNotValidated);
+        Debug.assert(this._state > StateNotValidated);
         try
         {
             if(--this._dispatchCount === 0)
@@ -622,7 +631,7 @@ export class ConnectionI
 
             if(this._state >= StateClosed)
             {
-                console.assert(this._exception !== null);
+                Debug.assert(this._exception !== null);
                 throw this._exception;
             }
 
@@ -713,11 +722,11 @@ export class ConnectionI
             {
                 if(!this.write(this._writeStream.buffer))
                 {
-                    console.assert(!this._writeStream.isEmpty());
+                    Debug.assert(!this._writeStream.isEmpty());
                     this.scheduleTimeout(SocketOperation.Write);
                     return;
                 }
-                console.assert(this._writeStream.buffer.remaining === 0);
+                Debug.assert(this._writeStream.buffer.remaining === 0);
             }
             if((operation & SocketOperation.Read) !== 0 && !this._readStream.isEmpty())
             {
@@ -731,7 +740,7 @@ export class ConnectionI
                         return;
                     }
 
-                    console.assert(this._readStream.buffer.remaining === 0);
+                    Debug.assert(this._readStream.buffer.remaining === 0);
                     this._readHeader = false;
 
                     //
@@ -744,7 +753,7 @@ export class ConnectionI
                     this._validated = true;
 
                     const pos = this._readStream.pos;
-                    console.assert(pos >= Protocol.headerSize);
+                    Debug.assert(pos >= Protocol.headerSize);
 
                     this._readStream.pos = 0;
                     const magic0 = this._readStream.readByte();
@@ -786,11 +795,11 @@ export class ConnectionI
                 {
                     if(!this.read(this._readStream.buffer))
                     {
-                        console.assert(!this._readStream.isEmpty());
+                        Debug.assert(!this._readStream.isEmpty());
                         this.scheduleTimeout(SocketOperation.Read);
                         return;
                     }
-                    console.assert(this._readStream.buffer.remaining === 0);
+                    Debug.assert(this._readStream.buffer.remaining === 0);
                 }
             }
 
@@ -819,7 +828,7 @@ export class ConnectionI
             }
             else
             {
-                console.assert(this._state <= StateClosing);
+                Debug.assert(this._state <= StateClosing);
 
                 //
                 // We parse messages first, if we receive a close
@@ -952,7 +961,7 @@ export class ConnectionI
 
     finish()
     {
-        console.assert(this._state === StateClosed);
+        Debug.assert(this._state === StateClosed);
         this.unscheduleTimeout(SocketOperation.Read | SocketOperation.Write | SocketOperation.Connect);
 
         const traceLevels = this._instance.traceLevels();
@@ -1141,9 +1150,9 @@ export class ConnectionI
 
         if(invokeNum > 0)
         {
-            console.assert(this._dispatchCount > 0);
+            Debug.assert(this._dispatchCount > 0);
             this._dispatchCount -= invokeNum;
-            console.assert(this._dispatchCount >= 0);
+            Debug.assert(this._dispatchCount >= 0);
             if(this._dispatchCount === 0)
             {
                 if(this._state === StateFinished)
@@ -1159,13 +1168,13 @@ export class ConnectionI
     {
         if(ex !== undefined)
         {
-            console.assert(ex instanceof LocalException);
+            Debug.assert(ex instanceof LocalException);
 
             //
             // If setState() is called with an exception, then only closed
             // and closing states are permissible.
             //
-            console.assert(state >= StateClosing);
+            Debug.assert(state >= StateClosing);
 
             if(this._state === state) // Don't switch twice.
             {
@@ -1222,7 +1231,7 @@ export class ConnectionI
             {
                 case StateNotInitialized:
                 {
-                    console.assert(false);
+                    Debug.assert(false);
                     break;
                 }
 
@@ -1230,7 +1239,7 @@ export class ConnectionI
                 {
                     if(this._state !== StateNotInitialized)
                     {
-                        console.assert(this._state === StateClosed);
+                        Debug.assert(this._state === StateClosed);
                         return;
                     }
                     //
@@ -1309,7 +1318,7 @@ export class ConnectionI
 
                 case StateFinished:
                 {
-                    console.assert(this._state === StateClosed);
+                    Debug.assert(this._state === StateClosed);
                     this._transceiver.close();
                     this._communicator = null;
                     break;
@@ -1317,7 +1326,7 @@ export class ConnectionI
 
                 default:
                 {
-                    console.assert(false);
+                    Debug.assert(false);
                     break;
                 }
             }
@@ -1387,7 +1396,7 @@ export class ConnectionI
 
     initiateShutdown()
     {
-        console.assert(this._state === StateClosing && this._dispatchCount === 0);
+        Debug.assert(this._state === StateClosing && this._dispatchCount === 0);
 
         if(this._shutdownInitiated)
         {
@@ -1417,7 +1426,7 @@ export class ConnectionI
 
     sendHeartbeatNow()
     {
-        console.assert(this._state === StateActive);
+        Debug.assert(this._state === StateActive);
 
         const os = new OutputStream(this._instance, Protocol.currentProtocolEncoding);
         os.writeBlob(Protocol.magic);
@@ -1433,7 +1442,7 @@ export class ConnectionI
         catch(ex)
         {
             this.setState(StateClosed, ex);
-            console.assert(this._exception !== null);
+            Debug.assert(this._exception !== null);
         }
     }
 
@@ -1494,7 +1503,7 @@ export class ConnectionI
 
             this._validated = true;
 
-            console.assert(this._readStream.pos === Protocol.headerSize);
+            Debug.assert(this._readStream.pos === Protocol.headerSize);
             this._readStream.pos = 0;
             const m = this._readStream.readBlob(4);
             if(m[0] !== Protocol.magic[0] || m[1] !== Protocol.magic[1] ||
@@ -1550,7 +1559,7 @@ export class ConnectionI
             return;
         }
 
-        console.assert(!this._writeStream.isEmpty() && this._writeStream.pos === this._writeStream.size);
+        Debug.assert(!this._writeStream.isEmpty() && this._writeStream.pos === this._writeStream.size);
         try
         {
             while(true)
@@ -1586,7 +1595,7 @@ export class ConnectionI
                 // Otherwise, prepare the next message stream for writing.
                 //
                 message = this._sendStreams[0];
-                console.assert(!message.prepared);
+                Debug.assert(!message.prepared);
 
                 const stream = message.stream;
                 stream.pos = 10;
@@ -1603,7 +1612,7 @@ export class ConnectionI
                 //
                 if(this._writeStream.pos != this._writeStream.size && !this.write(this._writeStream.buffer))
                 {
-                    console.assert(!this._writeStream.isEmpty());
+                    Debug.assert(!this._writeStream.isEmpty());
                     this.scheduleTimeout(SocketOperation.Write);
                     return;
                 }
@@ -1622,7 +1631,7 @@ export class ConnectionI
             }
         }
 
-        console.assert(this._writeStream.isEmpty());
+        Debug.assert(this._writeStream.isEmpty());
 
         //
         // If all the messages were sent and we are in the closing state, we schedule
@@ -1642,9 +1651,9 @@ export class ConnectionI
             this._sendStreams.push(message);
             return AsyncStatus.Queued;
         }
-        console.assert(this._state < StateClosed);
+        Debug.assert(this._state < StateClosed);
 
-        console.assert(!message.prepared);
+        Debug.assert(!message.prepared);
 
         const stream = message.stream;
         stream.pos = 10;
@@ -1679,7 +1688,7 @@ export class ConnectionI
 
     parseMessage()
     {
-        console.assert(this._state > StateNotValidated && this._state < StateClosed);
+        Debug.assert(this._state > StateNotValidated && this._state < StateClosed);
 
         let info = new MessageInfo(this._instance);
 
@@ -1688,7 +1697,7 @@ export class ConnectionI
         this._readStream.pos = 0;
         this._readHeader = true;
 
-        console.assert(info.stream.pos === info.stream.size);
+        Debug.assert(info.stream.pos === info.stream.size);
 
         try
         {
@@ -2021,7 +2030,7 @@ class OutgoingMessage
 
     canceled()
     {
-        console.assert(this.outAsync !== null);
+        Debug.assert(this.outAsync !== null);
         this.outAsync = null;
     }
 

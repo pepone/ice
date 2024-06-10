@@ -3,6 +3,7 @@
 //
 
 import { ACMClose, ACMHeartbeat, ACM } from "./Connection.js";
+import { Debug } from "./Debug.js";
 
 export class ACMConfig
 {
@@ -102,7 +103,7 @@ export class FactoryACMMonitor
         }
 
         const i = this._connections.indexOf(connection);
-        console.assert(i >= 0);
+        Debug.assert(i >= 0);
         this._connections.splice(i, 1);
         if(this._connections.length === 0)
         {
@@ -117,7 +118,7 @@ export class FactoryACMMonitor
 
     acm(timeout, close, heartbeat)
     {
-        console.assert(this._instance !== null);
+        Debug.assert(this._instance !== null);
 
         const config = new ACMConfig();
         config.timeout = this._config.timeout;
@@ -202,7 +203,7 @@ class ConnectionACMMonitor
 
     add(connection)
     {
-        console.assert(this._connection === null);
+        Debug.assert(this._connection === null);
         this._connection = connection;
         if(this._config.timeout > 0)
         {
@@ -212,7 +213,7 @@ class ConnectionACMMonitor
 
     remove(connection)
     {
-        console.assert(this._connection === connection);
+        Debug.assert(this._connection === connection);
         this._connection = null;
         if(this._config.timeout > 0)
         {
