@@ -690,22 +690,6 @@ export class ConnectionNotValidatedException extends ProtocolException
 }
 
 /**
- *  This exception indicates that a response for an unknown request ID has been received.
- **/
-export class UnknownRequestIdException extends ProtocolException
-{
-    constructor(reason, _cause = "")
-    {
-        super(reason, _cause);
-    }
-
-    static get _id()
-    {
-        return "::Ice::UnknownRequestIdException";
-    }
-};
-
-/**
  *  This exception indicates that an unknown reply status has been received.
  **/
 export class UnknownReplyStatusException extends ProtocolException

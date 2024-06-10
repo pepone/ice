@@ -94,13 +94,7 @@ namespace
         // Returns true if the type contains data types which can be referenced by user code and mutated after a
         // dispatch returns.
 
-        if (dynamic_pointer_cast<ClassDecl>(type))
-        {
-            return true;
-        }
-
-        BuiltinPtr builtin = dynamic_pointer_cast<Builtin>(type);
-        if (builtin && builtin->usesClasses())
+        if (type->isClassType())
         {
             return true;
         }
@@ -381,6 +375,18 @@ Slice::SyntaxTreeBase::SyntaxTreeBase(const UnitPtr& unit) : _unit(unit)
 
 Slice::Type::Type(const UnitPtr& unit) : SyntaxTreeBase(unit) {}
 
+bool
+Slice::Type::isClassType() const
+{
+    return false;
+}
+
+bool
+Slice::Type::usesClasses() const
+{
+    return isClassType();
+}
+
 // ----------------------------------------------------------------------
 // Builtin
 // ----------------------------------------------------------------------
@@ -399,7 +405,7 @@ Slice::Builtin::typeId() const
 }
 
 bool
-Slice::Builtin::usesClasses() const
+Slice::Builtin::isClassType() const
 {
     return _kind == KindObject || _kind == KindValue;
 }
@@ -2813,7 +2819,7 @@ Slice::ClassDecl::containedType() const
 }
 
 bool
-Slice::ClassDecl::usesClasses() const
+Slice::ClassDecl::isClassType() const
 {
     return true;
 }
@@ -3038,13 +3044,9 @@ Slice::ClassDef::classDataMembers() const
     for (const auto& p : _contents)
     {
         DataMemberPtr q = dynamic_pointer_cast<DataMember>(p);
-        if (q)
+        if (q && q->type()->isClassType())
         {
-            BuiltinPtr builtin = dynamic_pointer_cast<Builtin>(q->type());
-            if ((builtin && builtin->usesClasses()) || dynamic_pointer_cast<ClassDecl>(q->type()))
-            {
-                result.push_back(q);
-            }
+            result.push_back(q);
         }
     }
     return result;
@@ -3180,12 +3182,6 @@ Contained::ContainedType
 Slice::InterfaceDecl::containedType() const
 {
     return ContainedTypeInterface;
-}
-
-bool
-Slice::InterfaceDecl::usesClasses() const
-{
-    return false;
 }
 
 size_t
@@ -3794,13 +3790,9 @@ Slice::Exception::classDataMembers() const
     for (const auto& p : _contents)
     {
         DataMemberPtr q = dynamic_pointer_cast<DataMember>(p);
-        if (q)
+        if (q && q->type()->isClassType())
         {
-            BuiltinPtr builtin = dynamic_pointer_cast<Builtin>(q->type());
-            if ((builtin && builtin->usesClasses()) || dynamic_pointer_cast<ClassDecl>(q->type()))
-            {
-                result.push_back(q);
-            }
+            result.push_back(q);
         }
     }
     return result;
@@ -3868,11 +3860,11 @@ Slice::Exception::containedType() const
 }
 
 bool
-Slice::Exception::usesClasses(bool includeOptional) const
+Slice::Exception::usesClasses() const
 {
     for (const auto& i : dataMembers())
     {
-        if (i->type()->usesClasses() && (includeOptional || !i->optional()))
+        if (i->type()->usesClasses())
         {
             return true;
         }
@@ -3880,7 +3872,7 @@ Slice::Exception::usesClasses(bool includeOptional) const
 
     if (_base)
     {
-        return _base->usesClasses(includeOptional);
+        return _base->usesClasses();
     }
     return false;
 }
@@ -4030,13 +4022,9 @@ Slice::Struct::classDataMembers() const
     for (const auto& p : _contents)
     {
         DataMemberPtr q = dynamic_pointer_cast<DataMember>(p);
-        if (q)
+        if (q && q->type()->isClassType())
         {
-            BuiltinPtr builtin = dynamic_pointer_cast<Builtin>(q->type());
-            if ((builtin && builtin->usesClasses()) || dynamic_pointer_cast<ClassDecl>(q->type()))
-            {
-                result.push_back(q);
-            }
+            result.push_back(q);
         }
     }
     return result;
@@ -4379,12 +4367,6 @@ Contained::ContainedType
 Slice::Enum::containedType() const
 {
     return ContainedTypeEnum;
-}
-
-bool
-Slice::Enum::usesClasses() const
-{
-    return false;
 }
 
 size_t
@@ -4890,11 +4872,11 @@ Slice::Operation::containedType() const
 }
 
 bool
-Slice::Operation::sendsClasses(bool includeOptional) const
+Slice::Operation::sendsClasses() const
 {
     for (const auto& i : parameters())
     {
-        if (!i->isOutParam() && i->type()->usesClasses() && (includeOptional || !i->optional()))
+        if (!i->isOutParam() && i->type()->usesClasses())
         {
             return true;
         }
@@ -4903,17 +4885,17 @@ Slice::Operation::sendsClasses(bool includeOptional) const
 }
 
 bool
-Slice::Operation::returnsClasses(bool includeOptional) const
+Slice::Operation::returnsClasses() const
 {
     TypePtr t = returnType();
-    if (t && t->usesClasses() && (includeOptional || !_returnIsOptional))
+    if (t && t->usesClasses())
     {
         return true;
     }
 
     for (const auto& i : parameters())
     {
-        if (i->isOutParam() && i->type()->usesClasses() && (includeOptional || !i->optional()))
+        if (i->isOutParam() && i->type()->usesClasses())
         {
             return true;
         }

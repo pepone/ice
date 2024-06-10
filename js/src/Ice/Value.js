@@ -50,11 +50,6 @@ export class Value
         os.writeValue(v);
     }
 
-    static writeOptional(os, tag, v)
-    {
-        os.writeOptionalValue(tag, v);
-    }
-
     static read(is)
     {
         const v = {value: null};
@@ -62,16 +57,6 @@ export class Value
                      {
                          v.value = o;
                      }, this);
-        return v;
-    }
-
-    static readOptional(is, tag)
-    {
-        const v = {value: undefined};
-        is.readOptionalValue(tag, o =>
-                             {
-                                 v.value = o;
-                             }, this);
         return v;
     }
 }

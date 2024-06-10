@@ -363,21 +363,6 @@ export namespace Ice
     }
 
     /**
-     * This exception indicates file errors.
-     */
-    class FileException extends SyscallException
-    {
-        /**
-         * One-shot constructor to initialize all data members.
-         * @param error The error number describing the system exception.
-         * @param path The path of the file responsible for the error.
-         * @param ice_cause The error that cause this exception.
-         */
-        constructor(error?:number, path?:string, ice_cause?:string|Error);
-        path:string;
-    }
-
-    /**
      * This exception indicates connection failures.
      */
     class ConnectFailedException extends SocketException
@@ -538,19 +523,6 @@ export namespace Ice
      * This exception is raised if a message is received over a connection that is not yet validated.
      */
     class ConnectionNotValidatedException extends ProtocolException
-    {
-        /**
-         * One-shot constructor to initialize all data members.
-         * @param reason The reason for the failure.
-         * @param ice_cause The error that cause this exception.
-         */
-        constructor(reason?:string, ice_cause?:string|Error);
-    }
-
-    /**
-     * This exception indicates that a response for an unknown request ID has been received.
-     */
-    class UnknownRequestIdException extends ProtocolException
     {
         /**
          * One-shot constructor to initialize all data members.

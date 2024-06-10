@@ -1,6 +1,4 @@
-//
-// Copyright (c) ZeroC, Inc. All rights reserved.
-//
+// Copyright (c) ZeroC, Inc.
 
 import Foundation
 import PromiseKit
@@ -26,17 +24,21 @@ public protocol Blobject {
 }
 
 /// Request dispatcher for Blobject servants.
-public struct BlobjectDisp: Disp {
+public struct BlobjectDisp: Dispatcher {
     public let servant: Blobject
 
     public init(_ servant: Blobject) {
         self.servant = servant
     }
 
-    public func dispatch(request: Request, current: Current) throws -> Promise<OutputStream>? {
-        let inEncaps = try request.readParamEncaps()
-        let invokeResult = try servant.ice_invoke(inEncaps: inEncaps, current: current)
-        return request.setResult(
-            request.writeParamEncaps(ok: invokeResult.ok, outParams: invokeResult.outParams))
+    public func dispatch(_ request: IncomingRequest) -> Promise<OutgoingResponse> {
+        do {
+            let (inEncaps, _) = try request.inputStream.readEncapsulation()
+            let result = try servant.ice_invoke(inEncaps: inEncaps, current: request.current)
+            return Promise.value(
+                request.current.makeOutgoingResponse(ok: result.ok, encapsulation: result.outParams))
+        } catch {
+            return Promise(error: error)
+        }
     }
 }

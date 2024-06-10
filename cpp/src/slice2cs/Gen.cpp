@@ -181,7 +181,7 @@ Slice::CsVisitor::writeMarshalUnmarshalParams(
     {
         string param = paramPrefix.empty() && !publicNames ? "iceP_" + (*pli)->name() : fixId((*pli)->name());
         TypePtr type = (*pli)->type();
-        if (!marshal && isClassType(type))
+        if (!marshal && type->isClassType())
         {
             ostringstream os;
             os << '(' << typeToString(type, ns) << " v) => { " << paramPrefix << param << " = v; }";
@@ -208,7 +208,7 @@ Slice::CsVisitor::writeMarshalUnmarshalParams(
     {
         ret = op->returnType();
         string param;
-        if (!marshal && isClassType(ret))
+        if (!marshal && ret->isClassType())
         {
             ostringstream os;
             os << '(' << typeToString(ret, ns) << " v) => {" << paramPrefix << returnValueS << " = v; }";
@@ -244,7 +244,7 @@ Slice::CsVisitor::writeMarshalUnmarshalParams(
         if (checkReturnType && op->returnTag() < (*pli)->tag())
         {
             string param;
-            if (!marshal && isClassType(ret))
+            if (!marshal && ret->isClassType())
             {
                 ostringstream os;
                 os << '(' << typeToString(ret, ns) << " v) => {" << paramPrefix << returnValueS << " = v; }";
@@ -260,7 +260,7 @@ Slice::CsVisitor::writeMarshalUnmarshalParams(
 
         string param = paramPrefix.empty() && !publicNames ? "iceP_" + (*pli)->name() : fixId((*pli)->name());
         TypePtr type = (*pli)->type();
-        if (!marshal && isClassType(type))
+        if (!marshal && type->isClassType())
         {
             ostringstream os;
             os << '(' << typeToString(type, ns) << " v) => {" << paramPrefix << param << " = v; }";
@@ -277,7 +277,7 @@ Slice::CsVisitor::writeMarshalUnmarshalParams(
     if (checkReturnType)
     {
         string param;
-        if (!marshal && isClassType(ret))
+        if (!marshal && ret->isClassType())
         {
             ostringstream os;
             os << '(' << typeToString(ret, ns) << " v) => {" << paramPrefix << returnValueS << " = v; }";
@@ -324,7 +324,7 @@ Slice::CsVisitor::writeUnmarshalDataMember(
     bool forStruct)
 {
     string param = name;
-    if (isClassType(member->type()))
+    if (member->type()->isClassType())
     {
         ostringstream os;
         os << '(' << typeToString(member->type(), ns) << " v) => { this." << name << " = v; }";
@@ -2086,7 +2086,7 @@ Slice::Gen::TypesVisitor::visitExceptionEnd(const ExceptionPtr& p)
     }
     _out << eb;
 
-    if ((!base || (base && !base->usesClasses(false))) && p->usesClasses(false))
+    if (p->usesClasses() && !(base && base->usesClasses()))
     {
         _out << sp;
         emitGeneratedCodeAttribute();
@@ -2517,7 +2517,7 @@ Slice::Gen::ResultVisitor::visitOperation(const OperationPtr& p)
         _out << nl << "_ostr = Ice.CurrentExtensions.startReplyStream(current);";
         _out << nl << "_ostr.startEncapsulation(current.encoding, " << opFormatTypeToString(p) << ");";
         writeMarshalUnmarshalParams(outParams, p, true, ns, false, true, "_ostr");
-        if (p->returnsClasses(false))
+        if (p->returnsClasses())
         {
             _out << nl << "_ostr.writePendingValues();";
         }
@@ -2722,10 +2722,10 @@ Slice::Gen::DispatchAdapterVisitor::visitOperation(const OperationPtr& op)
             string param = "iceP_" + pli->name();
             string typeS = typeToString(pli->type(), ns, pli->optional());
 
-            _out << nl << typeS << ' ' << param << (isClassType(pli->type()) ? " = null;" : ";");
+            _out << nl << typeS << ' ' << param << (pli->type()->isClassType() ? " = null;" : ";");
         }
         writeMarshalUnmarshalParams(inParams, 0, false, ns);
-        if (op->sendsClasses(false))
+        if (op->sendsClasses())
         {
             _out << nl << "istr.readPendingValues();";
         }
@@ -2786,7 +2786,7 @@ Slice::Gen::DispatchAdapterVisitor::visitOperation(const OperationPtr& op)
             _out << nl << "static (ostr, " << resultParam << ") =>";
             _out << sb;
             writeMarshalUnmarshalParams(outParams, op, true, ns, true);
-            if (op->returnsClasses(false))
+            if (op->returnsClasses())
             {
                 _out << nl << "ostr.writePendingValues();";
             }
@@ -2828,7 +2828,7 @@ Slice::Gen::DispatchAdapterVisitor::visitOperation(const OperationPtr& op)
             _out << nl << "var ostr = Ice.CurrentExtensions.startReplyStream(request.current);";
             _out << nl << "ostr.startEncapsulation(request.current.encoding, " << opFormatTypeToString(op) << ");";
             writeMarshalUnmarshalParams(outParams, op, true, ns);
-            if (op->returnsClasses(false))
+            if (op->returnsClasses())
             {
                 _out << nl << "ostr.writePendingValues();";
             }
@@ -3095,7 +3095,7 @@ Slice::Gen::HelperVisitor::visitInterfaceDefStart(const InterfaceDefPtr& p)
             _out << nl << "write: (Ice.OutputStream ostr) =>";
             _out << sb;
             writeMarshalUnmarshalParams(inParams, 0, true, ns);
-            if (op->sendsClasses(false))
+            if (op->sendsClasses())
             {
                 _out << nl << "ostr.writePendingValues();";
             }
@@ -3137,7 +3137,7 @@ Slice::Gen::HelperVisitor::visitInterfaceDefStart(const InterfaceDefPtr& p)
             _out << sb;
             if (outParams.empty())
             {
-                _out << nl << returnTypeS << " ret" << (isClassType(ret) ? " = null;" : ";");
+                _out << nl << returnTypeS << " ret" << (ret->isClassType() ? " = null;" : ";");
             }
             else if (ret || outParams.size() > 1)
             {
@@ -3148,11 +3148,11 @@ Slice::Gen::HelperVisitor::visitInterfaceDefStart(const InterfaceDefPtr& p)
             {
                 TypePtr t = outParams.front()->type();
                 _out << nl << typeToString(t, ns, (outParams.front()->optional())) << " iceP_"
-                     << outParams.front()->name() << (isClassType(t) ? " = null;" : ";");
+                     << outParams.front()->name() << (t->isClassType() ? " = null;" : ";");
             }
 
             writeMarshalUnmarshalParams(outParams, op, false, ns, true);
-            if (op->returnsClasses(false))
+            if (op->returnsClasses())
             {
                 _out << nl << "istr.readPendingValues();";
             }
@@ -3313,7 +3313,7 @@ Slice::Gen::HelperVisitor::visitSequence(const SequencePtr& p)
             return;
         }
 
-        if (!isClassType(p->type()))
+        if (!p->type()->isClassType())
         {
             return;
         }
@@ -3397,7 +3397,7 @@ Slice::Gen::HelperVisitor::visitDictionary(const DictionaryPtr& p)
     _out << nl << keyS << " k;";
     writeMarshalUnmarshalCode(_out, key, ns, "k", false);
 
-    if (isClassType(value))
+    if (value->isClassType())
     {
         ostringstream os;
         os << '(' << typeToString(value, ns) << " v) => { r[k] = v; }";

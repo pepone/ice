@@ -1327,14 +1327,11 @@ SwiftGenerator::getOptionalFormat(const TypePtr& type)
             {
                 return ".VSize";
             }
-            case Builtin::KindObject:
-            {
-                return ".Class";
-            }
             case Builtin::KindObjectProxy:
             {
                 return ".FSize";
             }
+            case Builtin::KindObject:
             case Builtin::KindValue:
             {
                 return ".Class";
@@ -1404,54 +1401,6 @@ SwiftGenerator::isProxyType(const TypePtr& p)
 {
     const BuiltinPtr builtin = dynamic_pointer_cast<Builtin>(p);
     return (builtin && builtin->kind() == Builtin::KindObjectProxy) || dynamic_pointer_cast<InterfaceDecl>(p);
-}
-
-bool
-SwiftGenerator::isClassType(const TypePtr& p)
-{
-    const BuiltinPtr builtin = dynamic_pointer_cast<Builtin>(p);
-    return (builtin && (builtin->kind() == Builtin::KindObject || builtin->kind() == Builtin::KindValue)) ||
-           dynamic_pointer_cast<ClassDecl>(p);
-}
-
-bool
-SwiftGenerator::containsClassMembers(const StructPtr& s)
-{
-    DataMemberList dm = s->dataMembers();
-    for (DataMemberList::const_iterator i = dm.begin(); i != dm.end(); ++i)
-    {
-        if (isClassType((*i)->type()))
-        {
-            return true;
-        }
-
-        StructPtr st = dynamic_pointer_cast<Struct>((*i)->type());
-        if (st && containsClassMembers(st))
-        {
-            return true;
-        }
-
-        SequencePtr seq = dynamic_pointer_cast<Sequence>((*i)->type());
-        if (seq)
-        {
-            st = dynamic_pointer_cast<Struct>(seq->type());
-            if (isClassType(seq->type()) || (st && containsClassMembers(st)))
-            {
-                return true;
-            }
-        }
-
-        DictionaryPtr dict = dynamic_pointer_cast<Dictionary>((*i)->type());
-        if (dict)
-        {
-            st = dynamic_pointer_cast<Struct>(dict->valueType());
-            if (isClassType(dict->valueType()) || (st && containsClassMembers(st)))
-            {
-                return true;
-            }
-        }
-    }
-    return false;
 }
 
 void
@@ -1625,6 +1574,8 @@ SwiftGenerator::writeMarshalUnmarshalCode(
     bool marshal,
     int tag)
 {
+    assert(!(type->isClassType() && tag >= 0)); // Optional classes are disallowed by the parser.
+
     string swiftModule = getSwiftModule(getTopLevelModule(p));
     string stream = dynamic_pointer_cast<Struct>(p) ? "self" : marshal ? "ostr" : "istr";
 
@@ -1709,19 +1660,15 @@ SwiftGenerator::writeMarshalUnmarshalCode(
         }
     }
 
-    if (dynamic_pointer_cast<ClassDecl>(type))
+    ClassDeclPtr cl = dynamic_pointer_cast<ClassDecl>(type);
+    if (cl)
     {
-        ClassDeclPtr cl = dynamic_pointer_cast<ClassDecl>(type);
         if (marshal)
         {
             out << nl << stream << ".write(" << args << ")";
         }
         else
         {
-            if (tag >= 0)
-            {
-                args += ", value: ";
-            }
             string memberType = getUnqualified(getAbsolute(type), swiftModule);
             string memberName;
             const string memberPrefix = "self.";
@@ -2220,7 +2167,7 @@ SwiftGenerator::writeMarshalInParams(::IceUtilInternal::Output& out, const Opera
         writeMarshalUnmarshalCode(out, q->type, op, "iceP_" + q->name, true, q->tag);
     }
 
-    if (op->sendsClasses(false))
+    if (op->sendsClasses())
     {
         out << nl << "ostr.writePendingValues()";
     }
@@ -2234,8 +2181,6 @@ SwiftGenerator::writeMarshalOutParams(::IceUtilInternal::Output& out, const Oper
     ParamInfoList requiredOutParams, optionalOutParams;
     getOutParams(op, requiredOutParams, optionalOutParams);
 
-    out << "{ ostr in";
-    out.inc();
     //
     // Marshal parameters
     // 1. required
@@ -2252,13 +2197,10 @@ SwiftGenerator::writeMarshalOutParams(::IceUtilInternal::Output& out, const Oper
         writeMarshalUnmarshalCode(out, q->type, op, "iceP_" + q->name, true, q->tag);
     }
 
-    if (op->returnsClasses(false))
+    if (op->returnsClasses())
     {
         out << nl << "ostr.writePendingValues()";
     }
-
-    out.dec();
-    out << nl << "}";
 }
 
 void
@@ -2267,8 +2209,7 @@ SwiftGenerator::writeMarshalAsyncOutParams(::IceUtilInternal::Output& out, const
     ParamInfoList requiredOutParams, optionalOutParams;
     getOutParams(op, requiredOutParams, optionalOutParams);
 
-    out << sb << " (ostr, retVals) in";
-    out << nl << "let " << operationReturnDeclaration(op) << " = retVals";
+    out << nl << "let " << operationReturnDeclaration(op) << " = value";
     //
     // Marshal parameters
     // 1. required
@@ -2285,12 +2226,10 @@ SwiftGenerator::writeMarshalAsyncOutParams(::IceUtilInternal::Output& out, const
         writeMarshalUnmarshalCode(out, q->type, op, "iceP_" + q->name, true, q->tag);
     }
 
-    if (op->returnsClasses(false))
+    if (op->returnsClasses())
     {
         out << nl << "ostr.writePendingValues()";
     }
-
-    out << eb;
 }
 
 void
@@ -2312,7 +2251,7 @@ SwiftGenerator::writeUnmarshalOutParams(::IceUtilInternal::Output& out, const Op
     for (ParamInfoList::const_iterator q = requiredOutParams.begin(); q != requiredOutParams.end(); ++q)
     {
         string param;
-        if (isClassType(q->type))
+        if (q->type->isClassType())
         {
             out << nl << "var iceP_" << q->name << ": " << q->typeStr;
             param = "iceP_" + q->name;
@@ -2327,7 +2266,7 @@ SwiftGenerator::writeUnmarshalOutParams(::IceUtilInternal::Output& out, const Op
     for (ParamInfoList::const_iterator q = optionalOutParams.begin(); q != optionalOutParams.end(); ++q)
     {
         string param;
-        if (isClassType(q->type))
+        if (q->type->isClassType())
         {
             out << nl << "var iceP_" << q->name << ": " << q->typeStr;
             param = "iceP_" + q->name;
@@ -2339,7 +2278,7 @@ SwiftGenerator::writeUnmarshalOutParams(::IceUtilInternal::Output& out, const Op
         writeMarshalUnmarshalCode(out, q->type, op, param, false, q->tag);
     }
 
-    if (op->returnsClasses(false))
+    if (op->returnsClasses())
     {
         out << nl << "try istr.readPendingValues()";
     }
@@ -2383,14 +2322,12 @@ SwiftGenerator::writeUnmarshalInParams(::IceUtilInternal::Output& out, const Ope
     // 1. required
     // 3. optional
     //
-    out << "{ istr in";
-    out.inc();
     for (ParamInfoList::const_iterator q = requiredInParams.begin(); q != requiredInParams.end(); ++q)
     {
         if (q->param)
         {
             string param;
-            if (isClassType(q->type))
+            if (q->type->isClassType())
             {
                 out << nl << "var iceP_" << q->name << ": " << q->typeStr;
                 param = "iceP_" + q->name;
@@ -2406,7 +2343,7 @@ SwiftGenerator::writeUnmarshalInParams(::IceUtilInternal::Output& out, const Ope
     for (ParamInfoList::const_iterator q = optionalInParams.begin(); q != optionalInParams.end(); ++q)
     {
         string param;
-        if (isClassType(q->type))
+        if (q->type->isClassType())
         {
             out << nl << "var iceP_" << q->name << ": " << q->typeStr;
             param = "iceP_" + q->name;
@@ -2418,29 +2355,10 @@ SwiftGenerator::writeUnmarshalInParams(::IceUtilInternal::Output& out, const Ope
         writeMarshalUnmarshalCode(out, q->type, op, param, false, q->tag);
     }
 
-    if (op->sendsClasses(false))
+    if (op->sendsClasses())
     {
         out << nl << "try istr.readPendingValues()";
     }
-
-    out << nl << "return ";
-    if (allInParams.size() > 1)
-    {
-        out << spar;
-    }
-
-    for (ParamInfoList::const_iterator q = allInParams.begin(); q != allInParams.end(); ++q)
-    {
-        out << ("iceP_" + q->name);
-    }
-
-    if (allInParams.size() > 1)
-    {
-        out << epar;
-    }
-
-    out.dec();
-    out << nl << "}";
 }
 
 void
@@ -2663,110 +2581,97 @@ SwiftGenerator::writeDispatchOperation(::IceUtilInternal::Output& out, const Ope
 {
     const string opName = op->name();
 
-    const ParamInfoList allInParams = getAllInParams(op);
-    const ParamInfoList allOutParams = getAllOutParams(op);
-    const ExceptionList allExceptions = op->throws();
+    const ParamInfoList inParams = getAllInParams(op);
+    const ParamInfoList outParams = getAllOutParams(op);
 
     const string swiftModule = getSwiftModule(getTopLevelModule(dynamic_pointer_cast<Contained>(op)));
 
     out << sp;
-    out << nl << "func _iceD_" << opName;
-    out << spar;
-    out << ("incoming inS: " + getUnqualified("Ice.Incoming", swiftModule));
-    out << ("current: " + getUnqualified("Ice.Current", swiftModule));
-    out << epar;
-
-    out << " throws -> PromiseKit.Promise<" << getUnqualified("Ice.OutputStream", swiftModule) << ">?";
+    out << nl << "public func _iceD_" << opName
+        << "(_ request: Ice.IncomingRequest) -> PromiseKit.Promise<Ice.OutgoingResponse>";
 
     out << sb;
-    if (allInParams.empty())
+
+    out << nl << "do";
+    out << sb;
+
+    // TODO: check operation mode
+
+    if (inParams.empty())
     {
-        out << nl << "try inS.readEmptyParams()";
+        out << nl << "_ = try request.inputStream.skipEmptyEncapsulation()";
     }
     else
     {
-        out << nl << "let " << operationInParamsDeclaration(op) << " = try inS.read ";
+        out << nl << "let istr = request.inputStream";
+        out << nl << "_ = try istr.startEncapsulation()";
         writeUnmarshalInParams(out, op);
     }
 
-    if (op->format() != DefaultFormat)
+    if (operationIsAmd(op))
     {
-        out << nl << "inS.setFormat(" << opFormatTypeToString(op) << ")";
-    }
-
-    out << sp;
-    out << nl;
-    if (!allOutParams.empty())
-    {
-        out << "let " << operationReturnDeclaration(op) << " = ";
-    }
-    out << "try self." << fixIdent(opName);
-
-    out << spar;
-    for (ParamInfoList::const_iterator q = allInParams.begin(); q != allInParams.end(); ++q)
-    {
-        out << (q->name + ": iceP_" + q->name);
-    }
-    out << "current: current";
-    out << epar;
-
-    out << sp << nl;
-    out << "return inS.setResult";
-    if (allOutParams.empty())
-    {
-        out << "()";
+        out << nl << "return self." << opName << "Async(";
+        out << nl << "    "; // inc/dec doesn't work for an unknown reason
+        for (const auto& q : inParams)
+        {
+            out << q.name << ": iceP_" << q.name << ", ";
+        }
+        out << "current: request.current";
+        out << nl;
+        out << ").map(on: nil)";
+        out << sb;
+        if (outParams.empty())
+        {
+            out << nl << "request.current.makeEmptyOutgoingResponse()";
+        }
+        else
+        {
+            out << " result in ";
+            out << nl << "request.current.makeOutgoingResponse(result, formatType:" << opFormatTypeToString(op) << ")";
+            out << sb;
+            out << " ostr, value in ";
+            writeMarshalAsyncOutParams(out, op);
+            out << eb;
+        }
+        out << eb;
     }
     else
     {
-        writeMarshalOutParams(out, op);
+        out << sp;
+        out << nl;
+        if (!outParams.empty())
+        {
+            out << "let " << operationReturnDeclaration(op) << " = ";
+        }
+        out << "try self." << fixIdent(opName);
+        out << spar;
+        for (const auto& q : inParams)
+        {
+            out << (q.name + ": iceP_" + q.name);
+        }
+        out << "current: request.current";
+        out << epar;
+
+        if (outParams.empty())
+        {
+            out << nl << "return PromiseKit.Promise.value(request.current.makeEmptyOutgoingResponse())";
+        }
+        else
+        {
+            out << nl << "let ostr = request.current.startReplyStream()";
+            out << nl
+                << "ostr.startEncapsulation(encoding: request.current.encoding, format: " << opFormatTypeToString(op)
+                << ")";
+            writeMarshalOutParams(out, op);
+            out << nl << "ostr.endEncapsulation()";
+            out << nl << "return PromiseKit.Promise.value(Ice.OutgoingResponse(ostr))";
+        }
     }
     out << eb;
-}
-
-void
-SwiftGenerator::writeDispatchAsyncOperation(::IceUtilInternal::Output& out, const OperationPtr& op)
-{
-    const ParamInfoList allInParams = getAllInParams(op);
-    const ParamInfoList allOutParams = getAllOutParams(op);
-
-    const string swiftModule = getSwiftModule(getTopLevelModule(dynamic_pointer_cast<Contained>(op)));
-
-    out << sp;
-    out << nl << "func _iceD_" << op->name();
-    out << spar;
-    out << ("incoming inS: " + getUnqualified("Ice.Incoming", swiftModule));
-    out << ("current: " + getUnqualified("Ice.Current", swiftModule));
-    out << epar;
-
-    out << " throws -> PromiseKit.Promise<" << getUnqualified("Ice.OutputStream", swiftModule) << ">?";
+    out << " catch";
     out << sb;
-    if (allInParams.empty())
-    {
-        out << nl << "try inS.readEmptyParams()";
-    }
-    else
-    {
-        out << nl << "let " << operationInParamsDeclaration(op) << " = try inS.read ";
-        writeUnmarshalInParams(out, op);
-    }
-
-    if (op->format() != DefaultFormat)
-    {
-        out << nl << "inS.setFormat(" << opFormatTypeToString(op) << ")";
-    }
-
-    out << sp << nl;
-    out << "return inS.setResultPromise(" << fixIdent(op->name() + (operationIsAmd(op) ? "Async" : "")) << spar;
-    for (ParamInfoList::const_iterator q = allInParams.begin(); q != allInParams.end(); ++q)
-    {
-        out << (q->name + ": iceP_" + q->name);
-    }
-    out << "current: current" << epar;
-    out << ")";
-    if (!allOutParams.empty())
-    {
-        writeMarshalAsyncOutParams(out, op);
-    }
+    out << nl << "return PromiseKit.Promise(error: error)";
+    out << eb;
     out << eb;
 }
 

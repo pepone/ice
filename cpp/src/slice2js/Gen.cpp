@@ -1509,7 +1509,7 @@ Slice::Gen::TypesVisitor::visitInterfaceDefStart(const InterfaceDefPtr& p)
             if (ret)
             {
                 _out << '[' << encodeTypeForOperation(ret);
-                const bool isObj = isClassType(ret);
+                const bool isObj = ret->isClassType();
                 if (isObj)
                 {
                     _out << ", true";
@@ -1540,7 +1540,7 @@ Slice::Gen::TypesVisitor::visitInterfaceDefStart(const InterfaceDefPtr& p)
                     }
                     TypePtr t = (*pli)->type();
                     _out << '[' << encodeTypeForOperation(t);
-                    const bool isObj = isClassType(t);
+                    const bool isObj = t->isClassType();
                     if (isObj)
                     {
                         _out << ", true";
@@ -1573,7 +1573,7 @@ Slice::Gen::TypesVisitor::visitInterfaceDefStart(const InterfaceDefPtr& p)
                     }
                     TypePtr t = (*pli)->type();
                     _out << '[' << encodeTypeForOperation(t);
-                    const bool isObj = isClassType(t);
+                    const bool isObj = t->isClassType();
                     if (isObj)
                     {
                         _out << ", true";
@@ -1620,13 +1620,13 @@ Slice::Gen::TypesVisitor::visitInterfaceDefStart(const InterfaceDefPtr& p)
             }
             _out << ", ";
 
-            if (op->sendsClasses(false))
+            if (op->sendsClasses())
             {
                 _out << "true";
             }
             _out << ", ";
 
-            if (op->returnsClasses(false))
+            if (op->returnsClasses())
             {
                 _out << "true";
             }
@@ -1659,7 +1659,7 @@ Slice::Gen::TypesVisitor::visitSequence(const SequencePtr& p)
     _out << nl << scope << "." << propertyName << " = Ice.StreamHelpers.generateSeqHelper("
         << getHelper(type) << ", "
         << (fixed ? "true" : "false");
-    if (isClassType(type))
+    if (type->isClassType())
     {
         _out << ", \"" << typeToString(type) << "\"";
     }
@@ -1785,7 +1785,7 @@ Slice::Gen::TypesVisitor::visitExceptionStart(const ExceptionPtr& p)
         _out << eb;
     }
 
-    if (p->usesClasses(false) && (!base || (base && !base->usesClasses(false))))
+    if (p->usesClasses() && !(base && base->usesClasses()))
     {
         _out << sp;
         _out << nl << "_usesClasses()";
@@ -1921,7 +1921,7 @@ Slice::Gen::TypesVisitor::visitDictionary(const DictionaryPtr& p)
         << (fixed ? "true" : "false") << ", "
         << (keyUseEquals ? "Ice.HashMap.compareEquals" : "undefined");
 
-    if (isClassType(valueType))
+    if (valueType->isClassType())
     {
         _out << ", \"" << typeToString(valueType) << "\"";
     }

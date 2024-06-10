@@ -526,7 +526,7 @@ Gen::TypesVisitor::visitExceptionStart(const ExceptionPtr& p)
     }
     out << eb;
 
-    if (p->usesClasses(false) && (!base || (base && !base->usesClasses(false))))
+    if (p->usesClasses() && !(base && base->usesClasses()))
     {
         out << sp;
         out << nl << "open override func _usesClasses() -> Swift.Bool" << sb;
@@ -547,11 +547,11 @@ Gen::TypesVisitor::visitStructStart(const StructPtr& p)
     const DataMemberList members = p->dataMembers();
     const string optionalFormat = getOptionalFormat(p);
 
-    bool isClass = containsClassMembers(p);
+    bool usesClasses = p->usesClasses();
     out << sp;
     writeDocSummary(out, p);
     writeSwiftAttributes(out, p->getMetaData());
-    out << nl << "public " << (isClass ? "class " : "struct ") << name;
+    out << nl << "public " << (usesClasses ? "class " : "struct ") << name;
 
     // Only generate Hashable if this struct is a legal dictionary key type.
     if (legalKeyType)
@@ -577,7 +577,7 @@ Gen::TypesVisitor::visitStructStart(const StructPtr& p)
     out << nl << "/// - returns: `" << name << "` - The structured value read from the stream.";
     out << nl << "func read() throws -> " << name;
     out << sb;
-    out << nl << (isClass ? "let" : "var") << " v = " << name << "()";
+    out << nl << (usesClasses ? "let" : "var") << " v = " << name << "()";
     for (DataMemberList::const_iterator q = members.begin(); q != members.end(); ++q)
     {
         writeMarshalUnmarshalCode(out, (*q)->type(), p, "v." + fixIdent((*q)->name()), false);
@@ -703,7 +703,7 @@ Gen::TypesVisitor::visitSequence(const SequencePtr& p)
     out << sb;
     out << nl << "let sz = try istr.readAndCheckSeqSize(minSize: " << p->type()->minWireSize() << ")";
 
-    if (isClassType(type))
+    if (type->isClassType())
     {
         out << nl << "var v = " << fixIdent(name) << "(repeating: nil, count: sz)";
         out << nl << "for i in 0 ..< sz";
@@ -848,7 +848,7 @@ Gen::TypesVisitor::visitDictionary(const DictionaryPtr& p)
     out << sb;
     out << nl << "let sz = try Swift.Int(istr.readSize())";
     out << nl << "var v = " << fixIdent(name) << "()";
-    if (isClassType(p->valueType()))
+    if (p->valueType()->isClassType())
     {
         out << nl << "let e = " << getUnqualified("Ice.DictEntryArray", swiftModule) << "<" << keyType << ", "
             << valueType << ">(size: sz)";
@@ -1138,6 +1138,24 @@ Gen::ProxyVisitor::visitInterfaceDefStart(const InterfaceDefPtr& p)
     out << nl << "return " << traits << ".staticId";
     out << eb;
 
+    out << eb;
+
+    //
+    // makeProxy
+    //
+    out << sp;
+    out << nl << "/// Makes a new proxy from a communicator and a proxy string.";
+    out << nl << "///";
+    out << nl << "/// - Parameters:";
+    out << nl << "///    - communicator: The communicator of the new proxy.";
+    out << nl << "///    - proxyString: The proxy string to parse.";
+    out << nl << "///    - type: The type of the new proxy.";
+    out << nl << "/// - Throws: `Ice.ProxyParseException` if the proxy string is invalid.";
+    out << nl << "/// - Returns: A new proxy with the requested type.";
+    out << nl << "public func makeProxy(communicator: Ice.Communicator, proxyString: String, type: " << prx
+        << ".Protocol) throws -> " << prx;
+    out << sb;
+    out << nl << "try communicator.makeProxyImpl(proxyString) as " << prxI;
     out << eb;
 
     //
@@ -1437,7 +1455,7 @@ Gen::ObjectVisitor::visitInterfaceDefStart(const InterfaceDefPtr& p)
     out << sp;
     out << sp;
     out << nl << "/// Dispatcher for `" << servant << "` servants.";
-    out << nl << "public struct " << disp << ": " << getUnqualified("Ice.Disp", swiftModule);
+    out << nl << "public struct " << disp << ": Ice.Dispatcher";
     out << sb;
     out << nl << "public let servant: " << servant;
 
@@ -1468,42 +1486,33 @@ Gen::ObjectVisitor::visitInterfaceDefStart(const InterfaceDefPtr& p)
 
     out << sp;
     out << nl;
-    out << "public func dispatch";
-    out << spar;
-    out << ("request: " + getUnqualified("Ice.Request", swiftModule));
-    out << ("current: " + getUnqualified("Ice.Current", swiftModule));
-    out << epar;
-    out << " throws -> PromiseKit.Promise<" << getUnqualified("Ice.OutputStream", swiftModule) << ">?";
-
+    out << "public func dispatch(_ request: Ice.IncomingRequest) -> PromiseKit.Promise<Ice.OutgoingResponse>";
     out << sb;
-    // Call startOver() so that dispatch interceptors can retry requests
-    out << nl << "request.startOver()";
-    out << nl << "switch current.operation";
+    out << nl;
+    out << "switch request.current.operation";
     out << sb;
     out.dec(); // to align case with switch
-    for (StringList::const_iterator q = allOpNames.begin(); q != allOpNames.end(); ++q)
+    for (const auto& opName : allOpNames)
     {
-        const string opName = *q;
         out << nl << "case \"" << opName << "\":";
         out.inc();
         if (opName == "ice_id" || opName == "ice_ids" || opName == "ice_isA" || opName == "ice_ping")
         {
-            out << nl << "return try (servant as? Object ?? " << disp << ".defaultObject)._iceD_" << opName
-                << "(incoming: request, current: current)";
+            out << nl << "(servant as? Ice.Object ?? " << disp << ".defaultObject)._iceD_" << opName << "(request)";
         }
         else
         {
-            out << nl << "return try servant._iceD_" << opName << "(incoming: request, current: current)";
+            out << nl << "servant._iceD_" << opName << "(request)";
         }
         out.dec();
     }
     out << nl << "default:";
     out.inc();
-    out << nl << "throw " << getUnqualified("Ice.OperationNotExistException", swiftModule)
-        << "(id: current.id, facet: current.facet, operation: current.operation)";
+    out << nl << "PromiseKit.Promise(error: Ice.OperationNotExistException())";
     // missing dec to compensate for the extra dec after switch sb
     out << eb;
     out << eb;
+
     out << eb;
 
     //
@@ -1604,7 +1613,7 @@ Gen::ObjectExtVisitor::visitInterfaceDefStart(const InterfaceDefPtr& p)
 
     out << sp;
     writeServantDocSummary(out, p, swiftModule);
-    out << nl << "public extension " << fixIdent(name);
+    out << nl << "extension " << fixIdent(name);
 
     out << sb;
     return true;
@@ -1619,12 +1628,5 @@ Gen::ObjectExtVisitor::visitInterfaceDefEnd(const InterfaceDefPtr&)
 void
 Gen::ObjectExtVisitor::visitOperation(const OperationPtr& op)
 {
-    if (operationIsAmd(op))
-    {
-        writeDispatchAsyncOperation(out, op);
-    }
-    else
-    {
-        writeDispatchOperation(out, op);
-    }
+    writeDispatchOperation(out, op);
 }

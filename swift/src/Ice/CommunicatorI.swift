@@ -1,6 +1,4 @@
-//
-// Copyright (c) ZeroC, Inc. All rights reserved.
-//
+// Copyright (c) ZeroC, Inc.
 
 import IceImpl
 import PromiseKit
@@ -48,12 +46,7 @@ class CommunicatorI: LocalObject<ICECommunicator>, Communicator {
     }
 
     func stringToProxy(_ str: String) throws -> ObjectPrx? {
-        return try autoreleasepool {
-            guard let prxHandle = try handle.stringToProxy(str: str) as? ICEObjectPrx else {
-                return nil
-            }
-            return ObjectPrxI(handle: prxHandle, communicator: self)
-        }
+        try stringToProxyImpl(str)
     }
 
     func proxyToString(_ obj: ObjectPrx?) -> String {
@@ -200,29 +193,29 @@ class CommunicatorI: LocalObject<ICECommunicator>, Communicator {
         }
     }
 
-    func addAdminFacet(servant disp: Disp, facet: String) throws {
+    func addAdminFacet(servant dispatcher: Dispatcher, facet: String) throws {
         try autoreleasepool {
-            try handle.addAdminFacet(AdminFacetFacade(communicator: self, disp: disp), facet: facet)
+            try handle.addAdminFacet(AdminFacetFacade(communicator: self, dispatcher: dispatcher), facet: facet)
         }
     }
 
-    func removeAdminFacet(_ facet: String) throws -> Disp {
+    func removeAdminFacet(_ facet: String) throws -> Dispatcher {
         return try autoreleasepool {
             guard let facade = try handle.removeAdminFacet(facet) as? AdminFacetFacade else {
                 preconditionFailure()
             }
 
-            return facade.disp
+            return facade.dispatcher
         }
     }
 
-    func findAdminFacet(_ facet: String) -> Disp? {
+    func findAdminFacet(_ facet: String) -> Dispatcher? {
         do {
             return try autoreleasepool {
                 guard let facade = try handle.findAdminFacet(facet) as? AdminFacetFacade else {
                     return nil
                 }
-                return facade.disp
+                return facade.dispatcher
             }
         } catch is CommunicatorDestroyedException {
             // Ignored
@@ -236,7 +229,7 @@ class CommunicatorI: LocalObject<ICECommunicator>, Communicator {
         do {
             return try autoreleasepool {
                 try handle.findAllAdminFacets().mapValues { facade in
-                    (facade as! AdminFacetFacade).disp
+                    (facade as! AdminFacetFacade).dispatcher
                 }
             }
         } catch is CommunicatorDestroyedException {
@@ -256,6 +249,22 @@ class CommunicatorI: LocalObject<ICECommunicator>, Communicator {
     func getServerDispatchQueue() throws -> DispatchQueue {
         return try autoreleasepool {
             try handle.getServerDispatchQueue()
+        }
+    }
+
+    func makeProxyImpl<ProxyImpl>(_ proxyString: String) throws -> ProxyImpl where ProxyImpl: ObjectPrxI {
+        guard let proxy: ProxyImpl = try stringToProxyImpl(proxyString) else {
+            throw ProxyParseException(str: "Invalid empty proxy string")
+        }
+        return proxy
+    }
+
+    private func stringToProxyImpl<ProxyImpl>(_ str: String) throws -> ProxyImpl? where ProxyImpl: ObjectPrxI {
+        return try autoreleasepool {
+            guard let prxHandle = try handle.stringToProxy(str: str) as? ICEObjectPrx else {
+                return nil
+            }
+            return ProxyImpl(handle: prxHandle, communicator: self)
         }
     }
 }
