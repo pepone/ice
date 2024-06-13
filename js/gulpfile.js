@@ -16,6 +16,7 @@ import path from "path";
 import pump from "pump";
 import { rollup } from "rollup";
 import { fileURLToPath } from "url";
+import ts from "typescript";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -256,6 +257,9 @@ for (const name of tests) {
                 gulp.src(path.join(outputDirectory, "*.ice")),
                 slice2js({
                     include: [outputDirectory],
+                    args: ["--typescript"],
+                    jsbundle: false,
+                    tsbundle: false,
                 }),
                 gulp.dest(outputDirectory),
             ],

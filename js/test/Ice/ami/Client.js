@@ -220,6 +220,7 @@ export class Client extends TestHelper {
             test(r.connection === null); // Expected
             test(r.communicator == communicator);
             test(r.proxy == p);
+            await r;
 
             //
             // Oneway
@@ -230,6 +231,7 @@ export class Client extends TestHelper {
             test(r.connection === null); // Expected
             test(r.communicator == communicator);
             test(r.proxy == p2);
+            await r;
 
             //
             // Batch request via proxy
@@ -241,6 +243,7 @@ export class Client extends TestHelper {
             test(r.connection === null); // Expected
             test(r.communicator == communicator);
             test(r.proxy == p2);
+            await r;
 
             const con = p.ice_getCachedConnection();
             p2 = p.ice_batchOneway();
@@ -250,6 +253,7 @@ export class Client extends TestHelper {
             test(r.connection == con);
             test(r.communicator == communicator);
             test(r.proxy === null);
+            await r;
 
             p2 = p.ice_batchOneway();
             p2.ice_ping();
@@ -258,6 +262,7 @@ export class Client extends TestHelper {
             test(r.connection === null);
             test(r.communicator == communicator);
             test(r.proxy === null);
+            await r;
         }
 
         if (!TestHelper.isSafari()) {
@@ -293,7 +298,7 @@ export class Client extends TestHelper {
             r2.cancel();
 
             await testController.resumeAdapter();
-            await p.ice_ping();
+            await r;
 
             test(!r1.isSent() && r1.isCompleted());
             test(!r2.isSent() && r2.isCompleted());
@@ -308,18 +313,20 @@ export class Client extends TestHelper {
             await p.ice_oneway().ice_ping();
 
             r1.cancel();
-            r1.then(
+            const r1Result = r1.then(
                 () => test(false),
                 (ex) => test(ex instanceof Ice.InvocationCanceledException),
             );
 
             r2.cancel();
-            r2.then(
+            const r2Result = r2.then(
                 () => test(false),
                 (ex) => test(ex instanceof Ice.InvocationCanceledException),
             );
 
             await testController.resumeAdapter();
+
+            await Promise.all([r1Result, r2Result]);
         }
         out.writeLine("ok");
 

@@ -22,6 +22,49 @@ using namespace IceUtilInternal;
 
 namespace
 {
+    string getJavaScriptModule(const DefinitionContextPtr& dc)
+    {
+        const string prefix = "js:module:";
+        const string m = dc->findMetaData(prefix);
+        if (!m.empty())
+        {
+            return m.substr(prefix.size());
+        }
+        return "";
+    }
+
+    // Convert a path to a module name, e.g., "../foo/bar/baz.ice" -> "__foo_bar_baz"
+    string pathToModule(const string& path)
+    {
+        string module = removeExtension(path);
+
+        size_t pos = module.find('/');
+        if (pos == string::npos)
+        {
+            pos = module.find('\\');
+        }
+
+        if (pos != string::npos)
+        {
+            module = module.substr(pos + 1);
+
+            // Replace remaining path separators ('/', '\') and ('.') with '_'
+            replace(module.begin(), module.end(), '/', '_');
+            replace(module.begin(), module.end(), '\\', '_');
+            replace(module.begin(), module.end(), '.', '_');
+        }
+        return module;
+    }
+
+    bool ends_with(string_view s, string_view suffix)
+    {
+#if defined __cpp_lib_starts_ends_with
+        return s.ends_with(suffix);
+#else
+        return s.size() >= suffix.size() && s.compare(s.size() - s.size(), std::string_view::npos, s) == 0;
+#endif
+    }
+
     string sliceModeToIceMode(Operation::Mode opMode)
     {
         switch (opMode)
@@ -592,8 +635,8 @@ Slice::Gen::Gen(const string& base, const vector<string>& includePaths, const st
         file = dir + '/' + file;
     }
 
-    _jsout.open(file.c_str());
-    if (!_jsout)
+    _javaScriptOutput.open(file.c_str());
+    if (!_javaScriptOutput)
     {
         ostringstream os;
         os << "cannot open `" << file << "': " << IceUtilInternal::errorToString(errno);
@@ -610,8 +653,8 @@ Slice::Gen::Gen(const string& base, const vector<string>& includePaths, const st
             file = dir + '/' + file;
         }
 
-        _tsout.open(file.c_str());
-        if (!_tsout)
+        _typeScriptOutput.open(file.c_str());
+        if (!_typeScriptOutput)
         {
             ostringstream os;
             os << "cannot open `" << file << "': " << IceUtilInternal::errorToString(errno);
@@ -627,8 +670,8 @@ Slice::Gen::Gen(
     const string& /*dir*/,
     bool typeScript,
     ostream& out)
-    : _jsout(out),
-      _tsout(out),
+    : _javaScriptOutput(out),
+      _typeScriptOutput(out),
       _includePaths(includePaths),
       _useStdout(true),
       _typeScript(typeScript)
@@ -643,88 +686,72 @@ Slice::Gen::Gen(
 
 Slice::Gen::~Gen()
 {
-    if (_jsout.isOpen() || _useStdout)
+    if (_javaScriptOutput.isOpen() || _useStdout)
     {
-        _jsout << '\n';
-        _jsout.close();
+        _javaScriptOutput << '\n';
+        _javaScriptOutput.close();
     }
 
-    if (_tsout.isOpen() || _useStdout)
+    if (_typeScriptOutput.isOpen() || _useStdout)
     {
-        _tsout << '\n';
-        _tsout.close();
+        _typeScriptOutput << '\n';
+        _typeScriptOutput.close();
     }
 }
 
 void
 Slice::Gen::generate(const UnitPtr& p)
 {
-    string module;
-    DefinitionContextPtr dc = p->findDefinitionContext(p->topLevelFile());
-    assert(dc);
-
-    {
-        const string prefix = "js:module:";
-        const string m = dc->findMetaData(prefix);
-        if (!m.empty())
-        {
-            module = m.substr(prefix.size());
-        }
-    }
+    string module = getJavaScriptModule(p->findDefinitionContext(p->topLevelFile()));
 
     if (_useStdout)
     {
-        _jsout << "\n";
-        _jsout << "/** slice2js: " << _fileBase << ".js generated begin module:\"" << module << "\" **/";
-        _jsout << "\n";
+        _javaScriptOutput << "\n";
+        _javaScriptOutput << "/** slice2js: " << _fileBase << ".js generated begin module:\"" << module << "\" **/";
+        _javaScriptOutput << "\n";
     }
-    printHeader(_jsout);
-    printGeneratedHeader(_jsout, _fileBase + ".ice");
+    printHeader(_javaScriptOutput);
+    printGeneratedHeader(_javaScriptOutput, _fileBase + ".ice");
 
-    //
-    // Check for file "js:module:ice" metadata. If this is set then we are building Ice.
-    //
-    bool icejs = module == "ice";
-
-    _jsout << nl << "/* eslint-disable */";
-    _jsout << nl << "/* jshint ignore: start */";
-    _jsout << nl;
+    _javaScriptOutput << nl << "/* eslint-disable */";
+    _javaScriptOutput << nl << "/* jshint ignore: start */";
+    _javaScriptOutput << nl;
 
     {
-        ImportVisitor importVisitor(_jsout, _includePaths, icejs);
+        ImportVisitor importVisitor(_javaScriptOutput, _includePaths);
         p->visit(&importVisitor, false);
         set<string> importedModules = importVisitor.writeImports(p);
 
-        ExportsVisitor exportsVisitor(_jsout, importedModules);
+        ExportsVisitor exportsVisitor(_javaScriptOutput, importedModules);
         p->visit(&exportsVisitor, false);
         set<string> exportedModules = exportsVisitor.exportedModules();
 
         set<string> seenModules = importedModules;
         seenModules.merge(exportedModules);
 
-        TypesVisitor typesVisitor(_jsout);
+        TypesVisitor typesVisitor(_javaScriptOutput);
         p->visit(&typesVisitor, false);
     }
 
     if (_useStdout)
     {
-        _jsout << "\n";
-        _jsout << "/** slice2js: generated end **/";
-        _jsout << "\n";
+        _javaScriptOutput << "\n";
+        _javaScriptOutput << "/** slice2js: generated end **/";
+        _javaScriptOutput << "\n";
     }
 
     if (_typeScript)
     {
         if (_useStdout)
         {
-            _tsout << "\n";
-            _tsout << "/** slice2js: " << _fileBase << ".d.ts generated begin module:\"" << module << "\" **/";
-            _tsout << "\n";
+            _typeScriptOutput << "\n";
+            _typeScriptOutput << "/** slice2js: " << _fileBase << ".d.ts generated begin module:\"" << module << "\" **/";
+            _typeScriptOutput << "\n";
         }
-        printHeader(_tsout);
-        printGeneratedHeader(_tsout, _fileBase + ".ice");
+        printHeader(_typeScriptOutput);
+        printGeneratedHeader(_typeScriptOutput, _fileBase + ".ice");
 
-        TypeScriptImportVisitor importVisitor(_tsout, icejs);
+        TypeScriptImportVisitor importVisitor(_typeScriptOutput);
         p->visit(&importVisitor, false);
 
         //
@@ -733,25 +760,24 @@ Slice::Gen::generate(const UnitPtr& p)
         // a type alias when there is an ambiguity.
         // see: https://github.com/Microsoft/TypeScript/issues/983
         //
-        TypeScriptAliasVisitor aliasVisitor(_tsout);
+        TypeScriptAliasVisitor aliasVisitor(_typeScriptOutput);
         p->visit(&aliasVisitor, false);
         aliasVisitor.writeAlias(p);
 
-        TypeScriptVisitor typeScriptVisitor(_tsout, importVisitor.imports());
+        TypeScriptVisitor typeScriptVisitor(_typeScriptOutput, importVisitor.imports());
         p->visit(&typeScriptVisitor, false);
 
         if (_useStdout)
         {
-            _tsout << "\n";
-            _tsout << "/** slice2js: generated end **/";
-            _tsout << "\n";
+            _typeScriptOutput << "\n";
+            _typeScriptOutput << "/** slice2js: generated end **/";
+            _typeScriptOutput << "\n";
         }
     }
 }
 
-Slice::Gen::ImportVisitor::ImportVisitor(IceUtilInternal::Output& out, vector<string> includePaths, bool icejs)
+Slice::Gen::ImportVisitor::ImportVisitor(IceUtilInternal::Output& out, vector<string> includePaths)
     : JsVisitor(out),
-      _icejs(icejs),
       _seenClass(false),
       _seenInterface(false),
       _seenCompactId(false),
@@ -858,55 +884,11 @@ Slice::Gen::ImportVisitor::visitEnum(const EnumPtr&)
     _seenEnum = true;
 }
 
-namespace
-{
-    string getJavaScriptModule(const DefinitionContextPtr& dc)
-    {
-        const string prefix = "js:module:";
-        const string m = dc->findMetaData(prefix);
-        if (!m.empty())
-        {
-            return m.substr(prefix.size());
-        }
-        return "";
-    }
-
-    // Convert a path to a module name, e.g., "../foo/bar/baz.ice" -> "__foo_bar_baz"
-    string pathToModule(const string& path)
-    {
-        string module = removeExtension(path);
-
-        size_t pos = module.find('/');
-        if (pos == string::npos)
-        {
-            pos = module.find('\\');
-        }
-
-        if (pos != string::npos)
-        {
-            module = module.substr(pos + 1);
-
-            // Replace remaining path separators ('/', '\') and ('.') with '_'
-            replace(module.begin(), module.end(), '/', '_');
-            replace(module.begin(), module.end(), '\\', '_');
-            replace(module.begin(), module.end(), '.', '_');
-        }
-        return module;
-    }
-
-    bool ends_with(string_view s, string_view suffix)
-    {
-#if defined __cpp_lib_starts_ends_with
-        return s.ends_with(suffix);
-#else
-        return s.size() >= suffix.size() && s.compare(s.size() - s.size(), std::string_view::npos, s) == 0;
-#endif
-    }
-}
-
 set<string>
 Slice::Gen::ImportVisitor::writeImports(const UnitPtr& p)
 {
+    // The JavaScript module we are building as specified by "js:module:" metadata.
+    string jsModule = getJavaScriptModule(p->findDefinitionContext(p->topLevelFile()));
     set<string> importedModules = {"Ice"};
 
     // The imports map maps JavaScript Modules to the set of Slice top-level modules that are imported from the
@@ -917,7 +899,7 @@ Slice::Gen::ImportVisitor::writeImports(const UnitPtr& p)
     // The JavaScript files that we import in generated code when building Ice. The user generated code imports
     // the "ice" package.
     set<string> jsIceImports;
-    if (_icejs)
+    if (jsModule == "ice")
     {
         bool needStreamHelpers = false;
         if (_seenClass || _seenInterface || _seenObjectSeq || _seenObjectDict)
@@ -975,7 +957,6 @@ Slice::Gen::ImportVisitor::writeImports(const UnitPtr& p)
 
         if (_seenSeq || _seenObjectSeq)
         {
-            jsIceImports.insert("ArrayUtil");
             needStreamHelpers = true;
         }
 
@@ -991,9 +972,6 @@ Slice::Gen::ImportVisitor::writeImports(const UnitPtr& p)
     }
 
     StringList includes = p->includeFiles();
-
-    // The JavaScript module we are building as specified by "js:module:" metadata.
-    string jsModule = getJavaScriptModule(p->findDefinitionContext(p->topLevelFile()));
 
     // Iterate all the included files and generate an import statement for each top-level module in the included file.
     for (const auto& included : includes)
@@ -1045,7 +1023,7 @@ Slice::Gen::ImportVisitor::writeImports(const UnitPtr& p)
     set<string> aggregatedModules;
 
     // We first import the Ice runtime
-    if (_icejs)
+    if (jsModule == "ice")
     {
         for (const string& m : jsIceImports)
         {
@@ -2043,9 +2021,8 @@ Slice::Gen::TypesVisitor::encodeTypeForOperation(const TypePtr& type)
     return "???";
 }
 
-Slice::Gen::TypeScriptImportVisitor::TypeScriptImportVisitor(IceUtilInternal::Output& out, bool icejs)
+Slice::Gen::TypeScriptImportVisitor::TypeScriptImportVisitor(IceUtilInternal::Output& out)
     : JsVisitor(out),
-      _icejs(icejs),
       _nextImport(0)
 {
 }
@@ -2152,7 +2129,7 @@ Slice::Gen::TypeScriptImportVisitor::visitModuleStart(const ModulePtr& p)
     //
     // Import ice module if not building Ice
     //
-    if (dynamic_pointer_cast<Unit>(p->container()) && !_icejs && _imports.empty())
+    if (dynamic_pointer_cast<Unit>(p->container()) && _imports.empty())
     {
         _imports.push_back(make_pair("ice", nextImportPrefix()));
     }
@@ -2489,13 +2466,34 @@ Slice::Gen::TypeScriptVisitor::writeImports()
 }
 
 bool
+Slice::Gen::TypeScriptVisitor::visitUnitStart(const UnitPtr& p)
+{
+    _out << sp;
+    writeImports();
+
+    _module = getJavaScriptModule(p->findDefinitionContext(p->topLevelFile()));
+    if (!_module.empty())
+    {
+        _out << nl << "declare module \"" << _module << "\"" << sb;
+    }
+    return true;
+}
+
+void
+Slice::Gen::TypeScriptVisitor::visitUnitEnd(const UnitPtr&)
+{
+    if (!_module.empty())
+    {
+        _out << eb; // module end
+    }
+}
+
+bool
 Slice::Gen::TypeScriptVisitor::visitModuleStart(const ModulePtr& p)
 {
     UnitPtr unit = dynamic_pointer_cast<Unit>(p->container());
-    if (unit)
+    if (unit && _module.empty())
     {
-        _out << sp;
-        writeImports();
         _out << nl << "export namespace " << fixId(p->name()) << sb;
     }
     else
@@ -2669,7 +2667,7 @@ Slice::Gen::TypeScriptVisitor::visitInterfaceDefStart(const InterfaceDefPtr& p)
     _out << nl << " */";
     _out << nl << "static checkedCast(prx:" << icePrefix << getUnqualified("Ice.ObjectPrx", p->scope(), icePrefix)
          << ", "
-         << "facet?:string, contex?:Map<string, string>):" << icePrefix
+         << "facet?:string, context?:Map<string, string>):" << icePrefix
          << getUnqualified("Ice.AsyncResult", p->scope(), icePrefix) << "<" << fixId(p->name() + "Prx") << ">;";
     _out << eb;
 
