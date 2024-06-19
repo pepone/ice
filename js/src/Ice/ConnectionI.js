@@ -1085,21 +1085,37 @@ export class ConnectionI {
         }
     }
 
-    sendHeartbeatNow() {
-        Debug.assert(this._state === StateActive);
+    idleCheck(idleTimeout) {
+        if (_state == StateActive || _state == StateHolding) {
+            if (this._instance.traceLevels().network >= 1) {
+                this._instance
+                    .initializationData()
+                    .logger.trace(
+                        _instance.traceLevels().networkCat,
+                        `connection aborted by the idle check because it did not receive any byte for ${idleTimeout}s\n${_transceiver.toDetailedString()}`,
+                    );
+            }
 
-        const os = new OutputStream(this._instance, Protocol.currentProtocolEncoding);
-        os.writeBlob(Protocol.magic);
-        Protocol.currentProtocol._write(os);
-        Protocol.currentProtocolEncoding._write(os);
-        os.writeByte(Protocol.validateConnectionMsg);
-        os.writeByte(0);
-        os.writeInt(Protocol.headerSize); // Message size.
-        try {
-            this.sendMessage(OutgoingMessage.createForStream(os, false));
-        } catch (ex) {
-            this.setState(StateClosed, ex);
-            Debug.assert(this._exception !== null);
+            this.setState(StateClosed, new ConnectionTimeoutException()); // TODO: should be ConnectionIdleException
+        }
+        // else nothing to do
+    }
+
+    sendHeartbeat() {
+        if (this._state == StateActive || this._state == StateHolding) {
+            const os = new OutputStream(this._instance, Protocol.currentProtocolEncoding);
+            os.writeBlob(Protocol.magic);
+            Protocol.currentProtocol._write(os);
+            Protocol.currentProtocolEncoding._write(os);
+            os.writeByte(Protocol.validateConnectionMsg);
+            os.writeByte(0);
+            os.writeInt(Protocol.headerSize); // Message size.
+            try {
+                this.sendMessage(OutgoingMessage.createForStream(os, false));
+            } catch (ex) {
+                this.setState(StateClosed, ex);
+                Debug.assert(this._exception !== null);
+            }
         }
     }
 
