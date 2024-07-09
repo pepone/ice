@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Glacier2 package &#8212; Ice 3.8.0a0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=12dfc556" />
+    <script src="_static/documentation_options.js?v=a637f681"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Ice package" href="Ice.html" />
+    <link rel="prev" title="lib" href="modules.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="glacier2-package">
+<h1>Glacier2 package<a class="headerlink" href="#glacier2-package" title="Link to this heading">¶</a></h1>
+<section id="module-Glacier2">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-Glacier2" title="Link to this heading">¶</a></h2>
+<p>Glacier2 is a firewall solution for Ice. Glacier2 authenticates and filters client requests and allows callbacks to
+the client in a secure fashion. In combination with IceSSL, Glacier2 provides a security solution that is both
+non-intrusive and easy to configure.</p>
+<dl class="py exception">
+<dt class="sig sig-object py" id="Glacier2.CannotCreateSessionException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Glacier2.</span></span><span class="sig-name descname"><span class="pre">CannotCreateSessionException</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reason</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.CannotCreateSessionException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="Ice.html#Ice.UserException" title="Ice.UserException"><code class="xref py py-class docutils literal notranslate"><span class="pre">UserException</span></code></a></p>
+<blockquote>
+<div><p>This exception is raised if an attempt to create a new session failed.</p>
+</div></blockquote>
+<p>Members:
+reason –  The reason why session creation has failed.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Glacier2.IdentitySet">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Glacier2.</span></span><span class="sig-name descname"><span class="pre">IdentitySet</span></span><a class="headerlink" href="#Glacier2.IdentitySet" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.IdentitySet.add">
+<span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">additions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.IdentitySet.add" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Add a sequence of Ice identities to this set of constraints. Order is not preserved and duplicates are
+implicitly removed.</p>
+</div></blockquote>
+<p>Arguments:
+additions – The sequence of Ice identities to be added.
+current – The Current object for the invocation.
+Returns: A future object for the invocation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.IdentitySet.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.IdentitySet.get" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Returns a sequence of identities describing the constraints in this set.</p>
+</div></blockquote>
+<p>Arguments:
+current – The Current object for the invocation.
+Returns: A future object for the invocation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.IdentitySet.ice_id">
+<span class="sig-name descname"><span class="pre">ice_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.IdentitySet.ice_id" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id corresponding to the most-derived Slice
+interface supported by the target object.
+:returns: The type id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.IdentitySet.ice_ids">
+<span class="sig-name descname"><span class="pre">ice_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.IdentitySet.ice_ids" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type ids corresponding to the Slice interface
+that are supported by the target object.
+:returns: A list of type ids.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.IdentitySet.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.IdentitySet.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id of this Slice class or interface.
+:returns: The type id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.IdentitySet.remove">
+<span class="sig-name descname"><span class="pre">remove</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">deletions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.IdentitySet.remove" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Remove a sequence of identities from this set of constraints. No errors are returned if an entry is not
+found.</p>
+</div></blockquote>
+<p>Arguments:
+deletions – The sequence of Ice identities to be removed.
+current – The Current object for the invocation.
+Returns: A future object for the invocation.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Glacier2.IdentitySetPrx">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Glacier2.</span></span><span class="sig-name descname"><span class="pre">IdentitySetPrx</span></span><a class="headerlink" href="#Glacier2.IdentitySetPrx" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ObjectPrx</span></code></p>
+<blockquote>
+<div><p>Add a sequence of Ice identities to this set of constraints. Order is not preserved and duplicates are
+implicitly removed.</p>
+</div></blockquote>
+<p>Arguments:
+additions – The sequence of Ice identities to be added.
+context – The request context for the invocation.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.IdentitySetPrx.add">
+<span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">additions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.IdentitySetPrx.add" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.IdentitySetPrx.addAsync">
+<span class="sig-name descname"><span class="pre">addAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">additions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.IdentitySetPrx.addAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.IdentitySetPrx.checkedCast">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">checkedCast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">proxy</span></span></span><a class="headerlink" href="#Glacier2.IdentitySetPrx.checkedCast" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.IdentitySetPrx.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.IdentitySetPrx.get" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.IdentitySetPrx.getAsync">
+<span class="sig-name descname"><span class="pre">getAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.IdentitySetPrx.getAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.IdentitySetPrx.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">string</span></span></span><a class="headerlink" href="#Glacier2.IdentitySetPrx.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.IdentitySetPrx.remove">
+<span class="sig-name descname"><span class="pre">remove</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">deletions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.IdentitySetPrx.remove" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.IdentitySetPrx.removeAsync">
+<span class="sig-name descname"><span class="pre">removeAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">deletions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.IdentitySetPrx.removeAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.IdentitySetPrx.uncheckedCast">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">uncheckedCast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">proxy</span></span></span><a class="headerlink" href="#Glacier2.IdentitySetPrx.uncheckedCast" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="Glacier2.PermissionDeniedException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Glacier2.</span></span><span class="sig-name descname"><span class="pre">PermissionDeniedException</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reason</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.PermissionDeniedException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="Ice.html#Ice.UserException" title="Ice.UserException"><code class="xref py py-class docutils literal notranslate"><span class="pre">UserException</span></code></a></p>
+<blockquote>
+<div><p>This exception is raised if a client is denied the ability to create a session with the router.</p>
+</div></blockquote>
+<p>Members:
+reason –  The reason why permission was denied.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Glacier2.PermissionsVerifier">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Glacier2.</span></span><span class="sig-name descname"><span class="pre">PermissionsVerifier</span></span><a class="headerlink" href="#Glacier2.PermissionsVerifier" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.PermissionsVerifier.checkPermissions">
+<span class="sig-name descname"><span class="pre">checkPermissions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">userId</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">password</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.PermissionsVerifier.checkPermissions" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Check whether a user has permission to access the router.</p>
+</div></blockquote>
+<p>Arguments:
+userId – The user id for which to check permission.
+password – The user’s password.
+current – The Current object for the invocation.
+Returns: A future object for the invocation.
+Throws:
+PermissionDeniedException – Raised if the user access is denied. This can be raised in place of returning false with a reason set in the reason out parameter.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.PermissionsVerifier.ice_id">
+<span class="sig-name descname"><span class="pre">ice_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.PermissionsVerifier.ice_id" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id corresponding to the most-derived Slice
+interface supported by the target object.
+:returns: The type id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.PermissionsVerifier.ice_ids">
+<span class="sig-name descname"><span class="pre">ice_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.PermissionsVerifier.ice_ids" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type ids corresponding to the Slice interface
+that are supported by the target object.
+:returns: A list of type ids.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.PermissionsVerifier.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.PermissionsVerifier.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id of this Slice class or interface.
+:returns: The type id.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Glacier2.PermissionsVerifierPrx">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Glacier2.</span></span><span class="sig-name descname"><span class="pre">PermissionsVerifierPrx</span></span><a class="headerlink" href="#Glacier2.PermissionsVerifierPrx" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ObjectPrx</span></code></p>
+<blockquote>
+<div><p>Check whether a user has permission to access the router.</p>
+</div></blockquote>
+<p>Arguments:
+userId – The user id for which to check permission.
+password – The user’s password.
+context – The request context for the invocation.
+Returns a tuple containing the following:
+_retval – True if access is granted, or false otherwise.
+reason – The reason why access was denied.
+Throws:
+PermissionDeniedException – Raised if the user access is denied. This can be raised in place of returning false with a reason set in the reason out parameter.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.PermissionsVerifierPrx.checkPermissions">
+<span class="sig-name descname"><span class="pre">checkPermissions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">userId</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">password</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.PermissionsVerifierPrx.checkPermissions" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.PermissionsVerifierPrx.checkPermissionsAsync">
+<span class="sig-name descname"><span class="pre">checkPermissionsAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">userId</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">password</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.PermissionsVerifierPrx.checkPermissionsAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.PermissionsVerifierPrx.checkedCast">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">checkedCast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">proxy</span></span></span><a class="headerlink" href="#Glacier2.PermissionsVerifierPrx.checkedCast" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.PermissionsVerifierPrx.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">string</span></span></span><a class="headerlink" href="#Glacier2.PermissionsVerifierPrx.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.PermissionsVerifierPrx.uncheckedCast">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">uncheckedCast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">proxy</span></span></span><a class="headerlink" href="#Glacier2.PermissionsVerifierPrx.uncheckedCast" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Glacier2.Router">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Glacier2.</span></span><span class="sig-name descname"><span class="pre">Router</span></span><a class="headerlink" href="#Glacier2.Router" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="Ice.html#Ice.Router" title="Ice.Router"><code class="xref py py-class docutils literal notranslate"><span class="pre">Router</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.Router.createSession">
+<span class="sig-name descname"><span class="pre">createSession</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">userId</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">password</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.Router.createSession" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Create a per-client session with the router. If a SessionManager has been installed, a proxy to a
+Session object is returned to the client. Otherwise, null is returned and only an internal session
+(i.e., not visible to the client) is created.
+If a session proxy is returned, it must be configured to route through the router that created it. This will
+happen automatically if the router is configured as the client’s default router at the time the session
+proxy is created in the client process, otherwise the client must configure the session proxy explicitly.</p>
+</div></blockquote>
+<p>Arguments:
+userId – The user id for which to check the password.
+password – The password for the given user id.
+current – The Current object for the invocation.
+Returns: A future object for the invocation.
+Throws:
+CannotCreateSessionException – Raised if the session cannot be created.
+PermissionDeniedException – Raised if the password for the given user id is not correct, or if the user is not allowed access.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.Router.createSessionFromSecureConnection">
+<span class="sig-name descname"><span class="pre">createSessionFromSecureConnection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.Router.createSessionFromSecureConnection" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Create a per-client session with the router. The user is authenticated through the SSL certificates that
+have been associated with the connection. If a SessionManager has been installed, a proxy to a
+Session object is returned to the client. Otherwise, null is returned and only an internal session
+(i.e., not visible to the client) is created.
+If a session proxy is returned, it must be configured to route through the router that created it. This will
+happen automatically if the router is configured as the client’s default router at the time the session
+proxy is created in the client process, otherwise the client must configure the session proxy explicitly.</p>
+</div></blockquote>
+<p>Arguments:
+current – The Current object for the invocation.
+Returns: A future object for the invocation.
+Throws:
+CannotCreateSessionException – Raised if the session cannot be created.
+PermissionDeniedException – Raised if the user cannot be authenticated or if the user is not allowed access.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.Router.destroySession">
+<span class="sig-name descname"><span class="pre">destroySession</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.Router.destroySession" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Destroy the calling client’s session with this router.</p>
+</div></blockquote>
+<p>Arguments:
+current – The Current object for the invocation.
+Returns: A future object for the invocation.
+Throws:
+SessionNotExistException – Raised if no session exists for the calling client.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.Router.getACMTimeout">
+<span class="sig-name descname"><span class="pre">getACMTimeout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.Router.getACMTimeout" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Get the idle timeout used by the server-side of the connection.</p>
+</div></blockquote>
+<p>Arguments:
+current – The Current object for the invocation.
+Returns: A future object for the invocation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.Router.getCategoryForClient">
+<span class="sig-name descname"><span class="pre">getCategoryForClient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.Router.getCategoryForClient" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>This category must be used in the identities of all of the client’s callback objects. This is necessary in
+order for the router to forward callback requests to the intended client. If the Glacier2 server endpoints
+are not set, the returned category is an empty string.</p>
+</div></blockquote>
+<p>Arguments:
+current – The Current object for the invocation.
+Returns: A future object for the invocation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.Router.getSessionTimeout">
+<span class="sig-name descname"><span class="pre">getSessionTimeout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.Router.getSessionTimeout" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Get the idle timeout used by the server-side of the connection.</p>
+</div></blockquote>
+<p>Arguments:
+current – The Current object for the invocation.
+Returns: A future object for the invocation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.Router.ice_id">
+<span class="sig-name descname"><span class="pre">ice_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.Router.ice_id" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id corresponding to the most-derived Slice
+interface supported by the target object.
+:returns: The type id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.Router.ice_ids">
+<span class="sig-name descname"><span class="pre">ice_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.Router.ice_ids" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type ids corresponding to the Slice interface
+that are supported by the target object.
+:returns: A list of type ids.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.Router.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.Router.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id of this Slice class or interface.
+:returns: The type id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.Router.refreshSession">
+<span class="sig-name descname"><span class="pre">refreshSession</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.Router.refreshSession" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Keep the session with this router alive. This operation is provided for backward compatibility with Ice 3.7
+and earlier and does nothing in newer versions of Glacier2.</p>
+</div></blockquote>
+<p>Arguments:
+current – The Current object for the invocation.
+Returns: A future object for the invocation.
+Throws:
+SessionNotExistException – Raised if no session exists for the caller (client).</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Glacier2.RouterPrx">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Glacier2.</span></span><span class="sig-name descname"><span class="pre">RouterPrx</span></span><a class="headerlink" href="#Glacier2.RouterPrx" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="Ice.html#Ice.RouterPrx" title="Ice.RouterPrx"><code class="xref py py-class docutils literal notranslate"><span class="pre">RouterPrx</span></code></a></p>
+<blockquote>
+<div><p>This category must be used in the identities of all of the client’s callback objects. This is necessary in
+order for the router to forward callback requests to the intended client. If the Glacier2 server endpoints
+are not set, the returned category is an empty string.</p>
+</div></blockquote>
+<p>Arguments:
+context – The request context for the invocation.
+Returns: The category.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.RouterPrx.checkedCast">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">checkedCast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">proxy</span></span></span><a class="headerlink" href="#Glacier2.RouterPrx.checkedCast" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.RouterPrx.createSession">
+<span class="sig-name descname"><span class="pre">createSession</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">userId</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">password</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.RouterPrx.createSession" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.RouterPrx.createSessionAsync">
+<span class="sig-name descname"><span class="pre">createSessionAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">userId</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">password</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.RouterPrx.createSessionAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.RouterPrx.createSessionFromSecureConnection">
+<span class="sig-name descname"><span class="pre">createSessionFromSecureConnection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.RouterPrx.createSessionFromSecureConnection" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.RouterPrx.createSessionFromSecureConnectionAsync">
+<span class="sig-name descname"><span class="pre">createSessionFromSecureConnectionAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.RouterPrx.createSessionFromSecureConnectionAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.RouterPrx.destroySession">
+<span class="sig-name descname"><span class="pre">destroySession</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.RouterPrx.destroySession" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.RouterPrx.destroySessionAsync">
+<span class="sig-name descname"><span class="pre">destroySessionAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.RouterPrx.destroySessionAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.RouterPrx.getACMTimeout">
+<span class="sig-name descname"><span class="pre">getACMTimeout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.RouterPrx.getACMTimeout" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.RouterPrx.getACMTimeoutAsync">
+<span class="sig-name descname"><span class="pre">getACMTimeoutAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.RouterPrx.getACMTimeoutAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.RouterPrx.getCategoryForClient">
+<span class="sig-name descname"><span class="pre">getCategoryForClient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.RouterPrx.getCategoryForClient" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.RouterPrx.getCategoryForClientAsync">
+<span class="sig-name descname"><span class="pre">getCategoryForClientAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.RouterPrx.getCategoryForClientAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.RouterPrx.getSessionTimeout">
+<span class="sig-name descname"><span class="pre">getSessionTimeout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.RouterPrx.getSessionTimeout" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.RouterPrx.getSessionTimeoutAsync">
+<span class="sig-name descname"><span class="pre">getSessionTimeoutAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.RouterPrx.getSessionTimeoutAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.RouterPrx.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">string</span></span></span><a class="headerlink" href="#Glacier2.RouterPrx.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.RouterPrx.refreshSession">
+<span class="sig-name descname"><span class="pre">refreshSession</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.RouterPrx.refreshSession" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.RouterPrx.refreshSessionAsync">
+<span class="sig-name descname"><span class="pre">refreshSessionAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.RouterPrx.refreshSessionAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.RouterPrx.uncheckedCast">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">uncheckedCast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">proxy</span></span></span><a class="headerlink" href="#Glacier2.RouterPrx.uncheckedCast" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Glacier2.SSLInfo">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Glacier2.</span></span><span class="sig-name descname"><span class="pre">SSLInfo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">remoteHost</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remotePort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">localHost</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">localPort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cipher</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">certs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.SSLInfo" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<blockquote>
+<div><p>Information taken from an SSL connection used for permissions verification.</p>
+</div></blockquote>
+<p>Members:
+remoteHost –  The remote host.
+remotePort –  The remote port.
+localHost –  The router’s host.
+localPort –  The router’s port.
+cipher –  The negotiated cipher suite.
+certs –  The certificate chain.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Glacier2.SSLPermissionsVerifier">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Glacier2.</span></span><span class="sig-name descname"><span class="pre">SSLPermissionsVerifier</span></span><a class="headerlink" href="#Glacier2.SSLPermissionsVerifier" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SSLPermissionsVerifier.authorize">
+<span class="sig-name descname"><span class="pre">authorize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.SSLPermissionsVerifier.authorize" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Check whether a user has permission to access the router.</p>
+</div></blockquote>
+<p>Arguments:
+info – The SSL information.
+current – The Current object for the invocation.
+Returns: A future object for the invocation.
+Throws:
+PermissionDeniedException – Raised if the user access is denied. This can be raised in place of returning false with a reason set in the reason out parameter.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SSLPermissionsVerifier.ice_id">
+<span class="sig-name descname"><span class="pre">ice_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.SSLPermissionsVerifier.ice_id" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id corresponding to the most-derived Slice
+interface supported by the target object.
+:returns: The type id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SSLPermissionsVerifier.ice_ids">
+<span class="sig-name descname"><span class="pre">ice_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.SSLPermissionsVerifier.ice_ids" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type ids corresponding to the Slice interface
+that are supported by the target object.
+:returns: A list of type ids.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SSLPermissionsVerifier.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.SSLPermissionsVerifier.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id of this Slice class or interface.
+:returns: The type id.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Glacier2.SSLPermissionsVerifierPrx">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Glacier2.</span></span><span class="sig-name descname"><span class="pre">SSLPermissionsVerifierPrx</span></span><a class="headerlink" href="#Glacier2.SSLPermissionsVerifierPrx" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ObjectPrx</span></code></p>
+<blockquote>
+<div><p>Check whether a user has permission to access the router.</p>
+</div></blockquote>
+<p>Arguments:
+info – The SSL information.
+context – The request context for the invocation.
+Returns a tuple containing the following:
+_retval – True if access is granted, or false otherwise.
+reason – The reason why access was denied.
+Throws:
+PermissionDeniedException – Raised if the user access is denied. This can be raised in place of returning false with a reason set in the reason out parameter.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SSLPermissionsVerifierPrx.authorize">
+<span class="sig-name descname"><span class="pre">authorize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.SSLPermissionsVerifierPrx.authorize" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SSLPermissionsVerifierPrx.authorizeAsync">
+<span class="sig-name descname"><span class="pre">authorizeAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.SSLPermissionsVerifierPrx.authorizeAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SSLPermissionsVerifierPrx.checkedCast">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">checkedCast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">proxy</span></span></span><a class="headerlink" href="#Glacier2.SSLPermissionsVerifierPrx.checkedCast" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SSLPermissionsVerifierPrx.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">string</span></span></span><a class="headerlink" href="#Glacier2.SSLPermissionsVerifierPrx.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SSLPermissionsVerifierPrx.uncheckedCast">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">uncheckedCast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">proxy</span></span></span><a class="headerlink" href="#Glacier2.SSLPermissionsVerifierPrx.uncheckedCast" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Glacier2.SSLSessionManager">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Glacier2.</span></span><span class="sig-name descname"><span class="pre">SSLSessionManager</span></span><a class="headerlink" href="#Glacier2.SSLSessionManager" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SSLSessionManager.create">
+<span class="sig-name descname"><span class="pre">create</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">control</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.SSLSessionManager.create" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Create a new session.</p>
+</div></blockquote>
+<p>Arguments:
+info – The SSL info.
+control – A proxy to the session control object.
+current – The Current object for the invocation.
+Returns: A future object for the invocation.
+Throws:
+CannotCreateSessionException – Raised if the session cannot be created.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SSLSessionManager.ice_id">
+<span class="sig-name descname"><span class="pre">ice_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.SSLSessionManager.ice_id" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id corresponding to the most-derived Slice
+interface supported by the target object.
+:returns: The type id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SSLSessionManager.ice_ids">
+<span class="sig-name descname"><span class="pre">ice_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.SSLSessionManager.ice_ids" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type ids corresponding to the Slice interface
+that are supported by the target object.
+:returns: A list of type ids.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SSLSessionManager.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.SSLSessionManager.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id of this Slice class or interface.
+:returns: The type id.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Glacier2.SSLSessionManagerPrx">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Glacier2.</span></span><span class="sig-name descname"><span class="pre">SSLSessionManagerPrx</span></span><a class="headerlink" href="#Glacier2.SSLSessionManagerPrx" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ObjectPrx</span></code></p>
+<blockquote>
+<div><p>Create a new session.</p>
+</div></blockquote>
+<p>Arguments:
+info – The SSL info.
+control – A proxy to the session control object.
+context – The request context for the invocation.
+Returns: A proxy to the newly created session.
+Throws:
+CannotCreateSessionException – Raised if the session cannot be created.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SSLSessionManagerPrx.checkedCast">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">checkedCast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">proxy</span></span></span><a class="headerlink" href="#Glacier2.SSLSessionManagerPrx.checkedCast" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SSLSessionManagerPrx.create">
+<span class="sig-name descname"><span class="pre">create</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">control</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.SSLSessionManagerPrx.create" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SSLSessionManagerPrx.createAsync">
+<span class="sig-name descname"><span class="pre">createAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">control</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.SSLSessionManagerPrx.createAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SSLSessionManagerPrx.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">string</span></span></span><a class="headerlink" href="#Glacier2.SSLSessionManagerPrx.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SSLSessionManagerPrx.uncheckedCast">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">uncheckedCast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">proxy</span></span></span><a class="headerlink" href="#Glacier2.SSLSessionManagerPrx.uncheckedCast" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Glacier2.Session">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Glacier2.</span></span><span class="sig-name descname"><span class="pre">Session</span></span><a class="headerlink" href="#Glacier2.Session" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.Session.destroy">
+<span class="sig-name descname"><span class="pre">destroy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.Session.destroy" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Destroy the session. This is called automatically when the router is destroyed.</p>
+</div></blockquote>
+<p>Arguments:
+current – The Current object for the invocation.
+Returns: A future object for the invocation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.Session.ice_id">
+<span class="sig-name descname"><span class="pre">ice_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.Session.ice_id" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id corresponding to the most-derived Slice
+interface supported by the target object.
+:returns: The type id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.Session.ice_ids">
+<span class="sig-name descname"><span class="pre">ice_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.Session.ice_ids" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type ids corresponding to the Slice interface
+that are supported by the target object.
+:returns: A list of type ids.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.Session.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.Session.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id of this Slice class or interface.
+:returns: The type id.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Glacier2.SessionControl">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Glacier2.</span></span><span class="sig-name descname"><span class="pre">SessionControl</span></span><a class="headerlink" href="#Glacier2.SessionControl" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SessionControl.adapterIds">
+<span class="sig-name descname"><span class="pre">adapterIds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.SessionControl.adapterIds" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Access the object that manages the allowable adapter identities for objects for this session.</p>
+</div></blockquote>
+<p>Arguments:
+current – The Current object for the invocation.
+Returns: A future object for the invocation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SessionControl.categories">
+<span class="sig-name descname"><span class="pre">categories</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.SessionControl.categories" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Access the object that manages the allowable categories for object identities for this session.</p>
+</div></blockquote>
+<p>Arguments:
+current – The Current object for the invocation.
+Returns: A future object for the invocation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SessionControl.destroy">
+<span class="sig-name descname"><span class="pre">destroy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.SessionControl.destroy" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Destroy the associated session.</p>
+</div></blockquote>
+<p>Arguments:
+current – The Current object for the invocation.
+Returns: A future object for the invocation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SessionControl.getSessionTimeout">
+<span class="sig-name descname"><span class="pre">getSessionTimeout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.SessionControl.getSessionTimeout" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Get the session timeout.</p>
+</div></blockquote>
+<p>Arguments:
+current – The Current object for the invocation.
+Returns: A future object for the invocation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SessionControl.ice_id">
+<span class="sig-name descname"><span class="pre">ice_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.SessionControl.ice_id" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id corresponding to the most-derived Slice
+interface supported by the target object.
+:returns: The type id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SessionControl.ice_ids">
+<span class="sig-name descname"><span class="pre">ice_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.SessionControl.ice_ids" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type ids corresponding to the Slice interface
+that are supported by the target object.
+:returns: A list of type ids.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SessionControl.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.SessionControl.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id of this Slice class or interface.
+:returns: The type id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SessionControl.identities">
+<span class="sig-name descname"><span class="pre">identities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.SessionControl.identities" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Access the object that manages the allowable object identities for this session.</p>
+</div></blockquote>
+<p>Arguments:
+current – The Current object for the invocation.
+Returns: A future object for the invocation.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Glacier2.SessionControlPrx">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Glacier2.</span></span><span class="sig-name descname"><span class="pre">SessionControlPrx</span></span><a class="headerlink" href="#Glacier2.SessionControlPrx" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ObjectPrx</span></code></p>
+<blockquote>
+<div><p>Access the object that manages the allowable categories for object identities for this session.</p>
+</div></blockquote>
+<p>Arguments:
+context – The request context for the invocation.
+Returns: A StringSet object. The returned proxy is never null.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SessionControlPrx.adapterIds">
+<span class="sig-name descname"><span class="pre">adapterIds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.SessionControlPrx.adapterIds" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SessionControlPrx.adapterIdsAsync">
+<span class="sig-name descname"><span class="pre">adapterIdsAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.SessionControlPrx.adapterIdsAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SessionControlPrx.categories">
+<span class="sig-name descname"><span class="pre">categories</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.SessionControlPrx.categories" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SessionControlPrx.categoriesAsync">
+<span class="sig-name descname"><span class="pre">categoriesAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.SessionControlPrx.categoriesAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SessionControlPrx.checkedCast">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">checkedCast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">proxy</span></span></span><a class="headerlink" href="#Glacier2.SessionControlPrx.checkedCast" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SessionControlPrx.destroy">
+<span class="sig-name descname"><span class="pre">destroy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.SessionControlPrx.destroy" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SessionControlPrx.destroyAsync">
+<span class="sig-name descname"><span class="pre">destroyAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.SessionControlPrx.destroyAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SessionControlPrx.getSessionTimeout">
+<span class="sig-name descname"><span class="pre">getSessionTimeout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.SessionControlPrx.getSessionTimeout" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SessionControlPrx.getSessionTimeoutAsync">
+<span class="sig-name descname"><span class="pre">getSessionTimeoutAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.SessionControlPrx.getSessionTimeoutAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SessionControlPrx.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">string</span></span></span><a class="headerlink" href="#Glacier2.SessionControlPrx.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SessionControlPrx.identities">
+<span class="sig-name descname"><span class="pre">identities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.SessionControlPrx.identities" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SessionControlPrx.identitiesAsync">
+<span class="sig-name descname"><span class="pre">identitiesAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.SessionControlPrx.identitiesAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SessionControlPrx.uncheckedCast">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">uncheckedCast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">proxy</span></span></span><a class="headerlink" href="#Glacier2.SessionControlPrx.uncheckedCast" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Glacier2.SessionManager">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Glacier2.</span></span><span class="sig-name descname"><span class="pre">SessionManager</span></span><a class="headerlink" href="#Glacier2.SessionManager" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SessionManager.create">
+<span class="sig-name descname"><span class="pre">create</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">userId</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">control</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.SessionManager.create" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Create a new session. The implementation must return a non-null proxy or raise
+CannotCreateSessionException if the session cannot be created.</p>
+</div></blockquote>
+<p>Arguments:
+userId – The user id for the session.
+control – A proxy to the session control object. The control proxy is null if Glacier2.Server.Endpoints are not configured.
+current – The Current object for the invocation.
+Returns: A future object for the invocation.
+Throws:
+CannotCreateSessionException – Raised if the session cannot be created.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SessionManager.ice_id">
+<span class="sig-name descname"><span class="pre">ice_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.SessionManager.ice_id" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id corresponding to the most-derived Slice
+interface supported by the target object.
+:returns: The type id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SessionManager.ice_ids">
+<span class="sig-name descname"><span class="pre">ice_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.SessionManager.ice_ids" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type ids corresponding to the Slice interface
+that are supported by the target object.
+:returns: A list of type ids.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SessionManager.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.SessionManager.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id of this Slice class or interface.
+:returns: The type id.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Glacier2.SessionManagerPrx">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Glacier2.</span></span><span class="sig-name descname"><span class="pre">SessionManagerPrx</span></span><a class="headerlink" href="#Glacier2.SessionManagerPrx" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ObjectPrx</span></code></p>
+<blockquote>
+<div><p>Create a new session. The implementation must return a non-null proxy or raise
+CannotCreateSessionException if the session cannot be created.</p>
+</div></blockquote>
+<p>Arguments:
+userId – The user id for the session.
+control – A proxy to the session control object. The control proxy is null if Glacier2.Server.Endpoints are not configured.
+context – The request context for the invocation.
+Returns: A proxy to the newly created session.
+Throws:
+CannotCreateSessionException – Raised if the session cannot be created.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SessionManagerPrx.checkedCast">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">checkedCast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">proxy</span></span></span><a class="headerlink" href="#Glacier2.SessionManagerPrx.checkedCast" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SessionManagerPrx.create">
+<span class="sig-name descname"><span class="pre">create</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">userId</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">control</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.SessionManagerPrx.create" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SessionManagerPrx.createAsync">
+<span class="sig-name descname"><span class="pre">createAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">userId</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">control</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.SessionManagerPrx.createAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SessionManagerPrx.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">string</span></span></span><a class="headerlink" href="#Glacier2.SessionManagerPrx.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SessionManagerPrx.uncheckedCast">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">uncheckedCast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">proxy</span></span></span><a class="headerlink" href="#Glacier2.SessionManagerPrx.uncheckedCast" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="Glacier2.SessionNotExistException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Glacier2.</span></span><span class="sig-name descname"><span class="pre">SessionNotExistException</span></span><a class="headerlink" href="#Glacier2.SessionNotExistException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="Ice.html#Ice.UserException" title="Ice.UserException"><code class="xref py py-class docutils literal notranslate"><span class="pre">UserException</span></code></a></p>
+<p>This exception is raised if a client tries to destroy a session with a router, but no session exists for the
+client.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Glacier2.SessionPrx">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Glacier2.</span></span><span class="sig-name descname"><span class="pre">SessionPrx</span></span><a class="headerlink" href="#Glacier2.SessionPrx" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ObjectPrx</span></code></p>
+<blockquote>
+<div><p>Destroy the session. This is called automatically when the router is destroyed.</p>
+</div></blockquote>
+<p>Arguments:
+context – The request context for the invocation.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SessionPrx.checkedCast">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">checkedCast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">proxy</span></span></span><a class="headerlink" href="#Glacier2.SessionPrx.checkedCast" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SessionPrx.destroy">
+<span class="sig-name descname"><span class="pre">destroy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.SessionPrx.destroy" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SessionPrx.destroyAsync">
+<span class="sig-name descname"><span class="pre">destroyAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.SessionPrx.destroyAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SessionPrx.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">string</span></span></span><a class="headerlink" href="#Glacier2.SessionPrx.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.SessionPrx.uncheckedCast">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">uncheckedCast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">proxy</span></span></span><a class="headerlink" href="#Glacier2.SessionPrx.uncheckedCast" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Glacier2.StringSet">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Glacier2.</span></span><span class="sig-name descname"><span class="pre">StringSet</span></span><a class="headerlink" href="#Glacier2.StringSet" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.StringSet.add">
+<span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">additions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.StringSet.add" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Add a sequence of strings to this set of constraints. Order is not preserved and duplicates are implicitly
+removed.</p>
+</div></blockquote>
+<p>Arguments:
+additions – The sequence of strings to be added.
+current – The Current object for the invocation.
+Returns: A future object for the invocation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.StringSet.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.StringSet.get" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Returns a sequence of strings describing the constraints in this set.</p>
+</div></blockquote>
+<p>Arguments:
+current – The Current object for the invocation.
+Returns: A future object for the invocation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.StringSet.ice_id">
+<span class="sig-name descname"><span class="pre">ice_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.StringSet.ice_id" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id corresponding to the most-derived Slice
+interface supported by the target object.
+:returns: The type id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.StringSet.ice_ids">
+<span class="sig-name descname"><span class="pre">ice_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.StringSet.ice_ids" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type ids corresponding to the Slice interface
+that are supported by the target object.
+:returns: A list of type ids.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.StringSet.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.StringSet.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id of this Slice class or interface.
+:returns: The type id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.StringSet.remove">
+<span class="sig-name descname"><span class="pre">remove</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">deletions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.StringSet.remove" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Remove a sequence of strings from this set of constraints. No errors are returned if an entry is not found.</p>
+</div></blockquote>
+<p>Arguments:
+deletions – The sequence of strings to be removed.
+current – The Current object for the invocation.
+Returns: A future object for the invocation.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Glacier2.StringSetPrx">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Glacier2.</span></span><span class="sig-name descname"><span class="pre">StringSetPrx</span></span><a class="headerlink" href="#Glacier2.StringSetPrx" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ObjectPrx</span></code></p>
+<blockquote>
+<div><p>Add a sequence of strings to this set of constraints. Order is not preserved and duplicates are implicitly
+removed.</p>
+</div></blockquote>
+<p>Arguments:
+additions – The sequence of strings to be added.
+context – The request context for the invocation.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.StringSetPrx.add">
+<span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">additions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.StringSetPrx.add" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.StringSetPrx.addAsync">
+<span class="sig-name descname"><span class="pre">addAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">additions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.StringSetPrx.addAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.StringSetPrx.checkedCast">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">checkedCast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">proxy</span></span></span><a class="headerlink" href="#Glacier2.StringSetPrx.checkedCast" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.StringSetPrx.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.StringSetPrx.get" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.StringSetPrx.getAsync">
+<span class="sig-name descname"><span class="pre">getAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.StringSetPrx.getAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.StringSetPrx.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">string</span></span></span><a class="headerlink" href="#Glacier2.StringSetPrx.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.StringSetPrx.remove">
+<span class="sig-name descname"><span class="pre">remove</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">deletions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.StringSetPrx.remove" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.StringSetPrx.removeAsync">
+<span class="sig-name descname"><span class="pre">removeAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">deletions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Glacier2.StringSetPrx.removeAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Glacier2.StringSetPrx.uncheckedCast">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">uncheckedCast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">proxy</span></span></span><a class="headerlink" href="#Glacier2.StringSetPrx.uncheckedCast" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Ice</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">lib</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Glacier2 package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Ice.html">Ice package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="IceBox.html">IceBox package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="IceGrid.html">IceGrid package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="IceMX.html">IceMX package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="IceStorm.html">IceStorm package</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">lib</a><ul>
+      <li>Previous: <a href="modules.html" title="previous chapter">lib</a></li>
+      <li>Next: <a href="Ice.html" title="next chapter">Ice package</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;ZeroC, Inc..
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="_sources/Glacier2.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

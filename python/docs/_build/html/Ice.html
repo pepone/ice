@@ -1,0 +1,1810 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Ice package &#8212; Ice 3.8.0a0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=12dfc556" />
+    <script src="_static/documentation_options.js?v=a637f681"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="IceBox package" href="IceBox.html" />
+    <link rel="prev" title="Glacier2 package" href="Glacier2.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="ice-package">
+<h1>Ice package<a class="headerlink" href="#ice-package" title="Link to this heading">¶</a></h1>
+<section id="module-Ice">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-Ice" title="Link to this heading">¶</a></h2>
+<p>Ice module</p>
+<dl class="py exception">
+<dt class="sig sig-object py" id="Ice.AdapterAlreadyActiveException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">AdapterAlreadyActiveException</span></span><a class="headerlink" href="#Ice.AdapterAlreadyActiveException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Ice.UserException" title="Ice.UserException"><code class="xref py py-class docutils literal notranslate"><span class="pre">UserException</span></code></a></p>
+<p>This exception is raised if a server tries to set endpoints for an adapter that is already active.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="Ice.AdapterNotFoundException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">AdapterNotFoundException</span></span><a class="headerlink" href="#Ice.AdapterNotFoundException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Ice.UserException" title="Ice.UserException"><code class="xref py py-class docutils literal notranslate"><span class="pre">UserException</span></code></a></p>
+<p>This exception is raised if an adapter cannot be found.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="Ice.AlreadyRegisteredException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">AlreadyRegisteredException</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kindOfObject</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.AlreadyRegisteredException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Ice.LocalException" title="Ice.LocalException"><code class="xref py py-class docutils literal notranslate"><span class="pre">LocalException</span></code></a></p>
+<blockquote>
+<div><p>An attempt was made to register something more than once with the Ice run time. This exception is raised if an
+attempt is made to register a servant, servant locator, facet, value factory, plug-in, object adapter, object, or
+user exception factory more than once for the same ID.</p>
+</div></blockquote>
+<p>Members:
+kindOfObject –  The kind of object that could not be removed: “servant”, “facet”, “object”, “default servant”,</p>
+<blockquote>
+<div><p>“servant locator”, “value factory”, “plugin”, “object adapter”, “object adapter with router”, “replica group”.</p>
+</div></blockquote>
+<p>id –  The ID (or name) of the object that is registered already.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="Ice.AlreadyRegisteredException.id">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">id</span></span><a class="headerlink" href="#Ice.AlreadyRegisteredException.id" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="Ice.AlreadyRegisteredException.kindOfObject">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">kindOfObject</span></span><a class="headerlink" href="#Ice.AlreadyRegisteredException.kindOfObject" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Ice.CloseCallback">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">CloseCallback</span></span><a class="headerlink" href="#Ice.CloseCallback" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>An application can implement this interface to receive notifications when a connection closes.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.CloseCallback.closed">
+<span class="sig-name descname"><span class="pre">closed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">con</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.CloseCallback.closed" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>This method is called by the connection when the connection is closed. If the callback needs more information
+about the closure, it can call Connection#throwException.</p>
+</div></blockquote>
+<p>Arguments:
+con – The connection that closed.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="Ice.CloseConnectionException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">CloseConnectionException</span></span><a class="headerlink" href="#Ice.CloseConnectionException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Ice.ProtocolException" title="Ice.ProtocolException"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProtocolException</span></code></a></p>
+<p>This exception indicates that the connection has been gracefully shut down by the server. The operation call that
+caused this exception has not been executed by the server. In most cases you will not get this exception, because
+the client will automatically retry the operation call in case the server shut down the connection. However, if
+upon retry the server shuts down the connection again, and the retry limit has been reached, then this exception is
+propagated to the application code.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="Ice.CloseTimeoutException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">CloseTimeoutException</span></span><a class="headerlink" href="#Ice.CloseTimeoutException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Ice.TimeoutException" title="Ice.TimeoutException"><code class="xref py py-class docutils literal notranslate"><span class="pre">TimeoutException</span></code></a></p>
+<p>This exception indicates a connection closure timeout condition.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="Ice.CommunicatorDestroyedException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">CommunicatorDestroyedException</span></span><a class="headerlink" href="#Ice.CommunicatorDestroyedException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Ice.LocalException" title="Ice.LocalException"><code class="xref py py-class docutils literal notranslate"><span class="pre">LocalException</span></code></a></p>
+<p>This exception is raised if the Communicator has been destroyed.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Ice.CompressBatch">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">CompressBatch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_v</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.CompressBatch" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">EnumBase</span></code></p>
+<blockquote>
+<div><p>The batch compression option when flushing queued batch requests.</p>
+</div></blockquote>
+<p>Enumerators:
+Yes –  Compress the batch requests.
+No –  Don’t compress the batch requests.
+BasedOnProxy –  Compress the batch requests if at least one request was made on a compressed proxy.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Ice.CompressBatch.BasedOnProxy">
+<span class="sig-name descname"><span class="pre">BasedOnProxy</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">BasedOnProxy</span></em><a class="headerlink" href="#Ice.CompressBatch.BasedOnProxy" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Ice.CompressBatch.No">
+<span class="sig-name descname"><span class="pre">No</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">No</span></em><a class="headerlink" href="#Ice.CompressBatch.No" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Ice.CompressBatch.Yes">
+<span class="sig-name descname"><span class="pre">Yes</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Yes</span></em><a class="headerlink" href="#Ice.CompressBatch.Yes" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.CompressBatch.valueOf">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">valueOf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_n</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.CompressBatch.valueOf" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="Ice.ConnectFailedException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">ConnectFailedException</span></span><a class="headerlink" href="#Ice.ConnectFailedException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Ice.SocketException" title="Ice.SocketException"><code class="xref py py-class docutils literal notranslate"><span class="pre">SocketException</span></code></a></p>
+<p>This exception indicates connection failures.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="Ice.ConnectTimeoutException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">ConnectTimeoutException</span></span><a class="headerlink" href="#Ice.ConnectTimeoutException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Ice.TimeoutException" title="Ice.TimeoutException"><code class="xref py py-class docutils literal notranslate"><span class="pre">TimeoutException</span></code></a></p>
+<p>This exception indicates a connection establishment timeout condition.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Ice.ConnectionClose">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">ConnectionClose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_v</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.ConnectionClose" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">EnumBase</span></code></p>
+<blockquote>
+<div><p>Determines the behavior when manually closing a connection.</p>
+</div></blockquote>
+<p>Enumerators:
+Forcefully –  Close the connection immediately without sending a close connection protocol message to the peer and waiting</p>
+<blockquote>
+<div><p>for the peer to acknowledge it.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>Gracefully –  Close the connection by notifying the peer but do not wait for pending outgoing invocations to complete. On the</dt><dd><p>server side, the connection will not be closed until all incoming invocations have completed.</p>
+</dd>
+</dl>
+<p>GracefullyWithWait –  Wait for all pending invocations to complete before closing the connection.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Ice.ConnectionClose.Forcefully">
+<span class="sig-name descname"><span class="pre">Forcefully</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Forcefully</span></em><a class="headerlink" href="#Ice.ConnectionClose.Forcefully" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Ice.ConnectionClose.Gracefully">
+<span class="sig-name descname"><span class="pre">Gracefully</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Gracefully</span></em><a class="headerlink" href="#Ice.ConnectionClose.Gracefully" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Ice.ConnectionClose.GracefullyWithWait">
+<span class="sig-name descname"><span class="pre">GracefullyWithWait</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">GracefullyWithWait</span></em><a class="headerlink" href="#Ice.ConnectionClose.GracefullyWithWait" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.ConnectionClose.valueOf">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">valueOf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_n</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.ConnectionClose.valueOf" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="Ice.ConnectionIdleException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">ConnectionIdleException</span></span><a class="headerlink" href="#Ice.ConnectionIdleException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Ice.LocalException" title="Ice.LocalException"><code class="xref py py-class docutils literal notranslate"><span class="pre">LocalException</span></code></a></p>
+<p>This exception indicates that a connection was aborted by the idle check.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="Ice.ConnectionLostException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">ConnectionLostException</span></span><a class="headerlink" href="#Ice.ConnectionLostException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Ice.SocketException" title="Ice.SocketException"><code class="xref py py-class docutils literal notranslate"><span class="pre">SocketException</span></code></a></p>
+<p>This exception indicates a lost connection.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="Ice.ConnectionManuallyClosedException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">ConnectionManuallyClosedException</span></span><a class="headerlink" href="#Ice.ConnectionManuallyClosedException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Ice.LocalException" title="Ice.LocalException"><code class="xref py py-class docutils literal notranslate"><span class="pre">LocalException</span></code></a></p>
+<p>This exception is raised by an operation call if the application closes the connection locally using
+Connection#close.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="Ice.ConnectionRefusedException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">ConnectionRefusedException</span></span><a class="headerlink" href="#Ice.ConnectionRefusedException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Ice.ConnectFailedException" title="Ice.ConnectFailedException"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConnectFailedException</span></code></a></p>
+<p>This exception indicates a connection failure for which the server host actively refuses a connection.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="Ice.DNSException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">DNSException</span></span><a class="headerlink" href="#Ice.DNSException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Ice.SyscallException" title="Ice.SyscallException"><code class="xref py py-class docutils literal notranslate"><span class="pre">SyscallException</span></code></a></p>
+<p>This exception indicates a DNS problem.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="Ice.DatagramLimitException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">DatagramLimitException</span></span><a class="headerlink" href="#Ice.DatagramLimitException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Ice.ProtocolException" title="Ice.ProtocolException"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProtocolException</span></code></a></p>
+<p>A datagram exceeds the configured size. This exception is raised if a datagram exceeds the configured send or
+receive buffer size, or exceeds the maximum payload size of a UDP packet (65507 bytes).</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Ice.EncodingVersion">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">EncodingVersion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">major</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.EncodingVersion" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A version structure for the encoding version.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="Ice.FacetNotExistException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">FacetNotExistException</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">facet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.FacetNotExistException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Ice.RequestFailedException" title="Ice.RequestFailedException"><code class="xref py py-class docutils literal notranslate"><span class="pre">RequestFailedException</span></code></a></p>
+<p>This exception is raised if no facet with the given name exists, but at least one facet with the given identity
+exists.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="Ice.FeatureNotSupportedException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">FeatureNotSupportedException</span></span><a class="headerlink" href="#Ice.FeatureNotSupportedException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Ice.LocalException" title="Ice.LocalException"><code class="xref py py-class docutils literal notranslate"><span class="pre">LocalException</span></code></a></p>
+<p>This exception is raised if an unsupported feature is used.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="Ice.FixedProxyException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">FixedProxyException</span></span><a class="headerlink" href="#Ice.FixedProxyException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Ice.LocalException" title="Ice.LocalException"><code class="xref py py-class docutils literal notranslate"><span class="pre">LocalException</span></code></a></p>
+<p>This exception indicates that an attempt has been made to change the connection properties of a fixed proxy.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Ice.HeartbeatCallback">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">HeartbeatCallback</span></span><a class="headerlink" href="#Ice.HeartbeatCallback" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>An application can implement this interface to receive notifications when a connection receives a heartbeat
+message.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.HeartbeatCallback.heartbeat">
+<span class="sig-name descname"><span class="pre">heartbeat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">con</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.HeartbeatCallback.heartbeat" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>This method is called by the connection when a heartbeat is received from the peer.</p>
+</div></blockquote>
+<p>Arguments:
+con – The connection on which a heartbeat was received.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Ice.IPEndpointInfo">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">IPEndpointInfo</span></span><a class="headerlink" href="#Ice.IPEndpointInfo" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">EndpointInfo</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Ice.IPEndpointInfo.host">
+<span class="sig-name descname"><span class="pre">host</span></span><a class="headerlink" href="#Ice.IPEndpointInfo.host" title="Link to this definition">¶</a></dt>
+<dd><p>host name or IP address</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Ice.IPEndpointInfo.port">
+<span class="sig-name descname"><span class="pre">port</span></span><a class="headerlink" href="#Ice.IPEndpointInfo.port" title="Link to this definition">¶</a></dt>
+<dd><p>TCP port number</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Ice.IPEndpointInfo.sourceAddress">
+<span class="sig-name descname"><span class="pre">sourceAddress</span></span><a class="headerlink" href="#Ice.IPEndpointInfo.sourceAddress" title="Link to this definition">¶</a></dt>
+<dd><p>source IP address</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Ice.Identity">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">Identity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">category</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.Identity" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<blockquote>
+<div><p>The identity of an Ice object. In a proxy, an empty Identity#name denotes a nil proxy. An identity with
+an empty Identity#name and a non-empty Identity#category is illegal. You cannot add a servant
+with an empty name to the Active Servant Map.</p>
+</div></blockquote>
+<p>Members:
+name –  The name of the Ice object.
+category –  The Ice object category.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="Ice.InitializationException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">InitializationException</span></span><a class="headerlink" href="#Ice.InitializationException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Ice.LocalException" title="Ice.LocalException"><code class="xref py py-class docutils literal notranslate"><span class="pre">LocalException</span></code></a></p>
+<blockquote>
+<div><p>This exception is raised when a failure occurs during initialization.</p>
+</div></blockquote>
+<p>Members:
+reason –  The reason for the failure.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="Ice.InvalidReplicaGroupIdException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">InvalidReplicaGroupIdException</span></span><a class="headerlink" href="#Ice.InvalidReplicaGroupIdException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Ice.UserException" title="Ice.UserException"><code class="xref py py-class docutils literal notranslate"><span class="pre">UserException</span></code></a></p>
+<p>This exception is raised if the replica group provided by the server is invalid.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="Ice.InvocationCanceledException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">InvocationCanceledException</span></span><a class="headerlink" href="#Ice.InvocationCanceledException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Ice.LocalException" title="Ice.LocalException"><code class="xref py py-class docutils literal notranslate"><span class="pre">LocalException</span></code></a></p>
+<p>This exception indicates that an asynchronous invocation failed because it was canceled explicitly by the user.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="Ice.InvocationTimeoutException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">InvocationTimeoutException</span></span><a class="headerlink" href="#Ice.InvocationTimeoutException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Ice.TimeoutException" title="Ice.TimeoutException"><code class="xref py py-class docutils literal notranslate"><span class="pre">TimeoutException</span></code></a></p>
+<p>This exception indicates that an invocation failed because it timed out.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="Ice.LocalException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">LocalException</span></span><a class="headerlink" href="#Ice.LocalException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>The base class for all Ice run-time exceptions.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Ice.Locator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">Locator</span></span><a class="headerlink" href="#Ice.Locator" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.Locator.findAdapterById">
+<span class="sig-name descname"><span class="pre">findAdapterById</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.Locator.findAdapterById" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Find an adapter by id and return a proxy that contains its endpoints.</p>
+</div></blockquote>
+<p>Arguments:
+id – The adapter id.
+current – The Current object for the invocation.
+Returns: A future object for the invocation.
+Throws:
+AdapterNotFoundException – Raised if the adapter cannot be found.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.Locator.findObjectById">
+<span class="sig-name descname"><span class="pre">findObjectById</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.Locator.findObjectById" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Find an object by identity and return a proxy that contains the adapter ID or endpoints which can be used to
+access the object.</p>
+</div></blockquote>
+<p>Arguments:
+id – The identity.
+current – The Current object for the invocation.
+Returns: A future object for the invocation.
+Throws:
+ObjectNotFoundException – Raised if the object cannot be found.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.Locator.getRegistry">
+<span class="sig-name descname"><span class="pre">getRegistry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.Locator.getRegistry" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Get the locator registry.</p>
+</div></blockquote>
+<p>Arguments:
+current – The Current object for the invocation.
+Returns: A future object for the invocation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.Locator.ice_id">
+<span class="sig-name descname"><span class="pre">ice_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.Locator.ice_id" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id corresponding to the most-derived Slice
+interface supported by the target object.
+:returns: The type id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.Locator.ice_ids">
+<span class="sig-name descname"><span class="pre">ice_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.Locator.ice_ids" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type ids corresponding to the Slice interface
+that are supported by the target object.
+:returns: A list of type ids.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.Locator.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Ice.Locator.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id of this Slice class or interface.
+:returns: The type id.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Ice.LocatorFinder">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">LocatorFinder</span></span><a class="headerlink" href="#Ice.LocatorFinder" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LocatorFinder.getLocator">
+<span class="sig-name descname"><span class="pre">getLocator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.LocatorFinder.getLocator" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Get the locator proxy implemented by the process hosting this finder object. The proxy might point to
+several replicas. This proxy is never null.</p>
+</div></blockquote>
+<p>Arguments:
+current – The Current object for the invocation.
+Returns: A future object for the invocation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LocatorFinder.ice_id">
+<span class="sig-name descname"><span class="pre">ice_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.LocatorFinder.ice_id" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id corresponding to the most-derived Slice
+interface supported by the target object.
+:returns: The type id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LocatorFinder.ice_ids">
+<span class="sig-name descname"><span class="pre">ice_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.LocatorFinder.ice_ids" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type ids corresponding to the Slice interface
+that are supported by the target object.
+:returns: A list of type ids.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LocatorFinder.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Ice.LocatorFinder.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id of this Slice class or interface.
+:returns: The type id.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Ice.LocatorFinderPrx">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">LocatorFinderPrx</span></span><a class="headerlink" href="#Ice.LocatorFinderPrx" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ObjectPrx</span></code></p>
+<blockquote>
+<div><p>Get the locator proxy implemented by the process hosting this finder object. The proxy might point to
+several replicas. This proxy is never null.</p>
+</div></blockquote>
+<p>Arguments:
+context – The request context for the invocation.
+Returns: The locator proxy.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LocatorFinderPrx.checkedCast">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">checkedCast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">proxy</span></span></span><a class="headerlink" href="#Ice.LocatorFinderPrx.checkedCast" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LocatorFinderPrx.getLocator">
+<span class="sig-name descname"><span class="pre">getLocator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.LocatorFinderPrx.getLocator" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LocatorFinderPrx.getLocatorAsync">
+<span class="sig-name descname"><span class="pre">getLocatorAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.LocatorFinderPrx.getLocatorAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LocatorFinderPrx.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">string</span></span></span><a class="headerlink" href="#Ice.LocatorFinderPrx.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LocatorFinderPrx.uncheckedCast">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">uncheckedCast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">proxy</span></span></span><a class="headerlink" href="#Ice.LocatorFinderPrx.uncheckedCast" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Ice.LocatorPrx">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">LocatorPrx</span></span><a class="headerlink" href="#Ice.LocatorPrx" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ObjectPrx</span></code></p>
+<blockquote>
+<div><p>Find an object by identity and return a proxy that contains the adapter ID or endpoints which can be used to
+access the object.</p>
+</div></blockquote>
+<p>Arguments:
+id – The identity.
+context – The request context for the invocation.
+Returns: The proxy, or null if the object is not active.
+Throws:
+ObjectNotFoundException – Raised if the object cannot be found.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LocatorPrx.checkedCast">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">checkedCast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">proxy</span></span></span><a class="headerlink" href="#Ice.LocatorPrx.checkedCast" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LocatorPrx.findAdapterById">
+<span class="sig-name descname"><span class="pre">findAdapterById</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.LocatorPrx.findAdapterById" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LocatorPrx.findAdapterByIdAsync">
+<span class="sig-name descname"><span class="pre">findAdapterByIdAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.LocatorPrx.findAdapterByIdAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LocatorPrx.findObjectById">
+<span class="sig-name descname"><span class="pre">findObjectById</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.LocatorPrx.findObjectById" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LocatorPrx.findObjectByIdAsync">
+<span class="sig-name descname"><span class="pre">findObjectByIdAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.LocatorPrx.findObjectByIdAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LocatorPrx.getRegistry">
+<span class="sig-name descname"><span class="pre">getRegistry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.LocatorPrx.getRegistry" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LocatorPrx.getRegistryAsync">
+<span class="sig-name descname"><span class="pre">getRegistryAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.LocatorPrx.getRegistryAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LocatorPrx.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">string</span></span></span><a class="headerlink" href="#Ice.LocatorPrx.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LocatorPrx.uncheckedCast">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">uncheckedCast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">proxy</span></span></span><a class="headerlink" href="#Ice.LocatorPrx.uncheckedCast" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Ice.LocatorRegistry">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">LocatorRegistry</span></span><a class="headerlink" href="#Ice.LocatorRegistry" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LocatorRegistry.ice_id">
+<span class="sig-name descname"><span class="pre">ice_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.LocatorRegistry.ice_id" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id corresponding to the most-derived Slice
+interface supported by the target object.
+:returns: The type id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LocatorRegistry.ice_ids">
+<span class="sig-name descname"><span class="pre">ice_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.LocatorRegistry.ice_ids" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type ids corresponding to the Slice interface
+that are supported by the target object.
+:returns: A list of type ids.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LocatorRegistry.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Ice.LocatorRegistry.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id of this Slice class or interface.
+:returns: The type id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LocatorRegistry.setAdapterDirectProxy">
+<span class="sig-name descname"><span class="pre">setAdapterDirectProxy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.LocatorRegistry.setAdapterDirectProxy" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Set the adapter endpoints with the locator registry.</p>
+</div></blockquote>
+<p>Arguments:
+id – The adapter id.
+proxy – The adapter proxy (a dummy direct proxy created by the adapter). The direct proxy contains the adapter endpoints. The proxy can be null, typically during adapter deactivation.
+current – The Current object for the invocation.
+Returns: A future object for the invocation.
+Throws:
+AdapterAlreadyActiveException – Raised if an adapter with the same id is already active.
+AdapterNotFoundException – Raised if the adapter cannot be found, or if the locator only allows registered adapters to set their active proxy and the adapter is not registered with the locator.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LocatorRegistry.setReplicatedAdapterDirectProxy">
+<span class="sig-name descname"><span class="pre">setReplicatedAdapterDirectProxy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adapterId</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">replicaGroupId</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.LocatorRegistry.setReplicatedAdapterDirectProxy" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Set the adapter endpoints with the locator registry.</p>
+</div></blockquote>
+<p>Arguments:
+adapterId – The adapter id.
+replicaGroupId – The replica group id.
+proxy – The adapter proxy (a dummy direct proxy created by the adapter). The direct proxy contains the adapter endpoints. The proxy can be null, typically during adapter deactivation.
+current – The Current object for the invocation.
+Returns: A future object for the invocation.
+Throws:
+AdapterAlreadyActiveException – Raised if an adapter with the same id is already active.
+AdapterNotFoundException – Raised if the adapter cannot be found, or if the locator only allows registered adapters to set their active proxy and the adapter is not registered with the locator.
+InvalidReplicaGroupIdException – Raised if the given replica group doesn’t match the one registered with the locator registry for this object adapter.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LocatorRegistry.setServerProcessProxy">
+<span class="sig-name descname"><span class="pre">setServerProcessProxy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.LocatorRegistry.setServerProcessProxy" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Set the process proxy for a server.</p>
+</div></blockquote>
+<p>Arguments:
+id – The server id.
+proxy – The process proxy. The proxy is never null.
+current – The Current object for the invocation.
+Returns: A future object for the invocation.
+Throws:
+ServerNotFoundException – Raised if the server cannot be found.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Ice.LocatorRegistryPrx">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">LocatorRegistryPrx</span></span><a class="headerlink" href="#Ice.LocatorRegistryPrx" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ObjectPrx</span></code></p>
+<blockquote>
+<div><p>Set the adapter endpoints with the locator registry.</p>
+</div></blockquote>
+<p>Arguments:
+id – The adapter id.
+proxy – The adapter proxy (a dummy direct proxy created by the adapter). The direct proxy contains the adapter endpoints. The proxy can be null, typically during adapter deactivation.
+context – The request context for the invocation.
+Throws:
+AdapterAlreadyActiveException – Raised if an adapter with the same id is already active.
+AdapterNotFoundException – Raised if the adapter cannot be found, or if the locator only allows registered adapters to set their active proxy and the adapter is not registered with the locator.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LocatorRegistryPrx.checkedCast">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">checkedCast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">proxy</span></span></span><a class="headerlink" href="#Ice.LocatorRegistryPrx.checkedCast" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LocatorRegistryPrx.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">string</span></span></span><a class="headerlink" href="#Ice.LocatorRegistryPrx.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LocatorRegistryPrx.setAdapterDirectProxy">
+<span class="sig-name descname"><span class="pre">setAdapterDirectProxy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.LocatorRegistryPrx.setAdapterDirectProxy" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LocatorRegistryPrx.setAdapterDirectProxyAsync">
+<span class="sig-name descname"><span class="pre">setAdapterDirectProxyAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.LocatorRegistryPrx.setAdapterDirectProxyAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LocatorRegistryPrx.setReplicatedAdapterDirectProxy">
+<span class="sig-name descname"><span class="pre">setReplicatedAdapterDirectProxy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adapterId</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">replicaGroupId</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.LocatorRegistryPrx.setReplicatedAdapterDirectProxy" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LocatorRegistryPrx.setReplicatedAdapterDirectProxyAsync">
+<span class="sig-name descname"><span class="pre">setReplicatedAdapterDirectProxyAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adapterId</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">replicaGroupId</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.LocatorRegistryPrx.setReplicatedAdapterDirectProxyAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LocatorRegistryPrx.setServerProcessProxy">
+<span class="sig-name descname"><span class="pre">setServerProcessProxy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.LocatorRegistryPrx.setServerProcessProxy" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LocatorRegistryPrx.setServerProcessProxyAsync">
+<span class="sig-name descname"><span class="pre">setServerProcessProxyAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.LocatorRegistryPrx.setServerProcessProxyAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LocatorRegistryPrx.uncheckedCast">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">uncheckedCast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">proxy</span></span></span><a class="headerlink" href="#Ice.LocatorRegistryPrx.uncheckedCast" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Ice.LogMessage">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">LogMessage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">PrintMessage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">traceCategory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.LogMessage" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<blockquote>
+<div><p>A complete log message.</p>
+</div></blockquote>
+<p>Members:
+type –  The type of message sent to the RemoteLogger.
+timestamp –  The date and time when the RemoteLogger received this message, expressed as the number of microseconds</p>
+<blockquote>
+<div><p>since the Unix Epoch (00:00:00 UTC on 1 January 1970)</p>
+</div></blockquote>
+<p>traceCategory –  For a message of type trace, the trace category of this log message; otherwise, the empty string.
+message –  The log message itself.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Ice.LogMessageType">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">LogMessageType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_v</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.LogMessageType" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">EnumBase</span></code></p>
+<blockquote>
+<div><p>An enumeration representing the different types of log messages.</p>
+</div></blockquote>
+<p>Enumerators:
+PrintMessage –  The RemoteLogger received a print message.
+TraceMessage –  The RemoteLogger received a trace message.
+WarningMessage –  The RemoteLogger received a warning message.
+ErrorMessage –  The RemoteLogger received an error message.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Ice.LogMessageType.ErrorMessage">
+<span class="sig-name descname"><span class="pre">ErrorMessage</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">ErrorMessage</span></em><a class="headerlink" href="#Ice.LogMessageType.ErrorMessage" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Ice.LogMessageType.PrintMessage">
+<span class="sig-name descname"><span class="pre">PrintMessage</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">PrintMessage</span></em><a class="headerlink" href="#Ice.LogMessageType.PrintMessage" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Ice.LogMessageType.TraceMessage">
+<span class="sig-name descname"><span class="pre">TraceMessage</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">TraceMessage</span></em><a class="headerlink" href="#Ice.LogMessageType.TraceMessage" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Ice.LogMessageType.WarningMessage">
+<span class="sig-name descname"><span class="pre">WarningMessage</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">WarningMessage</span></em><a class="headerlink" href="#Ice.LogMessageType.WarningMessage" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LogMessageType.valueOf">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">valueOf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_n</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.LogMessageType.valueOf" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Ice.LoggerAdmin">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">LoggerAdmin</span></span><a class="headerlink" href="#Ice.LoggerAdmin" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LoggerAdmin.attachRemoteLogger">
+<span class="sig-name descname"><span class="pre">attachRemoteLogger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">messageTypes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">traceCategories</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">messageMax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.LoggerAdmin.attachRemoteLogger" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Attaches a RemoteLogger object to the local logger. attachRemoteLogger calls init on the provided
+RemoteLogger proxy.</p>
+</div></blockquote>
+<p>Arguments:
+prx – A proxy to the remote logger.
+messageTypes – The list of message types that the remote logger wishes to receive. An empty list means no filtering (send all message types).
+traceCategories – The categories of traces that the remote logger wishes to receive. This parameter is ignored if messageTypes is not empty and does not include trace. An empty list means no filtering (send all trace categories).
+messageMax – The maximum number of log messages (of all types) to be provided to init. A negative value requests all messages available.
+current – The Current object for the invocation.
+Returns: A future object for the invocation.
+Throws:
+RemoteLoggerAlreadyAttachedException – Raised if this remote logger is already attached to this admin object.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LoggerAdmin.detachRemoteLogger">
+<span class="sig-name descname"><span class="pre">detachRemoteLogger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.LoggerAdmin.detachRemoteLogger" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Detaches a RemoteLogger object from the local logger.</p>
+</div></blockquote>
+<p>Arguments:
+prx – A proxy to the remote logger.
+current – The Current object for the invocation.
+Returns: A future object for the invocation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LoggerAdmin.getLog">
+<span class="sig-name descname"><span class="pre">getLog</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">messageTypes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">traceCategories</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">messageMax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.LoggerAdmin.getLog" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Retrieves log messages recently logged.</p>
+</div></blockquote>
+<p>Arguments:
+messageTypes – The list of message types that the caller wishes to receive. An empty list means no filtering (send all message types).
+traceCategories – The categories of traces that caller wish to receive. This parameter is ignored if messageTypes is not empty and does not include trace. An empty list means no filtering (send all trace categories).
+messageMax – The maximum number of log messages (of all types) to be returned. A negative value requests all messages available.
+current – The Current object for the invocation.
+Returns: A future object for the invocation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LoggerAdmin.ice_id">
+<span class="sig-name descname"><span class="pre">ice_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.LoggerAdmin.ice_id" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id corresponding to the most-derived Slice
+interface supported by the target object.
+:returns: The type id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LoggerAdmin.ice_ids">
+<span class="sig-name descname"><span class="pre">ice_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.LoggerAdmin.ice_ids" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type ids corresponding to the Slice interface
+that are supported by the target object.
+:returns: A list of type ids.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LoggerAdmin.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Ice.LoggerAdmin.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id of this Slice class or interface.
+:returns: The type id.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Ice.LoggerAdminPrx">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">LoggerAdminPrx</span></span><a class="headerlink" href="#Ice.LoggerAdminPrx" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ObjectPrx</span></code></p>
+<blockquote>
+<div><p>Attaches a RemoteLogger object to the local logger. attachRemoteLogger calls init on the provided
+RemoteLogger proxy.</p>
+</div></blockquote>
+<p>Arguments:
+prx – A proxy to the remote logger.
+messageTypes – The list of message types that the remote logger wishes to receive. An empty list means no filtering (send all message types).
+traceCategories – The categories of traces that the remote logger wishes to receive. This parameter is ignored if messageTypes is not empty and does not include trace. An empty list means no filtering (send all trace categories).
+messageMax – The maximum number of log messages (of all types) to be provided to init. A negative value requests all messages available.
+context – The request context for the invocation.
+Throws:
+RemoteLoggerAlreadyAttachedException – Raised if this remote logger is already attached to this admin object.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LoggerAdminPrx.attachRemoteLogger">
+<span class="sig-name descname"><span class="pre">attachRemoteLogger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">messageTypes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">traceCategories</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">messageMax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.LoggerAdminPrx.attachRemoteLogger" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LoggerAdminPrx.attachRemoteLoggerAsync">
+<span class="sig-name descname"><span class="pre">attachRemoteLoggerAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">messageTypes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">traceCategories</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">messageMax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.LoggerAdminPrx.attachRemoteLoggerAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LoggerAdminPrx.checkedCast">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">checkedCast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">proxy</span></span></span><a class="headerlink" href="#Ice.LoggerAdminPrx.checkedCast" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LoggerAdminPrx.detachRemoteLogger">
+<span class="sig-name descname"><span class="pre">detachRemoteLogger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.LoggerAdminPrx.detachRemoteLogger" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LoggerAdminPrx.detachRemoteLoggerAsync">
+<span class="sig-name descname"><span class="pre">detachRemoteLoggerAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.LoggerAdminPrx.detachRemoteLoggerAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LoggerAdminPrx.getLog">
+<span class="sig-name descname"><span class="pre">getLog</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">messageTypes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">traceCategories</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">messageMax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.LoggerAdminPrx.getLog" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LoggerAdminPrx.getLogAsync">
+<span class="sig-name descname"><span class="pre">getLogAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">messageTypes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">traceCategories</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">messageMax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.LoggerAdminPrx.getLogAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LoggerAdminPrx.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">string</span></span></span><a class="headerlink" href="#Ice.LoggerAdminPrx.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.LoggerAdminPrx.uncheckedCast">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">uncheckedCast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">proxy</span></span></span><a class="headerlink" href="#Ice.LoggerAdminPrx.uncheckedCast" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="Ice.MarshalException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">MarshalException</span></span><a class="headerlink" href="#Ice.MarshalException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Ice.ProtocolException" title="Ice.ProtocolException"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProtocolException</span></code></a></p>
+<p>This exception is raised for errors during marshaling or unmarshaling data.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="Ice.NoEndpointException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">NoEndpointException</span></span><a class="headerlink" href="#Ice.NoEndpointException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Ice.LocalException" title="Ice.LocalException"><code class="xref py py-class docutils literal notranslate"><span class="pre">LocalException</span></code></a></p>
+<p>This exception is raised if no suitable endpoint is available.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="Ice.NotRegisteredException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">NotRegisteredException</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kindOfObject</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.NotRegisteredException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Ice.LocalException" title="Ice.LocalException"><code class="xref py py-class docutils literal notranslate"><span class="pre">LocalException</span></code></a></p>
+<blockquote>
+<div><p>An attempt was made to find or deregister something that is not registered with the Ice run time or Ice locator.
+This exception is raised if an attempt is made to remove a servant, servant locator, facet, value factory, plug-in,
+object adapter, object, or user exception factory that is not currently registered. It’s also raised if the Ice
+locator can’t find an object or object adapter when resolving an indirect proxy or when an object adapter is
+activated.</p>
+</div></blockquote>
+<p>Members:
+kindOfObject –  The kind of object that could not be removed: “servant”, “facet”, “object”, “default servant”,</p>
+<blockquote>
+<div><p>“servant locator”, “value factory”, “plugin”, “object adapter”, “object adapter with router”, “replica group”.</p>
+</div></blockquote>
+<p>id –  The ID (or name) of the object that could not be removed.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="Ice.NotRegisteredException.id">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">id</span></span><a class="headerlink" href="#Ice.NotRegisteredException.id" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="Ice.NotRegisteredException.kindOfObject">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">kindOfObject</span></span><a class="headerlink" href="#Ice.NotRegisteredException.kindOfObject" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="Ice.ObjectAdapterDeactivatedException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">ObjectAdapterDeactivatedException</span></span><a class="headerlink" href="#Ice.ObjectAdapterDeactivatedException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Ice.LocalException" title="Ice.LocalException"><code class="xref py py-class docutils literal notranslate"><span class="pre">LocalException</span></code></a></p>
+<p>This exception is raised if an attempt is made to use a deactivated ObjectAdapter.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="Ice.ObjectAdapterIdInUseException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">ObjectAdapterIdInUseException</span></span><a class="headerlink" href="#Ice.ObjectAdapterIdInUseException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Ice.LocalException" title="Ice.LocalException"><code class="xref py py-class docutils literal notranslate"><span class="pre">LocalException</span></code></a></p>
+<p>This exception is raised if an ObjectAdapter cannot be activated. This happens if the Locator
+detects another active ObjectAdapter with the same adapter id.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="Ice.ObjectNotExistException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">ObjectNotExistException</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">facet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.ObjectNotExistException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Ice.RequestFailedException" title="Ice.RequestFailedException"><code class="xref py py-class docutils literal notranslate"><span class="pre">RequestFailedException</span></code></a></p>
+<p>This exception is raised if an object does not exist on the server, that is, if no facets with the given identity
+exist.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="Ice.ObjectNotFoundException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">ObjectNotFoundException</span></span><a class="headerlink" href="#Ice.ObjectNotFoundException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Ice.UserException" title="Ice.UserException"><code class="xref py py-class docutils literal notranslate"><span class="pre">UserException</span></code></a></p>
+<p>This exception is raised if an object cannot be found.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Ice.OperationMode">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">OperationMode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_v</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.OperationMode" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">EnumBase</span></code></p>
+<blockquote>
+<div><p>Determines the retry behavior an invocation in case of a (potentially) recoverable error.</p>
+</div></blockquote>
+<p>Enumerators:
+Normal –  Ordinary operations have Normal mode. These operations modify object state; invoking such an</p>
+<blockquote>
+<div><p>operation twice in a row has different semantics than invoking it once. The Ice run time guarantees that it
+will not violate at-most-once semantics for Normal operations.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>Nonmutating –  Operations that are nonmutating must not modify object state.</dt><dd><p>The Ice run-time no longer makes a distinction between nonmutating operations and idempotent operations.
+Nonmutating is deprecated; Use the idempotent keyword
+instead.</p>
+</dd>
+<dt>Idempotent –  Operations that use the Slice idempotent keyword can modify object state, but invoking an</dt><dd><p>operation twice in a row must result in the same object state as invoking it once. For example,
+x = 1 is an idempotent statement, whereas x += 1 is not. In addition, the Ice
+run time will attempt to transparently recover from certain run-time errors by re-issuing a failed request
+and propagate the failure to the application only if the second attempt fails.</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Ice.OperationMode.Idempotent">
+<span class="sig-name descname"><span class="pre">Idempotent</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Idempotent</span></em><a class="headerlink" href="#Ice.OperationMode.Idempotent" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Ice.OperationMode.Nonmutating">
+<span class="sig-name descname"><span class="pre">Nonmutating</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Nonmutating</span></em><a class="headerlink" href="#Ice.OperationMode.Nonmutating" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Ice.OperationMode.Normal">
+<span class="sig-name descname"><span class="pre">Normal</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Normal</span></em><a class="headerlink" href="#Ice.OperationMode.Normal" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.OperationMode.valueOf">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">valueOf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_n</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.OperationMode.valueOf" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="Ice.OperationNotExistException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">OperationNotExistException</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">facet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.OperationNotExistException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Ice.RequestFailedException" title="Ice.RequestFailedException"><code class="xref py py-class docutils literal notranslate"><span class="pre">RequestFailedException</span></code></a></p>
+<p>This exception is raised if an operation for a given object does not exist on the server. Typically this is caused
+by either the client or the server using an outdated Slice specification.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="Ice.ParseException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">ParseException</span></span><a class="headerlink" href="#Ice.ParseException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Ice.LocalException" title="Ice.LocalException"><code class="xref py py-class docutils literal notranslate"><span class="pre">LocalException</span></code></a></p>
+<p>This exception is raised if there was an error while parsing a string.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Ice.Process">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">Process</span></span><a class="headerlink" href="#Ice.Process" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.Process.ice_id">
+<span class="sig-name descname"><span class="pre">ice_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.Process.ice_id" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id corresponding to the most-derived Slice
+interface supported by the target object.
+:returns: The type id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.Process.ice_ids">
+<span class="sig-name descname"><span class="pre">ice_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.Process.ice_ids" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type ids corresponding to the Slice interface
+that are supported by the target object.
+:returns: A list of type ids.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.Process.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Ice.Process.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id of this Slice class or interface.
+:returns: The type id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.Process.shutdown">
+<span class="sig-name descname"><span class="pre">shutdown</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.Process.shutdown" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Initiate a graceful shut-down.</p>
+</div></blockquote>
+<p>Arguments:
+current – The Current object for the invocation.
+Returns: A future object for the invocation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.Process.writeMessage">
+<span class="sig-name descname"><span class="pre">writeMessage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.Process.writeMessage" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Write a message on the process’ stdout or stderr.</p>
+</div></blockquote>
+<p>Arguments:
+message – The message.
+fd – 1 for stdout, 2 for stderr.
+current – The Current object for the invocation.
+Returns: A future object for the invocation.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Ice.ProcessPrx">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">ProcessPrx</span></span><a class="headerlink" href="#Ice.ProcessPrx" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ObjectPrx</span></code></p>
+<blockquote>
+<div><p>Initiate a graceful shut-down.</p>
+</div></blockquote>
+<p>Arguments:
+context – The request context for the invocation.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.ProcessPrx.checkedCast">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">checkedCast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">proxy</span></span></span><a class="headerlink" href="#Ice.ProcessPrx.checkedCast" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.ProcessPrx.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">string</span></span></span><a class="headerlink" href="#Ice.ProcessPrx.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.ProcessPrx.shutdown">
+<span class="sig-name descname"><span class="pre">shutdown</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.ProcessPrx.shutdown" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.ProcessPrx.shutdownAsync">
+<span class="sig-name descname"><span class="pre">shutdownAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.ProcessPrx.shutdownAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.ProcessPrx.uncheckedCast">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">uncheckedCast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">proxy</span></span></span><a class="headerlink" href="#Ice.ProcessPrx.uncheckedCast" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.ProcessPrx.writeMessage">
+<span class="sig-name descname"><span class="pre">writeMessage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.ProcessPrx.writeMessage" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.ProcessPrx.writeMessageAsync">
+<span class="sig-name descname"><span class="pre">writeMessageAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.ProcessPrx.writeMessageAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Ice.PropertiesAdmin">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">PropertiesAdmin</span></span><a class="headerlink" href="#Ice.PropertiesAdmin" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.PropertiesAdmin.getPropertiesForPrefix">
+<span class="sig-name descname"><span class="pre">getPropertiesForPrefix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.PropertiesAdmin.getPropertiesForPrefix" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Get all properties whose keys begin with prefix. If prefix is an empty string then all
+properties are returned.</p>
+</div></blockquote>
+<p>Arguments:
+prefix – The prefix to search for (empty string if none).
+current – The Current object for the invocation.
+Returns: A future object for the invocation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.PropertiesAdmin.getProperty">
+<span class="sig-name descname"><span class="pre">getProperty</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.PropertiesAdmin.getProperty" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Get a property by key. If the property is not set, an empty string is returned.</p>
+</div></blockquote>
+<p>Arguments:
+key – The property key.
+current – The Current object for the invocation.
+Returns: A future object for the invocation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.PropertiesAdmin.ice_id">
+<span class="sig-name descname"><span class="pre">ice_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.PropertiesAdmin.ice_id" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id corresponding to the most-derived Slice
+interface supported by the target object.
+:returns: The type id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.PropertiesAdmin.ice_ids">
+<span class="sig-name descname"><span class="pre">ice_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.PropertiesAdmin.ice_ids" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type ids corresponding to the Slice interface
+that are supported by the target object.
+:returns: A list of type ids.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.PropertiesAdmin.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Ice.PropertiesAdmin.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id of this Slice class or interface.
+:returns: The type id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.PropertiesAdmin.setProperties">
+<span class="sig-name descname"><span class="pre">setProperties</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">newProperties</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.PropertiesAdmin.setProperties" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Update the communicator’s properties with the given property set. If an entry in newProperties
+matches the name of an existing property, that property’s value is replaced with the new value. If the new
+value is an empty string, the property is removed. Any existing properties that are not modified or removed
+by the entries in newProperties are retained with their original values.</p>
+</div></blockquote>
+<p>Arguments:
+newProperties – Properties to be added, changed, or removed.
+current – The Current object for the invocation.
+Returns: A future object for the invocation.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Ice.PropertiesAdminPrx">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">PropertiesAdminPrx</span></span><a class="headerlink" href="#Ice.PropertiesAdminPrx" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ObjectPrx</span></code></p>
+<blockquote>
+<div><p>Get a property by key. If the property is not set, an empty string is returned.</p>
+</div></blockquote>
+<p>Arguments:
+key – The property key.
+context – The request context for the invocation.
+Returns: The property value.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.PropertiesAdminPrx.checkedCast">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">checkedCast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">proxy</span></span></span><a class="headerlink" href="#Ice.PropertiesAdminPrx.checkedCast" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.PropertiesAdminPrx.getPropertiesForPrefix">
+<span class="sig-name descname"><span class="pre">getPropertiesForPrefix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.PropertiesAdminPrx.getPropertiesForPrefix" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.PropertiesAdminPrx.getPropertiesForPrefixAsync">
+<span class="sig-name descname"><span class="pre">getPropertiesForPrefixAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.PropertiesAdminPrx.getPropertiesForPrefixAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.PropertiesAdminPrx.getProperty">
+<span class="sig-name descname"><span class="pre">getProperty</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.PropertiesAdminPrx.getProperty" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.PropertiesAdminPrx.getPropertyAsync">
+<span class="sig-name descname"><span class="pre">getPropertyAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.PropertiesAdminPrx.getPropertyAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.PropertiesAdminPrx.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">string</span></span></span><a class="headerlink" href="#Ice.PropertiesAdminPrx.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.PropertiesAdminPrx.setProperties">
+<span class="sig-name descname"><span class="pre">setProperties</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">newProperties</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.PropertiesAdminPrx.setProperties" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.PropertiesAdminPrx.setPropertiesAsync">
+<span class="sig-name descname"><span class="pre">setPropertiesAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">newProperties</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.PropertiesAdminPrx.setPropertiesAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.PropertiesAdminPrx.uncheckedCast">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">uncheckedCast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">proxy</span></span></span><a class="headerlink" href="#Ice.PropertiesAdminPrx.uncheckedCast" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="Ice.ProtocolException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">ProtocolException</span></span><a class="headerlink" href="#Ice.ProtocolException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Ice.LocalException" title="Ice.LocalException"><code class="xref py py-class docutils literal notranslate"><span class="pre">LocalException</span></code></a></p>
+<p>A generic exception base for all kinds of protocol error conditions.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Ice.ProtocolVersion">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">ProtocolVersion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">major</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.ProtocolVersion" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A version structure for the protocol version.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Ice.RemoteLogger">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">RemoteLogger</span></span><a class="headerlink" href="#Ice.RemoteLogger" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.RemoteLogger.ice_id">
+<span class="sig-name descname"><span class="pre">ice_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.RemoteLogger.ice_id" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id corresponding to the most-derived Slice
+interface supported by the target object.
+:returns: The type id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.RemoteLogger.ice_ids">
+<span class="sig-name descname"><span class="pre">ice_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.RemoteLogger.ice_ids" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type ids corresponding to the Slice interface
+that are supported by the target object.
+:returns: A list of type ids.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.RemoteLogger.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Ice.RemoteLogger.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id of this Slice class or interface.
+:returns: The type id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.RemoteLogger.init">
+<span class="sig-name descname"><span class="pre">init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logMessages</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.RemoteLogger.init" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>init is called by attachRemoteLogger when a RemoteLogger proxy is attached.</p>
+</div></blockquote>
+<p>Arguments:
+prefix – The prefix of the associated local Logger.
+logMessages – Old log messages generated before “now”.
+current – The Current object for the invocation.
+Returns: A future object for the invocation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.RemoteLogger.log">
+<span class="sig-name descname"><span class="pre">log</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.RemoteLogger.log" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Log a LogMessage. Note that log may be called by LoggerAdmin before init.</p>
+</div></blockquote>
+<p>Arguments:
+message – The message to log.
+current – The Current object for the invocation.
+Returns: A future object for the invocation.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="Ice.RemoteLoggerAlreadyAttachedException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">RemoteLoggerAlreadyAttachedException</span></span><a class="headerlink" href="#Ice.RemoteLoggerAlreadyAttachedException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Ice.UserException" title="Ice.UserException"><code class="xref py py-class docutils literal notranslate"><span class="pre">UserException</span></code></a></p>
+<p>Thrown when the provided RemoteLogger was previously attached to a LoggerAdmin.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Ice.RemoteLoggerPrx">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">RemoteLoggerPrx</span></span><a class="headerlink" href="#Ice.RemoteLoggerPrx" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ObjectPrx</span></code></p>
+<blockquote>
+<div><p>init is called by attachRemoteLogger when a RemoteLogger proxy is attached.</p>
+</div></blockquote>
+<p>Arguments:
+prefix – The prefix of the associated local Logger.
+logMessages – Old log messages generated before “now”.
+context – The request context for the invocation.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.RemoteLoggerPrx.checkedCast">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">checkedCast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">proxy</span></span></span><a class="headerlink" href="#Ice.RemoteLoggerPrx.checkedCast" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.RemoteLoggerPrx.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">string</span></span></span><a class="headerlink" href="#Ice.RemoteLoggerPrx.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.RemoteLoggerPrx.init">
+<span class="sig-name descname"><span class="pre">init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logMessages</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.RemoteLoggerPrx.init" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.RemoteLoggerPrx.initAsync">
+<span class="sig-name descname"><span class="pre">initAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logMessages</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.RemoteLoggerPrx.initAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.RemoteLoggerPrx.log">
+<span class="sig-name descname"><span class="pre">log</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.RemoteLoggerPrx.log" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.RemoteLoggerPrx.logAsync">
+<span class="sig-name descname"><span class="pre">logAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.RemoteLoggerPrx.logAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.RemoteLoggerPrx.uncheckedCast">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">uncheckedCast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">proxy</span></span></span><a class="headerlink" href="#Ice.RemoteLoggerPrx.uncheckedCast" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="Ice.RequestFailedException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">RequestFailedException</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">facet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.RequestFailedException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Ice.LocalException" title="Ice.LocalException"><code class="xref py py-class docutils literal notranslate"><span class="pre">LocalException</span></code></a></p>
+<p>This exception is raised if a request failed. This exception, and all exceptions derived from
+RequestFailedException, are transmitted by the Ice protocol, even though they are declared
+local.
+Members:
+id –  The identity of the Ice Object to which the request was sent.
+facet –  The facet to which the request was sent.
+operation –  The operation name of the request.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="Ice.RequestFailedException.facet">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">facet</span></span><a class="headerlink" href="#Ice.RequestFailedException.facet" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="Ice.RequestFailedException.id">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">id</span></span><a class="headerlink" href="#Ice.RequestFailedException.id" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="Ice.RequestFailedException.operation">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">operation</span></span><a class="headerlink" href="#Ice.RequestFailedException.operation" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Ice.Router">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">Router</span></span><a class="headerlink" href="#Ice.Router" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.Router.addProxies">
+<span class="sig-name descname"><span class="pre">addProxies</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.Router.addProxies" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Add new proxy information to the router’s routing table.</p>
+</div></blockquote>
+<p>Arguments:
+proxies – The proxies to add. Adding a null proxy is an error.
+current – The Current object for the invocation.
+Returns: A future object for the invocation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.Router.getClientProxy">
+<span class="sig-name descname"><span class="pre">getClientProxy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.Router.getClientProxy" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Get the router’s client proxy, i.e., the proxy to use for forwarding requests from the client to the router.
+If a null proxy is returned, the client will forward requests to the router’s endpoints.</p>
+</div></blockquote>
+<p>Arguments:
+current – The Current object for the invocation.
+Returns: A future object for the invocation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.Router.getServerProxy">
+<span class="sig-name descname"><span class="pre">getServerProxy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.Router.getServerProxy" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Get the router’s server proxy, i.e., the proxy to use for forwarding requests from the server to the router.</p>
+</div></blockquote>
+<p>Arguments:
+current – The Current object for the invocation.
+Returns: A future object for the invocation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.Router.ice_id">
+<span class="sig-name descname"><span class="pre">ice_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.Router.ice_id" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id corresponding to the most-derived Slice
+interface supported by the target object.
+:returns: The type id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.Router.ice_ids">
+<span class="sig-name descname"><span class="pre">ice_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.Router.ice_ids" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type ids corresponding to the Slice interface
+that are supported by the target object.
+:returns: A list of type ids.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.Router.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Ice.Router.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id of this Slice class or interface.
+:returns: The type id.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Ice.RouterFinder">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">RouterFinder</span></span><a class="headerlink" href="#Ice.RouterFinder" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.RouterFinder.getRouter">
+<span class="sig-name descname"><span class="pre">getRouter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.RouterFinder.getRouter" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Get the router proxy implemented by the process hosting this finder object. The proxy might point to several
+replicas. This proxy is never null.</p>
+</div></blockquote>
+<p>Arguments:
+current – The Current object for the invocation.
+Returns: A future object for the invocation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.RouterFinder.ice_id">
+<span class="sig-name descname"><span class="pre">ice_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.RouterFinder.ice_id" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id corresponding to the most-derived Slice
+interface supported by the target object.
+:returns: The type id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.RouterFinder.ice_ids">
+<span class="sig-name descname"><span class="pre">ice_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.RouterFinder.ice_ids" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type ids corresponding to the Slice interface
+that are supported by the target object.
+:returns: A list of type ids.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.RouterFinder.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Ice.RouterFinder.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id of this Slice class or interface.
+:returns: The type id.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Ice.RouterFinderPrx">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">RouterFinderPrx</span></span><a class="headerlink" href="#Ice.RouterFinderPrx" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ObjectPrx</span></code></p>
+<blockquote>
+<div><p>Get the router proxy implemented by the process hosting this finder object. The proxy might point to several
+replicas. This proxy is never null.</p>
+</div></blockquote>
+<p>Arguments:
+context – The request context for the invocation.
+Returns: The router proxy.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.RouterFinderPrx.checkedCast">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">checkedCast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">proxy</span></span></span><a class="headerlink" href="#Ice.RouterFinderPrx.checkedCast" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.RouterFinderPrx.getRouter">
+<span class="sig-name descname"><span class="pre">getRouter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.RouterFinderPrx.getRouter" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.RouterFinderPrx.getRouterAsync">
+<span class="sig-name descname"><span class="pre">getRouterAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.RouterFinderPrx.getRouterAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.RouterFinderPrx.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">string</span></span></span><a class="headerlink" href="#Ice.RouterFinderPrx.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.RouterFinderPrx.uncheckedCast">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">uncheckedCast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">proxy</span></span></span><a class="headerlink" href="#Ice.RouterFinderPrx.uncheckedCast" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Ice.RouterPrx">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">RouterPrx</span></span><a class="headerlink" href="#Ice.RouterPrx" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ObjectPrx</span></code></p>
+<blockquote>
+<div><p>Get the router’s client proxy, i.e., the proxy to use for forwarding requests from the client to the router.
+If a null proxy is returned, the client will forward requests to the router’s endpoints.</p>
+</div></blockquote>
+<p>Arguments:
+context – The request context for the invocation.
+Returns a tuple containing the following:
+_retval – The router’s client proxy.
+hasRoutingTable – Indicates whether or not the router supports a routing table. If it is supported, the Ice runtime will call addProxies to populate the routing table. This out parameter is only supported starting with Ice 3.7. The Ice runtime assumes the router has a routing table if the hasRoutingTable is not set.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.RouterPrx.addProxies">
+<span class="sig-name descname"><span class="pre">addProxies</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.RouterPrx.addProxies" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.RouterPrx.addProxiesAsync">
+<span class="sig-name descname"><span class="pre">addProxiesAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.RouterPrx.addProxiesAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.RouterPrx.checkedCast">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">checkedCast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">proxy</span></span></span><a class="headerlink" href="#Ice.RouterPrx.checkedCast" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.RouterPrx.getClientProxy">
+<span class="sig-name descname"><span class="pre">getClientProxy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.RouterPrx.getClientProxy" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.RouterPrx.getClientProxyAsync">
+<span class="sig-name descname"><span class="pre">getClientProxyAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.RouterPrx.getClientProxyAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.RouterPrx.getServerProxy">
+<span class="sig-name descname"><span class="pre">getServerProxy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.RouterPrx.getServerProxy" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.RouterPrx.getServerProxyAsync">
+<span class="sig-name descname"><span class="pre">getServerProxyAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Ice.RouterPrx.getServerProxyAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.RouterPrx.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">string</span></span></span><a class="headerlink" href="#Ice.RouterPrx.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.RouterPrx.uncheckedCast">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">uncheckedCast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">proxy</span></span></span><a class="headerlink" href="#Ice.RouterPrx.uncheckedCast" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="Ice.SecurityException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">SecurityException</span></span><a class="headerlink" href="#Ice.SecurityException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Ice.LocalException" title="Ice.LocalException"><code class="xref py py-class docutils literal notranslate"><span class="pre">LocalException</span></code></a></p>
+<p>This exception indicates a failure in a security subsystem, such as the SSL transport.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="Ice.ServerNotFoundException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">ServerNotFoundException</span></span><a class="headerlink" href="#Ice.ServerNotFoundException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Ice.UserException" title="Ice.UserException"><code class="xref py py-class docutils literal notranslate"><span class="pre">UserException</span></code></a></p>
+<p>This exception is raised if a server cannot be found.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="Ice.SocketException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">SocketException</span></span><a class="headerlink" href="#Ice.SocketException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Ice.SyscallException" title="Ice.SyscallException"><code class="xref py py-class docutils literal notranslate"><span class="pre">SyscallException</span></code></a></p>
+<p>This exception indicates socket errors.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="Ice.SyscallException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">SyscallException</span></span><a class="headerlink" href="#Ice.SyscallException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Ice.LocalException" title="Ice.LocalException"><code class="xref py py-class docutils literal notranslate"><span class="pre">LocalException</span></code></a></p>
+<p>This exception is raised if a system error occurred in the server or client process. There are many possible causes
+for such a system exception.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="Ice.TimeoutException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">TimeoutException</span></span><a class="headerlink" href="#Ice.TimeoutException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Ice.LocalException" title="Ice.LocalException"><code class="xref py py-class docutils literal notranslate"><span class="pre">LocalException</span></code></a></p>
+<p>This exception indicates a timeout condition.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="Ice.TwowayOnlyException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">TwowayOnlyException</span></span><a class="headerlink" href="#Ice.TwowayOnlyException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Ice.LocalException" title="Ice.LocalException"><code class="xref py py-class docutils literal notranslate"><span class="pre">LocalException</span></code></a></p>
+<p>The operation can only be invoked with a twoway request. This exception is raised if an attempt is made to invoke
+an operation with ice_oneway, ice_batchOneway, ice_datagram, or
+ice_batchDatagram and the operation has a return value, out-parameters, or an exception specification.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="Ice.UnknownException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">UnknownException</span></span><a class="headerlink" href="#Ice.UnknownException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Ice.LocalException" title="Ice.LocalException"><code class="xref py py-class docutils literal notranslate"><span class="pre">LocalException</span></code></a></p>
+<p>This exception is raised if an operation call on a server raises an unknown exception. For example, for C++, this
+exception is raised if the server throws a C++ exception that is not directly or indirectly derived from
+Ice::LocalException or Ice::UserException.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="Ice.UnknownLocalException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">UnknownLocalException</span></span><a class="headerlink" href="#Ice.UnknownLocalException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Ice.UnknownException" title="Ice.UnknownException"><code class="xref py py-class docutils literal notranslate"><span class="pre">UnknownException</span></code></a></p>
+<p>This exception is raised if an operation call on a server raises a  local exception. Because local exceptions are
+not transmitted by the Ice protocol, the client receives all local exceptions raised by the server as
+UnknownLocalException. The only exception to this rule are all exceptions derived from
+RequestFailedException, which are transmitted by the Ice protocol even though they are declared
+local.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="Ice.UnknownUserException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">UnknownUserException</span></span><a class="headerlink" href="#Ice.UnknownUserException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Ice.UnknownException" title="Ice.UnknownException"><code class="xref py py-class docutils literal notranslate"><span class="pre">UnknownException</span></code></a></p>
+<p>An operation raised an incorrect user exception. This exception is raised if an operation raises a user exception
+that is not declared in the exception’s throws clause. Such undeclared exceptions are not transmitted
+from the server to the client by the Ice protocol, but instead the client just gets an UnknownUserException.
+This is necessary in order to not violate the contract established by an operation’s signature: Only local
+exceptions and user exceptions declared in the throws clause can be raised.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="Ice.UserException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">UserException</span></span><a class="headerlink" href="#Ice.UserException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>The base class for all user-defined exceptions.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Ice.UserException.ice_getSlicedData">
+<span class="sig-name descname"><span class="pre">ice_getSlicedData</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Ice/UserException.html#UserException.ice_getSlicedData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Ice.UserException.ice_getSlicedData" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the sliced data if the value has a preserved-slice base class and has been sliced during
+un-marshaling of the value, null is returned otherwise.
+:returns: The sliced data or null.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Ice.createArray">
+<span class="sig-prename descclassname"><span class="pre">Ice.</span></span><span class="sig-name descname"><span class="pre">createArray</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">view</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">copy</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Ice.html#createArray"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Ice.createArray" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Ice</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">lib</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Glacier2.html">Glacier2 package</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Ice package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="IceBox.html">IceBox package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="IceGrid.html">IceGrid package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="IceMX.html">IceMX package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="IceStorm.html">IceStorm package</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">lib</a><ul>
+      <li>Previous: <a href="Glacier2.html" title="previous chapter">Glacier2 package</a></li>
+      <li>Next: <a href="IceBox.html" title="next chapter">IceBox package</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;ZeroC, Inc..
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="_sources/Ice.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

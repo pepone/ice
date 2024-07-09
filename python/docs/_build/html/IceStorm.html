@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>IceStorm package &#8212; Ice 3.8.0a0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=12dfc556" />
+    <script src="_static/documentation_options.js?v=a637f681"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="IceMX package" href="IceMX.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="icestorm-package">
+<h1>IceStorm package<a class="headerlink" href="#icestorm-package" title="Link to this heading">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
+</section>
+<section id="module-IceStorm.IceStorm_ice">
+<span id="icestorm-icestorm-ice-module"></span><h2>IceStorm.IceStorm_ice module<a class="headerlink" href="#module-IceStorm.IceStorm_ice" title="Link to this heading">¶</a></h2>
+</section>
+<section id="module-IceStorm.Metrics_ice">
+<span id="icestorm-metrics-ice-module"></span><h2>IceStorm.Metrics_ice module<a class="headerlink" href="#module-IceStorm.Metrics_ice" title="Link to this heading">¶</a></h2>
+</section>
+<section id="module-IceStorm">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-IceStorm" title="Link to this heading">¶</a></h2>
+<p>A messaging service with support for federation. In contrast to most other messaging or event services, IceStorm
+supports typed events, meaning that broadcasting a message over a federation is as easy as invoking a method on an
+interface.</p>
+<dl class="py exception">
+<dt class="sig sig-object py" id="IceStorm.AlreadySubscribed">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">IceStorm.</span></span><span class="sig-name descname"><span class="pre">AlreadySubscribed</span></span><a class="headerlink" href="#IceStorm.AlreadySubscribed" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="Ice.html#Ice.UserException" title="Ice.UserException"><code class="xref py py-class docutils literal notranslate"><span class="pre">UserException</span></code></a></p>
+<p>This exception indicates that an attempt was made to subscribe a proxy for which a subscription already exists.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="IceStorm.BadQoS">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">IceStorm.</span></span><span class="sig-name descname"><span class="pre">BadQoS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reason</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.BadQoS" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="Ice.html#Ice.UserException" title="Ice.UserException"><code class="xref py py-class docutils literal notranslate"><span class="pre">UserException</span></code></a></p>
+<blockquote>
+<div><p>This exception indicates that a subscription failed due to an invalid QoS.</p>
+</div></blockquote>
+<p>Members:
+reason –  The reason for the failure.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="IceStorm.Finder">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">IceStorm.</span></span><span class="sig-name descname"><span class="pre">Finder</span></span><a class="headerlink" href="#IceStorm.Finder" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.Finder.getTopicManager">
+<span class="sig-name descname"><span class="pre">getTopicManager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.Finder.getTopicManager" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Get the topic manager proxy. The proxy might point to several replicas.</p>
+</div></blockquote>
+<p>Arguments:
+current – The Current object for the invocation.
+Returns: A future object for the invocation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.Finder.ice_id">
+<span class="sig-name descname"><span class="pre">ice_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.Finder.ice_id" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id corresponding to the most-derived Slice
+interface supported by the target object.
+:returns: The type id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.Finder.ice_ids">
+<span class="sig-name descname"><span class="pre">ice_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.Finder.ice_ids" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type ids corresponding to the Slice interface
+that are supported by the target object.
+:returns: A list of type ids.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.Finder.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.Finder.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id of this Slice class or interface.
+:returns: The type id.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="IceStorm.FinderPrx">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">IceStorm.</span></span><span class="sig-name descname"><span class="pre">FinderPrx</span></span><a class="headerlink" href="#IceStorm.FinderPrx" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ObjectPrx</span></code></p>
+<blockquote>
+<div><p>Get the topic manager proxy. The proxy might point to several replicas.</p>
+</div></blockquote>
+<p>Arguments:
+context – The request context for the invocation.
+Returns: The topic manager proxy. The returned proxy is never null.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.FinderPrx.checkedCast">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">checkedCast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">proxy</span></span></span><a class="headerlink" href="#IceStorm.FinderPrx.checkedCast" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.FinderPrx.getTopicManager">
+<span class="sig-name descname"><span class="pre">getTopicManager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.FinderPrx.getTopicManager" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.FinderPrx.getTopicManagerAsync">
+<span class="sig-name descname"><span class="pre">getTopicManagerAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.FinderPrx.getTopicManagerAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.FinderPrx.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">string</span></span></span><a class="headerlink" href="#IceStorm.FinderPrx.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.FinderPrx.uncheckedCast">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">uncheckedCast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">proxy</span></span></span><a class="headerlink" href="#IceStorm.FinderPrx.uncheckedCast" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="IceStorm.InvalidSubscriber">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">IceStorm.</span></span><span class="sig-name descname"><span class="pre">InvalidSubscriber</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reason</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.InvalidSubscriber" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="Ice.html#Ice.UserException" title="Ice.UserException"><code class="xref py py-class docutils literal notranslate"><span class="pre">UserException</span></code></a></p>
+<blockquote>
+<div><p>This exception indicates that an attempt was made to subscribe a proxy that is null.</p>
+</div></blockquote>
+<p>Members:
+reason –  The reason for the failure.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="IceStorm.LinkExists">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">IceStorm.</span></span><span class="sig-name descname"><span class="pre">LinkExists</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.LinkExists" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="Ice.html#Ice.UserException" title="Ice.UserException"><code class="xref py py-class docutils literal notranslate"><span class="pre">UserException</span></code></a></p>
+<blockquote>
+<div><p>This exception indicates that an attempt was made to create a link that already exists.</p>
+</div></blockquote>
+<p>Members:
+name –  The name of the linked topic.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="IceStorm.LinkInfo">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">IceStorm.</span></span><span class="sig-name descname"><span class="pre">LinkInfo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theTopic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cost</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.LinkInfo" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<blockquote>
+<div><p>Information on the topic links.</p>
+</div></blockquote>
+<p>Members:
+theTopic –  The linked topic. It is never null.
+name –  The name of the linked topic.
+cost –  The cost of traversing this link.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="IceStorm.NoSuchLink">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">IceStorm.</span></span><span class="sig-name descname"><span class="pre">NoSuchLink</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.NoSuchLink" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="Ice.html#Ice.UserException" title="Ice.UserException"><code class="xref py py-class docutils literal notranslate"><span class="pre">UserException</span></code></a></p>
+<blockquote>
+<div><p>This exception indicates that an attempt was made to remove a link that does not exist.</p>
+</div></blockquote>
+<p>Members:
+name –  The name of the link that does not exist.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="IceStorm.NoSuchTopic">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">IceStorm.</span></span><span class="sig-name descname"><span class="pre">NoSuchTopic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.NoSuchTopic" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="Ice.html#Ice.UserException" title="Ice.UserException"><code class="xref py py-class docutils literal notranslate"><span class="pre">UserException</span></code></a></p>
+<blockquote>
+<div><p>This exception indicates that an attempt was made to retrieve a topic that does not exist.</p>
+</div></blockquote>
+<p>Members:
+name –  The name of the topic that does not exist.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="IceStorm.Topic">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">IceStorm.</span></span><span class="sig-name descname"><span class="pre">Topic</span></span><a class="headerlink" href="#IceStorm.Topic" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.Topic.destroy">
+<span class="sig-name descname"><span class="pre">destroy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.Topic.destroy" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Destroy the topic.</p>
+</div></blockquote>
+<p>Arguments:
+current – The Current object for the invocation.
+Returns: A future object for the invocation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.Topic.getLinkInfoSeq">
+<span class="sig-name descname"><span class="pre">getLinkInfoSeq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.Topic.getLinkInfoSeq" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Retrieve information on the current links.</p>
+</div></blockquote>
+<p>Arguments:
+current – The Current object for the invocation.
+Returns: A future object for the invocation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.Topic.getName">
+<span class="sig-name descname"><span class="pre">getName</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.Topic.getName" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Get the name of this topic.</p>
+</div></blockquote>
+<p>Arguments:
+current – The Current object for the invocation.
+Returns: A future object for the invocation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.Topic.getNonReplicatedPublisher">
+<span class="sig-name descname"><span class="pre">getNonReplicatedPublisher</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.Topic.getNonReplicatedPublisher" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Get a non-replicated proxy to a publisher object for this topic. To publish data to a topic, the publisher
+calls getPublisher and then creates a proxy with the publisher type from this proxy. The returned proxy is
+never null.</p>
+</div></blockquote>
+<p>Arguments:
+current – The Current object for the invocation.
+Returns: A future object for the invocation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.Topic.getPublisher">
+<span class="sig-name descname"><span class="pre">getPublisher</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.Topic.getPublisher" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Get a proxy to a publisher object for this topic. To publish data to a topic, the publisher calls getPublisher
+and then creates a proxy with the publisher type from this proxy. If a replicated IceStorm
+deployment is used this call may return a replicated proxy. The returned proxy is never null.</p>
+</div></blockquote>
+<p>Arguments:
+current – The Current object for the invocation.
+Returns: A future object for the invocation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.Topic.getSubscribers">
+<span class="sig-name descname"><span class="pre">getSubscribers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.Topic.getSubscribers" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Retrieve the list of subscribers for this topic.</p>
+</div></blockquote>
+<p>Arguments:
+current – The Current object for the invocation.
+Returns: A future object for the invocation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.Topic.ice_id">
+<span class="sig-name descname"><span class="pre">ice_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.Topic.ice_id" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id corresponding to the most-derived Slice
+interface supported by the target object.
+:returns: The type id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.Topic.ice_ids">
+<span class="sig-name descname"><span class="pre">ice_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.Topic.ice_ids" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type ids corresponding to the Slice interface
+that are supported by the target object.
+:returns: A list of type ids.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.Topic.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.Topic.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id of this Slice class or interface.
+:returns: The type id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.Topic.link">
+<span class="sig-name descname"><span class="pre">link</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">linkTo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cost</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.Topic.link" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Create a link to the given topic. All events originating on this topic will also be sent to
+linkTo.</p>
+</div></blockquote>
+<p>Arguments:
+linkTo – The topic to link to. This proxy is never null.
+cost – The cost to the linked topic.
+current – The Current object for the invocation.
+Returns: A future object for the invocation.
+Throws:
+LinkExists – Raised if a link to the same topic already exists.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.Topic.subscribeAndGetPublisher">
+<span class="sig-name descname"><span class="pre">subscribeAndGetPublisher</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theQoS</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subscriber</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.Topic.subscribeAndGetPublisher" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Subscribe with the given qos to this topic.  A per-subscriber publisher object is returned.</p>
+</div></blockquote>
+<p>Arguments:
+theQoS – The quality of service parameters for this subscription.
+subscriber – The subscriber’s proxy. This proxy is never null.
+current – The Current object for the invocation.
+Returns: A future object for the invocation.
+Throws:
+AlreadySubscribed – Raised if the subscriber object is already subscribed.
+BadQoS – Raised if the requested quality of service is unavailable or invalid.
+InvalidSubscriber – Raised if the subscriber object is null.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.Topic.unlink">
+<span class="sig-name descname"><span class="pre">unlink</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">linkTo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.Topic.unlink" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Destroy the link from this topic to the given topic linkTo.</p>
+</div></blockquote>
+<p>Arguments:
+linkTo – The topic to destroy the link to. This proxy is never null.
+current – The Current object for the invocation.
+Returns: A future object for the invocation.
+Throws:
+NoSuchLink – Raised if a link to the topic does not exist.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.Topic.unsubscribe">
+<span class="sig-name descname"><span class="pre">unsubscribe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subscriber</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.Topic.unsubscribe" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Unsubscribe the given subscriber.</p>
+</div></blockquote>
+<p>Arguments:
+subscriber – The proxy of an existing subscriber. This proxy is never null.
+current – The Current object for the invocation.
+Returns: A future object for the invocation.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="IceStorm.TopicExists">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">IceStorm.</span></span><span class="sig-name descname"><span class="pre">TopicExists</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.TopicExists" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="Ice.html#Ice.UserException" title="Ice.UserException"><code class="xref py py-class docutils literal notranslate"><span class="pre">UserException</span></code></a></p>
+<blockquote>
+<div><p>This exception indicates that an attempt was made to create a topic that already exists.</p>
+</div></blockquote>
+<p>Members:
+name –  The name of the topic that already exists.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="IceStorm.TopicManager">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">IceStorm.</span></span><span class="sig-name descname"><span class="pre">TopicManager</span></span><a class="headerlink" href="#IceStorm.TopicManager" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.TopicManager.create">
+<span class="sig-name descname"><span class="pre">create</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.TopicManager.create" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Create a new topic. The topic name must be unique.</p>
+</div></blockquote>
+<p>Arguments:
+name – The name of the topic.
+current – The Current object for the invocation.
+Returns: A future object for the invocation.
+Throws:
+TopicExists – Raised if a topic with the same name already exists.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.TopicManager.ice_id">
+<span class="sig-name descname"><span class="pre">ice_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.TopicManager.ice_id" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id corresponding to the most-derived Slice
+interface supported by the target object.
+:returns: The type id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.TopicManager.ice_ids">
+<span class="sig-name descname"><span class="pre">ice_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.TopicManager.ice_ids" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type ids corresponding to the Slice interface
+that are supported by the target object.
+:returns: A list of type ids.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.TopicManager.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.TopicManager.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id of this Slice class or interface.
+:returns: The type id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.TopicManager.retrieve">
+<span class="sig-name descname"><span class="pre">retrieve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.TopicManager.retrieve" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Retrieve a topic by name.</p>
+</div></blockquote>
+<p>Arguments:
+name – The name of the topic.
+current – The Current object for the invocation.
+Returns: A future object for the invocation.
+Throws:
+NoSuchTopic – Raised if the topic does not exist.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.TopicManager.retrieveAll">
+<span class="sig-name descname"><span class="pre">retrieveAll</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.TopicManager.retrieveAll" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Retrieve all topics managed by this topic manager.</p>
+</div></blockquote>
+<p>Arguments:
+current – The Current object for the invocation.
+Returns: A future object for the invocation.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="IceStorm.TopicManagerPrx">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">IceStorm.</span></span><span class="sig-name descname"><span class="pre">TopicManagerPrx</span></span><a class="headerlink" href="#IceStorm.TopicManagerPrx" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ObjectPrx</span></code></p>
+<blockquote>
+<div><p>Create a new topic. The topic name must be unique.</p>
+</div></blockquote>
+<p>Arguments:
+name – The name of the topic.
+context – The request context for the invocation.
+Returns: A proxy to the topic instance. The returned proxy is never null.
+Throws:
+TopicExists – Raised if a topic with the same name already exists.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.TopicManagerPrx.checkedCast">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">checkedCast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">proxy</span></span></span><a class="headerlink" href="#IceStorm.TopicManagerPrx.checkedCast" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.TopicManagerPrx.create">
+<span class="sig-name descname"><span class="pre">create</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.TopicManagerPrx.create" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.TopicManagerPrx.createAsync">
+<span class="sig-name descname"><span class="pre">createAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.TopicManagerPrx.createAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.TopicManagerPrx.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">string</span></span></span><a class="headerlink" href="#IceStorm.TopicManagerPrx.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.TopicManagerPrx.retrieve">
+<span class="sig-name descname"><span class="pre">retrieve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.TopicManagerPrx.retrieve" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.TopicManagerPrx.retrieveAll">
+<span class="sig-name descname"><span class="pre">retrieveAll</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.TopicManagerPrx.retrieveAll" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.TopicManagerPrx.retrieveAllAsync">
+<span class="sig-name descname"><span class="pre">retrieveAllAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.TopicManagerPrx.retrieveAllAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.TopicManagerPrx.retrieveAsync">
+<span class="sig-name descname"><span class="pre">retrieveAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.TopicManagerPrx.retrieveAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.TopicManagerPrx.uncheckedCast">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">uncheckedCast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">proxy</span></span></span><a class="headerlink" href="#IceStorm.TopicManagerPrx.uncheckedCast" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="IceStorm.TopicPrx">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">IceStorm.</span></span><span class="sig-name descname"><span class="pre">TopicPrx</span></span><a class="headerlink" href="#IceStorm.TopicPrx" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ObjectPrx</span></code></p>
+<blockquote>
+<div><p>Get the name of this topic.</p>
+</div></blockquote>
+<p>Arguments:
+context – The request context for the invocation.
+Returns: The name of the topic.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.TopicPrx.checkedCast">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">checkedCast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">proxy</span></span></span><a class="headerlink" href="#IceStorm.TopicPrx.checkedCast" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.TopicPrx.destroy">
+<span class="sig-name descname"><span class="pre">destroy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.TopicPrx.destroy" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.TopicPrx.destroyAsync">
+<span class="sig-name descname"><span class="pre">destroyAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.TopicPrx.destroyAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.TopicPrx.getLinkInfoSeq">
+<span class="sig-name descname"><span class="pre">getLinkInfoSeq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.TopicPrx.getLinkInfoSeq" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.TopicPrx.getLinkInfoSeqAsync">
+<span class="sig-name descname"><span class="pre">getLinkInfoSeqAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.TopicPrx.getLinkInfoSeqAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.TopicPrx.getName">
+<span class="sig-name descname"><span class="pre">getName</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.TopicPrx.getName" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.TopicPrx.getNameAsync">
+<span class="sig-name descname"><span class="pre">getNameAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.TopicPrx.getNameAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.TopicPrx.getNonReplicatedPublisher">
+<span class="sig-name descname"><span class="pre">getNonReplicatedPublisher</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.TopicPrx.getNonReplicatedPublisher" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.TopicPrx.getNonReplicatedPublisherAsync">
+<span class="sig-name descname"><span class="pre">getNonReplicatedPublisherAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.TopicPrx.getNonReplicatedPublisherAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.TopicPrx.getPublisher">
+<span class="sig-name descname"><span class="pre">getPublisher</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.TopicPrx.getPublisher" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.TopicPrx.getPublisherAsync">
+<span class="sig-name descname"><span class="pre">getPublisherAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.TopicPrx.getPublisherAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.TopicPrx.getSubscribers">
+<span class="sig-name descname"><span class="pre">getSubscribers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.TopicPrx.getSubscribers" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.TopicPrx.getSubscribersAsync">
+<span class="sig-name descname"><span class="pre">getSubscribersAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.TopicPrx.getSubscribersAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.TopicPrx.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">string</span></span></span><a class="headerlink" href="#IceStorm.TopicPrx.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.TopicPrx.link">
+<span class="sig-name descname"><span class="pre">link</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">linkTo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cost</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.TopicPrx.link" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.TopicPrx.linkAsync">
+<span class="sig-name descname"><span class="pre">linkAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">linkTo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cost</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.TopicPrx.linkAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.TopicPrx.subscribeAndGetPublisher">
+<span class="sig-name descname"><span class="pre">subscribeAndGetPublisher</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theQoS</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subscriber</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.TopicPrx.subscribeAndGetPublisher" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.TopicPrx.subscribeAndGetPublisherAsync">
+<span class="sig-name descname"><span class="pre">subscribeAndGetPublisherAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theQoS</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subscriber</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.TopicPrx.subscribeAndGetPublisherAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.TopicPrx.uncheckedCast">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">uncheckedCast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">proxy</span></span></span><a class="headerlink" href="#IceStorm.TopicPrx.uncheckedCast" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.TopicPrx.unlink">
+<span class="sig-name descname"><span class="pre">unlink</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">linkTo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.TopicPrx.unlink" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.TopicPrx.unlinkAsync">
+<span class="sig-name descname"><span class="pre">unlinkAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">linkTo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.TopicPrx.unlinkAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.TopicPrx.unsubscribe">
+<span class="sig-name descname"><span class="pre">unsubscribe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subscriber</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.TopicPrx.unsubscribe" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceStorm.TopicPrx.unsubscribeAsync">
+<span class="sig-name descname"><span class="pre">unsubscribeAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subscriber</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceStorm.TopicPrx.unsubscribeAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Ice</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">lib</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Glacier2.html">Glacier2 package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Ice.html">Ice package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="IceBox.html">IceBox package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="IceGrid.html">IceGrid package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="IceMX.html">IceMX package</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">IceStorm package</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">lib</a><ul>
+      <li>Previous: <a href="IceMX.html" title="previous chapter">IceMX package</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;ZeroC, Inc..
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="_sources/IceStorm.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

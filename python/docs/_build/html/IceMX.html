@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>IceMX package &#8212; Ice 3.8.0a0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=12dfc556" />
+    <script src="_static/documentation_options.js?v=a637f681"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="IceStorm package" href="IceStorm.html" />
+    <link rel="prev" title="IceGrid package" href="IceGrid.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="icemx-package">
+<h1>IceMX package<a class="headerlink" href="#icemx-package" title="Link to this heading">¶</a></h1>
+<section id="module-IceMX">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-IceMX" title="Link to this heading">¶</a></h2>
+<p>The Ice Management eXtension facility. It provides the IceMX#MetricsAdmin interface for management clients
+to retrieve metrics from Ice applications.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="IceMX.ChildInvocationMetrics">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">IceMX.</span></span><span class="sig-name descname"><span class="pre">ChildInvocationMetrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">totalLifetime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">failures</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">replySize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.ChildInvocationMetrics" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#IceMX.Metrics" title="IceMX.Metrics"><code class="xref py py-class docutils literal notranslate"><span class="pre">Metrics</span></code></a></p>
+<blockquote>
+<div><p>Provides information on child invocations. A child invocation is either remote (sent over an Ice connection) or
+collocated. An invocation can have multiple child invocation if it is retried. Child invocation metrics are
+embedded within InvocationMetrics.</p>
+</div></blockquote>
+<p>Members:
+size –  The size of the invocation. This corresponds to the size of the marshaled input parameters.
+replySize –  The size of the invocation reply. This corresponds to the size of the marshaled output and return</p>
+<blockquote>
+<div><p>parameters.</p>
+</div></blockquote>
+<dl class="py method">
+<dt class="sig sig-object py" id="IceMX.ChildInvocationMetrics.ice_id">
+<span class="sig-name descname"><span class="pre">ice_id</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.ChildInvocationMetrics.ice_id" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id corresponding to the most-derived Slice
+interface supported by the target object.
+:returns: The type id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceMX.ChildInvocationMetrics.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.ChildInvocationMetrics.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id of this Slice class or interface.
+:returns: The type id.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="IceMX.CollocatedMetrics">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">IceMX.</span></span><span class="sig-name descname"><span class="pre">CollocatedMetrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">totalLifetime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">failures</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">replySize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.CollocatedMetrics" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#IceMX.ChildInvocationMetrics" title="IceMX.ChildInvocationMetrics"><code class="xref py py-class docutils literal notranslate"><span class="pre">ChildInvocationMetrics</span></code></a></p>
+<p>Provides information on invocations that are collocated. Collocated metrics are embedded within
+InvocationMetrics.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="IceMX.CollocatedMetrics.ice_id">
+<span class="sig-name descname"><span class="pre">ice_id</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.CollocatedMetrics.ice_id" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id corresponding to the most-derived Slice
+interface supported by the target object.
+:returns: The type id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceMX.CollocatedMetrics.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.CollocatedMetrics.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id of this Slice class or interface.
+:returns: The type id.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="IceMX.ConnectionMetrics">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">IceMX.</span></span><span class="sig-name descname"><span class="pre">ConnectionMetrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">totalLifetime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">failures</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">receivedBytes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sentBytes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.ConnectionMetrics" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#IceMX.Metrics" title="IceMX.Metrics"><code class="xref py py-class docutils literal notranslate"><span class="pre">Metrics</span></code></a></p>
+<blockquote>
+<div><p>Provides information on the data sent and received over Ice connections.</p>
+</div></blockquote>
+<p>Members:
+receivedBytes –  The number of bytes received by the connection.
+sentBytes –  The number of bytes sent by the connection.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="IceMX.ConnectionMetrics.ice_id">
+<span class="sig-name descname"><span class="pre">ice_id</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.ConnectionMetrics.ice_id" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id corresponding to the most-derived Slice
+interface supported by the target object.
+:returns: The type id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceMX.ConnectionMetrics.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.ConnectionMetrics.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id of this Slice class or interface.
+:returns: The type id.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="IceMX.DispatchMetrics">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">IceMX.</span></span><span class="sig-name descname"><span class="pre">DispatchMetrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">totalLifetime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">failures</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">userException</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">replySize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.DispatchMetrics" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#IceMX.Metrics" title="IceMX.Metrics"><code class="xref py py-class docutils literal notranslate"><span class="pre">Metrics</span></code></a></p>
+<blockquote>
+<div><p>Provides information on servant dispatch.</p>
+</div></blockquote>
+<p>Members:
+userException –  The number of dispatch that failed with a user exception.
+size –  The size of the dispatch. This corresponds to the size of the marshaled input parameters.
+replySize –  The size of the dispatch reply. This corresponds to the size of the marshaled output and return parameters.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="IceMX.DispatchMetrics.ice_id">
+<span class="sig-name descname"><span class="pre">ice_id</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.DispatchMetrics.ice_id" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id corresponding to the most-derived Slice
+interface supported by the target object.
+:returns: The type id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceMX.DispatchMetrics.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.DispatchMetrics.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id of this Slice class or interface.
+:returns: The type id.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="IceMX.InvocationMetrics">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">IceMX.</span></span><span class="sig-name descname"><span class="pre">InvocationMetrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">totalLifetime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">failures</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retry</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">userException</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remotes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collocated</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.InvocationMetrics" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#IceMX.Metrics" title="IceMX.Metrics"><code class="xref py py-class docutils literal notranslate"><span class="pre">Metrics</span></code></a></p>
+<blockquote>
+<div><p>Provide measurements for proxy invocations. Proxy invocations can either be sent over the wire or be collocated.</p>
+</div></blockquote>
+<p>Members:
+retry –  The number of retries for the invocation(s).
+userException –  The number of invocations that failed with a user exception.
+remotes –  The remote invocation metrics map.
+collocated –  The collocated invocation metrics map.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="IceMX.InvocationMetrics.ice_id">
+<span class="sig-name descname"><span class="pre">ice_id</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.InvocationMetrics.ice_id" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id corresponding to the most-derived Slice
+interface supported by the target object.
+:returns: The type id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceMX.InvocationMetrics.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.InvocationMetrics.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id of this Slice class or interface.
+:returns: The type id.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="IceMX.Metrics">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">IceMX.</span></span><span class="sig-name descname"><span class="pre">Metrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">totalLifetime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">failures</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.Metrics" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Value</span></code></p>
+<blockquote>
+<div><p>The base class for metrics. A metrics object represents a collection of measurements associated to a given a
+system.</p>
+</div></blockquote>
+<p>Members:
+id –  The metrics identifier.
+total –  The total number of objects observed by this metrics. This includes the number of currently observed objects</p>
+<blockquote>
+<div><p>and the number of objects observed in the past.</p>
+</div></blockquote>
+<p>current –  The number of objects currently observed by this metrics.
+totalLifetime –  The sum of the lifetime of each observed objects. This does not include the lifetime of objects which are</p>
+<blockquote>
+<div><p>currently observed, only the objects observed in the past.</p>
+</div></blockquote>
+<p>failures –  The number of failures observed.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="IceMX.Metrics.ice_id">
+<span class="sig-name descname"><span class="pre">ice_id</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.Metrics.ice_id" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id corresponding to the most-derived Slice
+interface supported by the target object.
+:returns: The type id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceMX.Metrics.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.Metrics.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id of this Slice class or interface.
+:returns: The type id.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="IceMX.MetricsAdmin">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">IceMX.</span></span><span class="sig-name descname"><span class="pre">MetricsAdmin</span></span><a class="headerlink" href="#IceMX.MetricsAdmin" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="IceMX.MetricsAdmin.disableMetricsView">
+<span class="sig-name descname"><span class="pre">disableMetricsView</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.MetricsAdmin.disableMetricsView" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Disable a metrics view.</p>
+</div></blockquote>
+<p>Arguments:
+name – The metrics view name.
+current – The Current object for the invocation.
+Returns: A future object for the invocation.
+Throws:
+UnknownMetricsView – Raised if the metrics view cannot be found.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceMX.MetricsAdmin.enableMetricsView">
+<span class="sig-name descname"><span class="pre">enableMetricsView</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.MetricsAdmin.enableMetricsView" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Enables a metrics view.</p>
+</div></blockquote>
+<p>Arguments:
+name – The metrics view name.
+current – The Current object for the invocation.
+Returns: A future object for the invocation.
+Throws:
+UnknownMetricsView – Raised if the metrics view cannot be found.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceMX.MetricsAdmin.getMapMetricsFailures">
+<span class="sig-name descname"><span class="pre">getMapMetricsFailures</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">view</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.MetricsAdmin.getMapMetricsFailures" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Get the metrics failures associated with the given view and map.</p>
+</div></blockquote>
+<p>Arguments:
+view – The name of the metrics view.
+map – The name of the metrics map.
+current – The Current object for the invocation.
+Returns: A future object for the invocation.
+Throws:
+UnknownMetricsView – Raised if the metrics view cannot be found.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceMX.MetricsAdmin.getMetricsFailures">
+<span class="sig-name descname"><span class="pre">getMetricsFailures</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">view</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.MetricsAdmin.getMetricsFailures" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Get the metrics failure associated for the given metrics.</p>
+</div></blockquote>
+<p>Arguments:
+view – The name of the metrics view.
+map – The name of the metrics map.
+id – The ID of the metrics.
+current – The Current object for the invocation.
+Returns: A future object for the invocation.
+Throws:
+UnknownMetricsView – Raised if the metrics view cannot be found.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceMX.MetricsAdmin.getMetricsView">
+<span class="sig-name descname"><span class="pre">getMetricsView</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">view</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.MetricsAdmin.getMetricsView" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Get the metrics objects for the given metrics view. This returns a dictionary of metric maps for each
+metrics class configured with the view. The timestamp allows the client to compute averages which are not
+dependent of the invocation latency for this operation.</p>
+</div></blockquote>
+<p>Arguments:
+view – The name of the metrics view.
+current – The Current object for the invocation.
+Returns: A future object for the invocation.
+Throws:
+UnknownMetricsView – Raised if the metrics view cannot be found.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceMX.MetricsAdmin.getMetricsViewNames">
+<span class="sig-name descname"><span class="pre">getMetricsViewNames</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.MetricsAdmin.getMetricsViewNames" title="Link to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Get the names of enabled and disabled metrics.</p>
+</div></blockquote>
+<p>Arguments:
+current – The Current object for the invocation.
+Returns: A future object for the invocation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceMX.MetricsAdmin.ice_id">
+<span class="sig-name descname"><span class="pre">ice_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.MetricsAdmin.ice_id" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id corresponding to the most-derived Slice
+interface supported by the target object.
+:returns: The type id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceMX.MetricsAdmin.ice_ids">
+<span class="sig-name descname"><span class="pre">ice_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.MetricsAdmin.ice_ids" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type ids corresponding to the Slice interface
+that are supported by the target object.
+:returns: A list of type ids.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceMX.MetricsAdmin.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.MetricsAdmin.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id of this Slice class or interface.
+:returns: The type id.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="IceMX.MetricsAdminPrx">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">IceMX.</span></span><span class="sig-name descname"><span class="pre">MetricsAdminPrx</span></span><a class="headerlink" href="#IceMX.MetricsAdminPrx" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ObjectPrx</span></code></p>
+<blockquote>
+<div><p>Get the names of enabled and disabled metrics.</p>
+</div></blockquote>
+<p>Arguments:
+context – The request context for the invocation.
+Returns a tuple containing the following:
+_retval – The name of the enabled views.
+disabledViews – The names of the disabled views.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="IceMX.MetricsAdminPrx.checkedCast">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">checkedCast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">proxy</span></span></span><a class="headerlink" href="#IceMX.MetricsAdminPrx.checkedCast" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceMX.MetricsAdminPrx.disableMetricsView">
+<span class="sig-name descname"><span class="pre">disableMetricsView</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.MetricsAdminPrx.disableMetricsView" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceMX.MetricsAdminPrx.disableMetricsViewAsync">
+<span class="sig-name descname"><span class="pre">disableMetricsViewAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.MetricsAdminPrx.disableMetricsViewAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceMX.MetricsAdminPrx.enableMetricsView">
+<span class="sig-name descname"><span class="pre">enableMetricsView</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.MetricsAdminPrx.enableMetricsView" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceMX.MetricsAdminPrx.enableMetricsViewAsync">
+<span class="sig-name descname"><span class="pre">enableMetricsViewAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.MetricsAdminPrx.enableMetricsViewAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceMX.MetricsAdminPrx.getMapMetricsFailures">
+<span class="sig-name descname"><span class="pre">getMapMetricsFailures</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">view</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.MetricsAdminPrx.getMapMetricsFailures" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceMX.MetricsAdminPrx.getMapMetricsFailuresAsync">
+<span class="sig-name descname"><span class="pre">getMapMetricsFailuresAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">view</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.MetricsAdminPrx.getMapMetricsFailuresAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceMX.MetricsAdminPrx.getMetricsFailures">
+<span class="sig-name descname"><span class="pre">getMetricsFailures</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">view</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.MetricsAdminPrx.getMetricsFailures" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceMX.MetricsAdminPrx.getMetricsFailuresAsync">
+<span class="sig-name descname"><span class="pre">getMetricsFailuresAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">view</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.MetricsAdminPrx.getMetricsFailuresAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceMX.MetricsAdminPrx.getMetricsView">
+<span class="sig-name descname"><span class="pre">getMetricsView</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">view</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.MetricsAdminPrx.getMetricsView" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceMX.MetricsAdminPrx.getMetricsViewAsync">
+<span class="sig-name descname"><span class="pre">getMetricsViewAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">view</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.MetricsAdminPrx.getMetricsViewAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceMX.MetricsAdminPrx.getMetricsViewNames">
+<span class="sig-name descname"><span class="pre">getMetricsViewNames</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.MetricsAdminPrx.getMetricsViewNames" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceMX.MetricsAdminPrx.getMetricsViewNamesAsync">
+<span class="sig-name descname"><span class="pre">getMetricsViewNamesAsync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.MetricsAdminPrx.getMetricsViewNamesAsync" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceMX.MetricsAdminPrx.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">string</span></span></span><a class="headerlink" href="#IceMX.MetricsAdminPrx.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceMX.MetricsAdminPrx.uncheckedCast">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">uncheckedCast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proxy</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">proxy</span></span></span><a class="headerlink" href="#IceMX.MetricsAdminPrx.uncheckedCast" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="IceMX.MetricsFailures">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">IceMX.</span></span><span class="sig-name descname"><span class="pre">MetricsFailures</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">failures</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.MetricsFailures" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<blockquote>
+<div><p>A structure to keep track of failures associated with a given metrics.</p>
+</div></blockquote>
+<p>Members:
+id –  The identifier of the metrics object associated to the failures.
+failures –  The failures observed for this metrics.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="IceMX.RemoteMetrics">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">IceMX.</span></span><span class="sig-name descname"><span class="pre">RemoteMetrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">totalLifetime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">failures</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">replySize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.RemoteMetrics" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#IceMX.ChildInvocationMetrics" title="IceMX.ChildInvocationMetrics"><code class="xref py py-class docutils literal notranslate"><span class="pre">ChildInvocationMetrics</span></code></a></p>
+<p>Provides information on invocations that are specifically sent over Ice connections. Remote metrics are embedded
+within InvocationMetrics.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="IceMX.RemoteMetrics.ice_id">
+<span class="sig-name descname"><span class="pre">ice_id</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.RemoteMetrics.ice_id" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id corresponding to the most-derived Slice
+interface supported by the target object.
+:returns: The type id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceMX.RemoteMetrics.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.RemoteMetrics.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id of this Slice class or interface.
+:returns: The type id.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="IceMX.SessionMetrics">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">IceMX.</span></span><span class="sig-name descname"><span class="pre">SessionMetrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">totalLifetime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">failures</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forwardedClient</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forwardedServer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">routingTableSize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">queuedClient</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">queuedServer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overriddenClient</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overriddenServer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.SessionMetrics" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#IceMX.Metrics" title="IceMX.Metrics"><code class="xref py py-class docutils literal notranslate"><span class="pre">Metrics</span></code></a></p>
+<blockquote>
+<div><p>Provides information on Glacier2 sessions.</p>
+</div></blockquote>
+<p>Members:
+forwardedClient –  Number of client requests forwarded.
+forwardedServer –  Number of server requests forwarded.
+routingTableSize –  The size of the routing table.
+queuedClient –  Number of client requests queued.
+queuedServer –  Number of server requests queued.
+overriddenClient –  Number of client requests overridden.
+overriddenServer –  Number of server requests overridden.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="IceMX.SessionMetrics.ice_id">
+<span class="sig-name descname"><span class="pre">ice_id</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.SessionMetrics.ice_id" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id corresponding to the most-derived Slice
+interface supported by the target object.
+:returns: The type id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceMX.SessionMetrics.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.SessionMetrics.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id of this Slice class or interface.
+:returns: The type id.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="IceMX.SubscriberMetrics">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">IceMX.</span></span><span class="sig-name descname"><span class="pre">SubscriberMetrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">totalLifetime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">failures</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">queued</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outstanding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delivered</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.SubscriberMetrics" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#IceMX.Metrics" title="IceMX.Metrics"><code class="xref py py-class docutils literal notranslate"><span class="pre">Metrics</span></code></a></p>
+<blockquote>
+<div><p>Provides information on IceStorm subscribers.</p>
+</div></blockquote>
+<p>Members:
+queued –  Number of queued events.
+outstanding –  Number of outstanding events.
+delivered –  Number of forwarded events.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="IceMX.SubscriberMetrics.ice_id">
+<span class="sig-name descname"><span class="pre">ice_id</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.SubscriberMetrics.ice_id" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id corresponding to the most-derived Slice
+interface supported by the target object.
+:returns: The type id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceMX.SubscriberMetrics.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.SubscriberMetrics.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id of this Slice class or interface.
+:returns: The type id.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="IceMX.ThreadMetrics">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">IceMX.</span></span><span class="sig-name descname"><span class="pre">ThreadMetrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">totalLifetime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">failures</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inUseForIO</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inUseForUser</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inUseForOther</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.ThreadMetrics" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#IceMX.Metrics" title="IceMX.Metrics"><code class="xref py py-class docutils literal notranslate"><span class="pre">Metrics</span></code></a></p>
+<blockquote>
+<div><p>Provides information on the number of threads currently in use and their activity.</p>
+</div></blockquote>
+<p>Members:
+inUseForIO –  The number of threads which are currently performing socket read or writes.
+inUseForUser –  The number of threads which are currently calling user code (servant dispatch, AMI callbacks, etc).
+inUseForOther –  The number of threads which are currently performing other activities. These are all other that are not</p>
+<blockquote>
+<div><p>counted with inUseForUser or inUseForIO, such as DNS lookups, garbage collection).</p>
+</div></blockquote>
+<dl class="py method">
+<dt class="sig sig-object py" id="IceMX.ThreadMetrics.ice_id">
+<span class="sig-name descname"><span class="pre">ice_id</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.ThreadMetrics.ice_id" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id corresponding to the most-derived Slice
+interface supported by the target object.
+:returns: The type id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceMX.ThreadMetrics.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.ThreadMetrics.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id of this Slice class or interface.
+:returns: The type id.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="IceMX.TopicMetrics">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">IceMX.</span></span><span class="sig-name descname"><span class="pre">TopicMetrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">totalLifetime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">failures</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">published</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forwarded</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.TopicMetrics" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#IceMX.Metrics" title="IceMX.Metrics"><code class="xref py py-class docutils literal notranslate"><span class="pre">Metrics</span></code></a></p>
+<blockquote>
+<div><p>Provides information on IceStorm topics.</p>
+</div></blockquote>
+<p>Members:
+published –  Number of events published on the topic by publishers.
+forwarded –  Number of events forwarded on the topic by IceStorm topic links.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="IceMX.TopicMetrics.ice_id">
+<span class="sig-name descname"><span class="pre">ice_id</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.TopicMetrics.ice_id" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id corresponding to the most-derived Slice
+interface supported by the target object.
+:returns: The type id.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="IceMX.TopicMetrics.ice_staticId">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ice_staticId</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#IceMX.TopicMetrics.ice_staticId" title="Link to this definition">¶</a></dt>
+<dd><p>Obtains the type id of this Slice class or interface.
+:returns: The type id.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="IceMX.UnknownMetricsView">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">IceMX.</span></span><span class="sig-name descname"><span class="pre">UnknownMetricsView</span></span><a class="headerlink" href="#IceMX.UnknownMetricsView" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="Ice.html#Ice.UserException" title="Ice.UserException"><code class="xref py py-class docutils literal notranslate"><span class="pre">UserException</span></code></a></p>
+<p>Raised if a metrics view cannot be found.</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Ice</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">lib</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Glacier2.html">Glacier2 package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Ice.html">Ice package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="IceBox.html">IceBox package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="IceGrid.html">IceGrid package</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">IceMX package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="IceStorm.html">IceStorm package</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">lib</a><ul>
+      <li>Previous: <a href="IceGrid.html" title="previous chapter">IceGrid package</a></li>
+      <li>Next: <a href="IceStorm.html" title="next chapter">IceStorm package</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;ZeroC, Inc..
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="_sources/IceMX.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
