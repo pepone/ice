@@ -1,5 +1,7 @@
 # Copyright (c) ZeroC, Inc. All rights reserved.
 
+__name__ = "Ice"
+
 from .Communicator import Communicator
 from .PropertiesI import PropertiesI
 from .ObjectAdapterI import ObjectAdapterI
