@@ -53,21 +53,9 @@ class Client(TestHelper):
         properties.setProperty("Ice.Warn.Dispatch", "1")
         properties.setProperty("Ice.Warn.Connections", "0")
         with self.initialize(properties=properties) as communicator:
-
-            sys.stdout.write("testing stringToProxy for router... ")
-            sys.stdout.flush()
-            routerBase = communicator.stringToProxy(f"Glacier2/router:{self.getTestEndpoint(num=50)}")
-            test(routerBase is not None)
-            print("ok")
-
-            sys.stdout.write("testing checked cast for router... ")
-            sys.stdout.flush()
-            router = Glacier2.RouterPrx.checkedCast(routerBase)
-            test(router is not None)
-            print("ok")
-
             sys.stdout.write("installing router with communicator... ")
             sys.stdout.flush()
+            router = Glacier2.RouterPrx(communicator, f"Glacier2/router:{self.getTestEndpoint(num=50)}")
             communicator.setDefaultRouter(router)
             print("ok")
 
@@ -77,15 +65,11 @@ class Client(TestHelper):
             test(timeout == 30)
             print("ok")
 
-            sys.stdout.write("testing stringToProxy for server object... ")
-            sys.stdout.flush()
-            base = communicator.stringToProxy(f"c1/callback:{self.getTestEndpoint()}")
-            print("ok")
-
+            twoway = Test.CallbackPrx(communicator, f"c1/callback:{self.getTestEndpoint()}")
             sys.stdout.write("trying to ping server before session creation... ")
             sys.stdout.flush()
             try:
-                base.ice_ping()
+                twoway.ice_ping()
                 test(False)
             except Ice.ConnectionLostException:
                 pass
@@ -124,22 +108,16 @@ class Client(TestHelper):
 
             sys.stdout.write("pinging server after session creation... ")
             sys.stdout.flush()
-            base.ice_ping()
+            twoway.ice_ping()
             print("ok")
 
             sys.stdout.write("pinging object with client endpoint... ")
             sys.stdout.flush()
-            baseC = communicator.stringToProxy(f"collocated:{self.getTestEndpoint(num=50)}")
+            baseC = Ice.ObjectPrx(communicator, f"collocated:{self.getTestEndpoint(num=50)}")
             try:
                 baseC.ice_ping()
             except Exception:
                 pass
-            print("ok")
-
-            sys.stdout.write("testing checked cast for server object... ")
-            sys.stdout.flush()
-            twoway = Test.CallbackPrx.checkedCast(base)
-            test(twoway is not None)
             print("ok")
 
             sys.stdout.write("creating and activating callback receiver adapter... ")
@@ -249,7 +227,7 @@ class Client(TestHelper):
 
             sys.stdout.write("trying to ping server after session destruction... ")
             try:
-                base.ice_ping()
+                twoway.ice_ping()
                 test(False)
             except Ice.ConnectionLostException:
                 pass
@@ -261,19 +239,9 @@ class Client(TestHelper):
                 communicator.setDefaultRouter(None)
                 print("ok")
 
-                sys.stdout.write("testing stringToProxy for process object... ")
-                sys.stdout.flush()
-                processBase = communicator.stringToProxy(f"Glacier2/admin -f Process:{self.getTestEndpoint(num=51)}")
-                print("ok")
-
-                sys.stdout.write("testing checked cast for admin object... ")
-                sys.stdout.flush()
-                processPrx = Ice.ProcessPrx.checkedCast(processBase)
-                test(processPrx is not None)
-                print("ok")
-
                 sys.stdout.write("testing Glacier2 shutdown... ")
                 sys.stdout.flush()
+                processPrx = Ice.ProcessPrx(communicator, f"Glacier2/admin -f Process:{self.getTestEndpoint(num=51)}")
                 processPrx.shutdown()
                 try:
                     processPrx.ice_invocationTimeout(500).ice_ping()
