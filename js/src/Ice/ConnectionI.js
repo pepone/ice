@@ -65,10 +65,6 @@ class MessageInfo {
     }
 }
 
-function isHeartbeat(stream) {
-    return stream.buffer.getAt(8) == Protocol.validateConnectionMsg;
-}
-
 export class ConnectionI {
     constructor(communicator, instance, transceiver, endpoint, removeFromFactory, options) {
         this._communicator = communicator;
@@ -248,7 +244,7 @@ export class ConnectionI {
             //
             Timer.setImmediate(() => {
                 this.setState(StateClosing, new ConnectionManuallyClosedException(true));
-                this._closePromises.forEach((p) => p.resolve());
+                this._closePromises.forEach(p => p.resolve());
                 this._closePromises = [];
             });
         }
@@ -1114,7 +1110,10 @@ export class ConnectionI {
                 // heartbeat.
 
                 // The stream of the first _sendStreams message is in _writeStream.
-                if (this._sendStreams.length == 0 || isHeartbeat(this._writeStream)) {
+                if (
+                    this._sendStreams.length == 0 ||
+                    this._writeStream.buffer.getAt(8) == Protocol.validateConnectionMsg
+                ) {
                     this.scheduleInactivityTimer();
                 }
             }
@@ -1513,7 +1512,7 @@ export class ConnectionI {
             // Clear the OA. See bug 1673 for the details of why this is necessary.
             //
             this._adapter = null;
-            this._finishedPromises.forEach((p) => p.resolve());
+            this._finishedPromises.forEach(p => p.resolve());
             this._finishedPromises = [];
         }
     }

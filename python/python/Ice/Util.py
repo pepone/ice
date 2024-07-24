@@ -3,8 +3,8 @@
 import os
 import sys
 import IcePy
-from .PropertiesI import PropertiesI
-from .CommunicatorI import CommunicatorI
+from .Properties import Properties
+from .Communicator import Communicator
 
 __name__ = "Ice"
 
@@ -38,7 +38,7 @@ def initialize(args=None, data=None):
         A new communicator instance.
     """
     communicator = IcePy.Communicator(args, data)
-    return CommunicatorI(communicator)
+    return Communicator(communicator)
 
 def identityToString(id, toStringMode=None):
     return IcePy.identityToString(id, toStringMode)
@@ -77,7 +77,7 @@ def createProperties(args=None, defaults=None):
         A new property set instance.
     """
     properties = IcePy.createProperties(args, defaults)
-    return PropertiesI(properties)
+    return Properties(properties)
 
 
 def getSliceDir():
