@@ -60,15 +60,17 @@ ConnectionManager::remove(const Ice::ConnectionPtr& connection)
         connection->setCloseCallback(nullptr);
         _connections.erase(p);
     }
+
     exception_ptr ex;
     try
     {
-        connection->getInfo();
+        connection->throwException();
     }
     catch (const std::exception&)
     {
         ex = current_exception();
     }
+
     for (const auto& object : objects)
     {
         try
