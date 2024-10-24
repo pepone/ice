@@ -634,8 +634,8 @@ DataElementI::forward(const Ice::ByteSeq& inEncaps, const Ice::Current& current)
         // If there's at least one subscriber interested in the update
         if (!_sample || listener.second.matchOne(_sample, false))
         {
-            // TODO do we need to check the result?
-            auto _ = listener.second.proxy->ice_invokeAsync(current.operation, current.mode, inEncaps, current.ctx);
+            listener.second.proxy
+                ->ice_invokeAsync(current.operation, current.mode, inEncaps, nullptr, nullptr, nullptr, current.ctx);
         }
     }
 }
@@ -1309,8 +1309,14 @@ KeyDataWriterI::forward(const Ice::ByteSeq& inEncaps, const Ice::Current& curren
         // If there's at least one subscriber interested in the update (check the key if any writer)
         if (!_sample || listener.second.matchOne(_sample, _keys.empty()))
         {
-            // TODO do we need to check the result?
-            auto _ = listener.second.proxy->ice_invokeAsync(current.operation, current.mode, inEncaps, current.ctx);
+            auto _ = listener.second.proxy->ice_invokeAsync(
+                current.operation,
+                current.mode,
+                inEncaps,
+                nullptr,
+                nullptr,
+                nullptr,
+                current.ctx);
         }
     }
 }

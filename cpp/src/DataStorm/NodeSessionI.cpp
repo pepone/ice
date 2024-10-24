@@ -44,8 +44,7 @@ namespace
             {
                 optional<SessionPrx> session;
                 updateNodeAndSessionProxy(*publisher, session, current);
-                // TODO check the return value?
-                auto _ = _node->initiateCreateSessionAsync(publisher);
+                _node->initiateCreateSessionAsync(publisher, /*response:*/ nullptr);
             }
             catch (const Ice::ObjectAdapterDestroyedException&)
             {
@@ -76,8 +75,7 @@ namespace
             {
                 updateNodeAndSessionProxy(*subscriber, subscriberSession, current);
                 session->addSession(subscriberSession);
-                // TODO check the return value?
-                auto _ = _node->createSessionAsync(subscriber, subscriberSession, true);
+                _node->createSessionAsync(subscriber, subscriberSession, /*fromRely:*/ true, /*response:*/ nullptr);
             }
             catch (const Ice::ObjectAdapterDestroyedException&)
             {
@@ -106,8 +104,7 @@ namespace
             {
                 updateNodeAndSessionProxy(*publisher, publisherSession, current);
                 session->addSession(publisherSession);
-                // TODO check the return value?
-                auto _ = _node->confirmCreateSessionAsync(publisher, publisherSession);
+                _node->confirmCreateSessionAsync(publisher, publisherSession, /*response:*/ nullptr);
             }
             catch (const Ice::ObjectAdapterDestroyedException&)
             {
@@ -191,8 +188,7 @@ NodeSessionI::destroy()
 
         for (const auto& session : _sessions)
         {
-            // TODO check the return value?
-            auto _ = session.second->disconnectedAsync();
+            session.second->disconnectedAsync(/*response:*/ nullptr);
         }
     }
     catch (const Ice::ObjectAdapterDestroyedException&)

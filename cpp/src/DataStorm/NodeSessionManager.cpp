@@ -25,25 +25,27 @@ namespace
         {
         }
 
-        virtual bool ice_invoke(Ice::ByteSeq inEncaps, Ice::ByteSeq&, const Ice::Current& curr)
+        virtual bool ice_invoke(Ice::ByteSeq inEncaps, Ice::ByteSeq&, const Ice::Current& current)
         {
-            auto pos = curr.id.name.find('-');
-            if (pos != string::npos && pos < curr.id.name.length())
+            auto pos = current.id.name.find('-');
+            if (pos != string::npos && pos < current.id.name.length())
             {
-                auto s = _nodeSessionManager->getSession(curr.id.name.substr(pos + 1));
+                auto s = _nodeSessionManager->getSession(current.id.name.substr(pos + 1));
                 if (s)
                 {
-                    auto id = Ice::Identity{curr.id.name.substr(0, pos), curr.id.category.substr(0, 1)};
-                    // TODO check the return value?
-                    auto _ = s->getConnection()->createProxy(id)->ice_invokeAsync(
-                        curr.operation,
-                        curr.mode,
+                    auto id = Ice::Identity{current.id.name.substr(0, pos), current.id.category.substr(0, 1)};
+                    s->getConnection()->createProxy(id)->ice_invokeAsync(
+                        current.operation,
+                        current.mode,
                         inEncaps,
-                        curr.ctx);
+                        nullptr,
+                        nullptr,
+                        nullptr,
+                        current.ctx);
                     return true;
                 }
             }
-            throw Ice::ObjectNotExistException(__FILE__, __LINE__, curr.id, curr.facet, curr.operation);
+            throw Ice::ObjectNotExistException(__FILE__, __LINE__, current.id, current.facet, current.operation);
         }
 
     private:
@@ -90,7 +92,6 @@ NodeSessionManager::init()
 shared_ptr<NodeSessionI>
 NodeSessionManager::createOrGet(NodePrx node, const Ice::ConnectionPtr& connection, bool forwardAnnouncements)
 {
-    // TODO node should be non-optional
     unique_lock<mutex> lock(_mutex);
 
     auto p = _sessions.find(node->ice_getIdentity());
@@ -164,8 +165,7 @@ NodeSessionManager::announceTopicReader(const string& topic, NodePrx node, const
         auto instance = _instance.lock();
         if (instance && instance->getLookup())
         {
-            // TODO check the return value?
-            auto _ = instance->getLookup()->announceTopicReaderAsync(topic, nodePrx);
+            instance->getLookup()->announceTopicReaderAsync(topic, nodePrx, nullptr);
         }
     }
 }
@@ -204,8 +204,7 @@ NodeSessionManager::announceTopicWriter(const string& topic, NodePrx node, const
         auto instance = _instance.lock();
         if (instance && instance->getLookup())
         {
-            // TODO check the return value?
-            auto _ = instance->getLookup()->announceTopicWriterAsync(topic, nodePrx);
+            instance->getLookup()->announceTopicWriterAsync(topic, nodePrx, nullptr);
         }
     }
 }
@@ -262,8 +261,7 @@ NodeSessionManager::announceTopics(
         auto instance = _instance.lock();
         if (instance && instance->getLookup())
         {
-            // TODO check the return value?
-            auto _ = instance->getLookup()->announceTopicsAsync(readers, writers, nodePrx);
+            instance->getLookup()->announceTopicsAsync(readers, writers, nodePrx, nullptr);
         }
     }
 }
@@ -287,11 +285,16 @@ NodeSessionManager::forward(const Ice::ByteSeq& inEncaps, const Ice::Current& cu
     {
         if (session.second->getConnection() != _exclude)
         {
-            auto l = session.second->getLookup();
-            if (l)
+            if (auto lookup = session.second->getLookup())
             {
-                // TODO check the return value?
-                auto _ = l->ice_invokeAsync(current.operation, current.mode, inEncaps, current.ctx);
+                lookup->ice_invokeAsync(
+                    current.operation,
+                    current.mode,
+                    inEncaps,
+                    nullptr,
+                    nullptr,
+                    nullptr,
+                    current.ctx);
             }
         }
     }
@@ -299,8 +302,8 @@ NodeSessionManager::forward(const Ice::ByteSeq& inEncaps, const Ice::Current& cu
     {
         if (lookup.second.second->ice_getCachedConnection() != _exclude)
         {
-            // TODO check the return value?
-            auto _ = lookup.second.second->ice_invokeAsync(current.operation, current.mode, inEncaps, current.ctx);
+            lookup.second.second
+                ->ice_invokeAsync(current.operation, current.mode, inEncaps, nullptr, nullptr, nullptr, current.ctx);
         }
     }
 }
@@ -340,7 +343,6 @@ NodeSessionManager::connect(LookupPrx lookup, NodePrx proxy)
 void
 NodeSessionManager::connected(NodePrx node, LookupPrx lookup)
 {
-    // TODO lookup and node should be non-optional
     unique_lock<mutex> lock(_mutex);
     auto instance = _instance.lock();
     if (!instance)
@@ -366,8 +368,12 @@ NodeSessionManager::connected(NodePrx node, LookupPrx lookup)
         make_shared<LookupPrx>(lookup),
         [=, self = shared_from_this()](const Ice::ConnectionPtr&, std::exception_ptr)
         { self->disconnected(node, lookup); });
-    auto l = p != _sessions.end() ? lookup->ice_fixed(connection) : lookup;
-    _connectedTo.emplace(node->ice_getIdentity(), make_pair(node, l));
+
+    if (p != _sessions.end())
+    {
+        lookup = lookup->ice_fixed(connection);
+    }
+    _connectedTo.emplace(node->ice_getIdentity(), make_pair(node, lookup));
 
     auto readerNames = instance->getTopicFactory()->getTopicReaderNames();
     auto writerNames = instance->getTopicFactory()->getTopicWriterNames();
@@ -375,8 +381,7 @@ NodeSessionManager::connected(NodePrx node, LookupPrx lookup)
     {
         try
         {
-            // TODO check the return value?
-            auto _ = l->announceTopicsAsync(readerNames, writerNames, _nodePrx);
+            lookup->announceTopicsAsync(readerNames, writerNames, _nodePrx, nullptr);
         }
         catch (const Ice::ObjectAdapterDestroyedException&)
         {
