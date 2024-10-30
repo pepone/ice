@@ -1431,57 +1431,17 @@ IcePy::SequenceInfo::marshal(
     auto pi = dynamic_pointer_cast<PrimitiveInfo>(elementType);
 
     Ice::OutputStream::size_type sizePos = 0;
-    if (optional)
+    if (optional && elementType->variableLength())
     {
-        if (elementType->variableLength())
-        {
-            sizePos = os->startSize();
-        }
-        else if (elementType->wireSize() > 1)
-        {
-            //
-            // Determine the sequence size.
-            //
-            Py_ssize_t sz = 0;
-            if (p != Py_None)
-            {
-                Py_buffer pybuf;
-                if (pi && PyObject_GetBuffer(p, &pybuf, PyBUF_SIMPLE | PyBUF_FORMAT) == 0)
-                {
-                    // Strings are handled as variable length types above.
-                    assert(pi->kind != PrimitiveInfo::KindString);
-                    sz = pybuf.len;
-                    PyBuffer_Release(&pybuf);
-                }
-                else
-                {
-                    PyErr_Clear(); // PyObject_GetBuffer sets an exception on failure.
-
-                    PyObjectHandle fs;
-                    if (pi)
-                    {
-                        fs = PyObjectHandle{getSequence(pi, p)};
-                    }
-                    else
-                    {
-                        fs = PyObjectHandle{PySequence_Fast(p, "expected a sequence value")};
-                    }
-                    if (!fs.get())
-                    {
-                        assert(PyErr_Occurred());
-                        return;
-                    }
-                    sz = PySequence_Fast_GET_SIZE(fs.get());
-                }
-            }
-
-            const int32_t isz = static_cast<int32_t>(sz);
-            os->writeSize(isz == 0 ? 1 : isz * elementType->wireSize() + (isz > 254 ? 5 : 1));
-        }
+        sizePos = os->startSize();
     }
 
     if (p == Py_None)
     {
+        if (optional && !elementType->variableLength())
+        {
+            os->writeSize(0);
+        }
         os->writeSize(0);
     }
     else if (pi)
@@ -1678,8 +1638,7 @@ IcePy::SequenceInfo::marshalPrimitiveSequence(const PrimitiveInfoPtr& pi, PyObje
     if (pi->kind != PrimitiveInfo::KindString)
     {
         //
-        // With Python 3 and greater we marshal sequences of primitive types using the new
-        // buffer protocol when possible, for older versions we use the old buffer protocol.
+        // We marshal sequences of primitive types using the new buffer protocol when possible.
         //
         Py_buffer pybuf;
         if (PyObject_GetBuffer(p, &pybuf, PyBUF_SIMPLE | PyBUF_FORMAT) == 0)
@@ -1703,6 +1662,11 @@ IcePy::SequenceInfo::marshalPrimitiveSequence(const PrimitiveInfoPtr& pi, PyObje
                 "float",  // KindFloat,
                 "double", // KindDouble
             };
+
+            if (optional)
+            {
+                os->writeSize(static_cast<int>(pybuf.len) * elementType->wireSize() + (pybuf.len > 254 ? 5 : 1));
+            }
 
             if (pi->kind != PrimitiveInfo::KindByte)
             {
