@@ -1438,10 +1438,6 @@ IcePy::SequenceInfo::marshal(
 
     if (p == Py_None)
     {
-        if (optional && !elementType->variableLength())
-        {
-            os->writeSize(1);
-        }
         os->writeSize(0);
     }
     else if (pi)
@@ -1457,7 +1453,7 @@ IcePy::SequenceInfo::marshal(
         }
 
         int sz = static_cast<int>(PySequence_Fast_GET_SIZE(fastSeq.get()));
-        if (optional && !elementType->variableLength())
+        if (optional && !elementType->variableLength() && elementType->wireSize() > 1)
         {
             os->writeSize(sz * elementType->wireSize() + (sz > 254 ? 5 : 1));
         }
@@ -1671,7 +1667,7 @@ IcePy::SequenceInfo::marshalPrimitiveSequence(
                 "double", // KindDouble
             };
 
-            if (optional)
+            if (optional && itemsize[pi->kind] > 1)
             {
                 os->writeSize(static_cast<int>(pybuf.len) * itemsize[pi->kind] + (pybuf.len > 254 ? 5 : 1));
             }
