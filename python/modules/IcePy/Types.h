@@ -378,7 +378,7 @@ namespace IcePy
         using SequenceMappingPtr = std::shared_ptr<SequenceMapping>;
 
         PyObject* getSequence(const PrimitiveInfoPtr&, PyObject*);
-        void marshalPrimitiveSequence(const PrimitiveInfoPtr&, PyObject*, Ice::OutputStream*);
+        void marshalPrimitiveSequence(const PrimitiveInfoPtr&, PyObject*, Ice::OutputStream*, bool);
         void unmarshalPrimitiveSequence(
             const PrimitiveInfoPtr&,
             Ice::InputStream*,

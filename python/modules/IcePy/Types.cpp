@@ -1440,13 +1440,13 @@ IcePy::SequenceInfo::marshal(
     {
         if (optional && !elementType->variableLength())
         {
-            os->writeSize(0);
+            os->writeSize(1);
         }
         os->writeSize(0);
     }
     else if (pi)
     {
-        marshalPrimitiveSequence(pi, p, os);
+        marshalPrimitiveSequence(pi, p, os, optional);
     }
     else
     {
@@ -1456,8 +1456,12 @@ IcePy::SequenceInfo::marshal(
             return;
         }
 
-        Py_ssize_t sz = PySequence_Fast_GET_SIZE(fastSeq.get());
-        os->writeSize(static_cast<int>(sz));
+        int sz = static_cast<int>(PySequence_Fast_GET_SIZE(fastSeq.get()));
+        if (optional && !elementType->variableLength())
+        {
+            os->writeSize(sz * elementType->wireSize() + (sz > 254 ? 5 : 1));
+        }
+        os->writeSize(sz);
         for (Py_ssize_t i = 0; i < sz; ++i)
         {
             PyObject* item = PySequence_Fast_GET_ITEM(fastSeq.get(), i);
@@ -1629,7 +1633,11 @@ IcePy::SequenceInfo::getSequence(const PrimitiveInfoPtr& pi, PyObject* p)
 }
 
 void
-IcePy::SequenceInfo::marshalPrimitiveSequence(const PrimitiveInfoPtr& pi, PyObject* p, Ice::OutputStream* os)
+IcePy::SequenceInfo::marshalPrimitiveSequence(
+    const PrimitiveInfoPtr& pi,
+    PyObject* p,
+    Ice::OutputStream* os,
+    bool optional)
 {
     //
     // For most types, we accept an object that implements the buffer protocol
@@ -1665,7 +1673,7 @@ IcePy::SequenceInfo::marshalPrimitiveSequence(const PrimitiveInfoPtr& pi, PyObje
 
             if (optional)
             {
-                os->writeSize(static_cast<int>(pybuf.len) * elementType->wireSize() + (pybuf.len > 254 ? 5 : 1));
+                os->writeSize(static_cast<int>(pybuf.len) * itemsize[pi->kind] + (pybuf.len > 254 ? 5 : 1));
             }
 
             if (pi->kind != PrimitiveInfo::KindByte)
