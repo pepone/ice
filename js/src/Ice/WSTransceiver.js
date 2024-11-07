@@ -133,9 +133,12 @@ if (typeof WebSocket !== "undefined") {
             }
         }
 
-        //
-        // Returns true if all of the data was flushed to the kernel buffer.
-        //
+        /**
+         * Write the given byte buffer to the web socket. The buffer is written using multiple web socket send calls.
+         * 
+         * @param byteBuffer the byte buffer to write.
+         * @returns Whether or not the write completed synchronously.
+         **/
         write(byteBuffer) {
             if (this._exception) {
                 throw this._exception;
@@ -176,11 +179,8 @@ if (typeof WebSocket !== "undefined") {
                 this._fd.send(slice);
                 byteBuffer.position += packetSize;
 
-                //
-                // TODO: WORKAROUND for Safari issue. The websocket accepts all the
-                // data (bufferedAmount is always 0). We relinquish the control here
-                // to ensure timeouts work properly.
-                //
+                // WORKAROUND for Safari issue. The websocket accepts all the data (bufferedAmount is always 0). We
+                // relinquish the control here to ensure timeouts work properly.
                 if (IsSafari && byteBuffer.remaining > 0) {
                     Timer.setTimeout(cb, this.writeReadyTimeout());
                     return false;

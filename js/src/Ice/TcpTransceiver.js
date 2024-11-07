@@ -131,9 +131,12 @@ if (typeof net.createConnection === "function") {
             }
         }
 
-        //
-        // Returns true if all of the data was flushed to the kernel buffer.
-        //
+        /**
+         * Write the given byte buffer to the socket. The buffer is written using multiple socket write calls.
+         * 
+         * @param byteBuffer the byte buffer to write.
+         * @returns Whether or not the write completed synchronously.
+         **/
         write(byteBuffer) {
             if (this._exception) {
                 throw this._exception;
@@ -157,6 +160,7 @@ if (typeof net.createConnection === "function") {
                 });
 
                 byteBuffer.position += packetSize;
+
                 if (!sync) {
                     return false; // Wait for callback to be called before sending more data.
                 }

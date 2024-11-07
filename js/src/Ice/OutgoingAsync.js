@@ -81,12 +81,12 @@ export class ProxyOutgoingAsyncBase extends OutgoingAsyncBase {
         }
     }
 
-    retryException(ex) {
+    retryException() {
         try {
-            // It's important to let the retry queue do the retry. This is
-            // called from the connect request handler and the retry might
-            // require could end up waiting for the flush of the
-            // connection to be done.
+            // It's important to let the retry queue do the retry. This is called from the connect request handler and
+            // the retry might require could end up waiting for the flush of the connection to be done.
+            
+            // Clear request handler and always retry
             this._proxy._requestHandlerCache.clearCachedRequestHandler(this._handler);
             this._instance.retryQueue().add(this, 0);
         } catch (ex) {

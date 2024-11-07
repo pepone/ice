@@ -316,7 +316,7 @@ export class ConnectionI {
                     try {
                         callback(this);
                     } catch (ex) {
-                        this._logger.error("connection callback exception:\n" + ex + "\n" + this._desc);
+                        this._logger.error(`connection callback exception:\n${ex}\n${this._desc}`);
                     }
                 });
             }
@@ -441,8 +441,10 @@ export class ConnectionI {
         this._hasMoreData.value = (operation & SocketOperation.Read) !== 0;
 
         let info = null;
+        let messages = null;
         try {
             if ((operation & SocketOperation.Write) !== 0 && this._writeStream.buffer.remaining > 0) {
+                Debug.assert(this._sendStream.length > 0);
                 if (!this.write(this._writeStream.buffer)) {
                     Debug.assert(!this._writeStream.isEmpty());
                     return;
@@ -554,16 +556,16 @@ export class ConnectionI {
             } else {
                 Debug.assert(this._state <= StateClosingPending);
 
-                //
-                // We parse messages first, if we receive a close
-                // connection message we won't send more messages.
-                //
+                // We parse messages first, if we receive a close connection message we won't send more messages.
                 if ((operation & SocketOperation.Read) !== 0) {
                     info = this.parseMessage();
                 }
 
                 if ((operation & SocketOperation.Write) !== 0) {
-                    this.sendNextMessage();
+                    messages = this.sendNextMessage();
+                    if (messages !== null) {
+                        ++this.upcallCount;
+                    }
                 }
             }
         } catch (ex) {
@@ -571,23 +573,30 @@ export class ConnectionI {
             return;
         }
 
-        this.upcall(info);
+        this.upcall(info, messages);
 
         if (this._hasMoreData.value) {
             Timer.setImmediate(() => this.message(SocketOperation.Read)); // Don't tie up the thread.
         }
     }
 
-    upcall(info) {
+    upcall(info, messages) {
         let count = 0;
-        //
-        // Notify the factory that the connection establishment and
-        // validation has completed.
-        //
+        // Notify the factory that the connection establishment and validation has completed.
         if (this._startPromise !== null) {
             this._startPromise.resolve();
 
             this._startPromise = null;
+            ++count;
+        }
+
+        if (messages != null) {
+            for (const message of messages) {
+                if (message.outAsync !== null) {
+                    Debug.assert(message.receivedReply);
+                    message.outAsync.completed(message.info.stream);
+                }
+            }
             ++count;
         }
 
@@ -599,17 +608,11 @@ export class ConnectionI {
 
             if (info.requestCount > 0) {
                 this.dispatchAll(info.stream, info.requestCount, info.requestId, info.adapter);
-
-                //
-                // Don't increase count, the dispatch count is
-                // decreased when the incoming reply is sent.
-                //
+                // Don't increase count, the dispatch count is decreased when the incoming reply is sent.
             }
         }
 
-        //
         // Decrease the upcall count.
-        //
         if (count > 0) {
             this._upcallCount -= count;
             if (this._upcallCount === 0) {
@@ -1141,8 +1144,9 @@ export class ConnectionI {
     }
 
     sendNextMessage() {
+        let completed = null;
         if (this._sendStreams.length === 0) {
-            return;
+            return completed;
         }
 
         Debug.assert(!this._writeStream.isEmpty() && this._writeStream.pos === this._writeStream.size);
@@ -1154,6 +1158,11 @@ export class ConnectionI {
                 let message = this._sendStreams.shift();
                 this._writeStream.swap(message.stream);
                 message.sent();
+                if (message.receivedReply)
+                {
+                    completed ??= [];
+                    completed.push(message);
+                }
 
                 //
                 // If there's nothing left to send, we're done.
@@ -1170,7 +1179,7 @@ export class ConnectionI {
                 // connection.
                 //
                 if (this._state >= StateClosingPending) {
-                    return;
+                    return completed;
                 }
 
                 //
@@ -1191,7 +1200,7 @@ export class ConnectionI {
                 //
                 if (this._writeStream.pos != this._writeStream.size && !this.write(this._writeStream.buffer)) {
                     Debug.assert(!this._writeStream.isEmpty());
-                    return; // not done
+                    return completed; // not done
                 }
             }
 
@@ -1209,6 +1218,7 @@ export class ConnectionI {
         }
 
         Debug.assert(this._writeStream.isEmpty());
+        return completed;
     }
 
     sendMessage(message) {
@@ -1228,7 +1238,6 @@ export class ConnectionI {
         TraceUtil.traceSend(stream, this, this._logger, this._traceLevels);
 
         if (this.write(stream.buffer)) {
-            // Entire buffer was written immediately.
             message.sent();
             return AsyncStatus.Sent;
         }
@@ -1320,15 +1329,28 @@ export class ConnectionI {
                     TraceUtil.traceRecv(info.stream, this, this._logger, this._traceLevels);
                     info.requestId = info.stream.readInt();
                     info.outAsync = this._asyncRequests.get(info.requestId);
-                    if (info.outAsync) {
+                    if (info.outAsync !== undefined)
+                    {
                         this._asyncRequests.delete(info.requestId);
-                        ++this._upcallCount;
-                    } else {
-                        info = null;
-                    }
 
-                    if (this._closed !== undefined && this._state < StateClosing && this._asyncRequests.size === 0) {
-                        this.doApplicationClose();
+                        // If we just received the reply for a request which isn't acknowledge as sent yet, we queue the
+                        // reply instead of processing it right away. It will be processed once the write callback is
+                        // invoked for the message.
+                        const message = this._sendStreams.length > 0 ? this._sendStreams[0] : null;
+                        if (message !== null && message.outAsync === info.outAsync) {
+                            message.receivedReply = true;
+                            message.info = info;
+                            info = null;
+                        } else {
+                            Debug.assert(info.outAsync.isSent());
+                            ++this._upcallCount;
+                        }
+
+                        if (this._closed !== undefined && this._state < StateClosing && this._asyncRequests.size === 0) {
+                            this.doApplicationClose();
+                        }
+                    } else {
+                        info.outAsync = null;
                     }
                     break;
                 }
@@ -1488,10 +1510,12 @@ export class ConnectionI {
 }
 
 class OutgoingMessage {
-    constructor() {
-        this.stream = null;
-        this.outAsync = null;
-        this.requestId = 0;
+    constructor(requestId, stream, outAsync) {
+        this.stream = stream;
+        this.outAsync = outAsync;
+        this.requestId = requestId;
+        this.receivedReply = false;
+        this.info = null;
     }
 
     canceled() {
@@ -1512,18 +1536,10 @@ class OutgoingMessage {
     }
 
     static createForStream(stream) {
-        const m = new OutgoingMessage();
-        m.stream = stream;
-        m.requestId = 0;
-        m.outAsync = null;
-        return m;
+        return new OutgoingMessage(0, stream, null);
     }
 
     static create(out, stream, requestId) {
-        const m = new OutgoingMessage();
-        m.stream = stream;
-        m.outAsync = out;
-        m.requestId = requestId;
-        return m;
+        return new OutgoingMessage(requestId, stream, out);
     }
 }

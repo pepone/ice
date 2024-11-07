@@ -19,6 +19,7 @@ export class AsyncResult extends Promise {
         this._state = 0;
         this._sentSynchronously = false;
         this._exception = null;
+        this._completedFrom = null;
     }
 
     cancel() {
@@ -33,21 +34,16 @@ export class AsyncResult extends Promise {
         return (this._state & AsyncResult.Sent) > 0;
     }
 
-    throwLocalException() {
-        if (this._exception !== null) {
-            throw this._exception;
-        }
-    }
-
     sentSynchronously() {
         return this._sentSynchronously;
     }
 
     markSent(done) {
-        Debug.assert((this._state & AsyncResult.Done) === 0);
+        Debug.assert((this._state & AsyncResult.Done) === 0, `Unexpected async result status: ${this._state} completed: ${this._completedFrom}, ${this}`);
         this._state |= AsyncResult.Sent;
         if (done) {
             this._state |= AsyncResult.Done | AsyncResult.Ok;
+            this._completedFrom = new Error().stack;
             this._cancellationHandler = null;
             this.resolve();
         }
@@ -58,6 +54,7 @@ export class AsyncResult extends Promise {
         this._state |= AsyncResult.Done;
         if (ok) {
             this._state |= AsyncResult.Ok;
+            this._completedFrom = new Error().stack;
         }
         this._cancellationHandler = null;
         if (completed) {
