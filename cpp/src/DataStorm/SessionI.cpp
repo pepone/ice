@@ -531,6 +531,7 @@ SessionI::connected(SessionPrx session, const Ice::ConnectionPtr& connection, co
 #    pragma GCC diagnostic push
 #    pragma GCC diagnostic ignored "-Wshadow"
 #endif
+        // Register a callback with the connection manager to reconnect the session if the connection is closed.
         _instance->getConnectionManager()->add(
             connection,
             self,
@@ -553,6 +554,7 @@ SessionI::connected(SessionPrx session, const Ice::ConnectionPtr& connection, co
     {
         _instance->cancelTimerTask(_retryTask);
         _retryTask = nullptr;
+        _retryCount = 0;
     }
 
     ++_sessionInstanceId;
@@ -633,11 +635,16 @@ SessionI::retry(NodePrx node, exception_ptr exception)
 {
     lock_guard<mutex> lock(_mutex);
 
+    // Cancel any pending retry task, we are starting a new attempt.
+    if (_retryTask)
+    {
+        _instance->cancelTimerTask(_retryTask);
+        _retryTask = nullptr;
+    }
+
     if (exception)
     {
-        //
         // Don't retry if we are shutting down.
-        //
         try
         {
             rethrow_exception(exception);
@@ -657,18 +664,8 @@ SessionI::retry(NodePrx node, exception_ptr exception)
 
     if (node->ice_getEndpoints().empty() && node->ice_getAdapterId().empty())
     {
-        if (_retryTask)
-        {
-            _instance->cancelTimerTask(_retryTask);
-            _retryTask = nullptr;
-        }
-        _retryCount = 0;
-
-        //
-        // If we can't retry connecting to the node because we don't have its endpoints,
-        // we just wait for the duration of the last retry delay for the peer to reconnect.
-        // If it doesn't reconnect, we'll destroy this session after the timeout.
-        //
+        // We cannot retry because we don't have the peer endpoints. Wait twice the last retry interval for the peer to
+        // reconnect.
         auto delay = _instance->getRetryDelay(_instance->getRetryCount()) * 2;
 
         if (_traceLevels->session > 0)
@@ -678,15 +675,13 @@ SessionI::retry(NodePrx node, exception_ptr exception)
                 << " (ms) for peer to reconnect";
         }
 
+        // Schedule a timer to remove the session if the peer doesn't reconnect.
         _retryTask = make_shared<IceInternal::InlineTimerTask>([self = shared_from_this()] { self->remove(); });
         _instance->scheduleTimerTask(_retryTask, delay);
     }
     else
     {
-        //
-        // If we can retry the connection attempt, we schedule a timer to retry. Always
-        // retry immediately on the first attempt.
-        //
+        // Schedule a timer to retry. Always retry immediately on the first attempt.
         auto delay = _retryCount == 0 ? 0ms : _instance->getRetryDelay(_retryCount - 1);
         ++_retryCount;
 
@@ -703,6 +698,7 @@ SessionI::retry(NodePrx node, exception_ptr exception)
                 out << _id << ": connection to `" << node->ice_toString()
                     << "` failed and the retry limit has been reached";
             }
+
             if (exception)
             {
                 try
