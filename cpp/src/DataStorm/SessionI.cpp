@@ -554,7 +554,6 @@ SessionI::connected(SessionPrx session, const Ice::ConnectionPtr& connection, co
     {
         _instance->cancelTimerTask(_retryTask);
         _retryTask = nullptr;
-        _retryCount = 0;
     }
 
     ++_sessionInstanceId;
