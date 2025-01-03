@@ -87,15 +87,32 @@ namespace
 
             if (auto nodeSession = _nodeSession.lock())
             {
-                try
+                // Checks whether there is an active NodeSession for the publisher matching the current connection.
+                // - If there is a match, forward the call to the target node.
+                // - Otherwise, destroy the publisher's NodeSession and notify the publisher of the disconnection.
+                auto publisherNodeSession = _nodeSessionManager->getSession(publisher->ice_getIdentity());
+                if (publisherNodeSession && publisherNodeSession->getConnection() == current.con)
                 {
-                    updateNodeAndSessionProxy(*publisher, publisherSession, current);
-                    nodeSession->addSession(*publisherSession);
-                    // Forward the call to the target Node object, don't need to wait for the result.
-                    _node->confirmCreateSessionAsync(publisher, publisherSession, nullptr);
+                    try
+                    {
+                        updateNodeAndSessionProxy(*publisher, publisherSession, current);
+                        nodeSession->addSession(*publisherSession);
+                        // Forward the call to the target Node object, don't need to wait for the result.
+                        _node->confirmCreateSessionAsync(publisher, publisherSession, nullptr);
+                    }
+                    catch (const CommunicatorDestroyedException&)
+                    {
+                    }
                 }
-                catch (const CommunicatorDestroyedException&)
+                else
                 {
+                    // The publisher's NodeSession is from an older connection, it just happen that the dispatch of the
+                    // confirmCreateSession request run before that the close connection callback removed it.
+                    if (publisherNodeSession)
+                    {
+                        _nodeSessionManager->destroySession(publisherNodeSession, *publisher);
+                    }
+                    publisherSession->ice_fixed(current.con)->disconnectedAsync(nullptr);
                 }
             }
         }

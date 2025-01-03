@@ -41,6 +41,7 @@ namespace DataStormI
         [[nodiscard]] std::shared_ptr<NodeSessionI> getSessionNoLock(const Ice::Identity&) const;
 
         void forward(const Ice::ByteSeq&, const Ice::Current&) const;
+        void destroySession(const Ice::ConnectionPtr&, const DataStormContract::NodePrx&);
 
     private:
         void connect(const DataStormContract::LookupPrx&, const DataStormContract::NodePrx&);
@@ -49,8 +50,6 @@ namespace DataStormI
 
         void disconnected(const DataStormContract::NodePrx&, const DataStormContract::LookupPrx&);
         void disconnected(const DataStormContract::LookupPrx&);
-
-        void destroySession(const Ice::ConnectionPtr&, const DataStormContract::NodePrx&);
 
         std::weak_ptr<Instance> _instance;
         const std::shared_ptr<TraceLevels> _traceLevels;
