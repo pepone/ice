@@ -63,6 +63,13 @@ namespace
 {
     @synchronized([ICELocalObject class])
     {
+        // Avoid recursive calls to dealloc.
+        if (_alreadyInDealloc)
+        {
+            return;
+        }
+        _alreadyInDealloc = YES;
+
         assert(_cppObject != nullptr);
 
         // Find the object in the cache. If it's not there, it's likely that another thread already replaced
@@ -80,6 +87,7 @@ namespace
                 cachedObjects->erase(p);
             }
         }
+        _alreadyInDealloc = NO;
     }
 }
 

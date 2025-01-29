@@ -16,6 +16,7 @@ ICEIMPL_API @interface ICELocalObject : NSObject
 
 @interface ICELocalObject ()
 @property(nonatomic, readonly) std::shared_ptr<void> cppObject;
+@property(nonatomic) BOOL alreadyInDealloc;
 + (nullable instancetype)getHandle:(std::shared_ptr<void>)cppObject NS_RETURNS_RETAINED;
 @end
 
