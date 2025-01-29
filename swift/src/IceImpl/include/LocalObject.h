@@ -1,5 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 #import "Config.h"
+#include <objc/objc.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -16,6 +17,7 @@ ICEIMPL_API @interface ICELocalObject : NSObject
 
 @interface ICELocalObject ()
 @property(nonatomic, readonly) std::shared_ptr<void> cppObject;
+@property(nonatomic) BOOL alreadyInDealloc;
 + (nullable instancetype)getHandle:(std::shared_ptr<void>)cppObject NS_RETURNS_RETAINED;
 @end
 
