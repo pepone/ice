@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix
+    xmlns="http://wixtoolset.org/schemas/v4/wxs">
+    <Package Name="Ice" Manufacturer="ZeroC, Inc." Version="3.8.0.0" InstallerVersion="500" Compressed="yes" >
+        <MediaTemplate />
+        <Icon Id="IceGridGUI_ico" SourceFile="!(bindpath.SOURCE_ROOT)/java/src/IceGridGUI/src/main/resources/icons/icegrid.ico" />
+        <StandardDirectory Id="ProgramFiles64Folder">
+            <Directory Id="InstallFolder" Name="Ice-3.8.0">
+                <Directory Id="BinFolder" Name="bin"/>
+                <Directory Id="SliceFolder" Name="slice"/>
+                <Directory Id="ConfigFolder" Name="config"/></Directory>
+        </StandardDirectory>
+        <StandardDirectory Id="ProgramMenuFolder">
+            <Directory Id="MyAppStartMenu" Name="Ice-3.8.0"/>
+        </StandardDirectory>
+
+        <!-- Custom UI -->
+        <UI>
+            <!-- Welcome Dialog -->
+            <DialogRef Id="WelcomeDlg"/>
+            <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="LicenseAgreementDlg">1</Publish>
+
+            <!-- License Agreement -->
+            <DialogRef Id="LicenseAgreementDlg"/>
+            <Publish Dialog="LicenseAgreementDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg">1</Publish>
+            <Publish Dialog="LicenseAgreementDlg" Control="Next" Event="NewDialog" Value="InstallDirDlg">LicenseAccepted=1</Publish>
+
+            <!-- Installation Folder -->
+            <DialogRef Id="InstallDirDlg"/>
+            <Publish Dialog="InstallDirDlg" Control="Back" Event="NewDialog" Value="LicenseAgreementDlg">1</Publish>
+            <Publish Dialog="InstallDirDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
+
+            <!-- Install Progress -->
+            <DialogRef Id="VerifyReadyDlg"/>
+            <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="InstallDirDlg">1</Publish>
+            <Publish Dialog="VerifyReadyDlg" Control="Next" Event="NewDialog" Value="ProgressDlg">1</Publish>
+
+            <!-- Final Completion Window -->
+            <DialogRef Id="ExitDlg"/>
+        </UI>
+
+        <!-- License File -->
+        <Property Id="WixUILicenseRtf" Value="!(bindpath.SOURCE_ROOT)\license.rtf"/>
+
+        <!-- Select Install Folder -->
+        <Property Id="InstallFolder" Value="[ProgramFiles64Folder]\Ice-3.8.0"/>
+
+        <ComponentGroup Id="ProductComponents">
+            <!-- Bin Files -->
+            <Files Include="!(bindpath.BIN_ROOT)/cpp/bin/x64/Release/*" Directory="BinFolder"/>
+            <File Source="!(bindpath.SOURCE_ROOT)/java/lib/icegridgui.jar" />
+            <!-- Slice Files-->
+            <Files Include="!(bindpath.SOURCE_ROOT)/slice/**" Directory="SliceFolder"/>
+            <!-- Config Files -->
+            <Files Include="!(bindpath.SOURCE_ROOT)/cpp/config/*.cfg" Directory="ConfigFolder"/>
+            <Files Include="!(bindpath.SOURCE_ROOT)/cpp/config/templates.xml" Directory="ConfigFolder"/>
+            <!-- License Files -->
+            <File Id="license" Source="!(bindpath.SOURCE_ROOT)/packaging/msi/docs/LICENSE.txt" />
+            <File Id="ice-license" Source="!(bindpath.SOURCE_ROOT)/packaging/msi/docs/ICE_LICENSE.txt" />
+            <File Id="third-party-license" Source="!(bindpath.SOURCE_ROOT)/packaging/msi/docs/THIRD_PARTY_LICENSE.txt" />
+        </ComponentGroup>
+        <ComponentGroup Id="EnvironmentVariables">
+            <Component Directory="BinFolder" Guid="*">
+                <Environment Id="AddToPath"
+                            Name="PATH"
+                            Value="[BinFolder]"
+                            Permanent="no"
+                            Action="set"
+                            System="yes"/>
+            </Component>
+        </ComponentGroup>
+        <ComponentGroup Id="StartMenuComponents">
+            <Component Directory="MyAppStartMenu" Guid="*">
+                <Shortcut Id="ManualLink" Name="Ice Manual" Target="https://doc.zeroc.com/ice/3.8/" />
+                <Shortcut
+                    Id="SampleProgramsLink"
+                    Name="Ice Sample Programs"
+                    Target="https://github.com/zeroc-ice/ice-demos/tree/v3.8.0" />
+                <Shortcut 
+                    Id="ReleaseNotesLink"
+                    Name="Release Notes"
+                    Target="https://doc.zeroc.com/rel/ice-releases/ice-3-8/ice-3-8-0-release-notes" />
+                <Shortcut
+                    Id="SourceCodeLink"
+                    Name="Source Code on Github"
+                    Target="https://github.com/zeroc-ice/ice/tree/v3.8.0" />
+                <Shortcut
+                    Id="UsingBinDistLink"
+                    Name="Using this Binary Distribution" 
+                    Target="https://doc.zeroc.com/rel/ice-releases/ice-3-8/ice-3-8-0-release-notes/using-the-windows-binary-distributions-for-ice-3-8-0" />
+                <Shortcut
+                    Id="IceGridGUIShortcut"
+                    Name="IceGrid GUI"
+                        Target="[BinFolder]icegridgui.jar"
+                        WorkingDirectory="BinFolder"
+                        Icon="IceGridGUIIcon"
+                        Advertise="no"/>
+                <RemoveFolder Id="RemoveMyAppStartMenu" Directory="MyAppStartMenu" On="uninstall"/>
+                <RegistryValue Root="HKCU"
+                            Key="Software\Ice-3.8.0"
+                            Name="Installed"
+                            Type="integer"
+                            Value="1"
+                            KeyPath="yes"/>
+            </Component>
+        </ComponentGroup>
+        <Feature Id="MainFeature" Title="Ice" Level="1">
+            <ComponentGroupRef Id="ProductComponents" />
+            <ComponentGroupRef Id="StartMenuComponents"/>
+            <ComponentGroupRef Id="EnvironmentVariables"/>
+        </Feature>
+    </Package>
+</Wix>
