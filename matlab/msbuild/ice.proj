@@ -23,6 +23,7 @@
             <PropertyGroup>
                 <MatlabCommand>&quot;$(MatlabHome)\bin\matlab.exe&quot; -nodesktop -nosplash -wait -log -minimize</MatlabCommand>
             </PropertyGroup>
+        </Otherwise>
     </Choose>
 
     <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
