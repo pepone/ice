@@ -58,6 +58,7 @@ function slice2js(options) {
     defaults.jsbundle = opts.jsbundle;
     defaults.tsbundle = opts.tsbundle;
     defaults.jsbundleFormat = opts.jsbundleFormat;
+    console.log("Running iceBuilder with defaults", defaults);
     return iceBuilder(defaults);
 }
 
