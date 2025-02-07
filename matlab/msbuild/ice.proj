@@ -16,7 +16,7 @@
     <Choose>
         <When Condition="'$(MATLAB_COMMAND)' != ''">
             <PropertyGroup>
-                <MatlabCommad>$(MATLAB_COMMAND)</MatlabCommad>
+                <MatlabCommand>$(MATLAB_COMMAND)</MatlabCommand>
             </PropertyGroup>
         </When>
         <Otherwise>
