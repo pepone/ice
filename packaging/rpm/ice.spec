@@ -54,7 +54,7 @@ Source0:  https://github.com/zeroc-ice/ice/archive/%{archive_tag}.tar.gz#/%{name
 BuildRequires: glibc-devel, libstdc++-devel
 BuildRequires: pkgconfig(expat), pkgconfig(libedit), pkgconfig(lmdb), pkgconfig(mcpp), pkgconfig(openssl), %{bzip2devel}
 BuildRequires: pkgconfig(libsystemd)
-BuildRequires: java-17-openjdk-devel java-17-openjdk-jmods
+BuildRequires: java-17-openjdk-devel, java-17-openjdk-jmods
 
 %ifarch %{_host_cpu}
 BuildRequires: php-devel
