@@ -6,8 +6,8 @@
         <Configuration Condition="'$(Configuration)' == ''">Release</Configuration>
         <RootDir>$([System.IO.Path]::GetFullPath( $(MSBuildThisFileDirectory)..\msbuild ))</RootDir>
         <ToolboxDir>$(MSBuildThisFileDirectory)..\toolbox\build</ToolboxDir>
-        <MatlabVersion Condition="'$(MatlabVersion)' == ''">2024a</MatlabVersion>
-        <MatlabHome Condition="'$(MatlabHome)' == ''">C:\Program Files\MATLAB\R$(MatlabVersion)</MatlabHome>
+        <MatlabVersion Condition="'$(MatlabVersion)' == ''">R2024a</MatlabVersion>
+        <MatlabHome Condition="'$(MatlabHome)' == ''">C:\Program Files\MATLAB\$(MatlabVersion)</MatlabHome>
         <!-- Override with the env settings -->
         <MatlabVersion Condition="'$(MATLAB_VERSION)' != ''">$(MATLAB_VERSION)</MatlabVersion>
         <MatlabHome Condition="'$(MATLAB_HOME)' != ''">$(MATLAB_HOME)</MatlabHome>
@@ -118,7 +118,7 @@
         <WriteFileWithReplacements InputFile="$(MSBuildThisFileDirectory)..\toolbox\info.template.xml"
                                    OutputFile="$(MSBuildThisFileDirectory)..\toolbox\info.xml"
                                    Tokens="@MatlabVersion@"
-                                   Replacements="R$(MatlabVersion)"/>
+                                   Replacements="$(MatlabVersion)"/>
         <MSBuild Projects="ice.toolbox.targets"
                  Properties="Configuration=$(Configuration);Platform=x64" />
         <Exec Command="$(MatlabCommand) &quot;cd('$(MSBuildThisFileDirectory)..\toolbox');addFolderToPath '$(ToolboxDir)'&quot;"
