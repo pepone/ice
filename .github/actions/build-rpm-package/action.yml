@@ -19,7 +19,9 @@ runs:
   using: "composite"
   steps:
     - name: Build Docker Image
-      run: docker build --pull -f ${{ inputs.dockerfile_path }} -t ice-rpm-package-builder .
+      run: |
+        BUILD_CONTEXT=$(dirname "${{ inputs.dockerfile_path }}")
+        docker build --pull -f ${{ inputs.dockerfile_path }} -t ice-rpm-package-builder "$BUILD_CONTEXT"
       shell: bash
 
     - name: Run Package Build with Mounted Source
