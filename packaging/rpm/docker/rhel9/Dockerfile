@@ -19,7 +19,7 @@ RUN dnf install -y \
     dnf clean all
 
 # Copy Ice spec file into the container
-COPY ../../ice.spec /usr/src/ice.spec
+COPY packaging/rpm/ice.spec /usr/src/ice.spec
 
 # Install build dependencies from the spec file
 RUN dnf builddep -y --setopt=multilib_policy=all /usr/src/ice.spec && \
