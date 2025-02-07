@@ -99,7 +99,7 @@
         </Task>
     </UsingTask>
 
-    <Target Name="Package" DependsOnTargets="BuildDist;MatlabHome;MatlabVersion">
+    <Target Name="Package" DependsOnTargets="BuildDist">
         <RemoveDir Directories="$(ToolboxDir)" />
         <MakeDir Directories="$(ToolboxDir);$(ToolboxDir)\doc" />
 
