@@ -21,7 +21,9 @@ if [[ -z "${TARGET_ARCH:-}" || ! " ${VALID_ARCHS[@]} " =~ " ${TARGET_ARCH} " ]];
 fi
 
 # Define common RPM macros
-RPM_MACROS=(-D "_topdir $RPM_BUILD_ROOT"  -D "vendor ZeroC, Inc.")
+RPM_MACROS=()
+RPM_MACROS+=(-D "_topdir $RPM_BUILD_ROOT")
+RPM_MACROS+=(-D "vendor ZeroC, Inc.")
 
 # Download sources
 cd "$RPM_BUILD_ROOT/SOURCES"
