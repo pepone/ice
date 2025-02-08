@@ -21,14 +21,14 @@ if [[ -z "${TARGET_ARCH:-}" || ! " ${VALID_ARCHS[@]} " =~ " ${TARGET_ARCH} " ]];
 fi
 
 # Define common RPM macros
-RPM_MACROS="-D '_topdir $RPM_BUILD_ROOT' -D 'vendor ZeroC\, Inc.'"
+RPM_MACROS=(-D "_topdir $RPM_BUILD_ROOT"  -D "vendor ZeroC, Inc.")
 
 # Download sources
 cd "$RPM_BUILD_ROOT/SOURCES"
 spectool -g "$ICE_SPEC_DEST" || { echo "Error: Failed to download sources."; exit 1; }
 
 # Build source RPM
-rpmbuild -bs "$ICE_SPEC_DEST" $RPM_MACROS --target="$TARGET_ARCH"
+rpmbuild -bs "$ICE_SPEC_DEST" "${RPM_MACROS[@]}" --target="$TARGET_ARCH"
 
 # Build binary RPM
-rpmbuild -bb "$ICE_SPEC_DEST" $RPM_MACROS --target="$TARGET_ARCH"
+rpmbuild -bb "$ICE_SPEC_DEST" "${RPM_MACROS[@]}" --target="$TARGET_ARCH"
