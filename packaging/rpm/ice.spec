@@ -52,7 +52,9 @@ Source0:  https://github.com/zeroc-ice/ice/archive/%{archive_tag}.tar.gz#/%{name
 # It's necessary to specify glibc-devel and libstdc++-devel here because gcc/gcc-c++ no longer install
 # the 32-bits versions by default on Rhel8 (see https://bugzilla.redhat.com/show_bug.cgi?id=1779597)
 BuildRequires: glibc-devel, libstdc++-devel
-BuildRequires: pkgconfig(expat), pkgconfig(libedit), pkgconfig(lmdb), pkgconfig(mcpp), pkgconfig(openssl), %{bzip2devel}
+BuildRequires: pkgconfig(expat), pkgconfig(libedit), pkgconfig(openssl), %{bzip2devel}
+# Use lmdb-devel and mcpp-devel packages instead of pkgconfig as a workaround for https://github.com/zeroc-ice/dist-utils/issues/257
+BuildRequires: lmdb-devel, mcpp-devel
 BuildRequires: pkgconfig(libsystemd)
 BuildRequires: java-17-openjdk-devel, java-17-openjdk-jmods
 
