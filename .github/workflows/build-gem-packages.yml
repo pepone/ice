@@ -1,8 +1,18 @@
 name: "Build GEM Packages"
 
 on:
-  workflow_call: # Allows calling from other workflows
-  workflow_dispatch: # Allows manual triggering
+  workflow_call:
+    inputs:
+      repository-url:
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      repository-url:
+        description: "The URL of the GEM repository to publish to"
+        default: "http://localhost:8081/repository/rubygems-nightly/"
+        required: false
+        type: string
 
 jobs:
   build-python-packages:
@@ -27,3 +37,7 @@ jobs:
         with:
           name: gem-packages
           path: ruby/*.gem
+      
+      - name: Publish GEM Packages
+        run: |
+          gem push ruby/*.gem --host ${{ inputs.repository-url }}

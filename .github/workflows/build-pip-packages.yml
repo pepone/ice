@@ -1,8 +1,18 @@
 name: "Build PIP Packages"
 
 on:
-  workflow_call: # Allows calling from other workflows
-  workflow_dispatch: # Allows manual triggering
+  workflow_call:
+    inputs:
+      repository-url:
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      repository-url:
+        description: "The URL of the PYPI registry to publish to"
+        default: "http://localhost:8081/repository/pypi-nightly/"
+        required: false
+        type: string
 
 jobs:
   build-python-packages:
@@ -38,3 +48,26 @@ jobs:
           path: |
             python/dist/zeroc_ice-*.whl
             python/dist/zeroc_ice-*.tar.gz
+
+  pack-dotnet:
+    runs-on: ubuntu-latest
+    needs: build-python-packages
+
+    steps:
+      - name: Download All Compiler Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Publish PIP Package
+        run:
+          mkdir -p ${{ github.workspace }}/dist
+          cp -r artifacts/pip-packages-windows-latest/*.whl ${{ github.workspace }}/dist
+          cp -r artifacts/pip-packages-macos-latest/*.whl ${{ github.workspace }}/dist
+          cp -r artifacts/pip-packages-macos-latest/*.tar.gz ${{ github.workspace }}/dist
+
+          python3 -m pip install --upgrade twine
+          python3 -m twine upload --repository-url ${{ inputs.repository-url }} python/dist/*
+        env:
+          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
