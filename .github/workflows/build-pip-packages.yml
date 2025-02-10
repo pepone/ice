@@ -3,11 +3,18 @@ name: "Build PIP Packages"
 on:
   workflow_call:
     inputs:
+      ice_version:
+        required: true
+        type: string
       repository-url:
         required: true
         type: string
   workflow_dispatch:
     inputs:
+      ice_version:
+        description: "The Ice version to build"
+        required: true
+        default: "3.8.0~alpha0"
       repository-url:
         description: "The URL of the PYPI registry to publish to"
         default: "http://localhost:8081/repository/pypi-nightly/"
@@ -16,7 +23,6 @@ on:
 
 jobs:
   build-python-packages:
-
     strategy:
       matrix:
         include:
@@ -60,8 +66,7 @@ jobs:
           path: artifacts
 
       - name: Publish PIP Package
-        run:
-          mkdir -p ${{ github.workspace }}/dist
+        run: mkdir -p ${{ github.workspace }}/dist
           cp -r artifacts/pip-packages-windows-latest/*.whl ${{ github.workspace }}/dist
           cp -r artifacts/pip-packages-macos-latest/*.whl ${{ github.workspace }}/dist
           cp -r artifacts/pip-packages-macos-latest/*.tar.gz ${{ github.workspace }}/dist

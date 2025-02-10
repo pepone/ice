@@ -11,6 +11,11 @@ on:
         description: "DEB_BUILD_OPTIONS for the build"
         required: false
         default: "nocheck parallel=4"
+  workflow_call:
+    inputs:
+      ice_version:
+        required: true
+        type: string
 
 jobs:
   build:
@@ -47,6 +52,6 @@ jobs:
         uses: ./ice/.github/actions/build-deb-package
         with:
           ice_version: ${{ inputs.ice_version }}
-          deb_build_options: ${{ inputs.deb_build_options }}
+          deb_build_options: ${{ inputs.deb_build_options || '' }}
           os: ${{ matrix.os }}
           dockerfile_path: ${{ matrix.dockerfile_path }}

@@ -3,11 +3,18 @@ name: "Build GEM Packages"
 on:
   workflow_call:
     inputs:
+      ice_version:
+        required: true
+        type: string
       repository-url:
         required: true
         type: string
   workflow_dispatch:
     inputs:
+      ice_version:
+        description: "The Ice version to build"
+        required: true
+        default: "3.8.0~alpha0"
       repository-url:
         description: "The URL of the GEM repository to publish to"
         default: "http://localhost:8081/repository/rubygems-nightly/"
@@ -37,7 +44,7 @@ jobs:
         with:
           name: gem-packages
           path: ruby/*.gem
-      
+
       - name: Publish GEM Packages
         run: |
           gem push ruby/*.gem --host ${{ inputs.repository-url }}

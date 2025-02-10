@@ -3,11 +3,18 @@ name: "Build NPM Packages"
 on:
   workflow_call:
     inputs:
+      ice_version:
+        required: true
+        type: string
       registry-url:
         required: true
         type: string
   workflow_dispatch:
     inputs:
+      ice_version:
+        description: "The Ice version to build"
+        required: true
+        default: "3.8.0~alpha0"
       registry-url:
         description: "The URL of the NPM registry to publish to"
         default: "http://localhost:8081/repository/npm-nightly/"
@@ -109,7 +116,7 @@ jobs:
         with:
           name: js-npm-packages
           path: ice/js/*.tgz
-      
+
       - name: Publish NPM Packages
         run: |
           echo "//${{ inputs.registry-url }}/:_auth=\${NPM_AUTH_TOKEN}" > ~/.npmrc

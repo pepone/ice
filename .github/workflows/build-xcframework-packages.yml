@@ -1,7 +1,11 @@
 name: "Build XCFramework Packages"
 
 on:
-  workflow_call: # Allows calling from other workflows
+  workflow_call:
+    inputs:
+      ice_version:
+        required: true
+        type: string
   workflow_dispatch: # Allows manual triggering
 
 jobs:

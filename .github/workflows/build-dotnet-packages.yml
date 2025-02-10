@@ -3,11 +3,18 @@ name: "Build .NET Packages"
 on:
   workflow_call:
     inputs:
+      ice_version:
+        required: true
+        type: string
       source-url:
         required: true
         type: string
   workflow_dispatch:
     inputs:
+      ice_version:
+        description: "The Ice version to build"
+        required: true
+        default: "3.8.0~alpha0"
       source-url:
         description: "The URL of the NuGet repository to publish to"
         default: "http://localhost:8081/repository/nuget-nightly/"
@@ -90,7 +97,7 @@ jobs:
           path: |
             csharp/msbuild/zeroc.ice.net/*.nupkg
             csharp/msbuild/zeroc.ice.net/*.snupkg
-      
+
       - name: Publish NuGet Packages
         run: |
           dotnet nuget push csharp/msbuild/zeroc.ice.net/*.nupkg --source ${{ inputs.source-url }} --api-key ${{ secrets.NUGET_API_KEY }}
