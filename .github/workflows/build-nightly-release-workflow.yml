@@ -17,11 +17,11 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       deb_version: ${{ steps.set-vars.outputs.deb_version }}
-      rpm_version: ${{ steps.set-vars.outputs.rpm_version }}
-      nuget_version: ${{ steps.set-vars.outputs.nuget_version }}
-      npm_version: ${{ steps.set-vars.outputs.npm_version }}
-      pypi_version: ${{ steps.set-vars.outputs.pypi_version }}
       gem_version: ${{ steps.set-vars.outputs.gem_version }}
+      npm_version: ${{ steps.set-vars.outputs.npm_version }}
+      nuget_version: ${{ steps.set-vars.outputs.nuget_version }}
+      pypi_version: ${{ steps.set-vars.outputs.pypi_version }}
+      rpm_version: ${{ steps.set-vars.outputs.rpm_version }}
     steps:
       - name: Set version variables
         id: set-vars
@@ -30,11 +30,19 @@ jobs:
           BUILD=${{ github.event.inputs.build_number }}
           VERSION=3.8.0
 
+          # Set version variables for nightly packages according to the platform conventions:
+          # - DEB: 3.8.0-0.nightlyYYYYMMDD.BUILD
           echo "deb_version=${VERSION}-0.nightly${DATE}.${BUILD}" >> $GITHUB_OUTPUT
-          echo "nuget_version=${VERSION}-nightly.${DATE}.${BUILD}" >> $GITHUB_OUTPUT
-          echo "npm_version=${VERSION}-nightly.${DATE}.${BUILD}" >> $GITHUB_OUTPUT
-          echo "pypi_version=${VERSION}.dev${DATE}.${BUILD}" >> $GITHUB_OUTPUT
+          # - GEM: 3.8.0.pre.YYYYMMDD.BUILD
           echo "gem_version=${VERSION}.pre.${DATE}.${BUILD}" >> $GITHUB_OUTPUT
+          # - NPM: 3.8.0-nightly.YYYYMMDD.BUILD
+          echo "npm_version=${VERSION}-nightly.${DATE}.${BUILD}" >> $GITHUB_OUTPUT
+          # - NuGet: 3.8.0-nightly.YYYYMMDD.BUILD
+          echo "nuget_version=${VERSION}-nightly.${DATE}.${BUILD}" >> $GITHUB_OUTPUT
+          # - PyPI: 3.8.0.devYYYYMMDD.BUILD
+          echo "pypi_version=${VERSION}.dev${DATE}.${BUILD}" >> $GITHUB_OUTPUT
+          # - RPM: 3.8.0-0.nightlyYYYYMMDD.BUILD
+          echo "rpm_version=${VERSION}-0.nightly${DATE}.${BUILD}" >> $GITHUB_OUTPUT
 
   build-deb-packages:
     name: Build DEB Packages
@@ -46,18 +54,18 @@ jobs:
       repository_url: ${{ inputs.repository_url }}
       repository_suffix: "nightly"
     secrets:
-      NEXUS_USERNAME: ${{ secrets.NEXUS_NIGTHLY_USERNAME || '' }}
-      NEXUS_PASSWORD: ${{ secrets.NEXUS_NIGTHLY_PASSWORD || '' }}
+      NEXUS_USERNAME: secrets.NEXUS_NIGHTLY_USERNAME
+      NEXUS_PASSWORD: secrets.NEXUS_NIGHTLY_PASSWORD
 
   build-dotnet-packages:
     name: Build .NET Packages
     uses: ./.github/workflows/build-dotnet-packages.yml
     needs: set-version
     with:
-      ice_version: ${{ needs.set-version.outputs.deb_version }}
+      ice_version: ${{ needs.set-version.outputs.nuget_version }}
       source_url: "${{ inputs.repository_url }}/nuget-nightly/"
     secrets:
-      NUGET_API_KEY: ${{ secrets.NEXUS_NIGTHLY_NUGET_API_KEY || '' }}
+      NUGET_API_KEY: secrets.NEXUS_NIGHTLY_NUGET_API_KEY
 
   build-gem-packages:
     name: Build GEM Packages
@@ -67,7 +75,7 @@ jobs:
       ice_version: ${{ needs.set-version.outputs.gem_version }}
       repository_url: "${{ inputs.repository_url }}/rubygems-nightly/"
     secrets:
-      RUBYGEMS_API_KEY: ${{ secrets.RUBYGEMS_NIGTHLY_API_KEY || '' }}
+      RUBYGEMS_API_KEY: secrets.RUBYGEMS_NIGHTLY_API_KEY
 
   build-matlab-packages:
     name: Build MATLAB Packages
@@ -85,7 +93,7 @@ jobs:
       ice_version: ${{ needs.set-version.outputs.npm_version }}
       registry_url: "${{ inputs.repository_url }}/npm-nightly/"
     secrets:
-      NPM_AUTH_TOKEN: ${{ secrets.NEXUS_NIGTHLY_NPM_AUTH_TOKEN || '' }}
+      NPM_AUTH_TOKEN: secrets.NEXUS_NIGHTLY_NPM_AUTH_TOKEN
 
   build-pip-packages:
     name: Build PIP Packages
@@ -95,8 +103,8 @@ jobs:
       ice_version: ${{ needs.set-version.outputs.pypi_version }}
       repository_url: "${{ inputs.repository_url }}/pypi-nightly/"
     secrets:
-      PYPI_USERNAME: ${{ secrets.NEXUS_NIGTHLY_USERNAME || '' }}
-      PYPI_PASSWORD: ${{ secrets.NEXUS_NIGTHLY_USERNAME || '' }}
+      PYPI_USERNAME: secrets.NEXUS_NIGHTLY_USERNAME
+      PYPI_PASSWORD: secrets.NEXUS_NIGHTLY_PASSWORD
 
   build-rpm-packages:
     name: Build RPM Packages
@@ -107,8 +115,8 @@ jobs:
       repository_url: ${{ inputs.repository_url }}
       repository_suffix: "nightly"
     secrets:
-      NEXUS_USERNAME: ${{ secrets.NEXUS_NIGTHLY_USERNAME || '' }}
-      NEXUS_PASSWORD: ${{ secrets.NEXUS_NIGTHLY_PASSWORD || '' }}
+      NEXUS_USERNAME: secrets.NEXUS_NIGHTLY_USERNAME
+      NEXUS_PASSWORD: secrets.NEXUS_NIGHTLY_PASSWORD
 
   build-xcframework-packages:
     name: Build XCFramework Packages
