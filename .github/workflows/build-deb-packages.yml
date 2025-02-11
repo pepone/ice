@@ -5,28 +5,38 @@ on:
     inputs:
       ice_version:
         description: "The Ice version to build"
-        required: true
-        default: "3.8.0~alpha0"
+        required: false
       deb_build_options:
         description: "DEB_BUILD_OPTIONS for the build"
         required: false
         default: "nocheck parallel=4"
       repository_url:
         description: "The URL of the Nexus repository to publish to"
-        default: "http://localhost:8081/repository/"
+        required: false
+        type: string
+      repository_suffix:
+        description: "The suffix to append to the repository URL"
         required: false
         type: string
   workflow_call:
     inputs:
       ice_version:
-        required: true
+        required: false
         type: string
       deb_build_options:
         type: string
-        required: true
+        required: false
       repository_url:
-        required: true
+        required: false
         type: string
+      repository_suffix:
+        required: false
+        type: string
+    secrets:
+      NEXUS_USERNAME:
+        required: false
+      NEXUS_PASSWORD:
+        required: false
 
 jobs:
   build:
@@ -62,7 +72,9 @@ jobs:
           deb_build_options: ${{ inputs.deb_build_options || '' }}
           distribution: ${{ matrix.distribution }}
           arch: ${{ matrix.arch }}
-          repository_url: ${{ inputs.repository_url }}
+          repository_url: ${{ inputs.repository_url || ''}}
+          repository_suffix: ${{ inputs.repository_suffix || '' }}
         env:
           NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
           NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
+        if: inputs.repository_url != ''

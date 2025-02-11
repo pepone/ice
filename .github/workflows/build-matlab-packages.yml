@@ -2,16 +2,7 @@ name: "Build MATLAB Packages"
 
 on:
   workflow_call:
-    inputs:
-      ice_version:
-        required: true
-        type: string
   workflow_dispatch:
-    inputs:
-      ice_version:
-        description: "The Ice version to build"
-        required: true
-        default: "3.8.0~alpha0"
 
 jobs:
   build-python-packages:

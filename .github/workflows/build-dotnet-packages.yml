@@ -4,20 +4,21 @@ on:
   workflow_call:
     inputs:
       ice_version:
-        required: true
+        required: false
         type: string
-      source-url:
-        required: true
+      source_url:
+        required: false
         type: string
+    secrets:
+      NUGET_API_KEY:
+        required: false
   workflow_dispatch:
     inputs:
       ice_version:
         description: "The Ice version to build"
-        required: true
-        default: "3.8.0~alpha0"
-      source-url:
+        required: false
+      source_url:
         description: "The URL of the NuGet repository to publish to"
-        default: "http://localhost:8081/repository/nuget-nightly/"
         required: false
         type: string
 
@@ -58,6 +59,7 @@ jobs:
         with:
           name: slice2cs-${{ matrix.target }}
           path: ${{ matrix.artifact-path }}
+
   pack-dotnet:
     runs-on: windows-latest
     needs: build-slice-compilers
@@ -89,6 +91,8 @@ jobs:
 
       - name: Pack .NET Packages
         run: dotnet msbuild csharp/msbuild/ice.proj /t:Pack /p:Configuration=Release /p:Platform=x64
+        env:
+          VERSION: ${{ inputs.ice_version || '' }}
 
       - name: Upload NuGet Packages
         uses: actions/upload-artifact@v4
@@ -100,4 +104,5 @@ jobs:
 
       - name: Publish NuGet Packages
         run: |
-          dotnet nuget push csharp/msbuild/zeroc.ice.net/*.nupkg --source ${{ inputs.source-url }} --api-key ${{ secrets.NUGET_API_KEY }}
+          dotnet nuget push csharp/msbuild/zeroc.ice.net/*.nupkg --source ${{ inputs.source_url }} --api-key ${{ secrets.NUGET_API_KEY }}
+        if: inputs.source_url != ''

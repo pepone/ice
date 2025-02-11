@@ -2,11 +2,7 @@ name: "Build XCFramework Packages"
 
 on:
   workflow_call:
-    inputs:
-      ice_version:
-        required: true
-        type: string
-  workflow_dispatch: # Allows manual triggering
+  workflow_dispatch:
 
 jobs:
   build-xcfranework-packages:

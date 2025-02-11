@@ -4,20 +4,21 @@ on:
   workflow_call:
     inputs:
       ice_version:
-        required: true
+        required: false
         type: string
-      registry-url:
-        required: true
+      registry_url:
+        required: false
         type: string
+    secrets:
+      NPM_AUTH_TOKEN:
+        required: false
   workflow_dispatch:
     inputs:
       ice_version:
         description: "The Ice version to build"
-        required: true
-        default: "3.8.0~alpha0"
-      registry-url:
+        required: false
+      registry_url:
         description: "The URL of the NPM registry to publish to"
-        default: "http://localhost:8081/repository/npm-nightly/"
         required: false
         type: string
 
@@ -102,13 +103,13 @@ jobs:
         run: make
         working-directory: ice/js
 
-      - name: Pack npm
+      - name: Update Version
         run: |
-          if [ ! -f "$GITHUB_WORKSPACE/ice/cpp/bin/slice2js" ]; then
-            echo "Error: slice2js binary is missing in cpp/bin"
-            exit 1
-          fi
-          npm pack
+          sed -i 's/"version":.*/"version": "${{ inputs.ice_version }}"/' package.json
+        if: inputs.ice_version != ''
+
+      - name: Pack npm
+        run: npm pack
         working-directory: ice/js
 
       - name: Upload NPM Packages
@@ -119,8 +120,8 @@ jobs:
 
       - name: Publish NPM Packages
         run: |
-          echo "//${{ inputs.registry-url }}/:_auth=\${NPM_AUTH_TOKEN}" > ~/.npmrc
+          echo "//${{ inputs.registry_url }}/:_auth=\${NPM_AUTH_TOKEN}" > ~/.npmrc
           echo "always-auth=true" >> ~/.npmrc
-          npm publish ice/js/*.tgz --registry ${{ inputs.registry-url }}
+          npm publish ice/js/*.tgz --registry ${{ inputs.registry_url }}
         env:
           NPM_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
