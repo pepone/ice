@@ -1,0 +1,108 @@
+name: Build Nightly Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      ice_version:
+        description: "Version to build for all packages"
+        required: true
+        default: "3.8.0"
+      build_number:
+        description: "Build number for nightly releases"
+        required: false
+        default: "1"
+
+jobs:
+  set-version:
+    runs-on: ubuntu-latest
+    outputs:
+      deb_version: ${{ steps.set-vars.outputs.deb_version }}
+      rpm_version: ${{ steps.set-vars.outputs.rpm_version }}
+      nuget_version: ${{ steps.set-vars.outputs.nuget_version }}
+      npm_version: ${{ steps.set-vars.outputs.npm_version }}
+      pypi_version: ${{ steps.set-vars.outputs.pypi_version }}
+      gem_version: ${{ steps.set-vars.outputs.gem_version }}
+    steps:
+      - name: Set version variables
+        id: set-vars
+        run: |
+          DATE=$(date +%Y%m%d)
+          BUILD=${{ github.event.inputs.build_number }}
+          VERSION=${{ github.event.inputs.ice_version }}
+
+          echo "deb_version=${VERSION}-0.nightly${DATE}.${BUILD}" >> $GITHUB_OUTPUT
+          echo "rpm_version=${VERSION}-0.nightly${DATE}.${BUILD}" >> $GITHUB_OUTPUT
+          echo "nuget_version=${VERSION}-nightly.${DATE}.${BUILD}" >> $GITHUB_OUTPUT
+          echo "npm_version=${VERSION}-nightly.${DATE}.${BUILD}" >> $GITHUB_OUTPUT
+          echo "pypi_version=${VERSION}.dev${DATE}.${BUILD}" >> $GITHUB_OUTPUT
+          echo "gem_version=${VERSION}.pre.${DATE}.${BUILD}" >> $GITHUB_OUTPUT
+
+  build-deb-packages:
+    name: Build DEB Packages
+    uses: ./.github/workflows/build-deb-packages.yml
+    needs: set-version
+    with:
+      ice_version: ${{ needs.set-version.outputs.deb_version }}
+      deb_build_options: "nocheck parallel=4"
+      repository_url: "http://localhost:8081/repository/"
+
+  build-dotnet-packages:
+    name: Build .NET Packages
+    uses: ./.github/workflows/build-dotnet-packages.yml
+    needs: set-version
+    with:
+      ice_version: ${{ needs.set-version.outputs.deb_version }}
+      source-url: "http://localhost:8081/repository/nuget-nightly/"
+
+  build-gem-packages:
+    name: Build GEM Packages
+    uses: ./.github/workflows/build-gem-packages.yml
+    needs: set-version
+    with:
+      ice_version: ${{ needs.set-version.outputs.gem_version }}
+      repository-url: "http://localhost:8081/repository/rubygems-nightly/"
+
+  build-matlab-packages:
+    name: Build MATLAB Packages
+    uses: ./.github/workflows/build-matlab-packages.yml
+    needs: set-version
+    with:
+      ice_version: ${{ needs.set-version.outputs.gem_version }}
+
+  build-msi-package:
+    name: Build MSI Package
+    uses: ./.github/workflows/build-msi-package.yml
+    needs: set-version
+    with:
+      ice_version: ${{ needs.set-version.outputs.gem_version }}
+
+  build-npm-packages:
+    name: Build NPM Packages
+    uses: ./.github/workflows/build-npm-packages.yml
+    needs: set-version
+    with:
+      ice_version: ${{ needs.set-version.outputs.gem_version }}
+      registry-url: "http://localhost:8081/repository/npm-nightly/"
+
+  build-pip-packages:
+    name: Build PIP Packages
+    uses: ./.github/workflows/build-pip-packages.yml
+    needs: set-version
+    with:
+      ice_version: ${{ needs.set-version.outputs.pypi_version }}
+      repository-url: "http://localhost:8081/repository/pypi-nightly/"
+
+  build-rpm-packages:
+    name: Build RPM Packages
+    uses: ./.github/workflows/build-rpm-packages.yml
+    needs: set-version
+    with:
+      ice_version: ${{ needs.set-version.outputs.rpm_version }}
+      repository-url: "http://localhost:8081/repository/rpm-nightly/"
+
+  build-xcframework-packages:
+    name: Build XCFramework Packages
+    uses: ./.github/workflows/build-xcframework-packages.yml
+    needs: set-version
+    with:
+      ice_version: ${{ needs.set-version.outputs.gem_version }}
