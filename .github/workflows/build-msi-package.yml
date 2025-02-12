@@ -14,6 +14,18 @@ jobs:
       - name: Setup Dependencies
         uses: ./.github/actions/setup-dependencies
 
+      - name: List Merge Modules Directory
+        run: |
+          echo "Checking Merge Modules in C:\Program Files (x86)\Common Files\Merge Modules"
+          Get-ChildItem "C:\Program Files (x86)\Common Files\Merge Modules" | Format-Table -AutoSize
+        shell: pwsh
+
+      - name: Check Visual Studio Components
+        run: |
+          echo "Checking installed Visual Studio components..."
+          Get-ItemProperty "HKLM:\SOFTWARE\WOW6432Node\Microsoft\VisualStudio\SxS\VC7"
+        shell: pwsh
+
       - name: Build C++ NuGet Packages
         run: msbuild /m ice.proj /t:Pack /p:BuildAllConfigurations=yes
         working-directory: cpp/msbuild
