@@ -1,0 +1,20 @@
+name: Debug Merge Modules on Windows-2022
+
+on:
+  workflow_dispatch: # Allows manual triggering of the workflow
+
+jobs:
+  check-merge-modules:
+    runs-on: windows-2022
+    steps:
+      - name: List Merge Modules Directory
+        run: |
+          echo "Checking Merge Modules in C:\Program Files (x86)\Common Files\Merge Modules"
+          Get-ChildItem "C:\Program Files (x86)\Common Files\Merge Modules" | Format-Table -AutoSize
+        shell: pwsh
+
+      - name: Check Visual Studio Components
+        run: |
+          echo "Checking installed Visual Studio components..."
+          Get-ItemProperty "HKLM:\SOFTWARE\WOW6432Node\Microsoft\VisualStudio\SxS\VC7"
+        shell: pwsh
