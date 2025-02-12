@@ -10,7 +10,9 @@ on:
         required: true
         type: string
     secrets:
-      RUBYGEMS_API_KEY:
+      REPOSITORY_USERNAME:
+        required: false
+      REPOSITORY_PASSWORD:
         required: false
   workflow_dispatch:
     inputs:
@@ -53,5 +55,6 @@ jobs:
 
       - name: Publish GEM Packages
         run: |
-          gem push ruby/*.gem --host ${{ inputs.repository_url }}
+           curl -u "${REPOSITORY_USERNAME}:${REPOSITORY_PASSWORD}" \
+             --upload-file "ruby/*.gem" ${{ inputs.repository_url }}
         if: inputs.repository_url != ''

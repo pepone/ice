@@ -30,32 +30,29 @@ on:
         required: false
         type: string
     secrets:
-      NEXUS_USERNAME:
+      REPOSITORY_USERNAME:
         required: false
-      NEXUS_PASSWORD:
+      REPOSITORY_PASSWORD:
         required: false
 
 jobs:
   build:
-    name: "Build for ${{ matrix.os }}"
-    runs-on: ${{ matrix.runner }}
+    name: "Build for ${{ matrix.distribution }}-${{ matrix.arch }}"
+    runs-on: ${{ matrix.arch == 'aarch64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
     strategy:
       matrix:
         include:
-          - os: rhel9
+          - distribution: rhel9
             runner: ubuntu-24.04
-            target_arch: x86_64
-            dockerfile_path: ice/packaging/rpm/docker/rhel9/Dockerfile
+            arch: x86_64
 
-          - os: rhel9-i686
+          - distribution: rhel9
             runner: ubuntu-24.04
-            target_arch: i686
-            dockerfile_path: ice/packaging/rpm/docker/rhel9/Dockerfile
+            arch: i686
 
-          - os: rhel9-arm64
+          - distribution: rhel9-arm64
             runner: ubuntu-24.04-arm
-            target_arch: aarch64
-            dockerfile_path: ice/packaging/rpm/docker/rhel9/Dockerfile
+            arch: aarch64
 
     steps:
       - name: Check out repository
@@ -67,6 +64,10 @@ jobs:
         uses: ./ice/.github/actions/build-rpm-package
         with:
           ice_version: ${{ inputs.ice_version }}
-          os: ${{ matrix.os }}
-          dockerfile_path: ${{ matrix.dockerfile_path }}
-          target_arch: ${{ matrix.target_arch }}
+          distribution: ${{ matrix.distribution }}
+          arch: ${{ matrix.arch }}
+          repository_url: ${{ inputs.repository_url || ''}}
+          repository_suffix: ${{ inputs.repository_suffix || '' }}
+        env:
+          REPOSITORY_USERNAME: ${{ secrets.REPOSITORY_USERNAME }}
+          REPOSITORY_PASSWORD: ${{ secrets.REPOSITORY_PASSWORD }}

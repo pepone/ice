@@ -19,6 +19,7 @@ jobs:
       deb_version: ${{ steps.set-vars.outputs.deb_version }}
       gem_version: ${{ steps.set-vars.outputs.gem_version }}
       npm_version: ${{ steps.set-vars.outputs.npm_version }}
+      maven_version: ${{ steps.set-vars.outputs.maven_version }}
       nuget_version: ${{ steps.set-vars.outputs.nuget_version }}
       pypi_version: ${{ steps.set-vars.outputs.pypi_version }}
       rpm_version: ${{ steps.set-vars.outputs.rpm_version }}
@@ -35,6 +36,8 @@ jobs:
           echo "deb_version=${VERSION}-0.nightly${DATE}.${BUILD}" >> $GITHUB_OUTPUT
           # - GEM: 3.8.0.pre.YYYYMMDD.BUILD
           echo "gem_version=${VERSION}.pre.${DATE}.${BUILD}" >> $GITHUB_OUTPUT
+          # - MAVEN: 3.8.0-nightly-YYYYMMDD.BUILD-SNAPSHOT
+          echo "maven_version=${VERSION}-nightly-${DATE}.${BUILD}-SNAPSHOT" >> $GITHUB_OUTPUT
           # - NPM: 3.8.0-nightly.YYYYMMDD.BUILD
           echo "npm_version=${VERSION}-nightly.${DATE}.${BUILD}" >> $GITHUB_OUTPUT
           # - NuGet: 3.8.0-nightly.YYYYMMDD.BUILD
@@ -54,8 +57,8 @@ jobs:
       repository_url: ${{ inputs.repository_url }}
       repository_suffix: "nightly"
     secrets:
-      NEXUS_USERNAME: secrets.NEXUS_NIGHTLY_USERNAME
-      NEXUS_PASSWORD: secrets.NEXUS_NIGHTLY_PASSWORD
+      REPOSITORY_USERNAME: secrets.NEXUS_NIGHTLY_USERNAME
+      REPOSITORY_PASSWORD: secrets.NEXUS_NIGHTLY_PASSWORD
 
   build-dotnet-packages:
     name: Build .NET Packages
@@ -73,13 +76,25 @@ jobs:
     needs: set-version
     with:
       ice_version: ${{ needs.set-version.outputs.gem_version }}
-      repository_url: "${{ inputs.repository_url }}/rubygems-nightly/"
+      repository_url: "${{ inputs.repository_url }}/rubygems-nightly/gems/"
     secrets:
-      RUBYGEMS_API_KEY: secrets.RUBYGEMS_NIGHTLY_API_KEY
+      REPOSITORY_USERNAME: secrets.NEXUS_NIGHTLY_USERNAME
+      REPOSITORY_PASSWORD: secrets.NEXUS_NIGHTLY_PASSWORD
 
   build-matlab-packages:
     name: Build MATLAB Packages
     uses: ./.github/workflows/build-matlab-packages.yml
+
+  build-maven-packages:
+    name: Build PIP Packages
+    uses: ./.github/workflows/build-maven-packages.yml
+    needs: set-version
+    with:
+      ice_version: ${{ needs.set-version.outputs.maven_version }}
+      repository_url: "${{ inputs.repository_url }}/maven-nightly/"
+    secrets:
+      MAVEN_USERNAME: secrets.NEXUS_NIGHTLY_USERNAME
+      MAVEN_PASSWORD: secrets.NEXUS_NIGHTLY_PASSWORD
 
   build-msi-package:
     name: Build MSI Package
@@ -115,8 +130,8 @@ jobs:
       repository_url: ${{ inputs.repository_url }}
       repository_suffix: "nightly"
     secrets:
-      NEXUS_USERNAME: secrets.NEXUS_NIGHTLY_USERNAME
-      NEXUS_PASSWORD: secrets.NEXUS_NIGHTLY_PASSWORD
+      REPOSITORY_USERNAME: secrets.NEXUS_NIGHTLY_USERNAME
+      REPOSITORY_PASSWORD: secrets.NEXUS_NIGHTLY_PASSWORD
 
   build-xcframework-packages:
     name: Build XCFramework Packages

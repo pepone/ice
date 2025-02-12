@@ -24,7 +24,6 @@ inputs:
     description: "The target build architecture: (e.g., x86_64, aarch64)"
     required: true
 
-
 runs:
   using: "composite"
   steps:
@@ -59,9 +58,9 @@ runs:
       run: |
         docker run --rm \
           -v "$GITHUB_WORKSPACE:/workspace" \
-          -e NEXUS_HOST="${{ inputs.repository_url }}/${{ inputs.distribution }}-${{ inputs.repository_suffix }}/" \
-          -e NEXUS_USERNAME="$NEXUS_USERNAME" \
-          -e NEXUS_PASSWORD="$NEXUS_PASSWORD" \
+          -e REPOSITORY_URL="${{ inputs.repository_url }}/${{ inputs.distribution }}-${{ inputs.repository_suffix }}/" \
+          -e REPOSITORY_USERNAME="$REPOSITORY_USERNAME" \
+          -e REPOSITORY_PASSWORD="$REPOSITORY_PASSWORD" \
           ice-deb-package-builder /workspace/ice/packaging/dpkg/publish-packages.sh
       shell: bash
       if: inputs.repository_url != ''

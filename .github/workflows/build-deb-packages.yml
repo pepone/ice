@@ -33,9 +33,9 @@ on:
         required: false
         type: string
     secrets:
-      NEXUS_USERNAME:
+      REPOSITORY_USERNAME:
         required: false
-      NEXUS_PASSWORD:
+      REPOSITORY_PASSWORD:
         required: false
 
 jobs:
@@ -75,6 +75,5 @@ jobs:
           repository_url: ${{ inputs.repository_url || ''}}
           repository_suffix: ${{ inputs.repository_suffix || '' }}
         env:
-          NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
-          NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
-        if: inputs.repository_url != ''
+          REPOSITORY_USERNAME: ${{ secrets.REPOSITORY_USERNAME }}
+          REPOSITORY_PASSWORD: ${{ secrets.REPOSITORY_PASSWORD }}

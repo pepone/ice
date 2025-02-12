@@ -7,12 +7,12 @@ if [ -z "${REPOSITORY_URL}" ]; then
     exit 1
 fi
 
-# Iterate over all .deb and .ddeb files in the current directory and subdirectories
-find . -type f \( -name "*.deb" -o -name "*.ddeb" \) | while read -r file; do
+# Iterate over all .rpm files in the current directory and subdirectories
+find . -type f -name "*.rpm" | while read -r file; do
     echo "Uploading $file to Nexus..."
     curl -u "${REPOSITORY_USERNAME}:${REPOSITORY_PASSWORD}" \
          -H "Content-Type: multipart/form-data" \
-         --data-binary "$file" \
+         --data-binary "@$file" \
          "${REPOSITORY_URL}"
     echo "Successfully uploaded: $file"
 done

@@ -38,11 +38,16 @@ jobs:
       - name: Build Slice Compiler
         run: make slice2java
         working-directory: cpp
-      
+
+      - name: Update Java Version
+        run: |
+          echo -n "iceVersion = ${{ github.event.inputs.ice_version }}" >> java/gradle.properties
+        if: github.event.inputs.ice_version != ''
+
       - name: Build Java Packages
         run: ./gradlew dist
         working-directory: java
-      
+
       - name: Upload Java Packages
         uses: actions/upload-artifact@v4
         with:
