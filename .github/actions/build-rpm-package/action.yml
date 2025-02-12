@@ -38,7 +38,7 @@ runs:
       run: |
         docker run --rm \
           -v "$GITHUB_WORKSPACE:/workspace" \
-          -e REPOSITORY_URL="${{ inputs.repository_url }}/${{ inputs.distribution }}-${{ inputs.repository_suffix }}/" \
+          -e REPOSITORY_URL="${{ inputs.repository_url }}/${{ inputs.distribution }}${{ inputs.repository_suffix }}/" \
           -e REPOSITORY_USERNAME="$REPOSITORY_USERNAME" \
           -e REPOSITORY_PASSWORD="$REPOSITORY_PASSWORD" \
           ice-deb-package-builder /workspace/ice/packaging/rpm/publish-packages.sh

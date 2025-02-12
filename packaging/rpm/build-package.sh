@@ -13,6 +13,11 @@ ICE_SPEC_DEST="$RPM_BUILD_ROOT/SPECS/ice.spec"
 
 cp "$ICE_SPEC_SRC" "$ICE_SPEC_DEST"
 
+if [[ -n "${ICE_VERSION:-}" ]]; then
+    # Replace version in spec file
+    sed -i "s/^Version:.*/Version: $ICE_VERSION/" "$ICE_SPEC_DEST"
+fi
+
 # Validate TARGET_ARCH
 VALID_ARCHS=("x86_64" "i686" "aarch64")
 if [[ -z "${TARGET_ARCH:-}" || ! " ${VALID_ARCHS[@]} " =~ " ${TARGET_ARCH} " ]]; then

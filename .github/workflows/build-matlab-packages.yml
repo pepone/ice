@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-python-packages:
+  build-matlab-packages:
     strategy:
       matrix:
         include:
@@ -23,13 +23,13 @@ jobs:
         with:
           use_matlab: true
 
-      - name: Build MATLAB ToolBox
+      - name: Build Linux MATLAB ToolBox
         run: |
           make -C cpp srcs
           make -C matlab toolbox
         if: runner.os == 'Linux'
 
-      - name: Build MATLAB ToolBox
+      - name: Build Windows MATLAB ToolBox
         run: MSBuild /p:Configuration=Release /p:Platform=x64 /t:Package matlab\msbuild\ice.proj
         if: runner.os == 'Windows'
 

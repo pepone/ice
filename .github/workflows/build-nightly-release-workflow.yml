@@ -55,7 +55,7 @@ jobs:
       ice_version: ${{ needs.set-version.outputs.deb_version }}
       deb_build_options: "nocheck parallel=4"
       repository_url: ${{ inputs.repository_url }}
-      repository_suffix: "nightly"
+      repository_suffix: "-nightly"
     secrets:
       REPOSITORY_USERNAME: secrets.NEXUS_NIGHTLY_USERNAME
       REPOSITORY_PASSWORD: secrets.NEXUS_NIGHTLY_PASSWORD
@@ -128,7 +128,7 @@ jobs:
     with:
       ice_version: ${{ needs.set-version.outputs.rpm_version }}
       repository_url: ${{ inputs.repository_url }}
-      repository_suffix: "nightly"
+      repository_suffix: "-nightly"
     secrets:
       REPOSITORY_USERNAME: secrets.NEXUS_NIGHTLY_USERNAME
       REPOSITORY_PASSWORD: secrets.NEXUS_NIGHTLY_PASSWORD

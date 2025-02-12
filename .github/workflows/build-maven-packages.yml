@@ -39,7 +39,7 @@ jobs:
         run: make slice2java
         working-directory: cpp
 
-      - name: Update Java Version
+      - name: Update Ice Version
         run: |
           echo -n "iceVersion = ${{ github.event.inputs.ice_version }}" >> java/gradle.properties
         if: github.event.inputs.ice_version != ''
