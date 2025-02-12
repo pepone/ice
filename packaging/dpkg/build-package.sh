@@ -18,6 +18,7 @@ fi
 # Generate a tarball of the current repository state for the given ICE_VERSION
 echo "Creating tarball for ICE_VERSION=$ICE_VERSION"
 cd /workspace/ice
+git config --global --add safe.directory /workspace/ice
 git archive --format=tar.gz -o /workspace/zeroc-ice_${ICE_VERSION}.orig.tar.gz HEAD
 
 # Unpack the source tarball
