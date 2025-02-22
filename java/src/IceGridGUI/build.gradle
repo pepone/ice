@@ -70,9 +70,7 @@ jar {
 
 project.ext.libJars = []
 
-project.ext.jarBuilder = icegridguiProguard.toBoolean() ? "proguard-jar.gradle" : "plain-jar.gradle"
-
-apply from: jarBuilder
+apply from: "proguard-jar.gradle"
 
 clean {
     delete("${libDir}/${jarName}")
