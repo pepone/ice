@@ -40,7 +40,7 @@ static ProxyObject*
 allocateProxy(const Ice::ObjectPrx& proxy, const Ice::CommunicatorPtr& communicator, PyObject* type)
 {
     PyTypeObject* typeObj = reinterpret_cast<PyTypeObject*>(type);
-    ProxyObject* p = reinterpret_cast<ProxyObject*>(typeObj->tp_alloc(typeObj, 0));
+    ProxyObject* p{reinterpret_cast<ProxyObject*>(typeObj->tp_alloc(typeObj, 0))};
     if (!p)
     {
         return nullptr;
@@ -65,7 +65,7 @@ allocateProxy(const Ice::ObjectPrx& proxy, const Ice::CommunicatorPtr& communica
 extern "C" ProxyObject*
 proxyNew(PyTypeObject* type, PyObject* /*args*/, PyObject* /*kwds*/)
 {
-    ProxyObject* self = reinterpret_cast<ProxyObject*>(type->tp_alloc(type, 0));
+    ProxyObject* self{reinterpret_cast<ProxyObject*>(type->tp_alloc(type, 0))};
     if (!self)
     {
         return nullptr;
@@ -78,18 +78,18 @@ proxyNew(PyTypeObject* type, PyObject* /*args*/, PyObject* /*kwds*/)
 extern "C" int
 proxyInit(ProxyObject* self, PyObject* args, PyObject* /*kwds*/)
 {
-    PyObject* communicatorWrapperType = lookupType("Ice.Communicator");
+    PyObject* communicatorWrapperType{lookupType("Ice.Communicator")};
     assert(communicatorWrapperType);
 
-    PyObject* communicatorWrapper;
-    char* proxyString;
+    PyObject* communicatorWrapper{nullptr};
+    char* proxyString{nullptr};
 
     if (!PyArg_ParseTuple(args, "O!s", communicatorWrapperType, &communicatorWrapper, &proxyString))
     {
         return -1;
     }
 
-    PyObject* communicatorImpl = PyObject_GetAttrString(communicatorWrapper, "_impl");
+    PyObject* communicatorImpl{PyObject_GetAttrString(communicatorWrapper, "_impl")};
 
     Ice::CommunicatorPtr communicator = getCommunicator(communicatorImpl);
     try
@@ -191,8 +191,8 @@ proxyIceGetCommunicator(ProxyObject* self, PyObject* /*args*/)
 extern "C" PyObject*
 proxyIceIsA(ProxyObject* self, PyObject* args)
 {
-    PyObject* type;
-    PyObject* ctx = Py_None;
+    PyObject* type{nullptr};
+    PyObject* ctx{Py_None};
     if (!PyArg_ParseTuple(args, "O|O!", &type, &PyDict_Type, &ctx))
     {
         return nullptr;
@@ -209,8 +209,8 @@ proxyIceIsA(ProxyObject* self, PyObject* args)
 extern "C" PyObject*
 proxyIceIsAAsync(ProxyObject* self, PyObject* args)
 {
-    PyObject* type;
-    PyObject* ctx = Py_None;
+    PyObject* type{nullptr};
+    PyObject* ctx{Py_None};
     if (!PyArg_ParseTuple(args, "O|O!", &type, &PyDict_Type, &ctx))
     {
         return nullptr;
@@ -227,7 +227,7 @@ proxyIceIsAAsync(ProxyObject* self, PyObject* args)
 extern "C" PyObject*
 proxyIcePing(ProxyObject* self, PyObject* args)
 {
-    PyObject* ctx = Py_None;
+    PyObject* ctx{Py_None};
     if (!PyArg_ParseTuple(args, "|O!", &PyDict_Type, &ctx))
     {
         return nullptr;
@@ -244,7 +244,7 @@ proxyIcePing(ProxyObject* self, PyObject* args)
 extern "C" PyObject*
 proxyIcePingAsync(ProxyObject* self, PyObject* args)
 {
-    PyObject* ctx = Py_None;
+    PyObject* ctx{Py_None};
     if (!PyArg_ParseTuple(args, "|O!", &PyDict_Type, &ctx))
     {
         return nullptr;
@@ -261,7 +261,7 @@ proxyIcePingAsync(ProxyObject* self, PyObject* args)
 extern "C" PyObject*
 proxyIceIds(ProxyObject* self, PyObject* args)
 {
-    PyObject* ctx = Py_None;
+    PyObject* ctx{Py_None};
     if (!PyArg_ParseTuple(args, "|O!", &PyDict_Type, &ctx))
     {
         return nullptr;
@@ -278,7 +278,7 @@ proxyIceIds(ProxyObject* self, PyObject* args)
 extern "C" PyObject*
 proxyIceIdsAsync(ProxyObject* self, PyObject* args)
 {
-    PyObject* ctx = Py_None;
+    PyObject* ctx{Py_None};
     if (!PyArg_ParseTuple(args, "|O!", &PyDict_Type, &ctx))
     {
         return nullptr;
@@ -295,7 +295,7 @@ proxyIceIdsAsync(ProxyObject* self, PyObject* args)
 extern "C" PyObject*
 proxyIceId(ProxyObject* self, PyObject* args)
 {
-    PyObject* ctx = Py_None;
+    PyObject* ctx{Py_None};
     if (!PyArg_ParseTuple(args, "|O!", &PyDict_Type, &ctx))
     {
         return nullptr;
@@ -348,7 +348,7 @@ proxyIceGetIdentity(ProxyObject* self, PyObject* /*args*/)
 extern "C" PyObject*
 proxyIceIdentity(ProxyObject* self, PyObject* args)
 {
-    PyObject* identityType = lookupType("Ice.Identity");
+    PyObject* identityType{lookupType("Ice.Identity")};
     assert(identityType);
     PyObject* id;
     if (!PyArg_ParseTuple(args, "O!", identityType, &id))
@@ -405,7 +405,7 @@ proxyIceGetContext(ProxyObject* self, PyObject* /*args*/)
 extern "C" PyObject*
 proxyIceContext(ProxyObject* self, PyObject* args)
 {
-    PyObject* dict;
+    PyObject* dict{nullptr};
     if (!PyArg_ParseTuple(args, "O!", &PyDict_Type, &dict))
     {
         return nullptr;
@@ -455,7 +455,7 @@ proxyIceGetFacet(ProxyObject* self, PyObject* /*args*/)
 extern "C" PyObject*
 proxyIceFacet(ProxyObject* self, PyObject* args)
 {
-    PyObject* facetObj;
+    PyObject* facetObj{nullptr};
     if (!PyArg_ParseTuple(args, "O", &facetObj))
     {
         return nullptr;
@@ -549,17 +549,17 @@ proxyIceGetEndpoints(ProxyObject* self, PyObject* /*args*/)
         return nullptr;
     }
 
-    int count = static_cast<int>(endpoints.size());
-    PyObjectHandle result{PyTuple_New(count)};
+    PyObjectHandle result{PyTuple_New(static_cast<int>(endpoints.size()))};
     int i = 0;
-    for (Ice::EndpointSeq::const_iterator p = endpoints.begin(); p != endpoints.end(); ++p, ++i)
+    for (const auto& endpoint : endpoints)
     {
-        PyObjectHandle endp{createEndpoint(*p)};
-        if (!endp.get())
+        PyObjectHandle pythonEndpoint{createEndpoint(endpoint)};
+        if (!pythonEndpoint.get())
         {
             return nullptr;
         }
-        PyTuple_SET_ITEM(result.get(), i, endp.release()); // PyTuple_SET_ITEM steals a reference.
+        // PyTuple_SET_ITEM steals a reference.
+        PyTuple_SET_ITEM(result.get(), i++, pythonEndpoint.release());
     }
 
     return result.release();
@@ -568,7 +568,7 @@ proxyIceGetEndpoints(ProxyObject* self, PyObject* /*args*/)
 extern "C" PyObject*
 proxyIceEndpoints(ProxyObject* self, PyObject* args)
 {
-    PyObject* endpoints;
+    PyObject* endpoints{nullptr};
     if (!PyArg_ParseTuple(args, "O", &endpoints))
     {
         return nullptr;
@@ -717,26 +717,13 @@ extern "C" PyObject*
 proxyIceIsConnectionCached(ProxyObject* self, PyObject* /*args*/)
 {
     assert(self->proxy);
-
-    PyObject* b;
-    try
-    {
-        b = (*self->proxy)->ice_isConnectionCached() ? Py_True : Py_False;
-    }
-    catch (...)
-    {
-        setPythonException(current_exception());
-        return nullptr;
-    }
-
-    Py_INCREF(b);
-    return b;
+    return (*self->proxy)->ice_isConnectionCached() ? Py_True : Py_False;
 }
 
 extern "C" PyObject*
 proxyIceConnectionCached(ProxyObject* self, PyObject* args)
 {
-    PyObject* flag;
+    PyObject* flag{nullptr};
     if (!PyArg_ParseTuple(args, "O", &flag))
     {
         return nullptr;
@@ -767,43 +754,21 @@ proxyIceConnectionCached(ProxyObject* self, PyObject* args)
 extern "C" PyObject*
 proxyIceGetEndpointSelection(ProxyObject* self, PyObject* /*args*/)
 {
-    PyObject* cls = lookupType("Ice.EndpointSelectionType");
-    assert(cls);
-
-    PyObjectHandle rnd{getAttr(cls, "Random", false)};
-    PyObjectHandle ord{getAttr(cls, "Ordered", false)};
-    assert(rnd.get());
-    assert(ord.get());
-
     assert(self->proxy);
-
-    PyObject* type;
-    try
-    {
-        Ice::EndpointSelectionType val = (*self->proxy)->ice_getEndpointSelection();
-        if (val == Ice::EndpointSelectionType::Random)
-        {
-            type = rnd.get();
-        }
-        else
-        {
-            type = ord.get();
-        }
-    }
-    catch (...)
-    {
-        setPythonException(current_exception());
-        return nullptr;
-    }
-
-    Py_INCREF(type);
-    return type;
+    PyObject* cls{lookupType("Ice.EndpointSelectionType")};
+    assert(cls);
+    PyObjectHandle type{
+        (*self->proxy)->ice_getEndpointSelection() == Ice::EndpointSelectionType::Random
+            ? getAttr(cls, "Random", false)
+            : getAttr(cls, "Ordered", false)};
+    assert(type.get());
+    return type.release();
 }
 
 extern "C" PyObject*
 proxyIceEndpointSelection(ProxyObject* self, PyObject* args)
 {
-    PyObject* cls = lookupType("Ice.EndpointSelectionType");
+    PyObject* cls{lookupType("Ice.EndpointSelectionType")};
     assert(cls);
     PyObject* type;
     if (!PyArg_ParseTuple(args, "O!", cls, &type))
@@ -850,26 +815,13 @@ extern "C" PyObject*
 proxyIceIsSecure(ProxyObject* self, PyObject* /*args*/)
 {
     assert(self->proxy);
-
-    PyObject* b;
-    try
-    {
-        b = (*self->proxy)->ice_isSecure() ? Py_True : Py_False;
-    }
-    catch (...)
-    {
-        setPythonException(current_exception());
-        return nullptr;
-    }
-
-    Py_INCREF(b);
-    return b;
+    return (*self->proxy)->ice_isSecure() ? Py_True : Py_False;
 }
 
 extern "C" PyObject*
 proxyIceSecure(ProxyObject* self, PyObject* args)
 {
-    PyObject* flag;
+    PyObject* flag{nullptr};
     if (!PyArg_ParseTuple(args, "O", &flag))
     {
         return nullptr;
@@ -902,7 +854,7 @@ proxyIceGetEncodingVersion(ProxyObject* self, PyObject* /*args*/)
 {
     assert(self->proxy);
 
-    PyObject* version;
+    PyObject* version{nullptr};
     try
     {
         version = IcePy::createEncodingVersion((*self->proxy)->ice_getEncodingVersion());
@@ -2184,7 +2136,7 @@ namespace IcePy
         0,                                             /* tp_itemsize */
         /* methods */
         reinterpret_cast<destructor>(proxyDealloc),  /* tp_dealloc */
-        0,                                           /* tp_print */
+        0,                                           /* tp_vectorcall_offset */
         0,                                           /* tp_getattr */
         0,                                           /* tp_setattr */
         0,                                           /* tp_reserved */

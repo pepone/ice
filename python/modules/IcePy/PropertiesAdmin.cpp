@@ -36,8 +36,8 @@ nativePropertiesAdminDealloc(NativePropertiesAdminObject* self)
 extern "C" PyObject*
 nativePropertiesAdminAddUpdateCB(NativePropertiesAdminObject* self, PyObject* args)
 {
-    PyObject* callbackType = lookupType("Ice.PropertiesAdminUpdateCallback");
-    PyObject* callback;
+    PyObject* callbackType{lookupType("Ice.PropertiesAdminUpdateCallback")};
+    PyObject* callback{nullptr};
     if (!PyArg_ParseTuple(args, "O!", callbackType, &callback))
     {
         return nullptr;
@@ -81,8 +81,8 @@ nativePropertiesAdminAddUpdateCB(NativePropertiesAdminObject* self, PyObject* ar
 extern "C" PyObject*
 nativePropertiesAdminRemoveUpdateCB(NativePropertiesAdminObject* self, PyObject* args)
 {
-    PyObject* callbackType = lookupType("Ice.PropertiesAdminUpdateCallback");
-    PyObject* callback;
+    PyObject* callbackType{lookupType("Ice.PropertiesAdminUpdateCallback")};
+    PyObject* callback{nullptr};
     if (!PyArg_ParseTuple(args, "O!", callbackType, &callback))
     {
         return nullptr;
@@ -124,7 +124,7 @@ namespace IcePy
         0,                                                         /* tp_itemsize */
         /* methods */
         reinterpret_cast<destructor>(nativePropertiesAdminDealloc), /* tp_dealloc */
-        0,                                                          /* tp_print */
+        0,                                                          /* tp_vectorcall_offset */
         0,                                                          /* tp_getattr */
         0,                                                          /* tp_setattr */
         0,                                                          /* tp_reserved */

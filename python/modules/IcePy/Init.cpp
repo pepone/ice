@@ -133,80 +133,18 @@ PyMODINIT_FUNC ICE_DECLSPEC_EXPORT
 #endif
 PyInit_IcePy(void)
 {
-    PyObject* module;
-
     Ice::registerIceDiscovery(false);
     Ice::registerIceLocatorDiscovery(false);
 
-    //
-    // Create the module.
-    //
-    module = PyModule_Create(&iceModule);
+    // Create the IcePy  module.
+    PyObject* module{PyModule_Create(&iceModule)};
 
-    //
-    // Install built-in Ice types.
-    //
-    if (!initProxy(module))
-    {
-        return nullptr;
-    }
-    if (!initTypes(module))
-    {
-        return nullptr;
-    }
-    if (!initProperties(module))
-    {
-        return nullptr;
-    }
-    if (!initPropertiesAdmin(module))
-    {
-        return nullptr;
-    }
-    if (!initExecutor(module))
-    {
-        return nullptr;
-    }
-    if (!initBatchRequest(module))
-    {
-        return nullptr;
-    }
-    if (!initCommunicator(module))
-    {
-        return nullptr;
-    }
-    if (!initObjectAdapter(module))
-    {
-        return nullptr;
-    }
-    if (!initOperation(module))
-    {
-        return nullptr;
-    }
-    if (!initLogger(module))
-    {
-        return nullptr;
-    }
-    if (!initConnection(module))
-    {
-        return nullptr;
-    }
-    if (!initConnectionInfo(module))
-    {
-        return nullptr;
-    }
-    if (!initImplicitContext(module))
-    {
-        return nullptr;
-    }
-    if (!initEndpoint(module))
-    {
-        return nullptr;
-    }
-    if (!initEndpointInfo(module))
-    {
-        return nullptr;
-    }
-    if (!initValueFactoryManager(module))
+    // Initialize the IcePy built-in types.
+    if (!initProxy(module) || !initTypes(module) || !initProperties(module) || !initPropertiesAdmin(module) ||
+        !initExecutor(module) || !initBatchRequest(module) || !initCommunicator(module) || !initObjectAdapter(module) ||
+        !initOperation(module) || !initLogger(module) || !initConnection(module) || !initConnectionInfo(module) ||
+        !initImplicitContext(module) || !initEndpoint(module) || !initEndpointInfo(module) ||
+        !initValueFactoryManager(module))
     {
         return nullptr;
     }

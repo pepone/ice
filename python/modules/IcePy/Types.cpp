@@ -94,7 +94,7 @@ typeInfoNew(PyTypeObject* type, PyObject* /*args*/, PyObject* /*kwds*/)
     {
         return nullptr;
     }
-    self->info = 0;
+    self->info = nullptr;
     return self;
 }
 
@@ -119,7 +119,7 @@ exceptionInfoNew(PyTypeObject* type, PyObject* /*args*/, PyObject* /*kwds*/)
     {
         return nullptr;
     }
-    self->info = 0;
+    self->info = nullptr;
     return self;
 }
 
@@ -136,12 +136,10 @@ exceptionInfoDealloc(ExceptionInfoObject* self)
 static void
 addValueInfo(string_view id, const ValueInfoPtr& info)
 {
+    // Do not assert. An application may load statically-translated definitions and then dynamically load duplicate
+    // definitions.
     //
-    // Do not assert. An application may load statically-
-    // translated definitions and then dynamically load
-    // duplicate definitions.
-    //
-    //    assert(_valueInfoMap.find(id) == _valueInfoMap.end());
+    // assert(_valueInfoMap.find(id) == _valueInfoMap.end());
     ValueInfoMap::iterator p = _valueInfoMap.find(id);
     if (p != _valueInfoMap.end())
     {
@@ -156,12 +154,10 @@ addValueInfo(string_view id, const ValueInfoPtr& info)
 static void
 addProxyInfo(string_view id, const ProxyInfoPtr& info)
 {
+    // Do not assert. An application may load statically-translated definitions and then dynamically load duplicate
+    // definitions.
     //
-    // Do not assert. An application may load statically-
-    // translated definitions and then dynamically load
-    // duplicate definitions.
-    //
-    //    assert(_proxyInfoMap.find(id) == _proxyInfoMap.end());
+    // assert(_valueInfoMap.find(id) == _valueInfoMap.end());
     ProxyInfoMap::iterator p = _proxyInfoMap.find(id);
     if (p != _proxyInfoMap.end())
     {
@@ -190,20 +186,18 @@ lookupProxyInfo(string_view id)
 static void
 addExceptionInfo(string_view id, const ExceptionInfoPtr& info)
 {
+    // Do not assert. An application may load statically-translated definitions and then dynamically load duplicate
+    // definitions.
     //
-    // Do not assert. An application may load statically-
-    // translated definitions and then dynamically load
-    // duplicate definitions.
-    //
-    //    assert(_exceptionInfoMap.find(id) == _exceptionInfoMap.end());
+    // assert(_valueInfoMap.find(id) == _valueInfoMap.end());
     _exceptionInfoMap.insert(ExceptionInfoMap::value_type(id, info));
 }
 
 //
 // StreamUtil implementation
 //
-PyObject* IcePy::StreamUtil::_slicedDataType = 0;
-PyObject* IcePy::StreamUtil::_sliceInfoType = 0;
+PyObject* IcePy::StreamUtil::_slicedDataType = nullptr;
+PyObject* IcePy::StreamUtil::_sliceInfoType = nullptr;
 
 IcePy::StreamUtil::StreamUtil() {}
 
@@ -3785,7 +3779,7 @@ namespace IcePy
         0,                                            /* tp_itemsize */
         /* methods */
         reinterpret_cast<destructor>(typeInfoDealloc), /* tp_dealloc */
-        0,                                             /* tp_print */
+        0,                                             /* tp_vectorcall_offset */
         0,                                             /* tp_getattr */
         0,                                             /* tp_setattr */
         0,                                             /* tp_reserved */
@@ -3830,7 +3824,7 @@ namespace IcePy
         0,                                                 /* tp_itemsize */
         /* methods */
         reinterpret_cast<destructor>(exceptionInfoDealloc), /* tp_dealloc */
-        0,                                                  /* tp_print */
+        0,                                                  /* tp_vectorcall_offset */
         0,                                                  /* tp_getattr */
         0,                                                  /* tp_setattr */
         0,                                                  /* tp_reserved */

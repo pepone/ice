@@ -92,12 +92,10 @@ namespace IcePy
             {
                 PyException ex; // Retrieve it before another Python API call clears it.
 
-                //
                 // A callback that calls sys.exit() will raise the SystemExit exception.
-                // This is normally caught by the interpreter, causing it to exit.
-                // However, we have no way to pass this exception to the interpreter,
-                // so we act on it directly.
                 //
+                // This is normally caught by the interpreter, causing it to exit. However, we have no way to pass this
+                // exception to the interpreter, so we act on it directly.
                 ex.checkSystemExit();
 
                 ex.raise();
@@ -120,8 +118,8 @@ connectionNew(PyTypeObject* type, PyObject* /*args*/, PyObject* /*kwds*/)
     {
         return nullptr;
     }
-    self->connection = 0;
-    self->communicator = 0;
+    self->connection = nullptr;
+    self->communicator = nullptr;
     return self;
 }
 
@@ -641,48 +639,15 @@ static PyMethodDef ConnectionMethods[] = {
 namespace IcePy
 {
     PyTypeObject ConnectionType = {
-        /* The ob_type field must be initialized in the module init function
-         * to be portable to Windows without using C++. */
-        PyVarObject_HEAD_INIT(0, 0) "IcePy.Connection", /* tp_name */
-        sizeof(ConnectionObject),                       /* tp_basicsize */
-        0,                                              /* tp_itemsize */
-        /* methods */
-        reinterpret_cast<destructor>(connectionDealloc),  /* tp_dealloc */
-        0,                                                /* tp_print */
-        0,                                                /* tp_getattr */
-        0,                                                /* tp_setattr */
-        0,                                                /* tp_reserved */
-        0,                                                /* tp_repr */
-        0,                                                /* tp_as_number */
-        0,                                                /* tp_as_sequence */
-        0,                                                /* tp_as_mapping */
-        reinterpret_cast<hashfunc>(connectionHash),       /* tp_hash */
-        0,                                                /* tp_call */
-        0,                                                /* tp_str */
-        0,                                                /* tp_getattro */
-        0,                                                /* tp_setattro */
-        0,                                                /* tp_as_buffer */
-        Py_TPFLAGS_DEFAULT,                               /* tp_flags */
-        0,                                                /* tp_doc */
-        0,                                                /* tp_traverse */
-        0,                                                /* tp_clear */
-        reinterpret_cast<richcmpfunc>(connectionCompare), /* tp_richcompare */
-        0,                                                /* tp_weaklistoffset */
-        0,                                                /* tp_iter */
-        0,                                                /* tp_iternext */
-        ConnectionMethods,                                /* tp_methods */
-        0,                                                /* tp_members */
-        0,                                                /* tp_getset */
-        0,                                                /* tp_base */
-        0,                                                /* tp_dict */
-        0,                                                /* tp_descr_get */
-        0,                                                /* tp_descr_set */
-        0,                                                /* tp_dictoffset */
-        0,                                                /* tp_init */
-        0,                                                /* tp_alloc */
-        reinterpret_cast<newfunc>(connectionNew),         /* tp_new */
-        0,                                                /* tp_free */
-        0,                                                /* tp_is_gc */
+        PyVarObject_HEAD_INIT(nullptr, 0) /* object header */
+        .tp_name = "IcePy.Connection",
+        .tp_basicsize = sizeof(ConnectionObject),
+        .tp_dealloc = reinterpret_cast<destructor>(connectionDealloc),
+        .tp_hash = reinterpret_cast<hashfunc>(connectionHash),
+        .tp_flags = Py_TPFLAGS_DEFAULT,
+        .tp_richcompare = reinterpret_cast<richcmpfunc>(connectionCompare),
+        .tp_methods = ConnectionMethods,
+        .tp_new = reinterpret_cast<newfunc>(connectionNew),
     };
 }
 
@@ -726,7 +691,7 @@ IcePy::getConnectionArg(PyObject* p, const string& func, const string& arg, Ice:
 {
     if (p == Py_None)
     {
-        con = 0;
+        con = nullptr;
         return true;
     }
     else if (!checkConnection(p))

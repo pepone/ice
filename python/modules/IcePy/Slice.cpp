@@ -24,7 +24,7 @@ extern "C" PyObject*
 IcePy_loadSlice(PyObject* /*self*/, PyObject* args)
 {
     char* cmd;
-    PyObject* list = 0;
+    PyObject* list{nullptr};
     if (!PyArg_ParseTuple(args, "s|O!", &cmd, &PyList_Type, &list))
     {
         return nullptr;

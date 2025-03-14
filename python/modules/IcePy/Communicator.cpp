@@ -1137,7 +1137,7 @@ communicatorGetImplicitContext(CommunicatorObject* self, PyObject* /*args*/)
 {
     Ice::ImplicitContextPtr implicitContext = (*self->communicator)->getImplicitContext();
 
-    if (implicitContext == 0)
+    if (!implicitContext)
     {
         return Py_None;
     }
@@ -1569,48 +1569,18 @@ static PyMethodDef CommunicatorMethods[] = {
 namespace IcePy
 {
     PyTypeObject CommunicatorType = {
+        PyVarObject_HEAD_INIT(nullptr, 0) // type header
         /* The ob_type field must be initialized in the module init function
          * to be portable to Windows without using C++. */
-        PyVarObject_HEAD_INIT(0, 0) "IcePy.Communicator", /* tp_name */
-        sizeof(CommunicatorObject),                       /* tp_basicsize */
-        0,                                                /* tp_itemsize */
+        .tp_name = "IcePy.Communicator",
+        .tp_basicsize = sizeof(CommunicatorObject),
+        .tp_itemsize = 0,
         /* methods */
-        reinterpret_cast<destructor>(communicatorDealloc), /* tp_dealloc */
-        0,                                                 /* tp_print */
-        0,                                                 /* tp_getattr */
-        0,                                                 /* tp_setattr */
-        0,                                                 /* tp_reserved */
-        0,                                                 /* tp_repr */
-        0,                                                 /* tp_as_number */
-        0,                                                 /* tp_as_sequence */
-        0,                                                 /* tp_as_mapping */
-        0,                                                 /* tp_hash */
-        0,                                                 /* tp_call */
-        0,                                                 /* tp_str */
-        0,                                                 /* tp_getattro */
-        0,                                                 /* tp_setattro */
-        0,                                                 /* tp_as_buffer */
-        Py_TPFLAGS_DEFAULT,                                /* tp_flags */
-        0,                                                 /* tp_doc */
-        0,                                                 /* tp_traverse */
-        0,                                                 /* tp_clear */
-        0,                                                 /* tp_richcompare */
-        0,                                                 /* tp_weaklistoffset */
-        0,                                                 /* tp_iter */
-        0,                                                 /* tp_iternext */
-        CommunicatorMethods,                               /* tp_methods */
-        0,                                                 /* tp_members */
-        0,                                                 /* tp_getset */
-        0,                                                 /* tp_base */
-        0,                                                 /* tp_dict */
-        0,                                                 /* tp_descr_get */
-        0,                                                 /* tp_descr_set */
-        0,                                                 /* tp_dictoffset */
-        reinterpret_cast<initproc>(communicatorInit),      /* tp_init */
-        0,                                                 /* tp_alloc */
-        reinterpret_cast<newfunc>(communicatorNew),        /* tp_new */
-        0,                                                 /* tp_free */
-        0,                                                 /* tp_is_gc */
+        .tp_dealloc = reinterpret_cast<destructor>(communicatorDealloc),
+        .tp_flags = Py_TPFLAGS_DEFAULT,
+        .tp_methods = CommunicatorMethods,
+        .tp_init = reinterpret_cast<initproc>(communicatorInit),
+        .tp_new = reinterpret_cast<newfunc>(communicatorNew)
     };
 }
 
@@ -1682,8 +1652,8 @@ extern "C" PyObject*
 IcePy_identityToString(PyObject* /*self*/, PyObject* args)
 {
     PyObject* identityType = lookupType("Ice.Identity");
-    PyObject* obj;
-    PyObject* mode = 0;
+    PyObject* obj{nullptr};
+    PyObject* mode{nullptr};
     if (!PyArg_ParseTuple(args, "O!O", identityType, &obj, &mode))
     {
         return nullptr;

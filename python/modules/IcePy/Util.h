@@ -98,11 +98,6 @@ namespace IcePy
     };
 
     //
-    // Convert Ice::ByteSeq to a Python list.
-    //
-    PyObject* byteSeqToList(const Ice::ByteSeq&);
-
-    //
     // Convert Ice::StringSeq to and from a Python list.
     //
     bool listToStringSeq(PyObject*, Ice::StringSeq&);

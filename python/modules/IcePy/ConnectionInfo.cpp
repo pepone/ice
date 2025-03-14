@@ -223,273 +223,63 @@ static PyGetSetDef SSLConnectionInfoGetters[] = {
 namespace IcePy
 {
     PyTypeObject ConnectionInfoType = {
-        /* The ob_type field must be initialized in the module init function
-         * to be portable to Windows without using C++. */
-        PyVarObject_HEAD_INIT(0, 0) "IcePy.ConnectionInfo", /* tp_name */
-        sizeof(ConnectionInfoObject),                       /* tp_basicsize */
-        0,                                                  /* tp_itemsize */
-        /* methods */
-        (destructor)connectionInfoDealloc,        /* tp_dealloc */
-        0,                                        /* tp_print */
-        0,                                        /* tp_getattr */
-        0,                                        /* tp_setattr */
-        0,                                        /* tp_reserved */
-        0,                                        /* tp_repr */
-        0,                                        /* tp_as_number */
-        0,                                        /* tp_as_sequence */
-        0,                                        /* tp_as_mapping */
-        0,                                        /* tp_hash */
-        0,                                        /* tp_call */
-        0,                                        /* tp_str */
-        0,                                        /* tp_getattro */
-        0,                                        /* tp_setattro */
-        0,                                        /* tp_as_buffer */
-        Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-        0,                                        /* tp_doc */
-        0,                                        /* tp_traverse */
-        0,                                        /* tp_clear */
-        0,                                        /* tp_richcompare */
-        0,                                        /* tp_weaklistoffset */
-        0,                                        /* tp_iter */
-        0,                                        /* tp_iternext */
-        0,                                        /* tp_methods */
-        0,                                        /* tp_members */
-        ConnectionInfoGetters,                    /* tp_getset */
-        0,                                        /* tp_base */
-        0,                                        /* tp_dict */
-        0,                                        /* tp_descr_get */
-        0,                                        /* tp_descr_set */
-        0,                                        /* tp_dictoffset */
-        0,                                        /* tp_init */
-        0,                                        /* tp_alloc */
-        (newfunc)connectionInfoNew,               /* tp_new */
-        0,                                        /* tp_free */
-        0,                                        /* tp_is_gc */
+        PyVarObject_HEAD_INIT(nullptr, 0) /* object header */
+        .tp_name = "IcePy.ConnectionInfo",
+        .tp_basicsize = sizeof(ConnectionInfoObject),
+        .tp_dealloc = reinterpret_cast<destructor>(connectionInfoDealloc),
+        .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+        .tp_getset = ConnectionInfoGetters,
+        .tp_new = reinterpret_cast<newfunc>(connectionInfoNew),
     };
 
     PyTypeObject IPConnectionInfoType = {
-        /* The ob_type field must be initialized in the module init function
-         * to be portable to Windows without using C++. */
-        PyVarObject_HEAD_INIT(0, 0) "IcePy.IPConnectionInfo", /* tp_name */
-        sizeof(ConnectionInfoObject),                         /* tp_basicsize */
-        0,                                                    /* tp_itemsize */
-        /* methods */
-        (destructor)connectionInfoDealloc,        /* tp_dealloc */
-        0,                                        /* tp_print */
-        0,                                        /* tp_getattr */
-        0,                                        /* tp_setattr */
-        0,                                        /* tp_reserved */
-        0,                                        /* tp_repr */
-        0,                                        /* tp_as_number */
-        0,                                        /* tp_as_sequence */
-        0,                                        /* tp_as_mapping */
-        0,                                        /* tp_hash */
-        0,                                        /* tp_call */
-        0,                                        /* tp_str */
-        0,                                        /* tp_getattro */
-        0,                                        /* tp_setattro */
-        0,                                        /* tp_as_buffer */
-        Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-        0,                                        /* tp_doc */
-        0,                                        /* tp_traverse */
-        0,                                        /* tp_clear */
-        0,                                        /* tp_richcompare */
-        0,                                        /* tp_weaklistoffset */
-        0,                                        /* tp_iter */
-        0,                                        /* tp_iternext */
-        0,                                        /* tp_methods */
-        0,                                        /* tp_members */
-        IPConnectionInfoGetters,                  /* tp_getset */
-        0,                                        /* tp_base */
-        0,                                        /* tp_dict */
-        0,                                        /* tp_descr_get */
-        0,                                        /* tp_descr_set */
-        0,                                        /* tp_dictoffset */
-        0,                                        /* tp_init */
-        0,                                        /* tp_alloc */
-        (newfunc)connectionInfoNew,               /* tp_new */
-        0,                                        /* tp_free */
-        0,                                        /* tp_is_gc */
+        PyVarObject_HEAD_INIT(nullptr, 0) /* object header */
+        .tp_name = "IcePy.IPConnectionInfo",
+        .tp_basicsize = sizeof(ConnectionInfoObject),
+        .tp_dealloc = reinterpret_cast<destructor>(connectionInfoDealloc),
+        .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+        .tp_getset = IPConnectionInfoGetters,
+        .tp_new = reinterpret_cast<newfunc>(connectionInfoNew),
     };
 
     PyTypeObject TCPConnectionInfoType = {
-        /* The ob_type field must be initialized in the module init function
-         * to be portable to Windows without using C++. */
-        PyVarObject_HEAD_INIT(0, 0) "IcePy.TCPConnectionInfo", /* tp_name */
-        sizeof(ConnectionInfoObject),                          /* tp_basicsize */
-        0,                                                     /* tp_itemsize */
-        /* methods */
-        (destructor)connectionInfoDealloc,        /* tp_dealloc */
-        0,                                        /* tp_print */
-        0,                                        /* tp_getattr */
-        0,                                        /* tp_setattr */
-        0,                                        /* tp_reserved */
-        0,                                        /* tp_repr */
-        0,                                        /* tp_as_number */
-        0,                                        /* tp_as_sequence */
-        0,                                        /* tp_as_mapping */
-        0,                                        /* tp_hash */
-        0,                                        /* tp_call */
-        0,                                        /* tp_str */
-        0,                                        /* tp_getattro */
-        0,                                        /* tp_setattro */
-        0,                                        /* tp_as_buffer */
-        Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-        0,                                        /* tp_doc */
-        0,                                        /* tp_traverse */
-        0,                                        /* tp_clear */
-        0,                                        /* tp_richcompare */
-        0,                                        /* tp_weaklistoffset */
-        0,                                        /* tp_iter */
-        0,                                        /* tp_iternext */
-        0,                                        /* tp_methods */
-        0,                                        /* tp_members */
-        TCPConnectionInfoGetters,                 /* tp_getset */
-        0,                                        /* tp_base */
-        0,                                        /* tp_dict */
-        0,                                        /* tp_descr_get */
-        0,                                        /* tp_descr_set */
-        0,                                        /* tp_dictoffset */
-        0,                                        /* tp_init */
-        0,                                        /* tp_alloc */
-        (newfunc)connectionInfoNew,               /* tp_new */
-        0,                                        /* tp_free */
-        0,                                        /* tp_is_gc */
+        PyVarObject_HEAD_INIT(nullptr, 0) /* object header */
+        .tp_name = "IcePy.TCPConnectionInfo",
+        .tp_basicsize = sizeof(ConnectionInfoObject),
+        .tp_dealloc = reinterpret_cast<destructor>(connectionInfoDealloc),
+        .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+        .tp_getset = TCPConnectionInfoGetters,
+        .tp_new = reinterpret_cast<newfunc>(connectionInfoNew),
     };
 
     PyTypeObject UDPConnectionInfoType = {
-        /* The ob_type field must be initialized in the module init function
-         * to be portable to Windows without using C++. */
-        PyVarObject_HEAD_INIT(0, 0) "IcePy.UDPConnectionInfo", /* tp_name */
-        sizeof(ConnectionInfoObject),                          /* tp_basicsize */
-        0,                                                     /* tp_itemsize */
-        /* methods */
-        (destructor)connectionInfoDealloc,        /* tp_dealloc */
-        0,                                        /* tp_print */
-        0,                                        /* tp_getattr */
-        0,                                        /* tp_setattr */
-        0,                                        /* tp_reserved */
-        0,                                        /* tp_repr */
-        0,                                        /* tp_as_number */
-        0,                                        /* tp_as_sequence */
-        0,                                        /* tp_as_mapping */
-        0,                                        /* tp_hash */
-        0,                                        /* tp_call */
-        0,                                        /* tp_str */
-        0,                                        /* tp_getattro */
-        0,                                        /* tp_setattro */
-        0,                                        /* tp_as_buffer */
-        Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-        0,                                        /* tp_doc */
-        0,                                        /* tp_traverse */
-        0,                                        /* tp_clear */
-        0,                                        /* tp_richcompare */
-        0,                                        /* tp_weaklistoffset */
-        0,                                        /* tp_iter */
-        0,                                        /* tp_iternext */
-        0,                                        /* tp_methods */
-        0,                                        /* tp_members */
-        UDPConnectionInfoGetters,                 /* tp_getset */
-        0,                                        /* tp_base */
-        0,                                        /* tp_dict */
-        0,                                        /* tp_descr_get */
-        0,                                        /* tp_descr_set */
-        0,                                        /* tp_dictoffset */
-        0,                                        /* tp_init */
-        0,                                        /* tp_alloc */
-        (newfunc)connectionInfoNew,               /* tp_new */
-        0,                                        /* tp_free */
-        0,                                        /* tp_is_gc */
+        PyVarObject_HEAD_INIT(nullptr, 0) /* object header */
+        .tp_name = "IcePy.UDPConnectionInfo",
+        .tp_basicsize = sizeof(ConnectionInfoObject),
+        .tp_dealloc = reinterpret_cast<destructor>(connectionInfoDealloc),
+        .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+        .tp_getset = UDPConnectionInfoGetters,
+        .tp_new = reinterpret_cast<newfunc>(connectionInfoNew),
     };
 
     PyTypeObject WSConnectionInfoType = {
-        /* The ob_type field must be initialized in the module init function
-         * to be portable to Windows without using C++. */
-        PyVarObject_HEAD_INIT(0, 0) "IcePy.WSConnectionInfo", /* tp_name */
-        sizeof(ConnectionInfoObject),                         /* tp_basicsize */
-        0,                                                    /* tp_itemsize */
-        /* methods */
-        (destructor)connectionInfoDealloc,        /* tp_dealloc */
-        0,                                        /* tp_print */
-        0,                                        /* tp_getattr */
-        0,                                        /* tp_setattr */
-        0,                                        /* tp_reserved */
-        0,                                        /* tp_repr */
-        0,                                        /* tp_as_number */
-        0,                                        /* tp_as_sequence */
-        0,                                        /* tp_as_mapping */
-        0,                                        /* tp_hash */
-        0,                                        /* tp_call */
-        0,                                        /* tp_str */
-        0,                                        /* tp_getattro */
-        0,                                        /* tp_setattro */
-        0,                                        /* tp_as_buffer */
-        Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-        0,                                        /* tp_doc */
-        0,                                        /* tp_traverse */
-        0,                                        /* tp_clear */
-        0,                                        /* tp_richcompare */
-        0,                                        /* tp_weaklistoffset */
-        0,                                        /* tp_iter */
-        0,                                        /* tp_iternext */
-        0,                                        /* tp_methods */
-        0,                                        /* tp_members */
-        WSConnectionInfoGetters,                  /* tp_getset */
-        0,                                        /* tp_base */
-        0,                                        /* tp_dict */
-        0,                                        /* tp_descr_get */
-        0,                                        /* tp_descr_set */
-        0,                                        /* tp_dictoffset */
-        0,                                        /* tp_init */
-        0,                                        /* tp_alloc */
-        (newfunc)connectionInfoNew,               /* tp_new */
-        0,                                        /* tp_free */
-        0,                                        /* tp_is_gc */
+        PyVarObject_HEAD_INIT(nullptr, 0) /* object header */
+        .tp_name = "IcePy.WSConnectionInfo",
+        .tp_basicsize = sizeof(ConnectionInfoObject),
+        .tp_dealloc = reinterpret_cast<destructor>(connectionInfoDealloc),
+        .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+        .tp_getset = WSConnectionInfoGetters,
+        .tp_new = reinterpret_cast<newfunc>(connectionInfoNew),
     };
 
-    PyTypeObject SSLConnectionInfoType = {
-        /* The ob_type field must be initialized in the module init function
-         * to be portable to Windows without using C++. */
-        PyVarObject_HEAD_INIT(0, 0) "IcePy.SSLConnectionInfo", /* tp_name */
-        sizeof(ConnectionInfoObject),                          /* tp_basicsize */
-        0,                                                     /* tp_itemsize */
-        /* methods */
-        (destructor)connectionInfoDealloc,        /* tp_dealloc */
-        0,                                        /* tp_print */
-        0,                                        /* tp_getattr */
-        0,                                        /* tp_setattr */
-        0,                                        /* tp_reserved */
-        0,                                        /* tp_repr */
-        0,                                        /* tp_as_number */
-        0,                                        /* tp_as_sequence */
-        0,                                        /* tp_as_mapping */
-        0,                                        /* tp_hash */
-        0,                                        /* tp_call */
-        0,                                        /* tp_str */
-        0,                                        /* tp_getattro */
-        0,                                        /* tp_setattro */
-        0,                                        /* tp_as_buffer */
-        Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-        0,                                        /* tp_doc */
-        0,                                        /* tp_traverse */
-        0,                                        /* tp_clear */
-        0,                                        /* tp_richcompare */
-        0,                                        /* tp_weaklistoffset */
-        0,                                        /* tp_iter */
-        0,                                        /* tp_iternext */
-        0,                                        /* tp_methods */
-        0,                                        /* tp_members */
-        SSLConnectionInfoGetters,                 /* tp_getset */
-        0,                                        /* tp_base */
-        0,                                        /* tp_dict */
-        0,                                        /* tp_descr_get */
-        0,                                        /* tp_descr_set */
-        0,                                        /* tp_dictoffset */
-        0,                                        /* tp_init */
-        0,                                        /* tp_alloc */
-        (newfunc)connectionInfoNew,               /* tp_new */
-        0,                                        /* tp_free */
-        0,                                        /* tp_is_gc */
+    static PyTypeObject SSLConnectionInfoType = {
+        PyVarObject_HEAD_INIT(nullptr, 0) /* object header */
+        .tp_name = "IcePy.SSLConnectionInfo",
+        .tp_basicsize = sizeof(ConnectionInfoObject),
+        .tp_dealloc = reinterpret_cast<destructor>(connectionInfoDealloc),
+        .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+        .tp_getset = SSLConnectionInfoGetters,
+        .tp_new = reinterpret_cast<newfunc>(connectionInfoNew),
     };
 }
 

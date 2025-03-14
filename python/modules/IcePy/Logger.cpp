@@ -24,9 +24,7 @@ IcePy::LoggerWrapper::print(const string& message)
 {
     AdoptThread adoptThread; // Ensure the current thread is able to call into Python.
 
-    //
     // Method must be named "_print".
-    //
     PyObjectHandle tmp{PyObject_CallMethod(_logger.get(), "_print", "s", message.c_str())};
     if (!tmp.get())
     {
@@ -325,48 +323,13 @@ static PyMethodDef LoggerMethods[] = {
 namespace IcePy
 {
     PyTypeObject LoggerType = {
-        /* The ob_type field must be initialized in the module init function
-         * to be portable to Windows without using C++. */
-        PyVarObject_HEAD_INIT(0, 0) "IcePy.Logger", /* tp_name */
-        sizeof(LoggerObject),                       /* tp_basicsize */
-        0,                                          /* tp_itemsize */
-        /* methods */
-        reinterpret_cast<destructor>(loggerDealloc), /* tp_dealloc */
-        0,                                           /* tp_print */
-        0,                                           /* tp_getattr */
-        0,                                           /* tp_setattr */
-        0,                                           /* tp_reserved */
-        0,                                           /* tp_repr */
-        0,                                           /* tp_as_number */
-        0,                                           /* tp_as_sequence */
-        0,                                           /* tp_as_mapping */
-        0,                                           /* tp_hash */
-        0,                                           /* tp_call */
-        0,                                           /* tp_str */
-        0,                                           /* tp_getattro */
-        0,                                           /* tp_setattro */
-        0,                                           /* tp_as_buffer */
-        Py_TPFLAGS_DEFAULT,                          /* tp_flags */
-        0,                                           /* tp_doc */
-        0,                                           /* tp_traverse */
-        0,                                           /* tp_clear */
-        0,                                           /* tp_richcompare */
-        0,                                           /* tp_weaklistoffset */
-        0,                                           /* tp_iter */
-        0,                                           /* tp_iternext */
-        LoggerMethods,                               /* tp_methods */
-        0,                                           /* tp_members */
-        0,                                           /* tp_getset */
-        0,                                           /* tp_base */
-        0,                                           /* tp_dict */
-        0,                                           /* tp_descr_get */
-        0,                                           /* tp_descr_set */
-        0,                                           /* tp_dictoffset */
-        0,                                           /* tp_init */
-        0,                                           /* tp_alloc */
-        reinterpret_cast<newfunc>(loggerNew),        /* tp_new */
-        0,                                           /* tp_free */
-        0,                                           /* tp_is_gc */
+        PyVarObject_HEAD_INIT(nullptr, 0) /* object header */
+        .tp_name = "IcePy.Logger",
+        .tp_basicsize = sizeof(LoggerObject),
+        .tp_dealloc = reinterpret_cast<destructor>(loggerDealloc),
+        .tp_flags = Py_TPFLAGS_DEFAULT,
+        .tp_methods = LoggerMethods,
+        .tp_new = reinterpret_cast<newfunc>(loggerNew),
     };
 }
 

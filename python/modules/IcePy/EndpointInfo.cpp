@@ -36,16 +36,7 @@ extern "C" PyObject*
 endpointInfoType(EndpointInfoObject* self, PyObject* /*args*/)
 {
     assert(self->endpointInfo);
-    try
-    {
-        int16_t type = (*self->endpointInfo)->type();
-        return PyLong_FromLong(type);
-    }
-    catch (...)
-    {
-        setPythonException(current_exception());
-        return nullptr;
-    }
+    return PyLong_FromLong((*self->endpointInfo)->type());
 }
 
 //
@@ -55,19 +46,7 @@ extern "C" PyObject*
 endpointInfoDatagram(EndpointInfoObject* self, PyObject* /*args*/)
 {
     assert(self->endpointInfo);
-    PyObject* b;
-    try
-    {
-        b = (*self->endpointInfo)->datagram() ? Py_True : Py_False;
-    }
-    catch (...)
-    {
-        setPythonException(current_exception());
-        return nullptr;
-    }
-
-    Py_INCREF(b);
-    return b;
+    return (*self->endpointInfo)->datagram() ? Py_True : Py_False;
 }
 
 //
@@ -77,19 +56,7 @@ extern "C" PyObject*
 endpointInfoSecure(EndpointInfoObject* self, PyObject* /*args*/)
 {
     assert(self->endpointInfo);
-    PyObject* b;
-    try
-    {
-        b = (*self->endpointInfo)->secure() ? Py_True : Py_False;
-    }
-    catch (...)
-    {
-        setPythonException(current_exception());
-        return nullptr;
-    }
-
-    Py_INCREF(b);
-    return b;
+    return (*self->endpointInfo)->secure() ? Py_True : Py_False;
 }
 
 extern "C" PyObject*
@@ -229,318 +196,72 @@ static PyGetSetDef OpaqueEndpointInfoGetters[] = {
 namespace IcePy
 {
     PyTypeObject EndpointInfoType = {
-        /* The ob_type field must be initialized in the module init function
-         * to be portable to Windows without using C++. */
-        PyVarObject_HEAD_INIT(0, 0) "IcePy.EndpointInfo", /* tp_name */
-        sizeof(EndpointInfoObject),                       /* tp_basicsize */
-        0,                                                /* tp_itemsize */
-        /* methods */
-        reinterpret_cast<destructor>(endpointInfoDealloc), /* tp_dealloc */
-        0,                                                 /* tp_print */
-        0,                                                 /* tp_getattr */
-        0,                                                 /* tp_setattr */
-        0,                                                 /* tp_reserved */
-        0,                                                 /* tp_repr */
-        0,                                                 /* tp_as_number */
-        0,                                                 /* tp_as_sequence */
-        0,                                                 /* tp_as_mapping */
-        0,                                                 /* tp_hash */
-        0,                                                 /* tp_call */
-        0,                                                 /* tp_str */
-        0,                                                 /* tp_getattro */
-        0,                                                 /* tp_setattro */
-        0,                                                 /* tp_as_buffer */
-        Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,          /* tp_flags */
-        0,                                                 /* tp_doc */
-        0,                                                 /* tp_traverse */
-        0,                                                 /* tp_clear */
-        0,                                                 /* tp_richcompare */
-        0,                                                 /* tp_weaklistoffset */
-        0,                                                 /* tp_iter */
-        0,                                                 /* tp_iternext */
-        EndpointInfoMethods,                               /* tp_methods */
-        0,                                                 /* tp_members */
-        EndpointInfoGetters,                               /* tp_getset */
-        0,                                                 /* tp_base */
-        0,                                                 /* tp_dict */
-        0,                                                 /* tp_descr_get */
-        0,                                                 /* tp_descr_set */
-        0,                                                 /* tp_dictoffset */
-        0,                                                 /* tp_init */
-        0,                                                 /* tp_alloc */
-        reinterpret_cast<newfunc>(endpointInfoNew),        /* tp_new */
-        0,                                                 /* tp_free */
-        0,                                                 /* tp_is_gc */
+        PyVarObject_HEAD_INIT(nullptr, 0) /* object header */
+        .tp_name = "IcePy.EndpointInfo",
+        .tp_basicsize = sizeof(EndpointInfoObject),
+        .tp_dealloc = reinterpret_cast<destructor>(endpointInfoDealloc),
+        .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+        .tp_methods = EndpointInfoMethods,
+        .tp_getset = EndpointInfoGetters,
+        .tp_new = reinterpret_cast<newfunc>(endpointInfoNew),
     };
 
     PyTypeObject IPEndpointInfoType = {
-        /* The ob_type field must be initialized in the module init function
-         * to be portable to Windows without using C++. */
-        PyVarObject_HEAD_INIT(0, 0) "IcePy.IPEndpointInfo", /* tp_name */
-        sizeof(EndpointInfoObject),                         /* tp_basicsize */
-        0,                                                  /* tp_itemsize */
-        /* methods */
-        reinterpret_cast<destructor>(endpointInfoDealloc), /* tp_dealloc */
-        0,                                                 /* tp_print */
-        0,                                                 /* tp_getattr */
-        0,                                                 /* tp_setattr */
-        0,                                                 /* tp_reserved */
-        0,                                                 /* tp_repr */
-        0,                                                 /* tp_as_number */
-        0,                                                 /* tp_as_sequence */
-        0,                                                 /* tp_as_mapping */
-        0,                                                 /* tp_hash */
-        0,                                                 /* tp_call */
-        0,                                                 /* tp_str */
-        0,                                                 /* tp_getattro */
-        0,                                                 /* tp_setattro */
-        0,                                                 /* tp_as_buffer */
-        Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,          /* tp_flags */
-        0,                                                 /* tp_doc */
-        0,                                                 /* tp_traverse */
-        0,                                                 /* tp_clear */
-        0,                                                 /* tp_richcompare */
-        0,                                                 /* tp_weaklistoffset */
-        0,                                                 /* tp_iter */
-        0,                                                 /* tp_iternext */
-        0,                                                 /* tp_methods */
-        0,                                                 /* tp_members */
-        IPEndpointInfoGetters,                             /* tp_getset */
-        0,                                                 /* tp_base */
-        0,                                                 /* tp_dict */
-        0,                                                 /* tp_descr_get */
-        0,                                                 /* tp_descr_set */
-        0,                                                 /* tp_dictoffset */
-        0,                                                 /* tp_init */
-        0,                                                 /* tp_alloc */
-        reinterpret_cast<newfunc>(endpointInfoNew),        /* tp_new */
-        0,                                                 /* tp_free */
-        0,                                                 /* tp_is_gc */
+        PyVarObject_HEAD_INIT(nullptr, 0) /* object header */
+        .tp_name = "IcePy.IPEndpointInfo",
+        .tp_basicsize = sizeof(EndpointInfoObject),
+        .tp_dealloc = reinterpret_cast<destructor>(endpointInfoDealloc),
+        .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+        .tp_getset = IPEndpointInfoGetters,
+        .tp_new = reinterpret_cast<newfunc>(endpointInfoNew),
     };
 
     PyTypeObject TCPEndpointInfoType = {
-        /* The ob_type field must be initialized in the module init function
-         * to be portable to Windows without using C++. */
-        PyVarObject_HEAD_INIT(0, 0) "IcePy.TCPEndpointInfo", /* tp_name */
-        sizeof(EndpointInfoObject),                          /* tp_basicsize */
-        0,                                                   /* tp_itemsize */
-        /* methods */
-        reinterpret_cast<destructor>(endpointInfoDealloc), /* tp_dealloc */
-        0,                                                 /* tp_print */
-        0,                                                 /* tp_getattr */
-        0,                                                 /* tp_setattr */
-        0,                                                 /* tp_reserved */
-        0,                                                 /* tp_repr */
-        0,                                                 /* tp_as_number */
-        0,                                                 /* tp_as_sequence */
-        0,                                                 /* tp_as_mapping */
-        0,                                                 /* tp_hash */
-        0,                                                 /* tp_call */
-        0,                                                 /* tp_str */
-        0,                                                 /* tp_getattro */
-        0,                                                 /* tp_setattro */
-        0,                                                 /* tp_as_buffer */
-        Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,          /* tp_flags */
-        0,                                                 /* tp_doc */
-        0,                                                 /* tp_traverse */
-        0,                                                 /* tp_clear */
-        0,                                                 /* tp_richcompare */
-        0,                                                 /* tp_weaklistoffset */
-        0,                                                 /* tp_iter */
-        0,                                                 /* tp_iternext */
-        0,                                                 /* tp_methods */
-        0,                                                 /* tp_members */
-        0,                                                 /* tp_getset */
-        0,                                                 /* tp_base */
-        0,                                                 /* tp_dict */
-        0,                                                 /* tp_descr_get */
-        0,                                                 /* tp_descr_set */
-        0,                                                 /* tp_dictoffset */
-        0,                                                 /* tp_init */
-        0,                                                 /* tp_alloc */
-        reinterpret_cast<newfunc>(endpointInfoNew),        /* tp_new */
-        0,                                                 /* tp_free */
-        0,                                                 /* tp_is_gc */
+        PyVarObject_HEAD_INIT(nullptr, 0) /* object header */
+        .tp_name = "IcePy.TCPEndpointInfo",
+        .tp_basicsize = sizeof(EndpointInfoObject),
+        .tp_dealloc = reinterpret_cast<destructor>(endpointInfoDealloc),
+        .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+        .tp_new = reinterpret_cast<newfunc>(endpointInfoNew),
     };
 
     PyTypeObject UDPEndpointInfoType = {
-        /* The ob_type field must be initialized in the module init function
-         * to be portable to Windows without using C++. */
-        PyVarObject_HEAD_INIT(0, 0) "IcePy.UDPEndpointInfo", /* tp_name */
-        sizeof(EndpointInfoObject),                          /* tp_basicsize */
-        0,                                                   /* tp_itemsize */
-        /* methods */
-        reinterpret_cast<destructor>(endpointInfoDealloc), /* tp_dealloc */
-        0,                                                 /* tp_print */
-        0,                                                 /* tp_getattr */
-        0,                                                 /* tp_setattr */
-        0,                                                 /* tp_reserved */
-        0,                                                 /* tp_repr */
-        0,                                                 /* tp_as_number */
-        0,                                                 /* tp_as_sequence */
-        0,                                                 /* tp_as_mapping */
-        0,                                                 /* tp_hash */
-        0,                                                 /* tp_call */
-        0,                                                 /* tp_str */
-        0,                                                 /* tp_getattro */
-        0,                                                 /* tp_setattro */
-        0,                                                 /* tp_as_buffer */
-        Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,          /* tp_flags */
-        0,                                                 /* tp_doc */
-        0,                                                 /* tp_traverse */
-        0,                                                 /* tp_clear */
-        0,                                                 /* tp_richcompare */
-        0,                                                 /* tp_weaklistoffset */
-        0,                                                 /* tp_iter */
-        0,                                                 /* tp_iternext */
-        0,                                                 /* tp_methods */
-        0,                                                 /* tp_members */
-        UDPEndpointInfoGetters,                            /* tp_getset */
-        0,                                                 /* tp_base */
-        0,                                                 /* tp_dict */
-        0,                                                 /* tp_descr_get */
-        0,                                                 /* tp_descr_set */
-        0,                                                 /* tp_dictoffset */
-        0,                                                 /* tp_init */
-        0,                                                 /* tp_alloc */
-        reinterpret_cast<newfunc>(endpointInfoNew),        /* tp_new */
-        0,                                                 /* tp_free */
-        0,                                                 /* tp_is_gc */
+        PyVarObject_HEAD_INIT(nullptr, 0) /* object header */
+        .tp_name = "IcePy.UDPEndpointInfo",
+        .tp_basicsize = sizeof(EndpointInfoObject),
+        .tp_dealloc = reinterpret_cast<destructor>(endpointInfoDealloc),
+        .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+        .tp_getset = UDPEndpointInfoGetters,
+        .tp_new = reinterpret_cast<newfunc>(endpointInfoNew),
     };
 
     PyTypeObject WSEndpointInfoType = {
-        /* The ob_type field must be initialized in the module init function
-         * to be portable to Windows without using C++. */
-        PyVarObject_HEAD_INIT(0, 0) "IcePy.WSEndpointInfo", /* tp_name */
-        sizeof(EndpointInfoObject),                         /* tp_basicsize */
-        0,                                                  /* tp_itemsize */
-        /* methods */
-        reinterpret_cast<destructor>(endpointInfoDealloc), /* tp_dealloc */
-        0,                                                 /* tp_print */
-        0,                                                 /* tp_getattr */
-        0,                                                 /* tp_setattr */
-        0,                                                 /* tp_reserved */
-        0,                                                 /* tp_repr */
-        0,                                                 /* tp_as_number */
-        0,                                                 /* tp_as_sequence */
-        0,                                                 /* tp_as_mapping */
-        0,                                                 /* tp_hash */
-        0,                                                 /* tp_call */
-        0,                                                 /* tp_str */
-        0,                                                 /* tp_getattro */
-        0,                                                 /* tp_setattro */
-        0,                                                 /* tp_as_buffer */
-        Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,          /* tp_flags */
-        0,                                                 /* tp_doc */
-        0,                                                 /* tp_traverse */
-        0,                                                 /* tp_clear */
-        0,                                                 /* tp_richcompare */
-        0,                                                 /* tp_weaklistoffset */
-        0,                                                 /* tp_iter */
-        0,                                                 /* tp_iternext */
-        0,                                                 /* tp_methods */
-        0,                                                 /* tp_members */
-        WSEndpointInfoGetters,                             /* tp_getset */
-        0,                                                 /* tp_base */
-        0,                                                 /* tp_dict */
-        0,                                                 /* tp_descr_get */
-        0,                                                 /* tp_descr_set */
-        0,                                                 /* tp_dictoffset */
-        0,                                                 /* tp_init */
-        0,                                                 /* tp_alloc */
-        reinterpret_cast<newfunc>(endpointInfoNew),        /* tp_new */
-        0,                                                 /* tp_free */
-        0,                                                 /* tp_is_gc */
+        PyVarObject_HEAD_INIT(nullptr, 0) /* object header */
+        .tp_name = "IcePy.WSEndpointInfo",
+        .tp_basicsize = sizeof(EndpointInfoObject),
+        .tp_dealloc = reinterpret_cast<destructor>(endpointInfoDealloc),
+        .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+        .tp_getset = WSEndpointInfoGetters,
+        .tp_new = reinterpret_cast<newfunc>(endpointInfoNew),
     };
 
     PyTypeObject SSLEndpointInfoType = {
-        /* The ob_type field must be initialized in the module init function
-         * to be portable to Windows without using C++. */
-        PyVarObject_HEAD_INIT(0, 0) "IcePy.SSLEndpointInfo", /* tp_name */
-        sizeof(EndpointInfoObject),                          /* tp_basicsize */
-        0,                                                   /* tp_itemsize */
-        /* methods */
-        reinterpret_cast<destructor>(endpointInfoDealloc), /* tp_dealloc */
-        0,                                                 /* tp_print */
-        0,                                                 /* tp_getattr */
-        0,                                                 /* tp_setattr */
-        0,                                                 /* tp_reserved */
-        0,                                                 /* tp_repr */
-        0,                                                 /* tp_as_number */
-        0,                                                 /* tp_as_sequence */
-        0,                                                 /* tp_as_mapping */
-        0,                                                 /* tp_hash */
-        0,                                                 /* tp_call */
-        0,                                                 /* tp_str */
-        0,                                                 /* tp_getattro */
-        0,                                                 /* tp_setattro */
-        0,                                                 /* tp_as_buffer */
-        Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,          /* tp_flags */
-        0,                                                 /* tp_doc */
-        0,                                                 /* tp_traverse */
-        0,                                                 /* tp_clear */
-        0,                                                 /* tp_richcompare */
-        0,                                                 /* tp_weaklistoffset */
-        0,                                                 /* tp_iter */
-        0,                                                 /* tp_iternext */
-        0,                                                 /* tp_methods */
-        0,                                                 /* tp_members */
-        0,                                                 /* tp_getset */
-        0,                                                 /* tp_base */
-        0,                                                 /* tp_dict */
-        0,                                                 /* tp_descr_get */
-        0,                                                 /* tp_descr_set */
-        0,                                                 /* tp_dictoffset */
-        0,                                                 /* tp_init */
-        0,                                                 /* tp_alloc */
-        reinterpret_cast<newfunc>(endpointInfoNew),        /* tp_new */
-        0,                                                 /* tp_free */
-        0,                                                 /* tp_is_gc */
+        PyVarObject_HEAD_INIT(nullptr, 0) /* object header */
+        .tp_name = "IcePy.SSLEndpointInfo",
+        .tp_basicsize = sizeof(EndpointInfoObject),
+        .tp_dealloc = reinterpret_cast<destructor>(endpointInfoDealloc),
+        .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+        .tp_new = reinterpret_cast<newfunc>(endpointInfoNew),
     };
 
     PyTypeObject OpaqueEndpointInfoType = {
-        /* The ob_type field must be initialized in the module init function
-         * to be portable to Windows without using C++. */
-        PyVarObject_HEAD_INIT(0, 0) "IcePy.OpaqueEndpointInfo", /* tp_name */
-        sizeof(EndpointInfoObject),                             /* tp_basicsize */
-        0,                                                      /* tp_itemsize */
-        /* methods */
-        reinterpret_cast<destructor>(endpointInfoDealloc), /* tp_dealloc */
-        0,                                                 /* tp_print */
-        0,                                                 /* tp_getattr */
-        0,                                                 /* tp_setattr */
-        0,                                                 /* tp_reserved */
-        0,                                                 /* tp_repr */
-        0,                                                 /* tp_as_number */
-        0,                                                 /* tp_as_sequence */
-        0,                                                 /* tp_as_mapping */
-        0,                                                 /* tp_hash */
-        0,                                                 /* tp_call */
-        0,                                                 /* tp_str */
-        0,                                                 /* tp_getattro */
-        0,                                                 /* tp_setattro */
-        0,                                                 /* tp_as_buffer */
-        Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,          /* tp_flags */
-        0,                                                 /* tp_doc */
-        0,                                                 /* tp_traverse */
-        0,                                                 /* tp_clear */
-        0,                                                 /* tp_richcompare */
-        0,                                                 /* tp_weaklistoffset */
-        0,                                                 /* tp_iter */
-        0,                                                 /* tp_iternext */
-        0,                                                 /* tp_methods */
-        0,                                                 /* tp_members */
-        OpaqueEndpointInfoGetters,                         /* tp_getset */
-        0,                                                 /* tp_base */
-        0,                                                 /* tp_dict */
-        0,                                                 /* tp_descr_get */
-        0,                                                 /* tp_descr_set */
-        0,                                                 /* tp_dictoffset */
-        0,                                                 /* tp_init */
-        0,                                                 /* tp_alloc */
-        reinterpret_cast<newfunc>(endpointInfoNew),        /* tp_new */
-        0,                                                 /* tp_free */
-        0,                                                 /* tp_is_gc */
+        PyVarObject_HEAD_INIT(nullptr, 0) /* object header */
+        .tp_name = "IcePy.OpaqueEndpointInfo",
+        .tp_basicsize = sizeof(EndpointInfoObject),
+        .tp_dealloc = reinterpret_cast<destructor>(endpointInfoDealloc),
+        .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+        .tp_getset = OpaqueEndpointInfoGetters,
+        .tp_new = reinterpret_cast<newfunc>(endpointInfoNew),
     };
 }
 

@@ -27,7 +27,7 @@ implicitContextNew(PyTypeObject* type, PyObject* /*args*/, PyObject* /*kwds*/)
     {
         return nullptr;
     }
-    self->implicitContext = 0;
+    self->implicitContext = nullptr;
     return self;
 }
 
@@ -41,7 +41,7 @@ implicitContextDealloc(ImplicitContextObject* self)
 extern "C" PyObject*
 implicitContextCompare(ImplicitContextObject* c1, PyObject* other, int op)
 {
-    bool result = false;
+    bool result{false};
 
     if (PyObject_TypeCheck(other, &ImplicitContextType))
     {
@@ -143,18 +143,15 @@ implicitContextContainsKey(ImplicitContextObject* self, PyObject* args)
         return nullptr;
     }
 
-    bool containsKey;
     try
     {
-        containsKey = (*self->implicitContext)->containsKey(key);
+        return (*self->implicitContext)->containsKey(key) ? Py_True : Py_False;
     }
     catch (...)
     {
         setPythonException(current_exception());
         return nullptr;
     }
-
-    return containsKey ? Py_True : Py_False;
 }
 
 extern "C" PyObject*
@@ -276,7 +273,7 @@ namespace IcePy
         0,                                                   /* tp_itemsize */
         /* methods */
         reinterpret_cast<destructor>(implicitContextDealloc),  /* tp_dealloc */
-        0,                                                     /* tp_print */
+        0,                                                     /* tp_vectorcall_offset */
         0,                                                     /* tp_getattr */
         0,                                                     /* tp_setattr */
         0,                                                     /* tp_reserved */
@@ -333,7 +330,7 @@ IcePy::initImplicitContext(PyObject* module)
 PyObject*
 IcePy::createImplicitContext(const Ice::ImplicitContextPtr& implicitContext)
 {
-    ImplicitContextObject* obj = implicitContextNew(&ImplicitContextType, 0, 0);
+    ImplicitContextObject* obj{implicitContextNew(&ImplicitContextType, 0, 0)};
     if (obj)
     {
         obj->implicitContext = new Ice::ImplicitContextPtr(implicitContext);
