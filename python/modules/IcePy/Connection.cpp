@@ -43,7 +43,7 @@ namespace
     {
         long operator()(void* ptr) const
         {
-            intptr_t v = reinterpret_cast<intptr_t>(ptr);
+            auto v = reinterpret_cast<intptr_t>(ptr);
 
             // Eliminate lower 4 bits as objecs are usually aligned on 16 bytes boundaries,
             // then eliminate upper bits
@@ -87,7 +87,7 @@ namespace IcePy
 
             PyObjectHandle args{Py_BuildValue("(O)", _con)};
             assert(_cb);
-            PyObjectHandle tmp{PyObject_Call(_cb, args.get(), 0)};
+            PyObjectHandle tmp{PyObject_Call(_cb, args.get(), nullptr)};
             if (PyErr_Occurred())
             {
                 PyException ex; // Retrieve it before another Python API call clears it.
@@ -113,7 +113,7 @@ extern "C" ConnectionObject*
 connectionNew(PyTypeObject* type, PyObject* /*args*/, PyObject* /*kwds*/)
 {
     assert(type && type->tp_alloc);
-    ConnectionObject* self = reinterpret_cast<ConnectionObject*>(type->tp_alloc(type, 0));
+    auto* self = reinterpret_cast<ConnectionObject*>(type->tp_alloc(type, 0));
     if (!self)
     {
         return nullptr;
@@ -138,7 +138,7 @@ connectionCompare(ConnectionObject* c1, PyObject* other, int op)
 
     if (PyObject_TypeCheck(other, &ConnectionType))
     {
-        ConnectionObject* c2 = reinterpret_cast<ConnectionObject*>(other);
+        auto* c2 = reinterpret_cast<ConnectionObject*>(other);
 
         switch (op)
         {
@@ -369,7 +369,7 @@ connectionFlushBatchRequests(ConnectionObject* self, PyObject* args)
 
     PyObjectHandle v{getAttr(compressBatch, "_value", true)};
     assert(v.get());
-    Ice::CompressBatch cb = static_cast<Ice::CompressBatch>(PyLong_AsLong(v.get()));
+    auto cb = static_cast<Ice::CompressBatch>(PyLong_AsLong(v.get()));
 
     assert(self->connection);
     try
@@ -398,7 +398,7 @@ connectionFlushBatchRequestsAsync(ConnectionObject* self, PyObject* args)
 
     PyObjectHandle v{getAttr(compressBatch, "_value", true)};
     assert(v.get());
-    Ice::CompressBatch compress = static_cast<Ice::CompressBatch>(PyLong_AsLong(v.get()));
+    auto compress = static_cast<Ice::CompressBatch>(PyLong_AsLong(v.get()));
 
     assert(self->connection);
     const string op = "flushBatchRequests";
@@ -633,7 +633,7 @@ static PyMethodDef ConnectionMethods[] = {
      reinterpret_cast<PyCFunction>(connectionThrowException),
      METH_NOARGS,
      PyDoc_STR("throwException() -> None")},
-    {0, 0} /* sentinel */
+    {nullptr, nullptr} /* sentinel */
 };
 
 namespace IcePy
@@ -670,7 +670,7 @@ IcePy::initConnection(PyObject* module)
 PyObject*
 IcePy::createConnection(const Ice::ConnectionPtr& connection, const Ice::CommunicatorPtr& communicator)
 {
-    ConnectionObject* obj = connectionNew(&ConnectionType, 0, 0);
+    ConnectionObject* obj = connectionNew(&ConnectionType, nullptr, nullptr);
     if (obj)
     {
         obj->connection = new Ice::ConnectionPtr(connection);
@@ -705,7 +705,7 @@ IcePy::getConnectionArg(PyObject* p, const string& func, const string& arg, Ice:
     }
     else
     {
-        ConnectionObject* obj = reinterpret_cast<ConnectionObject*>(p);
+        auto* obj = reinterpret_cast<ConnectionObject*>(p);
         con = *obj->connection;
         return true;
     }

@@ -24,7 +24,7 @@
 using namespace std;
 using namespace IcePy;
 
-static unsigned long _mainThreadId;
+static unsigned long mainThreadId;
 
 namespace IcePy
 {
@@ -374,7 +374,7 @@ adapterWaitForHold(ObjectAdapterObject* self, PyObject* args)
     // Do not call waitForHold from the main thread, because it prevents
     // signals (such as keyboard interrupts) from being delivered to Python.
     //
-    if (PyThread_get_thread_ident() == _mainThreadId)
+    if (PyThread_get_thread_ident() == mainThreadId)
     {
         std::lock_guard lock(*self->holdMutex);
 
@@ -467,7 +467,7 @@ adapterWaitForDeactivate(ObjectAdapterObject* self, PyObject* args)
     // Do not call waitForDeactivate from the main thread, because it prevents
     // signals (such as keyboard interrupts) from being delivered to Python.
     //
-    if (PyThread_get_thread_ident() == _mainThreadId)
+    if (PyThread_get_thread_ident() == mainThreadId)
     {
         if (!self->deactivated)
         {
@@ -1558,66 +1558,32 @@ static PyMethodDef AdapterMethods[] = {
      reinterpret_cast<PyCFunction>(adapterSetPublishedEndpoints),
      METH_VARARGS,
      PyDoc_STR("setPublishedEndpoints(endpoints) -> None")},
-    {0, 0} /* sentinel */
+    {nullptr, nullptr} /* sentinel */
 };
 
 namespace IcePy
 {
     PyTypeObject ObjectAdapterType = {
-        /* The ob_type field must be initialized in the module init function
-         * to be portable to Windows without using C++. */
-        PyVarObject_HEAD_INIT(0, 0) "IcePy.ObjectAdapter", /* tp_name */
-        sizeof(ObjectAdapterObject),                       /* tp_basicsize */
-        0,                                                 /* tp_itemsize */
-        /* methods */
-        reinterpret_cast<destructor>(adapterDealloc), /* tp_dealloc */
-        0,                                            /* tp_vectorcall_offset */
-        0,                                            /* tp_getattr */
-        0,                                            /* tp_setattr */
-        0,                                            /* tp_reserved */
-        0,                                            /* tp_repr */
-        0,                                            /* tp_as_number */
-        0,                                            /* tp_as_sequence */
-        0,                                            /* tp_as_mapping */
-        0,                                            /* tp_hash */
-        0,                                            /* tp_call */
-        0,                                            /* tp_str */
-        0,                                            /* tp_getattro */
-        0,                                            /* tp_setattro */
-        0,                                            /* tp_as_buffer */
-        Py_TPFLAGS_DEFAULT,                           /* tp_flags */
-        0,                                            /* tp_doc */
-        0,                                            /* tp_traverse */
-        0,                                            /* tp_clear */
-        0,                                            /* tp_richcompare */
-        0,                                            /* tp_weaklistoffset */
-        0,                                            /* tp_iter */
-        0,                                            /* tp_iternext */
-        AdapterMethods,                               /* tp_methods */
-        0,                                            /* tp_members */
-        0,                                            /* tp_getset */
-        0,                                            /* tp_base */
-        0,                                            /* tp_dict */
-        0,                                            /* tp_descr_get */
-        0,                                            /* tp_descr_set */
-        0,                                            /* tp_dictoffset */
-        0,                                            /* tp_init */
-        0,                                            /* tp_alloc */
-        reinterpret_cast<newfunc>(adapterNew),        /* tp_new */
-        0,                                            /* tp_free */
-        0,                                            /* tp_is_gc */
+        PyVarObject_HEAD_INIT(nullptr, 0) /* object header */
+        .tp_name = "IcePy.ObjectAdapter",
+        .tp_basicsize = sizeof(ObjectAdapterObject),
+        .tp_dealloc = reinterpret_cast<destructor>(adapterDealloc),
+        .tp_flags = Py_TPFLAGS_DEFAULT,
+        .tp_methods = AdapterMethods,
+        .tp_new = reinterpret_cast<newfunc>(adapterNew),
     };
 }
 
 bool
 IcePy::initObjectAdapter(PyObject* module)
 {
-    _mainThreadId = PyThread_get_thread_ident();
+    mainThreadId = PyThread_get_thread_ident();
 
     if (PyType_Ready(&ObjectAdapterType) < 0)
     {
         return false;
     }
+
     PyTypeObject* type = &ObjectAdapterType; // Necessary to prevent GCC's strict-alias warnings.
     if (PyModule_AddObject(module, "ObjectAdapter", reinterpret_cast<PyObject*>(type)) < 0)
     {
@@ -1630,7 +1596,7 @@ IcePy::initObjectAdapter(PyObject* module)
 PyObject*
 IcePy::createObjectAdapter(const Ice::ObjectAdapterPtr& adapter)
 {
-    ObjectAdapterObject* obj =
+    auto* obj =
         reinterpret_cast<ObjectAdapterObject*>(ObjectAdapterType.tp_alloc(&ObjectAdapterType, 0));
     if (obj)
     {
@@ -1652,7 +1618,7 @@ Ice::ObjectAdapterPtr
 IcePy::getObjectAdapter(PyObject* obj)
 {
     assert(PyObject_IsInstance(obj, reinterpret_cast<PyObject*>(&ObjectAdapterType)));
-    ObjectAdapterObject* oaobj = reinterpret_cast<ObjectAdapterObject*>(obj);
+    auto* oaobj = reinterpret_cast<ObjectAdapterObject*>(obj);
     return *oaobj->adapter;
 }
 
@@ -1675,7 +1641,7 @@ IcePy::wrapObjectAdapter(const Ice::ObjectAdapterPtr& adapter)
         return nullptr;
     }
     PyTuple_SET_ITEM(args.get(), 0, adapterI.release());
-    return PyObject_Call(wrapperType, args.get(), 0);
+    return PyObject_Call(wrapperType, args.get(), nullptr);
 }
 
 Ice::ObjectAdapterPtr

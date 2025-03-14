@@ -133,7 +133,7 @@ static PyMethodDef BatchRequestMethods[] = {
      METH_NOARGS,
      PyDoc_STR("getProxy() -> Ice.ObjectPrx")},
     {"enqueue", reinterpret_cast<PyCFunction>(batchRequestEnqueue), METH_NOARGS, PyDoc_STR("enqueue() -> None")},
-    {0, 0} /* sentinel */
+    {nullptr, nullptr} /* sentinel */
 };
 
 namespace IcePy
@@ -183,14 +183,14 @@ IcePy::BatchRequestInterceptorWrapper::enqueue(const Ice::BatchRequest& request,
 {
     AdoptThread adoptThread; // Ensure the current thread is able to call into Python.
 
-    BatchRequestObject* obj = reinterpret_cast<BatchRequestObject*>(BatchRequestType.tp_alloc(&BatchRequestType, 0));
+    auto* obj = reinterpret_cast<BatchRequestObject*>(BatchRequestType.tp_alloc(&BatchRequestType, 0));
     if (!obj)
     {
         return;
     }
 
     obj->request = &request;
-    obj->size = 0;
+    obj->size = nullptr;
     obj->operation = nullptr;
     obj->proxy = nullptr;
     PyObjectHandle tmp;

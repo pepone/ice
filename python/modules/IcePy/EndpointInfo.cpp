@@ -147,50 +147,50 @@ static PyMethodDef EndpointInfoMethods[] = {
     {"type", reinterpret_cast<PyCFunction>(endpointInfoType), METH_NOARGS, PyDoc_STR("type() -> int")},
     {"datagram", reinterpret_cast<PyCFunction>(endpointInfoDatagram), METH_NOARGS, PyDoc_STR("datagram() -> bool")},
     {"secure", reinterpret_cast<PyCFunction>(endpointInfoSecure), METH_NOARGS, PyDoc_STR("secure() -> bool")},
-    {0, 0} /* sentinel */
+    {nullptr, nullptr} /* sentinel */
 };
 
 static PyGetSetDef EndpointInfoGetters[] = {
     {"underlying",
      reinterpret_cast<getter>(endpointInfoGetUnderlying),
-     0,
+     nullptr,
      PyDoc_STR("underling endpoint information"),
-     0},
-    {"timeout", reinterpret_cast<getter>(endpointInfoGetTimeout), 0, PyDoc_STR("timeout in milliseconds"), 0},
-    {"compress", reinterpret_cast<getter>(endpointInfoGetCompress), 0, PyDoc_STR("compression status"), 0},
-    {0, 0} /* sentinel */
+     nullptr},
+    {"timeout", reinterpret_cast<getter>(endpointInfoGetTimeout), nullptr, PyDoc_STR("timeout in milliseconds"), nullptr},
+    {"compress", reinterpret_cast<getter>(endpointInfoGetCompress), nullptr, PyDoc_STR("compression status"), nullptr},
+    {nullptr, nullptr} /* sentinel */
 };
 
 static PyGetSetDef IPEndpointInfoGetters[] = {
-    {"host", reinterpret_cast<getter>(ipEndpointInfoGetHost), 0, PyDoc_STR("host name or IP address"), 0},
-    {"port", reinterpret_cast<getter>(ipEndpointInfoGetPort), 0, PyDoc_STR("TCP port number"), 0},
-    {"sourceAddress", reinterpret_cast<getter>(ipEndpointInfoGetSourceAddress), 0, PyDoc_STR("source IP address"), 0},
-    {0, 0} /* sentinel */
+    {"host", reinterpret_cast<getter>(ipEndpointInfoGetHost), nullptr, PyDoc_STR("host name or IP address"), nullptr},
+    {"port", reinterpret_cast<getter>(ipEndpointInfoGetPort), nullptr, PyDoc_STR("TCP port number"), nullptr},
+    {"sourceAddress", reinterpret_cast<getter>(ipEndpointInfoGetSourceAddress), nullptr, PyDoc_STR("source IP address"), nullptr},
+    {nullptr, nullptr} /* sentinel */
 };
 
 static PyGetSetDef UDPEndpointInfoGetters[] = {
     {"mcastInterface",
      reinterpret_cast<getter>(udpEndpointInfoGetMcastInterface),
-     0,
+     nullptr,
      PyDoc_STR("multicast interface"),
-     0},
-    {"mcastTtl", reinterpret_cast<getter>(udpEndpointInfoGetMcastTtl), 0, PyDoc_STR("multicast time-to-live"), 0},
-    {0, 0} /* sentinel */
+     nullptr},
+    {"mcastTtl", reinterpret_cast<getter>(udpEndpointInfoGetMcastTtl), nullptr, PyDoc_STR("multicast time-to-live"), nullptr},
+    {nullptr, nullptr} /* sentinel */
 };
 
 static PyGetSetDef WSEndpointInfoGetters[] = {
-    {"resource", reinterpret_cast<getter>(wsEndpointInfoGetResource), 0, PyDoc_STR("resource"), 0},
-    {0, 0} /* sentinel */
+    {"resource", reinterpret_cast<getter>(wsEndpointInfoGetResource), nullptr, PyDoc_STR("resource"), nullptr},
+    {nullptr, nullptr} /* sentinel */
 };
 
 static PyGetSetDef OpaqueEndpointInfoGetters[] = {
-    {"rawBytes", reinterpret_cast<getter>(opaqueEndpointInfoGetRawBytes), 0, PyDoc_STR("raw encoding"), 0},
+    {"rawBytes", reinterpret_cast<getter>(opaqueEndpointInfoGetRawBytes), nullptr, PyDoc_STR("raw encoding"), nullptr},
     {"rawEncoding",
      reinterpret_cast<getter>(opaqueEndpointInfoGetRawEncoding),
-     0,
+     nullptr,
      PyDoc_STR("raw encoding version"),
-     0},
-    {0, 0} /* sentinel */
+     nullptr},
+    {nullptr, nullptr} /* sentinel */
 };
 
 namespace IcePy
@@ -351,7 +351,7 @@ Ice::EndpointInfoPtr
 IcePy::getEndpointInfo(PyObject* obj)
 {
     assert(PyObject_IsInstance(obj, reinterpret_cast<PyObject*>(&EndpointInfoType)));
-    EndpointInfoObject* eobj = reinterpret_cast<EndpointInfoObject*>(obj);
+    auto* eobj = reinterpret_cast<EndpointInfoObject*>(obj);
     return *eobj->endpointInfo;
 }
 
@@ -393,7 +393,7 @@ IcePy::createEndpointInfo(const Ice::EndpointInfoPtr& endpointInfo)
         type = &EndpointInfoType;
     }
 
-    EndpointInfoObject* obj = reinterpret_cast<EndpointInfoObject*>(type->tp_alloc(type, 0));
+    auto* obj = reinterpret_cast<EndpointInfoObject*>(type->tp_alloc(type, 0));
     if (!obj)
     {
         return nullptr;

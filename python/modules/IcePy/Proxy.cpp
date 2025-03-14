@@ -39,7 +39,7 @@ namespace IcePy
 static ProxyObject*
 allocateProxy(const Ice::ObjectPrx& proxy, const Ice::CommunicatorPtr& communicator, PyObject* type)
 {
-    PyTypeObject* typeObj = reinterpret_cast<PyTypeObject*>(type);
+    auto* typeObj = reinterpret_cast<PyTypeObject*>(type);
     ProxyObject* p{reinterpret_cast<ProxyObject*>(typeObj->tp_alloc(typeObj, 0))};
     if (!p)
     {
@@ -121,7 +121,7 @@ proxyCompare(ProxyObject* p1, PyObject* other, int op)
 
     if (PyObject_TypeCheck(other, &ProxyType))
     {
-        ProxyObject* p2 = reinterpret_cast<ProxyObject*>(other);
+        auto* p2 = reinterpret_cast<ProxyObject*>(other);
 
         switch (op)
         {
@@ -609,7 +609,7 @@ proxyIceGetLocatorCacheTimeout(ProxyObject* self, PyObject* /*args*/)
 
     try
     {
-        chrono::seconds timeout = chrono::duration_cast<chrono::seconds>((*self->proxy)->ice_getLocatorCacheTimeout());
+        auto timeout = chrono::duration_cast<chrono::seconds>((*self->proxy)->ice_getLocatorCacheTimeout());
         return PyLong_FromLong(static_cast<int32_t>(timeout.count()));
     }
     catch (...)
@@ -1645,7 +1645,7 @@ checkedCastImpl(ProxyObject* p, const string& id, PyObject* facet, PyObject* ctx
         }
 
         AllowThreads allowThreads; // Release Python's global interpreter lock during remote invocations.
-        b = target->ice_isA(id, (ctx == 0 || ctx == Py_None) ? Ice::noExplicitContext : c);
+        b = target->ice_isA(id, (ctx == nullptr || ctx == Py_None) ? Ice::noExplicitContext : c);
     }
     catch (...)
     {
@@ -1670,8 +1670,8 @@ proxyIceCheckedCast(PyObject* type, PyObject* args)
     //
     PyObject* obj;
     char* id;
-    PyObject* facetOrContext = 0;
-    PyObject* ctx = 0;
+    PyObject* facetOrContext = nullptr;
+    PyObject* ctx = nullptr;
     if (!PyArg_ParseTuple(args, "OsOO", &obj, &id, &facetOrContext, &ctx))
     {
         return nullptr;
@@ -1688,7 +1688,7 @@ proxyIceCheckedCast(PyObject* type, PyObject* args)
         return nullptr;
     }
 
-    PyObject* facet = 0;
+    PyObject* facet = nullptr;
 
     if (checkString(facetOrContext))
     {
@@ -1726,7 +1726,7 @@ proxyIceUncheckedCast(PyObject* type, PyObject* args)
     // to receive two arguments.
     //
     PyObject* obj;
-    char* facet = 0;
+    char* facet = nullptr;
     if (!PyArg_ParseTuple(args, "Oz", &obj, &facet))
     {
         return nullptr;
@@ -1743,7 +1743,7 @@ proxyIceUncheckedCast(PyObject* type, PyObject* args)
         return nullptr;
     }
 
-    ProxyObject* p = reinterpret_cast<ProxyObject*>(obj);
+    auto* p = reinterpret_cast<ProxyObject*>(obj);
 
     if (facet)
     {
@@ -1759,8 +1759,8 @@ extern "C" PyObject*
 proxyCheckedCast(PyObject* /*self*/, PyObject* args)
 {
     PyObject* obj;
-    PyObject* arg1 = 0;
-    PyObject* arg2 = 0;
+    PyObject* arg1 = nullptr;
+    PyObject* arg2 = nullptr;
     if (!PyArg_ParseTuple(args, "O|OO", &obj, &arg1, &arg2))
     {
         return nullptr;
@@ -1777,22 +1777,22 @@ proxyCheckedCast(PyObject* /*self*/, PyObject* args)
         return nullptr;
     }
 
-    PyObject* facet = 0;
-    PyObject* ctx = 0;
+    PyObject* facet = nullptr;
+    PyObject* ctx = nullptr;
 
-    if (arg1 != 0 && arg2 != 0)
+    if (arg1 != nullptr && arg2 != nullptr)
     {
         if (arg1 == Py_None)
         {
-            arg1 = 0;
+            arg1 = nullptr;
         }
 
         if (arg2 == Py_None)
         {
-            arg2 = 0;
+            arg2 = nullptr;
         }
 
-        if (arg1 != 0)
+        if (arg1 != nullptr)
         {
             if (!checkString(arg1))
             {
@@ -1802,14 +1802,14 @@ proxyCheckedCast(PyObject* /*self*/, PyObject* args)
             facet = arg1;
         }
 
-        if (arg2 != 0 && !PyDict_Check(arg2))
+        if (arg2 != nullptr && !PyDict_Check(arg2))
         {
             PyErr_Format(PyExc_ValueError, "context argument to checkedCast must be a dictionary");
             return nullptr;
         }
         ctx = arg2;
     }
-    else if (arg1 != 0 && arg1 != Py_None)
+    else if (arg1 != nullptr && arg1 != Py_None)
     {
         if (checkString(arg1))
         {
@@ -1826,14 +1826,14 @@ proxyCheckedCast(PyObject* /*self*/, PyObject* args)
         }
     }
 
-    return checkedCastImpl(reinterpret_cast<ProxyObject*>(obj), "::Ice::Object", facet, ctx, 0);
+    return checkedCastImpl(reinterpret_cast<ProxyObject*>(obj), "::Ice::Object", facet, ctx, nullptr);
 }
 
 extern "C" PyObject*
 proxyUncheckedCast(PyObject* /*self*/, PyObject* args)
 {
     PyObject* obj;
-    PyObject* facetObj = 0;
+    PyObject* facetObj = nullptr;
     if (!PyArg_ParseTuple(args, "O|O", &obj, &facetObj))
     {
         return nullptr;
@@ -1859,7 +1859,7 @@ proxyUncheckedCast(PyObject* /*self*/, PyObject* args)
         return nullptr;
     }
 
-    ProxyObject* p = reinterpret_cast<ProxyObject*>(obj);
+    auto* p = reinterpret_cast<ProxyObject*>(obj);
 
     if (facetObj)
     {
@@ -2123,54 +2123,23 @@ static PyMethodDef ProxyMethods[] = {
      reinterpret_cast<PyCFunction>(proxyIceStaticId),
      METH_NOARGS | METH_STATIC,
      PyDoc_STR("ice_staticId() -> string")},
-    {0, 0} /* sentinel */
+    {nullptr, nullptr} /* sentinel */
 };
 
 namespace IcePy
 {
     PyTypeObject ProxyType = {
-        /* The ob_type field must be initialized in the module init function
-         * to be portable to Windows without using C++. */
-        PyVarObject_HEAD_INIT(0, 0) "IcePy.ObjectPrx", /* tp_name */
-        sizeof(ProxyObject),                           /* tp_basicsize */
-        0,                                             /* tp_itemsize */
-        /* methods */
-        reinterpret_cast<destructor>(proxyDealloc),  /* tp_dealloc */
-        0,                                           /* tp_vectorcall_offset */
-        0,                                           /* tp_getattr */
-        0,                                           /* tp_setattr */
-        0,                                           /* tp_reserved */
-        reinterpret_cast<reprfunc>(proxyRepr),       /* tp_repr */
-        0,                                           /* tp_as_number */
-        0,                                           /* tp_as_sequence */
-        0,                                           /* tp_as_mapping */
-        reinterpret_cast<hashfunc>(proxyHash),       /* tp_hash */
-        0,                                           /* tp_call */
-        0,                                           /* tp_str */
-        0,                                           /* tp_getattro */
-        0,                                           /* tp_setattro */
-        0,                                           /* tp_as_buffer */
-        Py_TPFLAGS_BASETYPE,                         /* tp_flags */
-        0,                                           /* tp_doc */
-        0,                                           /* tp_traverse */
-        0,                                           /* tp_clear */
-        reinterpret_cast<richcmpfunc>(proxyCompare), /* tp_richcompare */
-        0,                                           /* tp_weaklistoffset */
-        0,                                           /* tp_iter */
-        0,                                           /* tp_iternext */
-        ProxyMethods,                                /* tp_methods */
-        0,                                           /* tp_members */
-        0,                                           /* tp_getset */
-        0,                                           /* tp_base */
-        0,                                           /* tp_dict */
-        0,                                           /* tp_descr_get */
-        0,                                           /* tp_descr_set */
-        0,                                           /* tp_dictoffset */
-        reinterpret_cast<initproc>(proxyInit),       /* tp_init */
-        0,                                           /* tp_alloc */
-        reinterpret_cast<newfunc>(proxyNew),         /* tp_new */
-        0,                                           /* tp_free */
-        0,                                           /* tp_is_gc */
+        PyVarObject_HEAD_INIT(nullptr, 0) /* object header */
+        .tp_name = "IcePy.ObjectPrx",
+        .tp_basicsize = sizeof(ProxyObject),
+        .tp_dealloc = reinterpret_cast<destructor>(proxyDealloc),
+        .tp_repr = reinterpret_cast<reprfunc>(proxyRepr),
+        .tp_hash = reinterpret_cast<hashfunc>(proxyHash),
+        .tp_flags = Py_TPFLAGS_BASETYPE,
+        .tp_richcompare = reinterpret_cast<richcmpfunc>(proxyCompare),
+        .tp_methods = ProxyMethods,
+        .tp_init = reinterpret_cast<initproc>(proxyInit),
+        .tp_new = reinterpret_cast<newfunc>(proxyNew),
     };
 }
 
@@ -2211,7 +2180,7 @@ Ice::ObjectPrx
 IcePy::getProxy(PyObject* p)
 {
     assert(checkProxy(p));
-    ProxyObject* obj = reinterpret_cast<ProxyObject*>(p);
+    auto* obj = reinterpret_cast<ProxyObject*>(p);
     return *obj->proxy;
 }
 
@@ -2246,7 +2215,7 @@ IcePy::getProxyArg(
     {
         if (p != Py_None)
         {
-            ProxyObject* obj = reinterpret_cast<ProxyObject*>(p);
+            auto* obj = reinterpret_cast<ProxyObject*>(p);
             proxy = *obj->proxy;
         }
         else
@@ -2272,6 +2241,6 @@ Ice::CommunicatorPtr
 IcePy::getProxyCommunicator(PyObject* p)
 {
     assert(checkProxy(p));
-    ProxyObject* obj = reinterpret_cast<ProxyObject*>(p);
+    auto* obj = reinterpret_cast<ProxyObject*>(p);
     return *obj->communicator;
 }

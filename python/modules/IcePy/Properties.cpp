@@ -98,7 +98,7 @@ propertiesInit(PropertiesObject* self, PyObject* args, PyObject* /*kwds*/)
     //
     if (arglist && arglist != Py_None)
     {
-        if (PyList_SetSlice(arglist, 0, PyList_Size(arglist), 0) < 0)
+        if (PyList_SetSlice(arglist, 0, PyList_Size(arglist), nullptr) < 0)
         {
             return -1;
         }
@@ -137,7 +137,7 @@ propertiesStr(PropertiesObject* self)
     }
 
     string str;
-    for (Ice::PropertyDict::const_iterator p = dict.begin(); p != dict.end(); ++p)
+    for (auto p = dict.begin(); p != dict.end(); ++p)
     {
         if (p != dict.begin())
         {
@@ -705,54 +705,21 @@ static PyMethodDef PropertyMethods[] = {
      PyDoc_STR("parseIceCommandLineOptions(prefix, options) -> list")},
     {"load", reinterpret_cast<PyCFunction>(propertiesLoad), METH_VARARGS, PyDoc_STR("load(file) -> None")},
     {"clone", reinterpret_cast<PyCFunction>(propertiesClone), METH_NOARGS, PyDoc_STR("clone() -> Ice.Properties")},
-    {0, 0} /* sentinel */
+    {nullptr, nullptr} /* sentinel */
 };
 
 namespace IcePy
 {
     PyTypeObject PropertiesType = {
-        /* The ob_type field must be initialized in the module init function
-         * to be portable to Windows without using C++. */
-        PyVarObject_HEAD_INIT(0, 0) "IcePy.Properties", /* tp_name */
-        sizeof(PropertiesObject),                       /* tp_basicsize */
-        0,                                              /* tp_itemsize */
-        /* methods */
-        reinterpret_cast<destructor>(propertiesDealloc), /* tp_dealloc */
-        0,                                               /* tp_vectorcall_offset */
-        0,                                               /* tp_getattr */
-        0,                                               /* tp_setattr */
-        0,                                               /* tp_reserved */
-        0,                                               /* tp_repr */
-        0,                                               /* tp_as_number */
-        0,                                               /* tp_as_sequence */
-        0,                                               /* tp_as_mapping */
-        0,                                               /* tp_hash */
-        0,                                               /* tp_call */
-        reinterpret_cast<reprfunc>(propertiesStr),       /* tp_str */
-        0,                                               /* tp_getattro */
-        0,                                               /* tp_setattro */
-        0,                                               /* tp_as_buffer */
-        Py_TPFLAGS_DEFAULT,                              /* tp_flags */
-        0,                                               /* tp_doc */
-        0,                                               /* tp_traverse */
-        0,                                               /* tp_clear */
-        0,                                               /* tp_richcompare */
-        0,                                               /* tp_weaklistoffset */
-        0,                                               /* tp_iter */
-        0,                                               /* tp_iternext */
-        PropertyMethods,                                 /* tp_methods */
-        0,                                               /* tp_members */
-        0,                                               /* tp_getset */
-        0,                                               /* tp_base */
-        0,                                               /* tp_dict */
-        0,                                               /* tp_descr_get */
-        0,                                               /* tp_descr_set */
-        0,                                               /* tp_dictoffset */
-        reinterpret_cast<initproc>(propertiesInit),      /* tp_init */
-        0,                                               /* tp_alloc */
-        reinterpret_cast<newfunc>(propertiesNew),        /* tp_new */
-        0,                                               /* tp_free */
-        0,                                               /* tp_is_gc */
+        PyVarObject_HEAD_INIT(nullptr, 0) /* object header */
+        .tp_name = "IcePy.Properties",
+        .tp_basicsize = sizeof(PropertiesObject),
+        .tp_dealloc = reinterpret_cast<destructor>(propertiesDealloc),
+        .tp_str = reinterpret_cast<reprfunc>(propertiesStr),
+        .tp_flags = Py_TPFLAGS_DEFAULT,
+        .tp_methods = PropertyMethods,
+        .tp_init = reinterpret_cast<initproc>(propertiesInit),
+        .tp_new = reinterpret_cast<newfunc>(propertiesNew),
     };
 }
 
@@ -801,5 +768,5 @@ IcePy_createProperties(PyObject* /*self*/, PyObject* args)
     // Currently the same as "p = Ice.Properties()".
     //
     PyTypeObject* type = &PropertiesType; // Necessary to prevent GCC's strict-alias warnings.
-    return PyObject_Call(reinterpret_cast<PyObject*>(type), args, 0);
+    return PyObject_Call(reinterpret_cast<PyObject*>(type), args, nullptr);
 }

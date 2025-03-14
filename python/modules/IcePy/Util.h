@@ -61,7 +61,7 @@ namespace IcePy
 
         operator bool() const { return _p != nullptr; }
 
-        PyObject* get() const;
+        [[nodiscard]] PyObject* get() const;
         PyObject* release();
 
     private:
@@ -189,8 +189,8 @@ namespace IcePy
     //
     // Call a Python method.
     //
-    PyObject* callMethod(PyObject*, const std::string&, PyObject* = 0, PyObject* = 0);
-    PyObject* callMethod(PyObject*, PyObject* = 0, PyObject* = 0);
+    PyObject* callMethod(PyObject*, const std::string&, PyObject* = nullptr, PyObject* = nullptr);
+    PyObject* callMethod(PyObject*, PyObject* = nullptr, PyObject* = nullptr);
 }
 
 extern "C" PyObject* IcePy_stringVersion(PyObject*, PyObject*);

@@ -53,7 +53,7 @@ nativePropertiesAdminAddUpdateCB(NativePropertiesAdminObject* self, PyObject* ar
                     PyObjectHandle result{PyDict_New()};
                     if (result.get())
                     {
-                        for (Ice::PropertyDict::const_iterator p = dict.begin(); p != dict.end(); ++p)
+                        for (auto p = dict.begin(); p != dict.end(); ++p)
                         {
                             PyObjectHandle key{createString(p->first)};
                             PyObjectHandle val{createString(p->second)};
@@ -72,7 +72,7 @@ nativePropertiesAdminAddUpdateCB(NativePropertiesAdminObject* self, PyObject* ar
                     }
                 });
 
-    (*self->callbacks).push_back(make_pair(callback, remover));
+    (*self->callbacks).emplace_back(callback, remover);
     Py_INCREF(callback);
 
     return Py_None;
@@ -111,54 +111,19 @@ static PyMethodDef NativePropertiesAdminMethods[] = {
      reinterpret_cast<PyCFunction>(nativePropertiesAdminRemoveUpdateCB),
      METH_VARARGS,
      PyDoc_STR("removeUpdateCallback(callback) -> None")},
-    {0, 0} /* sentinel */
+    {nullptr, nullptr} /* sentinel */
 };
 
 namespace IcePy
 {
     PyTypeObject NativePropertiesAdminType = {
-        /* The ob_type field must be initialized in the module init function
-         * to be portable to Windows without using C++. */
-        PyVarObject_HEAD_INIT(0, 0) "IcePy.NativePropertiesAdmin", /* tp_name */
-        sizeof(NativePropertiesAdminObject),                       /* tp_basicsize */
-        0,                                                         /* tp_itemsize */
-        /* methods */
-        reinterpret_cast<destructor>(nativePropertiesAdminDealloc), /* tp_dealloc */
-        0,                                                          /* tp_vectorcall_offset */
-        0,                                                          /* tp_getattr */
-        0,                                                          /* tp_setattr */
-        0,                                                          /* tp_reserved */
-        0,                                                          /* tp_repr */
-        0,                                                          /* tp_as_number */
-        0,                                                          /* tp_as_sequence */
-        0,                                                          /* tp_as_mapping */
-        0,                                                          /* tp_hash */
-        0,                                                          /* tp_call */
-        0,                                                          /* tp_str */
-        0,                                                          /* tp_getattro */
-        0,                                                          /* tp_setattro */
-        0,                                                          /* tp_as_buffer */
-        Py_TPFLAGS_DEFAULT,                                         /* tp_flags */
-        0,                                                          /* tp_doc */
-        0,                                                          /* tp_traverse */
-        0,                                                          /* tp_clear */
-        0,                                                          /* tp_richcompare */
-        0,                                                          /* tp_weaklistoffset */
-        0,                                                          /* tp_iter */
-        0,                                                          /* tp_iternext */
-        NativePropertiesAdminMethods,                               /* tp_methods */
-        0,                                                          /* tp_members */
-        0,                                                          /* tp_getset */
-        0,                                                          /* tp_base */
-        0,                                                          /* tp_dict */
-        0,                                                          /* tp_descr_get */
-        0,                                                          /* tp_descr_set */
-        0,                                                          /* tp_dictoffset */
-        0,                                                          /* tp_init */
-        0,                                                          /* tp_alloc */
-        reinterpret_cast<newfunc>(nativePropertiesAdminNew),        /* tp_new */
-        0,                                                          /* tp_free */
-        0,                                                          /* tp_is_gc */
+        PyVarObject_HEAD_INIT(nullptr, 0) /* object header */
+        .tp_name = "IcePy.NativePropertiesAdmin",
+        .tp_basicsize = sizeof(NativePropertiesAdminObject),
+        .tp_dealloc = reinterpret_cast<destructor>(nativePropertiesAdminDealloc),
+        .tp_flags = Py_TPFLAGS_DEFAULT,
+        .tp_methods = NativePropertiesAdminMethods,
+        .tp_new = reinterpret_cast<newfunc>(nativePropertiesAdminNew),
     };
 }
 
@@ -182,7 +147,7 @@ IcePy::createNativePropertiesAdmin(const Ice::NativePropertiesAdminPtr& admin)
 {
     PyTypeObject* type = &NativePropertiesAdminType;
 
-    NativePropertiesAdminObject* p = reinterpret_cast<NativePropertiesAdminObject*>(type->tp_alloc(type, 0));
+    auto* p = reinterpret_cast<NativePropertiesAdminObject*>(type->tp_alloc(type, 0));
     if (!p)
     {
         return nullptr;

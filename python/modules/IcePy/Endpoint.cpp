@@ -36,7 +36,7 @@ endpointCompare(EndpointObject* p1, PyObject* other, int op)
 
     if (PyObject_TypeCheck(other, &EndpointType))
     {
-        EndpointObject* p2 = reinterpret_cast<EndpointObject*>(other);
+        auto* p2 = reinterpret_cast<EndpointObject*>(other);
 
         switch (op)
         {
@@ -98,7 +98,7 @@ endpointToString(EndpointObject* self, PyObject* /*args*/)
 extern "C" PyObject*
 endpointRepr(EndpointObject* self)
 {
-    return endpointToString(self, 0);
+    return endpointToString(self, nullptr);
 }
 
 extern "C" PyObject*
@@ -122,7 +122,7 @@ static PyMethodDef EndpointMethods[] = {
      reinterpret_cast<PyCFunction>(endpointGetInfo),
      METH_NOARGS,
      PyDoc_STR("getInfo() -> Ice.EndpointInfo")},
-    {0, 0} /* sentinel */
+    {nullptr, nullptr} /* sentinel */
 };
 
 namespace IcePy

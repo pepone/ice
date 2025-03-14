@@ -168,56 +168,56 @@ sslConnectionInfoGetPeerCertificate(ConnectionInfoObject* self, PyObject* /*args
 static PyGetSetDef ConnectionInfoGetters[] = {
     {"underlying",
      reinterpret_cast<getter>(connectionInfoGetUnderlying),
-     0,
+     nullptr,
      PyDoc_STR("get underlying connection information"),
-     0},
+     nullptr},
     {"incoming",
      reinterpret_cast<getter>(connectionInfoGetIncoming),
-     0,
+     nullptr,
      PyDoc_STR("whether connection is incoming"),
-     0},
+     nullptr},
     {"adapterName",
      reinterpret_cast<getter>(connectionInfoGetAdapterName),
-     0,
+     nullptr,
      PyDoc_STR("adapter associated the connection"),
-     0},
-    {0, 0} /* sentinel */
+     nullptr},
+    {nullptr, nullptr} /* sentinel */
 };
 
 static PyGetSetDef IPConnectionInfoGetters[] = {
-    {"localAddress", reinterpret_cast<getter>(ipConnectionInfoGetLocalAddress), 0, PyDoc_STR("local address"), 0},
-    {"localPort", reinterpret_cast<getter>(ipConnectionInfoGetLocalPort), 0, PyDoc_STR("local port"), 0},
-    {"remoteAddress", reinterpret_cast<getter>(ipConnectionInfoGetRemoteAddress), 0, PyDoc_STR("remote address"), 0},
-    {"remotePort", reinterpret_cast<getter>(ipConnectionInfoGetRemotePort), 0, PyDoc_STR("remote port"), 0},
-    {0, 0} /* sentinel */
+    {"localAddress", reinterpret_cast<getter>(ipConnectionInfoGetLocalAddress), nullptr, PyDoc_STR("local address"), nullptr},
+    {"localPort", reinterpret_cast<getter>(ipConnectionInfoGetLocalPort), nullptr, PyDoc_STR("local port"), nullptr},
+    {"remoteAddress", reinterpret_cast<getter>(ipConnectionInfoGetRemoteAddress), nullptr, PyDoc_STR("remote address"), nullptr},
+    {"remotePort", reinterpret_cast<getter>(ipConnectionInfoGetRemotePort), nullptr, PyDoc_STR("remote port"), nullptr},
+    {nullptr, nullptr} /* sentinel */
 };
 
 static PyGetSetDef TCPConnectionInfoGetters[] = {
-    {"rcvSize", reinterpret_cast<getter>(tcpConnectionInfoGetRcvSize), 0, PyDoc_STR("receive buffer size"), 0},
-    {"sndSize", reinterpret_cast<getter>(tcpConnectionInfoGetSndSize), 0, PyDoc_STR("send buffer size"), 0},
-    {0, 0} /* sentinel */
+    {"rcvSize", reinterpret_cast<getter>(tcpConnectionInfoGetRcvSize), nullptr, PyDoc_STR("receive buffer size"), nullptr},
+    {"sndSize", reinterpret_cast<getter>(tcpConnectionInfoGetSndSize), nullptr, PyDoc_STR("send buffer size"), nullptr},
+    {nullptr, nullptr} /* sentinel */
 };
 
 static PyGetSetDef UDPConnectionInfoGetters[] = {
-    {"mcastAddress", reinterpret_cast<getter>(udpConnectionInfoGetMcastAddress), 0, PyDoc_STR("multicast address"), 0},
-    {"mcastPort", reinterpret_cast<getter>(udpConnectionInfoGetMcastPort), 0, PyDoc_STR("multicast port"), 0},
-    {"rcvSize", reinterpret_cast<getter>(udpConnectionInfoGetRcvSize), 0, PyDoc_STR("receive buffer size"), 0},
-    {"sndSize", reinterpret_cast<getter>(udpConnectionInfoGetSndSize), 0, PyDoc_STR("send buffer size"), 0},
-    {0, 0} /* sentinel */
+    {"mcastAddress", reinterpret_cast<getter>(udpConnectionInfoGetMcastAddress), nullptr, PyDoc_STR("multicast address"), nullptr},
+    {"mcastPort", reinterpret_cast<getter>(udpConnectionInfoGetMcastPort), nullptr, PyDoc_STR("multicast port"), nullptr},
+    {"rcvSize", reinterpret_cast<getter>(udpConnectionInfoGetRcvSize), nullptr, PyDoc_STR("receive buffer size"), nullptr},
+    {"sndSize", reinterpret_cast<getter>(udpConnectionInfoGetSndSize), nullptr, PyDoc_STR("send buffer size"), nullptr},
+    {nullptr, nullptr} /* sentinel */
 };
 
 static PyGetSetDef WSConnectionInfoGetters[] = {
-    {"headers", reinterpret_cast<getter>(wsConnectionInfoGetHeaders), 0, PyDoc_STR("request headers"), 0},
-    {0, 0} /* sentinel */
+    {"headers", reinterpret_cast<getter>(wsConnectionInfoGetHeaders), nullptr, PyDoc_STR("request headers"), nullptr},
+    {nullptr, nullptr} /* sentinel */
 };
 
 static PyGetSetDef SSLConnectionInfoGetters[] = {
     {"peerCertificate",
      reinterpret_cast<getter>(sslConnectionInfoGetPeerCertificate),
-     0,
+     nullptr,
      PyDoc_STR("peer certificate"),
-     0},
-    {0, 0} /* sentinel */
+     nullptr},
+    {nullptr, nullptr} /* sentinel */
 };
 
 namespace IcePy
@@ -358,7 +358,7 @@ Ice::ConnectionInfoPtr
 IcePy::getConnectionInfo(PyObject* obj)
 {
     assert(PyObject_IsInstance(obj, reinterpret_cast<PyObject*>(&ConnectionInfoType)));
-    ConnectionInfoObject* eobj = reinterpret_cast<ConnectionInfoObject*>(obj);
+    auto* eobj = reinterpret_cast<ConnectionInfoObject*>(obj);
     return *eobj->connectionInfo;
 }
 
@@ -396,7 +396,7 @@ IcePy::createConnectionInfo(const Ice::ConnectionInfoPtr& connectionInfo)
         type = &ConnectionInfoType;
     }
 
-    ConnectionInfoObject* obj = reinterpret_cast<ConnectionInfoObject*>(type->tp_alloc(type, 0));
+    auto* obj = reinterpret_cast<ConnectionInfoObject*>(type->tp_alloc(type, 0));
     if (!obj)
     {
         return nullptr;

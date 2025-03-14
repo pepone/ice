@@ -82,7 +82,7 @@ namespace IcePy
     {
         PyObject* versionType{lookupType(type)};
 
-        PyObjectHandle obj{PyObject_CallObject(versionType, 0)};
+        PyObjectHandle obj{PyObject_CallObject(versionType, nullptr)};
         if (!obj.get())
         {
             return nullptr;
@@ -652,7 +652,7 @@ IcePy::convertException(std::exception_ptr exPtr)
             IcePy::createString(ex.kindOfObject()),
             IcePy::createString(ex.id()),
             IcePy::createString(ex.what())};
-        return createPythonException(ex.ice_id(), std::move(args));
+        return createPythonException(ex.ice_id(), args);
     }
     catch (const Ice::NotRegisteredException& ex)
     {
@@ -660,17 +660,17 @@ IcePy::convertException(std::exception_ptr exPtr)
             IcePy::createString(ex.kindOfObject()),
             IcePy::createString(ex.id()),
             IcePy::createString(ex.what())};
-        return createPythonException(ex.ice_id(), std::move(args));
+        return createPythonException(ex.ice_id(), args);
     }
     catch (const Ice::ConnectionAbortedException& ex)
     {
         std::array args{ex.closedByApplication() ? Py_True : Py_False, IcePy::createString(ex.what())};
-        return createPythonException(ex.ice_id(), std::move(args));
+        return createPythonException(ex.ice_id(), args);
     }
     catch (const Ice::ConnectionClosedException& ex)
     {
         std::array args{ex.closedByApplication() ? Py_True : Py_False, IcePy::createString(ex.what())};
-        return createPythonException(ex.ice_id(), std::move(args));
+        return createPythonException(ex.ice_id(), args);
     }
     catch (const Ice::RequestFailedException& ex)
     {
@@ -679,34 +679,34 @@ IcePy::convertException(std::exception_ptr exPtr)
             IcePy::createString(ex.facet()),
             IcePy::createString(ex.operation()),
             IcePy::createString(ex.what())};
-        return createPythonException(ex.ice_id(), std::move(args));
+        return createPythonException(ex.ice_id(), args);
     }
     catch (const Ice::UnknownException& ex)
     {
         // The 3 Unknown exceptions can be constructed from just a message.
         std::array args{IcePy::createString(ex.what())};
-        return createPythonException(ex.ice_id(), std::move(args));
+        return createPythonException(ex.ice_id(), args);
     }
     catch (const Ice::DispatchException& ex)
     {
         std::array args{PyLong_FromLong(static_cast<int>(ex.replyStatus())), IcePy::createString(ex.what())};
-        return createPythonException(ex.ice_id(), std::move(args));
+        return createPythonException(ex.ice_id(), args);
     }
     // Then all other exceptions.
     catch (const Ice::LocalException& ex)
     {
         std::array args{IcePy::createString(ex.what())};
-        return createPythonException(ex.ice_id(), std::move(args), true);
+        return createPythonException(ex.ice_id(), args, true);
     }
     catch (const std::exception& ex)
     {
         std::array args{IcePy::createString(ex.what())};
-        return createPythonException(localExceptionTypeId, std::move(args));
+        return createPythonException(localExceptionTypeId, args);
     }
     catch (...)
     {
         std::array args{IcePy::createString("unknown C++ exception")};
-        return createPythonException(localExceptionTypeId, std::move(args));
+        return createPythonException(localExceptionTypeId, args);
     }
 }
 
@@ -918,7 +918,7 @@ IcePy::callMethod(PyObject* method, PyObject* arg1, PyObject* arg2)
             return nullptr;
         }
     }
-    return PyObject_Call(method, args.get(), 0);
+    return PyObject_Call(method, args.get(), nullptr);
 }
 
 extern "C" PyObject*

@@ -73,7 +73,7 @@ IcePy::LoggerWrapper::getPrefix()
 {
     AdoptThread adoptThread;
 
-    PyObjectHandle tmp{PyObject_CallMethod(_logger.get(), "getPrefix", 0)};
+    PyObjectHandle tmp{PyObject_CallMethod(_logger.get(), "getPrefix", nullptr)};
     if (!tmp.get())
     {
         throwPythonException();
@@ -104,7 +104,7 @@ IcePy::LoggerWrapper::getObject()
 extern "C" LoggerObject*
 loggerNew(PyTypeObject* type, PyObject* /*args*/, PyObject* /*kwds*/)
 {
-    LoggerObject* self = reinterpret_cast<LoggerObject*>(type->tp_alloc(type, 0));
+    auto* self = reinterpret_cast<LoggerObject*>(type->tp_alloc(type, 0));
     if (!self)
     {
         return nullptr;
@@ -317,7 +317,7 @@ static PyMethodDef LoggerMethods[] = {
      reinterpret_cast<PyCFunction>(loggerCloneWithPrefix),
      METH_VARARGS,
      PyDoc_STR("cloneWithPrefix(prefix) -> Ice.Logger")},
-    {0, 0} /* sentinel */
+    {nullptr, nullptr} /* sentinel */
 };
 
 namespace IcePy
@@ -361,7 +361,7 @@ IcePy::cleanupLogger()
 PyObject*
 IcePy::createLogger(const Ice::LoggerPtr& logger)
 {
-    LoggerObject* obj = loggerNew(&LoggerType, 0, 0);
+    LoggerObject* obj = loggerNew(&LoggerType, nullptr, nullptr);
     if (obj)
     {
         obj->logger = new Ice::LoggerPtr(logger);

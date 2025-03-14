@@ -90,7 +90,7 @@ IcePy_loadSlice(PyObject* /*self*/, PyObject* args)
     if (opts.isSet("D"))
     {
         vector<string> optargs = opts.argVec("D");
-        for (vector<string>::const_iterator i = optargs.begin(); i != optargs.end(); ++i)
+        for (auto i = optargs.begin(); i != optargs.end(); ++i)
         {
             cppArgs.push_back("-D" + *i);
         }
@@ -98,7 +98,7 @@ IcePy_loadSlice(PyObject* /*self*/, PyObject* args)
     if (opts.isSet("U"))
     {
         vector<string> optargs = opts.argVec("U");
-        for (vector<string>::const_iterator i = optargs.begin(); i != optargs.end(); ++i)
+        for (auto i = optargs.begin(); i != optargs.end(); ++i)
         {
             cppArgs.push_back("-U" + *i);
         }
@@ -106,7 +106,7 @@ IcePy_loadSlice(PyObject* /*self*/, PyObject* args)
     if (opts.isSet("I"))
     {
         includePaths = opts.argVec("I");
-        for (vector<string>::const_iterator i = includePaths.begin(); i != includePaths.end(); ++i)
+        for (auto i = includePaths.begin(); i != includePaths.end(); ++i)
         {
             cppArgs.push_back("-I" + *i);
         }
@@ -119,7 +119,7 @@ IcePy_loadSlice(PyObject* /*self*/, PyObject* args)
         Slice::PreprocessorPtr icecpp = Slice::Preprocessor::create("icecpp", file, cppArgs);
         FILE* cppHandle = icecpp->preprocess(true, "-D__SLICE2PY__");
 
-        if (cppHandle == 0)
+        if (cppHandle == nullptr)
         {
             PyErr_Format(PyExc_RuntimeError, "Slice preprocessing failed for `%s'", cmd);
             return nullptr;
@@ -167,7 +167,7 @@ IcePy_loadSlice(PyObject* /*self*/, PyObject* args)
         }
 
         PyDict_SetItemString(globals.get(), "__builtins__", PyEval_GetBuiltins());
-        PyObjectHandle val{PyEval_EvalCode(src.get(), globals.get(), 0)};
+        PyObjectHandle val{PyEval_EvalCode(src.get(), globals.get(), nullptr)};
         if (!val.get())
         {
             return nullptr;
@@ -180,7 +180,7 @@ IcePy_loadSlice(PyObject* /*self*/, PyObject* args)
 extern "C" PyObject*
 IcePy_compile(PyObject* /*self*/, PyObject* args)
 {
-    PyObject* list = 0;
+    PyObject* list = nullptr;
     if (!PyArg_ParseTuple(args, "O!", &PyList_Type, &list))
     {
         return nullptr;

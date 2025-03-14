@@ -26,6 +26,7 @@
 #include <pythread.h>
 
 #include <future>
+#include <utility>
 
 using namespace std;
 using namespace IcePy;
@@ -34,10 +35,10 @@ using namespace IcePy;
 #    pragma GCC diagnostic ignored "-Wcast-function-type"
 #endif
 
-static unsigned long _mainThreadId;
+static unsigned long mainThreadId;
 
 using CommunicatorMap = map<Ice::CommunicatorPtr, PyObject*>;
-static CommunicatorMap _communicatorMap;
+static CommunicatorMap communicatorMap;
 
 namespace IcePy
 {
@@ -56,13 +57,13 @@ extern "C" CommunicatorObject*
 communicatorNew(PyTypeObject* type, PyObject* /*args*/, PyObject* /*kwds*/)
 {
     assert(type && type->tp_alloc);
-    CommunicatorObject* self = reinterpret_cast<CommunicatorObject*>(type->tp_alloc(type, 0));
+    auto* self = reinterpret_cast<CommunicatorObject*>(type->tp_alloc(type, 0));
     if (!self)
     {
         return nullptr;
     }
-    self->communicator = 0;
-    self->wrapper = 0;
+    self->communicator = nullptr;
+    self->wrapper = nullptr;
     self->shutdownFuture = nullptr;
     self->shutdownException = nullptr;
     self->shutdown = false;
@@ -84,25 +85,25 @@ communicatorInit(CommunicatorObject* self, PyObject* args, PyObject* /*kwds*/)
     // Ice.initialize(args, configFile)
     //
 
-    PyObject* arg1 = 0;
-    PyObject* arg2 = 0;
+    PyObject* arg1 = nullptr;
+    PyObject* arg2 = nullptr;
     if (!PyArg_ParseTuple(args, "|OO", &arg1, &arg2))
     {
         return -1;
     }
 
-    PyObject* argList = 0;
-    PyObject* initData = 0;
-    PyObject* configFile = 0;
+    PyObject* argList = nullptr;
+    PyObject* initData = nullptr;
+    PyObject* configFile = nullptr;
 
     if (arg1 == Py_None)
     {
-        arg1 = 0;
+        arg1 = nullptr;
     }
 
     if (arg2 == Py_None)
     {
-        arg2 = 0;
+        arg2 = nullptr;
     }
 
     PyObject* initDataType = lookupType("Ice.InitializationData");
@@ -220,7 +221,7 @@ communicatorInit(CommunicatorObject* self, PyObject* args, PyObject* /*kwds*/)
             {
                 executorWrapper = make_shared<Executor>(executor.get());
                 data.executor = [executorWrapper](function<void()> call, const shared_ptr<Ice::Connection>& connection)
-                { executorWrapper->execute(call, connection); };
+                { executorWrapper->execute(std::move(call), connection); };
             }
 
             if (batchRequestInterceptor.get())
@@ -266,11 +267,11 @@ communicatorInit(CommunicatorObject* self, PyObject* args, PyObject* /*kwds*/)
     int argc = static_cast<int>(seq.size());
     char** argv = new char*[static_cast<size_t>(argc) + 1];
     int i = 0;
-    for (Ice::StringSeq::const_iterator s = seq.begin(); s != seq.end(); ++s, ++i)
+    for (auto s = seq.begin(); s != seq.end(); ++s, ++i)
     {
         argv[i] = strdup(s->c_str());
     }
-    argv[argc] = 0;
+    argv[argc] = nullptr;
 
     data.compactIdResolver = resolveCompactId;
 
@@ -307,7 +308,7 @@ communicatorInit(CommunicatorObject* self, PyObject* args, PyObject* /*kwds*/)
     //
     if (argList)
     {
-        PyList_SetSlice(argList, 0, PyList_Size(argList), 0); // Clear the list.
+        PyList_SetSlice(argList, 0, PyList_Size(argList), nullptr); // Clear the list.
 
         for (i = 0; i < argc; ++i)
         {
@@ -323,7 +324,7 @@ communicatorInit(CommunicatorObject* self, PyObject* args, PyObject* /*kwds*/)
     delete[] argv;
 
     self->communicator = new Ice::CommunicatorPtr(communicator);
-    _communicatorMap.insert(CommunicatorMap::value_type(communicator, reinterpret_cast<PyObject*>(self)));
+    communicatorMap.insert(CommunicatorMap::value_type(communicator, reinterpret_cast<PyObject*>(self)));
 
     if (executorWrapper)
     {
@@ -339,13 +340,13 @@ communicatorDealloc(CommunicatorObject* self)
 {
     if (self->communicator)
     {
-        CommunicatorMap::iterator p = _communicatorMap.find(*self->communicator);
+        auto p = communicatorMap.find(*self->communicator);
         //
         // find() can fail if an error occurred during communicator initialization.
         //
-        if (p != _communicatorMap.end())
+        if (p != communicatorMap.end())
         {
-            _communicatorMap.erase(p);
+            communicatorMap.erase(p);
         }
     }
 
@@ -384,7 +385,7 @@ communicatorDestroy(CommunicatorObject* self, PyObject* /*args*/)
     // Break cyclic reference between this object and its Python wrapper.
     //
     Py_XDECREF(self->wrapper);
-    self->wrapper = 0;
+    self->wrapper = nullptr;
 
     if (PyErr_Occurred())
     {
@@ -439,7 +440,7 @@ communicatorWaitForShutdown(CommunicatorObject* self, PyObject* args)
     // Do not call waitForShutdown from the main thread, because it prevents
     // signals (such as keyboard interrupts) from being delivered to Python.
     //
-    if (PyThread_get_thread_ident() == _mainThreadId)
+    if (PyThread_get_thread_ident() == mainThreadId)
     {
         if (!self->shutdown)
         {
@@ -679,7 +680,7 @@ communicatorProxyToProperty(CommunicatorObject* self, PyObject* args)
     PyObjectHandle result{PyDict_New()};
     if (result.get())
     {
-        for (Ice::PropertyDict::iterator p = dict.begin(); p != dict.end(); ++p)
+        for (auto p = dict.begin(); p != dict.end(); ++p)
         {
             PyObjectHandle key{createString(p->first)};
             PyObjectHandle val{createString(p->second)};
@@ -736,7 +737,7 @@ communicatorFlushBatchRequests(CommunicatorObject* self, PyObject* args)
 
     PyObjectHandle v{getAttr(compressBatch, "_value", false)};
     assert(v.get());
-    Ice::CompressBatch cb = static_cast<Ice::CompressBatch>(PyLong_AsLong(v.get()));
+    auto cb = static_cast<Ice::CompressBatch>(PyLong_AsLong(v.get()));
 
     assert(self->communicator);
     try
@@ -765,7 +766,7 @@ communicatorFlushBatchRequestsAsync(CommunicatorObject* self, PyObject* args, Py
 
     PyObjectHandle v{getAttr(compressBatch, "_value", false)};
     assert(v.get());
-    Ice::CompressBatch compress = static_cast<Ice::CompressBatch>(PyLong_AsLong(v.get()));
+    auto compress = static_cast<Ice::CompressBatch>(PyLong_AsLong(v.get()));
 
     assert(self->communicator);
     const string op = "flushBatchRequests";
@@ -983,7 +984,7 @@ communicatorFindAllAdminFacets(CommunicatorObject* self, PyObject* /*args*/)
     PyTypeObject* objectType = reinterpret_cast<PyTypeObject*>(lookupType("Ice.Object"));
     PyObjectHandle plainObject{objectType->tp_alloc(objectType, 0)};
 
-    for (Ice::FacetMap::const_iterator p = facetMap.begin(); p != facetMap.end(); ++p)
+    for (auto p = facetMap.begin(); p != facetMap.end(); ++p)
     {
         PyObjectHandle obj = plainObject;
 
@@ -1563,7 +1564,7 @@ static PyMethodDef CommunicatorMethods[] = {
      METH_VARARGS,
      PyDoc_STR("internal function")},
     {"_getWrapper", reinterpret_cast<PyCFunction>(communicatorGetWrapper), METH_NOARGS, PyDoc_STR("internal function")},
-    {0, 0} /* sentinel */
+    {nullptr, nullptr} /* sentinel */
 };
 
 namespace IcePy
@@ -1587,7 +1588,7 @@ namespace IcePy
 bool
 IcePy::initCommunicator(PyObject* module)
 {
-    _mainThreadId = PyThread_get_thread_ident();
+    mainThreadId = PyThread_get_thread_ident();
 
     if (PyType_Ready(&CommunicatorType) < 0)
     {
@@ -1606,21 +1607,21 @@ Ice::CommunicatorPtr
 IcePy::getCommunicator(PyObject* obj)
 {
     assert(PyObject_IsInstance(obj, reinterpret_cast<PyObject*>(&CommunicatorType)));
-    CommunicatorObject* cobj = reinterpret_cast<CommunicatorObject*>(obj);
+    auto* cobj = reinterpret_cast<CommunicatorObject*>(obj);
     return *cobj->communicator;
 }
 
 PyObject*
 IcePy::createCommunicator(const Ice::CommunicatorPtr& communicator)
 {
-    CommunicatorMap::iterator p = _communicatorMap.find(communicator);
-    if (p != _communicatorMap.end())
+    auto p = communicatorMap.find(communicator);
+    if (p != communicatorMap.end())
     {
         Py_INCREF(p->second);
         return p->second;
     }
 
-    CommunicatorObject* obj = communicatorNew(&CommunicatorType, 0, 0);
+    CommunicatorObject* obj = communicatorNew(&CommunicatorType, nullptr, nullptr);
     if (obj)
     {
         obj->communicator = new Ice::CommunicatorPtr(communicator);
@@ -1631,9 +1632,9 @@ IcePy::createCommunicator(const Ice::CommunicatorPtr& communicator)
 PyObject*
 IcePy::getCommunicatorWrapper(const Ice::CommunicatorPtr& communicator)
 {
-    CommunicatorMap::iterator p = _communicatorMap.find(communicator);
+    auto p = communicatorMap.find(communicator);
     assert(p != _communicatorMap.end());
-    CommunicatorObject* obj = reinterpret_cast<CommunicatorObject*>(p->second);
+    auto* obj = reinterpret_cast<CommunicatorObject*>(p->second);
     if (obj->wrapper)
     {
         Py_INCREF(obj->wrapper);
