@@ -1571,9 +1571,9 @@ namespace IcePy
 {
     PyTypeObject CommunicatorType = {
         PyVarObject_HEAD_INIT(nullptr, 0) // type header
-        /* The ob_type field must be initialized in the module init function
-         * to be portable to Windows without using C++. */
-        .tp_name = "IcePy.Communicator",
+            /* The ob_type field must be initialized in the module init function
+             * to be portable to Windows without using C++. */
+            .tp_name = "IcePy.Communicator",
         .tp_basicsize = sizeof(CommunicatorObject),
         .tp_itemsize = 0,
         /* methods */
@@ -1581,8 +1581,7 @@ namespace IcePy
         .tp_flags = Py_TPFLAGS_DEFAULT,
         .tp_methods = CommunicatorMethods,
         .tp_init = reinterpret_cast<initproc>(communicatorInit),
-        .tp_new = reinterpret_cast<newfunc>(communicatorNew)
-    };
+        .tp_new = reinterpret_cast<newfunc>(communicatorNew)};
 }
 
 bool

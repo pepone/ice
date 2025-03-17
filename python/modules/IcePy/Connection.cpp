@@ -640,7 +640,7 @@ namespace IcePy
 {
     PyTypeObject ConnectionType = {
         PyVarObject_HEAD_INIT(nullptr, 0) /* object header */
-        .tp_name = "IcePy.Connection",
+            .tp_name = "IcePy.Connection",
         .tp_basicsize = sizeof(ConnectionObject),
         .tp_dealloc = reinterpret_cast<destructor>(connectionDealloc),
         .tp_hash = reinterpret_cast<hashfunc>(connectionHash),

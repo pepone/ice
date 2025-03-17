@@ -267,7 +267,7 @@ namespace IcePy
 {
     PyTypeObject ImplicitContextType = {
         PyVarObject_HEAD_INIT(nullptr, 0) /* object header */
-        .tp_name = "IcePy.ImplicitContext",
+            .tp_name = "IcePy.ImplicitContext",
         .tp_basicsize = sizeof(ImplicitContextObject),
         .tp_dealloc = reinterpret_cast<destructor>(implicitContextDealloc),
         .tp_flags = Py_TPFLAGS_DEFAULT,
@@ -284,8 +284,8 @@ IcePy::initImplicitContext(PyObject* module)
     {
         return false;
     }
-    PyTypeObject* type = &ImplicitContextType; // Necessary to prevent GCC's strict-alias warnings.
-    if (PyModule_AddObject(module, "ImplicitContext", reinterpret_cast<PyObject*>(type)) < 0)
+
+    if (PyModule_AddObject(module, "ImplicitContext", reinterpret_cast<PyObject*>(&ImplicitContextType)) < 0)
     {
         return false;
     }

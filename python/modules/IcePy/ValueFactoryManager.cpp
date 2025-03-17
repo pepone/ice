@@ -284,7 +284,7 @@ namespace IcePy
 {
     PyTypeObject ValueFactoryManagerType = {
         PyVarObject_HEAD_INIT(nullptr, 0) /* object header */
-        .tp_name = "IcePy.ValueFactoryManager",
+            .tp_name = "IcePy.ValueFactoryManager",
         .tp_basicsize = sizeof(ValueFactoryManagerObject),
         .tp_dealloc = reinterpret_cast<destructor>(valueFactoryManagerDealloc),
         .tp_flags = Py_TPFLAGS_DEFAULT,
@@ -300,8 +300,8 @@ IcePy::initValueFactoryManager(PyObject* module)
     {
         return false;
     }
-    PyTypeObject* type = &ValueFactoryManagerType; // Necessary to prevent GCC's strict-alias warnings.
-    if (PyModule_AddObject(module, "ValueFactoryManager", reinterpret_cast<PyObject*>(type)) < 0)
+
+    if (PyModule_AddObject(module, "ValueFactoryManager", reinterpret_cast<PyObject*>(&ValueFactoryManagerType)) < 0)
     {
         return false;
     }

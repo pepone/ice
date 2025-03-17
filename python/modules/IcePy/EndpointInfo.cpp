@@ -156,7 +156,11 @@ static PyGetSetDef EndpointInfoGetters[] = {
      nullptr,
      PyDoc_STR("underling endpoint information"),
      nullptr},
-    {"timeout", reinterpret_cast<getter>(endpointInfoGetTimeout), nullptr, PyDoc_STR("timeout in milliseconds"), nullptr},
+    {"timeout",
+     reinterpret_cast<getter>(endpointInfoGetTimeout),
+     nullptr,
+     PyDoc_STR("timeout in milliseconds"),
+     nullptr},
     {"compress", reinterpret_cast<getter>(endpointInfoGetCompress), nullptr, PyDoc_STR("compression status"), nullptr},
     {nullptr, nullptr} /* sentinel */
 };
@@ -164,7 +168,11 @@ static PyGetSetDef EndpointInfoGetters[] = {
 static PyGetSetDef IPEndpointInfoGetters[] = {
     {"host", reinterpret_cast<getter>(ipEndpointInfoGetHost), nullptr, PyDoc_STR("host name or IP address"), nullptr},
     {"port", reinterpret_cast<getter>(ipEndpointInfoGetPort), nullptr, PyDoc_STR("TCP port number"), nullptr},
-    {"sourceAddress", reinterpret_cast<getter>(ipEndpointInfoGetSourceAddress), nullptr, PyDoc_STR("source IP address"), nullptr},
+    {"sourceAddress",
+     reinterpret_cast<getter>(ipEndpointInfoGetSourceAddress),
+     nullptr,
+     PyDoc_STR("source IP address"),
+     nullptr},
     {nullptr, nullptr} /* sentinel */
 };
 
@@ -174,7 +182,11 @@ static PyGetSetDef UDPEndpointInfoGetters[] = {
      nullptr,
      PyDoc_STR("multicast interface"),
      nullptr},
-    {"mcastTtl", reinterpret_cast<getter>(udpEndpointInfoGetMcastTtl), nullptr, PyDoc_STR("multicast time-to-live"), nullptr},
+    {"mcastTtl",
+     reinterpret_cast<getter>(udpEndpointInfoGetMcastTtl),
+     nullptr,
+     PyDoc_STR("multicast time-to-live"),
+     nullptr},
     {nullptr, nullptr} /* sentinel */
 };
 
@@ -197,7 +209,7 @@ namespace IcePy
 {
     PyTypeObject EndpointInfoType = {
         PyVarObject_HEAD_INIT(nullptr, 0) /* object header */
-        .tp_name = "IcePy.EndpointInfo",
+            .tp_name = "IcePy.EndpointInfo",
         .tp_basicsize = sizeof(EndpointInfoObject),
         .tp_dealloc = reinterpret_cast<destructor>(endpointInfoDealloc),
         .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
@@ -208,7 +220,7 @@ namespace IcePy
 
     PyTypeObject IPEndpointInfoType = {
         PyVarObject_HEAD_INIT(nullptr, 0) /* object header */
-        .tp_name = "IcePy.IPEndpointInfo",
+            .tp_name = "IcePy.IPEndpointInfo",
         .tp_basicsize = sizeof(EndpointInfoObject),
         .tp_dealloc = reinterpret_cast<destructor>(endpointInfoDealloc),
         .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
@@ -218,7 +230,7 @@ namespace IcePy
 
     PyTypeObject TCPEndpointInfoType = {
         PyVarObject_HEAD_INIT(nullptr, 0) /* object header */
-        .tp_name = "IcePy.TCPEndpointInfo",
+            .tp_name = "IcePy.TCPEndpointInfo",
         .tp_basicsize = sizeof(EndpointInfoObject),
         .tp_dealloc = reinterpret_cast<destructor>(endpointInfoDealloc),
         .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
@@ -227,7 +239,7 @@ namespace IcePy
 
     PyTypeObject UDPEndpointInfoType = {
         PyVarObject_HEAD_INIT(nullptr, 0) /* object header */
-        .tp_name = "IcePy.UDPEndpointInfo",
+            .tp_name = "IcePy.UDPEndpointInfo",
         .tp_basicsize = sizeof(EndpointInfoObject),
         .tp_dealloc = reinterpret_cast<destructor>(endpointInfoDealloc),
         .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
@@ -237,7 +249,7 @@ namespace IcePy
 
     PyTypeObject WSEndpointInfoType = {
         PyVarObject_HEAD_INIT(nullptr, 0) /* object header */
-        .tp_name = "IcePy.WSEndpointInfo",
+            .tp_name = "IcePy.WSEndpointInfo",
         .tp_basicsize = sizeof(EndpointInfoObject),
         .tp_dealloc = reinterpret_cast<destructor>(endpointInfoDealloc),
         .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
@@ -247,7 +259,7 @@ namespace IcePy
 
     PyTypeObject SSLEndpointInfoType = {
         PyVarObject_HEAD_INIT(nullptr, 0) /* object header */
-        .tp_name = "IcePy.SSLEndpointInfo",
+            .tp_name = "IcePy.SSLEndpointInfo",
         .tp_basicsize = sizeof(EndpointInfoObject),
         .tp_dealloc = reinterpret_cast<destructor>(endpointInfoDealloc),
         .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
@@ -256,7 +268,7 @@ namespace IcePy
 
     PyTypeObject OpaqueEndpointInfoType = {
         PyVarObject_HEAD_INIT(nullptr, 0) /* object header */
-        .tp_name = "IcePy.OpaqueEndpointInfo",
+            .tp_name = "IcePy.OpaqueEndpointInfo",
         .tp_basicsize = sizeof(EndpointInfoObject),
         .tp_dealloc = reinterpret_cast<destructor>(endpointInfoDealloc),
         .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
@@ -272,8 +284,8 @@ IcePy::initEndpointInfo(PyObject* module)
     {
         return false;
     }
-    PyTypeObject* type = &EndpointInfoType; // Necessary to prevent GCC's strict-alias warnings.
-    if (PyModule_AddObject(module, "EndpointInfo", reinterpret_cast<PyObject*>(type)) < 0)
+
+    if (PyModule_AddObject(module, "EndpointInfo", reinterpret_cast<PyObject*>(&EndpointInfoType)) < 0)
     {
         return false;
     }
@@ -283,8 +295,8 @@ IcePy::initEndpointInfo(PyObject* module)
     {
         return false;
     }
-    type = &IPEndpointInfoType; // Necessary to prevent GCC's strict-alias warnings.
-    if (PyModule_AddObject(module, "IPEndpointInfo", reinterpret_cast<PyObject*>(type)) < 0)
+
+    if (PyModule_AddObject(module, "IPEndpointInfo", reinterpret_cast<PyObject*>(&IPEndpointInfoType)) < 0)
     {
         return false;
     }
@@ -294,8 +306,8 @@ IcePy::initEndpointInfo(PyObject* module)
     {
         return false;
     }
-    type = &TCPEndpointInfoType; // Necessary to prevent GCC's strict-alias warnings.
-    if (PyModule_AddObject(module, "TCPEndpointInfo", reinterpret_cast<PyObject*>(type)) < 0)
+
+    if (PyModule_AddObject(module, "TCPEndpointInfo", reinterpret_cast<PyObject*>(&TCPEndpointInfoType)) < 0)
     {
         return false;
     }
@@ -305,8 +317,8 @@ IcePy::initEndpointInfo(PyObject* module)
     {
         return false;
     }
-    type = &UDPEndpointInfoType; // Necessary to prevent GCC's strict-alias warnings.
-    if (PyModule_AddObject(module, "UDPEndpointInfo", reinterpret_cast<PyObject*>(type)) < 0)
+
+    if (PyModule_AddObject(module, "UDPEndpointInfo", reinterpret_cast<PyObject*>(&UDPEndpointInfoType)) < 0)
     {
         return false;
     }
@@ -316,8 +328,8 @@ IcePy::initEndpointInfo(PyObject* module)
     {
         return false;
     }
-    type = &WSEndpointInfoType; // Necessary to prevent GCC's strict-alias warnings.
-    if (PyModule_AddObject(module, "WSEndpointInfo", reinterpret_cast<PyObject*>(type)) < 0)
+
+    if (PyModule_AddObject(module, "WSEndpointInfo", reinterpret_cast<PyObject*>(&WSEndpointInfoType)) < 0)
     {
         return false;
     }
@@ -327,8 +339,8 @@ IcePy::initEndpointInfo(PyObject* module)
     {
         return false;
     }
-    type = &SSLEndpointInfoType; // Necessary to prevent GCC's strict-alias warnings.
-    if (PyModule_AddObject(module, "SSLEndpointInfo", reinterpret_cast<PyObject*>(type)) < 0)
+
+    if (PyModule_AddObject(module, "SSLEndpointInfo", reinterpret_cast<PyObject*>(&SSLEndpointInfoType)) < 0)
     {
         return false;
     }
@@ -338,8 +350,8 @@ IcePy::initEndpointInfo(PyObject* module)
     {
         return false;
     }
-    type = &OpaqueEndpointInfoType; // Necessary to prevent GCC's strict-alias warnings.
-    if (PyModule_AddObject(module, "OpaqueEndpointInfo", reinterpret_cast<PyObject*>(type)) < 0)
+
+    if (PyModule_AddObject(module, "OpaqueEndpointInfo", reinterpret_cast<PyObject*>(&OpaqueEndpointInfoType)) < 0)
     {
         return false;
     }

@@ -118,7 +118,7 @@ namespace IcePy
 {
     PyTypeObject NativePropertiesAdminType = {
         PyVarObject_HEAD_INIT(nullptr, 0) /* object header */
-        .tp_name = "IcePy.NativePropertiesAdmin",
+            .tp_name = "IcePy.NativePropertiesAdmin",
         .tp_basicsize = sizeof(NativePropertiesAdminObject),
         .tp_dealloc = reinterpret_cast<destructor>(nativePropertiesAdminDealloc),
         .tp_flags = Py_TPFLAGS_DEFAULT,
@@ -134,8 +134,9 @@ IcePy::initPropertiesAdmin(PyObject* module)
     {
         return false;
     }
-    PyTypeObject* type = &NativePropertiesAdminType; // Necessary to prevent GCC's strict-alias warnings.
-    if (PyModule_AddObject(module, "NativePropertiesAdmin", reinterpret_cast<PyObject*>(type)) < 0)
+
+    if (PyModule_AddObject(module, "NativePropertiesAdmin", reinterpret_cast<PyObject*>(&NativePropertiesAdminType)) <
+        0)
     {
         return false;
     }

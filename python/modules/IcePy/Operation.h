@@ -29,7 +29,7 @@ namespace IcePy
     class GetConnectionAsyncCallback
     {
     public:
-        GetConnectionAsyncCallback(Ice::CommunicatorPtr , std::string );
+        GetConnectionAsyncCallback(Ice::CommunicatorPtr, std::string);
         ~GetConnectionAsyncCallback();
 
         void setFuture(PyObject*);
@@ -50,7 +50,7 @@ namespace IcePy
     class FlushAsyncCallback
     {
     public:
-        FlushAsyncCallback(std::string );
+        FlushAsyncCallback(std::string);
         ~FlushAsyncCallback();
 
         void setFuture(PyObject*);

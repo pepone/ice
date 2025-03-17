@@ -2,7 +2,6 @@
 
 #include "Operation.h"
 
-#include <utility>
 #include "Communicator.h"
 #include "Connection.h"
 #include "Current.h"
@@ -18,6 +17,7 @@
 #include "Types.h"
 #include "Util.h"
 #include "slice2py/PythonUtil.h"
+#include <utility>
 
 using namespace std;
 using namespace IcePy;
@@ -122,7 +122,7 @@ namespace IcePy
     class SyncTypedInvocation final : public Invocation
     {
     public:
-        SyncTypedInvocation(const Ice::ObjectPrx&, OperationPtr );
+        SyncTypedInvocation(const Ice::ObjectPrx&, OperationPtr);
 
         PyObject* invoke(PyObject*, PyObject* = nullptr) final;
 
@@ -133,7 +133,7 @@ namespace IcePy
     class AsyncInvocation : public Invocation
     {
     public:
-        AsyncInvocation(const Ice::ObjectPrx&, PyObject*, string );
+        AsyncInvocation(const Ice::ObjectPrx&, PyObject*, string);
         ~AsyncInvocation();
 
         PyObject* invoke(PyObject*, PyObject* = nullptr) final;
@@ -212,10 +212,10 @@ namespace IcePy
     {
     public:
         TypedUpcall(
-            OperationPtr ,
+            OperationPtr,
             function<void(bool, pair<const byte*, const byte*>)>,
             function<void(std::exception_ptr)>,
-            Ice::CommunicatorPtr );
+            Ice::CommunicatorPtr);
 
         void dispatch(PyObject*, pair<const byte*, const byte*>, const Ice::Current&) final;
         void response(PyObject*) final;
@@ -1051,8 +1051,9 @@ static PyMethodDef AsyncInvocationContextMethods[] = {
 
 namespace IcePy
 {
+    // clang-format off
     PyTypeObject OperationType = {
-        PyVarObject_HEAD_INIT(nullptr, 0) /* object header */
+        PyVarObject_HEAD_INIT(nullptr, 0)
         .tp_name = "IcePy.Operation",
         .tp_basicsize = sizeof(OperationObject),
         .tp_dealloc = reinterpret_cast<destructor>(operationDealloc),
@@ -1063,7 +1064,7 @@ namespace IcePy
     };
 
     PyTypeObject DispatchCallbackType = {
-        PyVarObject_HEAD_INIT(nullptr, 0) /* object header */
+        PyVarObject_HEAD_INIT(nullptr, 0)
         .tp_name = "IcePy.DispatchCallback",
         .tp_basicsize = sizeof(DispatchCallbackObject),
         .tp_dealloc = reinterpret_cast<destructor>(dispatchCallbackDealloc),
@@ -1073,7 +1074,7 @@ namespace IcePy
     };
 
     PyTypeObject AsyncInvocationContextType = {
-        PyVarObject_HEAD_INIT(nullptr, 0) /* object header */
+        PyVarObject_HEAD_INIT(nullptr, 0)
         .tp_name = "IcePy.AsyncInvocationContext",
         .tp_basicsize = sizeof(AsyncInvocationContextObject),
         .tp_dealloc = reinterpret_cast<destructor>(asyncInvocationContextDealloc),
@@ -1091,6 +1092,7 @@ namespace IcePy
         .tp_init = reinterpret_cast<initproc>(marshaledResultInit),
         .tp_new = reinterpret_cast<newfunc>(marshaledResultNew),
     };
+    // clang-format on
 }
 
 bool
@@ -1100,8 +1102,8 @@ IcePy::initOperation(PyObject* module)
     {
         return false;
     }
-    PyTypeObject* opType = &OperationType; // Necessary to prevent GCC's strict-alias warnings.
-    if (PyModule_AddObject(module, "Operation", reinterpret_cast<PyObject*>(opType)) < 0)
+
+    if (PyModule_AddObject(module, "Operation", reinterpret_cast<PyObject*>(&OperationType)) < 0)
     {
         return false;
     }
@@ -1110,8 +1112,8 @@ IcePy::initOperation(PyObject* module)
     {
         return false;
     }
-    PyTypeObject* dispatchType = &DispatchCallbackType; // Necessary to prevent GCC's strict-alias warnings.
-    if (PyModule_AddObject(module, "DispatchCallback", reinterpret_cast<PyObject*>(dispatchType)) < 0)
+
+    if (PyModule_AddObject(module, "DispatchCallback", reinterpret_cast<PyObject*>(&DispatchCallbackType)) < 0)
     {
         return false;
     }
@@ -1120,8 +1122,9 @@ IcePy::initOperation(PyObject* module)
     {
         return false;
     }
-    PyTypeObject* arType = &AsyncInvocationContextType; // Necessary to prevent GCC's strict-alias warnings.
-    if (PyModule_AddObject(module, "AsyncInvocationContext", reinterpret_cast<PyObject*>(arType)) < 0)
+
+    if (PyModule_AddObject(module, "AsyncInvocationContext", reinterpret_cast<PyObject*>(&AsyncInvocationContextType)) <
+        0)
     {
         return false;
     }
@@ -1130,8 +1133,8 @@ IcePy::initOperation(PyObject* module)
     {
         return false;
     }
-    PyTypeObject* mrType = &MarshaledResultType; // Necessary to prevent GCC's strict-alias warnings.
-    if (PyModule_AddObject(module, "MarshaledResult", reinterpret_cast<PyObject*>(mrType)) < 0)
+
+    if (PyModule_AddObject(module, "MarshaledResult", reinterpret_cast<PyObject*>(&MarshaledResultType)) < 0)
     {
         return false;
     }
@@ -1411,7 +1414,7 @@ IcePy::Invocation::checkTwowayOnly(const OperationPtr& op, const Ice::ObjectPrx&
 //
 // SyncTypedInvocation
 //
-IcePy::SyncTypedInvocation::SyncTypedInvocation(const Ice::ObjectPrx& prx, OperationPtr  op)
+IcePy::SyncTypedInvocation::SyncTypedInvocation(const Ice::ObjectPrx& prx, OperationPtr op)
     : Invocation(prx),
       _op(std::move(op))
 {
@@ -1544,12 +1547,12 @@ IcePy::SyncTypedInvocation::invoke(PyObject* args, PyObject* /* kwds */)
 //
 // AsyncInvocation
 //
-IcePy::AsyncInvocation::AsyncInvocation(const Ice::ObjectPrx& prx, PyObject* pyProxy, string  operation)
+IcePy::AsyncInvocation::AsyncInvocation(const Ice::ObjectPrx& prx, PyObject* pyProxy, string operation)
     : Invocation(prx),
       _pyProxy(pyProxy),
       _operation(std::move(operation)),
       _twoway(prx->ice_isTwoway())
-      
+
 {
     Py_INCREF(_pyProxy);
 }
@@ -2167,10 +2170,10 @@ Upcall::dispatchImpl(PyObject* servant, const string& dispatchName, PyObject* ar
 // TypedUpcall
 //
 IcePy::TypedUpcall::TypedUpcall(
-    OperationPtr  op,
+    OperationPtr op,
     function<void(bool, pair<const byte*, const byte*>)> response,
     function<void(std::exception_ptr)> error,
-    Ice::CommunicatorPtr  communicator)
+    Ice::CommunicatorPtr communicator)
     : _op(std::move(op)),
       _response(std::move(response)),
       _error(std::move(error)),
@@ -2545,11 +2548,7 @@ IcePy::createAsyncInvocationContext(function<void()> cancel, Ice::CommunicatorPt
     return reinterpret_cast<PyObject*>(obj);
 }
 
-IcePy::FlushAsyncCallback::FlushAsyncCallback(string  op)
-    : _op(std::move(op))
-      
-{
-}
+IcePy::FlushAsyncCallback::FlushAsyncCallback(string op) : _op(std::move(op)) {}
 
 IcePy::FlushAsyncCallback::~FlushAsyncCallback()
 {
@@ -2641,12 +2640,10 @@ IcePy::FlushAsyncCallback::sent(bool sentSynchronously)
     _future = nullptr;
 }
 
-IcePy::GetConnectionAsyncCallback::GetConnectionAsyncCallback(
-    Ice::CommunicatorPtr  communicator,
-    string  op)
+IcePy::GetConnectionAsyncCallback::GetConnectionAsyncCallback(Ice::CommunicatorPtr communicator, string op)
     : _communicator(std::move(communicator)),
       _op(std::move(op))
-      
+
 {
 }
 

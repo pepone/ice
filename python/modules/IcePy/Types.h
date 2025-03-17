@@ -71,7 +71,7 @@ namespace IcePy
     class ReadValueCallback
     {
     public:
-        ReadValueCallback(ValueInfoPtr , UnmarshalCallbackPtr , PyObject*, void*);
+        ReadValueCallback(ValueInfoPtr, UnmarshalCallbackPtr, PyObject*, void*);
         ~ReadValueCallback();
 
         void invoke(const std::shared_ptr<Ice::Value>&);
@@ -562,7 +562,7 @@ namespace IcePy
     class ValueWriter final : public Ice::Value
     {
     public:
-        ValueWriter(PyObject*, ObjectMap*, ValueInfoPtr );
+        ValueWriter(PyObject*, ObjectMap*, ValueInfoPtr);
         void ice_preMarshal() final;
 
         void _iceWrite(Ice::OutputStream*) const final;
@@ -583,7 +583,7 @@ namespace IcePy
     class ValueReader final : public std::enable_shared_from_this<ValueReader>, public Ice::Value
     {
     public:
-        ValueReader(PyObject*, ValueInfoPtr );
+        ValueReader(PyObject*, ValueInfoPtr);
 
         void ice_postUnmarshal() final;
 
@@ -638,7 +638,7 @@ namespace IcePy
     class ExceptionReader final : public Ice::UserException
     {
     public:
-        ExceptionReader(ExceptionInfoPtr ) noexcept;
+        ExceptionReader(ExceptionInfoPtr) noexcept;
         ExceptionReader(const ExceptionReader&) = default;
 
         [[nodiscard]] const char* ice_id() const noexcept final;

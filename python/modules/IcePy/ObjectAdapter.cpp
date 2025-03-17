@@ -1565,7 +1565,7 @@ namespace IcePy
 {
     PyTypeObject ObjectAdapterType = {
         PyVarObject_HEAD_INIT(nullptr, 0) /* object header */
-        .tp_name = "IcePy.ObjectAdapter",
+            .tp_name = "IcePy.ObjectAdapter",
         .tp_basicsize = sizeof(ObjectAdapterObject),
         .tp_dealloc = reinterpret_cast<destructor>(adapterDealloc),
         .tp_flags = Py_TPFLAGS_DEFAULT,
@@ -1584,8 +1584,7 @@ IcePy::initObjectAdapter(PyObject* module)
         return false;
     }
 
-    PyTypeObject* type = &ObjectAdapterType; // Necessary to prevent GCC's strict-alias warnings.
-    if (PyModule_AddObject(module, "ObjectAdapter", reinterpret_cast<PyObject*>(type)) < 0)
+    if (PyModule_AddObject(module, "ObjectAdapter", reinterpret_cast<PyObject*>(&ObjectAdapterType)) < 0)
     {
         return false;
     }
@@ -1596,8 +1595,7 @@ IcePy::initObjectAdapter(PyObject* module)
 PyObject*
 IcePy::createObjectAdapter(const Ice::ObjectAdapterPtr& adapter)
 {
-    auto* obj =
-        reinterpret_cast<ObjectAdapterObject*>(ObjectAdapterType.tp_alloc(&ObjectAdapterType, 0));
+    auto* obj = reinterpret_cast<ObjectAdapterObject*>(ObjectAdapterType.tp_alloc(&ObjectAdapterType, 0));
     if (obj)
     {
         obj->adapter = new Ice::ObjectAdapterPtr(adapter);

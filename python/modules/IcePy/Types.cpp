@@ -900,7 +900,7 @@ IcePy::PrimitiveInfo::print(PyObject* value, IceInternal::Output& out, PrintObje
 //
 // EnumInfo implementation.
 //
-IcePy::EnumInfo::EnumInfo(string ident, PyObject* t, PyObject* e) : id(std::move(ident)), pythonType(t) 
+IcePy::EnumInfo::EnumInfo(string ident, PyObject* t, PyObject* e) : id(std::move(ident)), pythonType(t)
 {
     assert(PyType_Check(t));
     assert(PyDict_Check(e));
@@ -3118,7 +3118,7 @@ IcePy::ProxyInfo::print(PyObject* value, IceInternal::Output& out, PrintObjectHi
 //
 // ValueWriter implementation.
 //
-IcePy::ValueWriter::ValueWriter(PyObject* object, ObjectMap* objectMap, ValueInfoPtr  formal)
+IcePy::ValueWriter::ValueWriter(PyObject* object, ObjectMap* objectMap, ValueInfoPtr formal)
     : _object(object),
       _map(objectMap),
       _formal(std::move(formal))
@@ -3252,7 +3252,7 @@ IcePy::ValueWriter::writeMembers(Ice::OutputStream* os, const DataMemberList& me
 //
 // ValueReader implementation.
 //
-IcePy::ValueReader::ValueReader(PyObject* object, ValueInfoPtr  info) : _object(object), _info(std::move(info))
+IcePy::ValueReader::ValueReader(PyObject* object, ValueInfoPtr info) : _object(object), _info(std::move(info))
 {
     Py_INCREF(object);
 }
@@ -3371,11 +3371,7 @@ IcePy::ValueReader::getSlicedData() const
 //
 // ReadValueCallback implementation.
 //
-IcePy::ReadValueCallback::ReadValueCallback(
-    ValueInfoPtr  info,
-    UnmarshalCallbackPtr  cb,
-    PyObject* target,
-    void* closure)
+IcePy::ReadValueCallback::ReadValueCallback(ValueInfoPtr info, UnmarshalCallbackPtr cb, PyObject* target, void* closure)
     : _info(std::move(info)),
       _cb(std::move(cb)),
       _target(target),
@@ -3684,7 +3680,7 @@ IcePy::ExceptionWriter::_usesClasses() const
 //
 // ExceptionReader implementation.
 //
-IcePy::ExceptionReader::ExceptionReader(ExceptionInfoPtr  info) noexcept : _info(std::move(info)) {}
+IcePy::ExceptionReader::ExceptionReader(ExceptionInfoPtr info) noexcept : _info(std::move(info)) {}
 
 const char*
 IcePy::ExceptionReader::ice_id() const noexcept
@@ -3774,7 +3770,7 @@ namespace IcePy
 {
     PyTypeObject TypeInfoType = {
         PyVarObject_HEAD_INIT(nullptr, 0) /* object header */
-        .tp_name = "IcePy.TypeInfo",
+            .tp_name = "IcePy.TypeInfo",
         .tp_basicsize = sizeof(TypeInfoObject),
         .tp_dealloc = reinterpret_cast<destructor>(typeInfoDealloc),
         .tp_flags = Py_TPFLAGS_DEFAULT,
@@ -3783,7 +3779,7 @@ namespace IcePy
 
     PyTypeObject ExceptionInfoType = {
         PyVarObject_HEAD_INIT(nullptr, 0) /* object header */
-        .tp_name = "IcePy.ExceptionInfo",
+            .tp_name = "IcePy.ExceptionInfo",
         .tp_basicsize = sizeof(ExceptionInfoObject),
         .tp_dealloc = reinterpret_cast<destructor>(exceptionInfoDealloc),
         .tp_flags = Py_TPFLAGS_DEFAULT,
@@ -3798,8 +3794,8 @@ IcePy::initTypes(PyObject* module)
     {
         return false;
     }
-    PyTypeObject* typeInfoType = &TypeInfoType; // Necessary to prevent GCC's strict-alias warnings.
-    if (PyModule_AddObject(module, "TypeInfo", reinterpret_cast<PyObject*>(typeInfoType)) < 0)
+
+    if (PyModule_AddObject(module, "TypeInfo", reinterpret_cast<PyObject*>(&TypeInfoType)) < 0)
     {
         return false;
     }
@@ -3808,8 +3804,8 @@ IcePy::initTypes(PyObject* module)
     {
         return false;
     }
-    PyTypeObject* exceptionInfoType = &ExceptionInfoType; // Necessary to prevent GCC's strict-alias warnings.
-    if (PyModule_AddObject(module, "ExceptionInfo", reinterpret_cast<PyObject*>(exceptionInfoType)) < 0)
+
+    if (PyModule_AddObject(module, "ExceptionInfo", reinterpret_cast<PyObject*>(&ExceptionInfoType)) < 0)
     {
         return false;
     }

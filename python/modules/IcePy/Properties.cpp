@@ -42,8 +42,7 @@ propertiesInit(PropertiesObject* self, PyObject* args, PyObject* /*kwds*/)
     Ice::StringSeq seq;
     if (arglist)
     {
-        PyTypeObject* listType = &PyList_Type; // Necessary to prevent GCC's strict-alias warnings.
-        if (PyObject_IsInstance(arglist, reinterpret_cast<PyObject*>(listType)))
+        if (PyObject_IsInstance(arglist, reinterpret_cast<PyObject*>(&PyList_Type)))
         {
             if (!listToStringSeq(arglist, seq))
             {
@@ -712,7 +711,7 @@ namespace IcePy
 {
     PyTypeObject PropertiesType = {
         PyVarObject_HEAD_INIT(nullptr, 0) /* object header */
-        .tp_name = "IcePy.Properties",
+            .tp_name = "IcePy.Properties",
         .tp_basicsize = sizeof(PropertiesObject),
         .tp_dealloc = reinterpret_cast<destructor>(propertiesDealloc),
         .tp_str = reinterpret_cast<reprfunc>(propertiesStr),

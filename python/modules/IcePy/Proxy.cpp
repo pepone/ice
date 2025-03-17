@@ -2130,7 +2130,7 @@ namespace IcePy
 {
     PyTypeObject ProxyType = {
         PyVarObject_HEAD_INIT(nullptr, 0) /* object header */
-        .tp_name = "IcePy.ObjectPrx",
+            .tp_name = "IcePy.ObjectPrx",
         .tp_basicsize = sizeof(ProxyObject),
         .tp_dealloc = reinterpret_cast<destructor>(proxyDealloc),
         .tp_repr = reinterpret_cast<reprfunc>(proxyRepr),
@@ -2150,8 +2150,8 @@ IcePy::initProxy(PyObject* module)
     {
         return false;
     }
-    PyTypeObject* proxyType = &ProxyType; // Necessary to prevent GCC's strict-alias warnings.
-    if (PyModule_AddObject(module, "ObjectPrx", reinterpret_cast<PyObject*>(proxyType)) < 0)
+
+    if (PyModule_AddObject(module, "ObjectPrx", reinterpret_cast<PyObject*>(&ProxyType)) < 0)
     {
         return false;
     }
@@ -2172,8 +2172,7 @@ IcePy::createProxy(const Ice::ObjectPrx& proxy, const Ice::CommunicatorPtr& comm
 bool
 IcePy::checkProxy(PyObject* p)
 {
-    PyTypeObject* type = &ProxyType; // Necessary to prevent GCC's strict-alias warnings.
-    return PyObject_IsInstance(p, reinterpret_cast<PyObject*>(type)) == 1;
+    return PyObject_IsInstance(p, reinterpret_cast<PyObject*>(&ProxyType)) == 1;
 }
 
 Ice::ObjectPrx

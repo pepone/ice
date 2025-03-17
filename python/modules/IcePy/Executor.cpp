@@ -48,7 +48,7 @@ namespace IcePy
 {
     PyTypeObject ExecutorCallType = {
         PyVarObject_HEAD_INIT(nullptr, 0) /* object header */
-        .tp_name = "IcePy.ExecutorCall",
+            .tp_name = "IcePy.ExecutorCall",
         .tp_basicsize = sizeof(ExecutorCallObject),
         .tp_dealloc = reinterpret_cast<destructor>(executorCallDealloc),
         .tp_call = reinterpret_cast<ternaryfunc>(executorCallInvoke),
@@ -63,8 +63,8 @@ IcePy::initExecutor(PyObject* module)
     {
         return false;
     }
-    PyTypeObject* type = &ExecutorCallType; // Necessary to prevent GCC's strict-alias warnings.
-    if (PyModule_AddObject(module, "ExecutorCall", reinterpret_cast<PyObject*>(type)) < 0)
+
+    if (PyModule_AddObject(module, "ExecutorCall", reinterpret_cast<PyObject*>(&ExecutorCallType)) < 0)
     {
         return false;
     }

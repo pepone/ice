@@ -129,7 +129,7 @@ namespace IcePy
 {
     PyTypeObject EndpointType = {
         PyVarObject_HEAD_INIT(nullptr, 0) /* object header */
-        .tp_name = "IcePy.Endpoint",
+            .tp_name = "IcePy.Endpoint",
         .tp_basicsize = sizeof(EndpointObject),
         .tp_dealloc = reinterpret_cast<destructor>(endpointDealloc),
         .tp_repr = reinterpret_cast<reprfunc>(endpointRepr),
@@ -147,8 +147,8 @@ IcePy::initEndpoint(PyObject* module)
     {
         return false;
     }
-    PyTypeObject* type = &EndpointType; // Necessary to prevent GCC's strict-alias warnings.
-    if (PyModule_AddObject(module, "Endpoint", reinterpret_cast<PyObject*>(type)) < 0)
+
+    if (PyModule_AddObject(module, "Endpoint", reinterpret_cast<PyObject*>(&EndpointType)) < 0)
     {
         return false;
     }
@@ -182,8 +182,7 @@ IcePy::toEndpointSeq(PyObject* endpoints, Ice::EndpointSeq& seq)
     for (Py_ssize_t i = 0; i < sz; ++i)
     {
         PyObject* p{PySequence_Fast_GET_ITEM(endpoints, i)};
-        PyTypeObject* type = &EndpointType; // Necessary to prevent GCC's strict-alias warnings.
-        if (!PyObject_IsInstance(p, reinterpret_cast<PyObject*>(type)))
+        if (!PyObject_IsInstance(p, reinterpret_cast<PyObject*>(&EndpointType)))
         {
             PyErr_Format(PyExc_ValueError, "expected element of type Ice.Endpoint");
             return false;

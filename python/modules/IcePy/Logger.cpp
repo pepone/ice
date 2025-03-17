@@ -324,7 +324,7 @@ namespace IcePy
 {
     PyTypeObject LoggerType = {
         PyVarObject_HEAD_INIT(nullptr, 0) /* object header */
-        .tp_name = "IcePy.Logger",
+            .tp_name = "IcePy.Logger",
         .tp_basicsize = sizeof(LoggerObject),
         .tp_dealloc = reinterpret_cast<destructor>(loggerDealloc),
         .tp_flags = Py_TPFLAGS_DEFAULT,
@@ -340,8 +340,8 @@ IcePy::initLogger(PyObject* module)
     {
         return false;
     }
-    PyTypeObject* type = &LoggerType; // Necessary to prevent GCC's strict-alias warnings.
-    if (PyModule_AddObject(module, "Logger", reinterpret_cast<PyObject*>(type)) < 0)
+
+    if (PyModule_AddObject(module, "Logger", reinterpret_cast<PyObject*>(&LoggerType)) < 0)
     {
         return false;
     }

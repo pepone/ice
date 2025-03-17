@@ -140,7 +140,7 @@ namespace IcePy
 {
     PyTypeObject BatchRequestType = {
         PyVarObject_HEAD_INIT(nullptr, 0) /* object header */
-        .tp_name = "IcePy.BatchRequest",
+            .tp_name = "IcePy.BatchRequest",
         .tp_basicsize = sizeof(BatchRequestObject),
         .tp_dealloc = (destructor)batchRequestDealloc,
         .tp_flags = Py_TPFLAGS_DEFAULT,
@@ -156,8 +156,8 @@ IcePy::initBatchRequest(PyObject* module)
     {
         return false;
     }
-    PyTypeObject* type = &BatchRequestType; // Necessary to prevent GCC's strict-alias warnings.
-    if (PyModule_AddObject(module, "BatchRequest", reinterpret_cast<PyObject*>(type)) < 0)
+
+    if (PyModule_AddObject(module, "BatchRequest", reinterpret_cast<PyObject*>(&BatchRequestType)) < 0)
     {
         return false;
     }
