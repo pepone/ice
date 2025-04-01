@@ -22,6 +22,31 @@ module Ice
       end
     end
 
+    module ObjectPrx_mixin
+        def ice_ping(context=nil)
+            ObjectPrx_mixin::OP_ice_ping.invoke(self, [], context)
+        end
+
+        def ice_isA(id, context=nil)
+            return ObjectPrx_mixin::OP_ice_isA.invoke(self, [id], context)
+        end
+
+        def ice_ids(context=nil)
+            ObjectPrx_mixin::OP_ice_ids.invoke(self, [], context)
+        end
+
+        def ice_id(context=nil)
+            ObjectPrx_mixin::OP_ice_id.invoke(self, [], context)
+        end
+    end
+
+    ObjectPrx_mixin::OP_ice_ping = Ice::__defineOperation('ice_ping', Ice::OperationMode::Idempotent, nil, [[::Ice::T_Identity, false, 0]], [], [Ice::T_ObjectPrx, false, 0], [::Ice::T_ObjectNotFoundException])
+
+    class ObjectPrx
+        include Proxy_mixin
+        include ObjectPrx_mixin
+    end
+
     # Proxy comparison functions.
 
     def Ice.proxyIdentityCompare(lhs, rhs)
