@@ -3,7 +3,8 @@
 
 def twoways(helper, communicator, p)
 
-    literals = p.opStringLiterals();
+    puts p.class
+    literals = p.opStringLiterals()
 
     test(Test::S0 == "\\" &&
          Test::S0 == Test::Sw0 &&
@@ -109,6 +110,7 @@ def twoways(helper, communicator, p)
     #
     # Proxy ice_staticId
     #
+    puts Test::MyClassPrx::ice_staticId()
     test(Test::MyClassPrx::ice_staticId() == "::Test::MyClass")
     test(Test::MyDerivedClassPrx::ice_staticId() == "::Test::MyDerivedClass")
     test(Ice::ObjectPrx::ice_staticId() == Ice::Value::ice_staticId())

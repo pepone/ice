@@ -436,7 +436,6 @@ Slice::Ruby::CodeVisitor::visitInterfaceDefStart(const InterfaceDefPtr& p)
 
     _out << sp << nl << "class " << name << "Prx < Ice::ObjectPrx";
     _out.inc();
-    _out << nl << "include Ice::Proxy_mixin";
     _out << nl << "include " << name << "Prx_mixin";
     _out.dec();
     _out << nl << "end"; // End of proxy class.
