@@ -283,29 +283,24 @@ communicatorDestroy(CommunicatorObject* self, PyObject* /*args*/)
 }
 
 extern "C" PyObject*
-communicatorDestroyAsync(CommunicatorObject* self, PyObject* /*args*/)
+communicatorDestroyAsync(CommunicatorObject* self, PyObject* args)
 {
-    assert(self->communicator);
-
-    auto vfm = dynamic_pointer_cast<ValueFactoryManager>((*self->communicator)->getValueFactoryManager());
-    assert(vfm);
-
-    auto futureType = reinterpret_cast<PyTypeObject*>(lookupType("Ice.Future"));
-    assert(futureType);
-
-    PyObjectHandle emptyArgs{PyTuple_New(0)};
-    PyObjectHandle future{futureType->tp_new(futureType, emptyArgs.get(), nullptr)};
-    if (!future.get())
+    PyObjectHandle setResult;
+    if (!PyArg_ParseTuple(args, "O", &setResult.get()))
     {
         return nullptr;
     }
 
-    // Call Ice.Future.__init__
-    futureType->tp_init(future.get(), emptyArgs.get(), nullptr);
+    if (!PyCallable_Check(setResult.get()))
+    {
+        PyErr_SetString(PyExc_TypeError, "setResult must be callable");
+        return nullptr;
+    }
 
-    // Create a new reference to prevent premature release of the future object. The reference will be released by
-    // the destroy callback.
-    PyObject* futureObject = Py_NewRef(future.get());
+    assert(self->communicator);
+
+    auto vfm = dynamic_pointer_cast<ValueFactoryManager>((*self->communicator)->getValueFactoryManager());
+    assert(vfm);
 
     (*self->communicator)
         ->destroyAsync(
@@ -328,15 +323,14 @@ communicatorDestroyAsync(CommunicatorObject* self, PyObject* /*args*/)
                 Py_XDECREF(self->wrapper);
                 self->wrapper = nullptr;
 
-                PyObject* err = PyErr_Occurred();
-                if (err)
+                PyObjectHandle  = PyTuple_New(0);
+                if (!args.get())
                 {
-                    PyObjectHandle discard{callMethod(futureGuard.get(), "set_exception", err)};
+                    // TODO abort or log an error we cannot create the tuple to call set result
+                    // pretty bad.
+                    return;
                 }
-                else
-                {
-                    PyObjectHandle discard{callMethod(futureGuard.get(), "set_result", Py_None)};
-                }
+                _ = PyObject_Call(method, args.get(), nullptr);
             });
     return IcePy::wrapFuture(*self->communicator, future.get());
 }
@@ -1385,8 +1379,8 @@ static PyMethodDef CommunicatorMethods[] = {
     {"destroy", reinterpret_cast<PyCFunction>(communicatorDestroy), METH_NOARGS, PyDoc_STR("destroy() -> None")},
     {"destroyAsync",
      reinterpret_cast<PyCFunction>(communicatorDestroyAsync),
-     METH_NOARGS,
-     PyDoc_STR("destroyAsync() -> Ice.Future")},
+     METH_VARARGS,
+     PyDoc_STR("destroyAsync(callable) -> None")},
     {"shutdown", reinterpret_cast<PyCFunction>(communicatorShutdown), METH_NOARGS, PyDoc_STR("shutdown() -> None")},
     {"waitForShutdown",
      reinterpret_cast<PyCFunction>(communicatorWaitForShutdown),

@@ -45,7 +45,12 @@ class Communicator:
         return self
 
     async def __aexit__(self, type, value, traceback):
-        await self._impl.destroyAsync()
+        future = Ice.Future()
+        set_result = future.set_result
+        if self._eventLoopAdapter:
+            future = self._eventLoopAdapter.wrapFuture(future)
+        self._impl.destroyAsync(set_result)
+        await future
 
     @property
     def eventLoopAdapter(self):
