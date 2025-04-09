@@ -285,32 +285,30 @@ communicatorDestroy(CommunicatorObject* self, PyObject* /*args*/)
 extern "C" PyObject*
 communicatorDestroyAsync(CommunicatorObject* self, PyObject* args)
 {
-    PyObjectHandle setResult;
-    if (!PyArg_ParseTuple(args, "O", &setResult.get()))
-    {
-        return nullptr;
-    }
-
-    if (!PyCallable_Check(setResult.get()))
-    {
-        PyErr_SetString(PyExc_TypeError, "setResult must be callable");
-        return nullptr;
-    }
-
     assert(self->communicator);
+    Ice::CommunicatorPtr communicator = *self->communicator;
 
     auto vfm = dynamic_pointer_cast<ValueFactoryManager>((*self->communicator)->getValueFactoryManager());
     assert(vfm);
 
-    (*self->communicator)
-        ->destroyAsync(
-            [self, vfm, futureObject]()
+    PyObject* setResult;
+    if (!PyArg_ParseTuple(args, "O", &setResult))
+    {
+        return nullptr;
+    }
+
+    if (!PyCallable_Check(setResult))
+    {
+        PyErr_SetString(PyExc_TypeError, "setResult must be callable");
+        Py_DECREF(setResult);
+        return nullptr;
+    }
+
+    communicator->destroyAsync(
+            [self, setResult, communicator, vfm]()
             {
                 // Ensure the current thread is able to call into Python.
                 AdoptThread adoptThread;
-
-                // Adopt the future object so it is released within this scope.
-                PyObjectHandle futureGuard{futureObject};
 
                 vfm->destroy();
 
@@ -323,16 +321,29 @@ communicatorDestroyAsync(CommunicatorObject* self, PyObject* args)
                 Py_XDECREF(self->wrapper);
                 self->wrapper = nullptr;
 
-                PyObjectHandle  = PyTuple_New(0);
-                if (!args.get())
+                PyObject* setResultArgs  = PyTuple_Pack(1, Py_None);
+                if (!setResultArgs)
                 {
-                    // TODO abort or log an error we cannot create the tuple to call set result
-                    // pretty bad.
+                    PyErr_SetString(PyExc_RuntimeError, "failed to create args tuple");
                     return;
                 }
-                _ = PyObject_Call(method, args.get(), nullptr);
+                [[maybe_unused]]PyObject* result = PyObject_Call(setResult, setResultArgs, nullptr);
+                assert(result == nullptr || result == Py_None);
+                if (result == nullptr)
+                {
+                    PyErr_PrintEx(0);
+                }
+
+                // Py_IsFinalizing is available in 3.13 and up
+                /*if (!Py_IsFinalizing())
+                {
+                    // We need to release the reference to the setResult callable and setResultArgs tuple, but only if Python is
+                    // not finalizing. Otherwise, we leak the objects as it is not safe to call Python code.
+                    Py_DECREF(setResult);
+                    Py_DECREF(setResultArgs);
+                }*/
             });
-    return IcePy::wrapFuture(*self->communicator, future.get());
+    return Py_None;
 }
 
 extern "C" PyObject*
