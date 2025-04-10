@@ -334,14 +334,15 @@ communicatorDestroyAsync(CommunicatorObject* self, PyObject* args)
                     PyErr_PrintEx(0);
                 }
 
-                // Py_IsFinalizing is available in 3.13 and up
-                /*if (!Py_IsFinalizing())
+#if PY_VERSION_HEX >= 0x030D0000
+                if (!Py_IsFinalizing())
                 {
                     // We need to release the reference to the setResult callable and setResultArgs tuple, but only if Python is
                     // not finalizing. Otherwise, we leak the objects as it is not safe to call Python code.
                     Py_DECREF(setResult);
                     Py_DECREF(setResultArgs);
-                }*/
+                }
+#endif
             });
     return Py_None;
 }
