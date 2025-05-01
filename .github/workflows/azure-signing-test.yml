@@ -15,11 +15,15 @@ jobs:
       - name: Setup C++
         uses: ./.github/actions/setup-cpp
 
+      - name: NuGet restore
+        run: nuget restore ice.sln
+        working-directory: cpp/msbuild
+
       - name: Build C++ Binaries
         run: msbuild /m ice.sln /t:slice2cpp /p:Configuration=Release /p:Platform=x64
         working-directory: cpp/msbuild
 
-      - name: Sign MSI installer with Trusted Signing
+      - name: Sign binaries with Trusted Signing
         uses: azure/trusted-signing-action@v0
         with:
           azure-tenant-id: ${{ secrets.AZURE_TENANT_ID }}
