@@ -20,7 +20,7 @@ jobs:
         working-directory: cpp/msbuild
 
       - name: Build C++ Binaries
-        run: msbuild /m ice.sln /t:slice2cpp /p:Configuration=Release /p:Platform=x64
+        run: msbuild /m ice.sln /p:Configuration=Debug /p:Platform=x64
         working-directory: cpp/msbuild
 
       - name: Sign binaries with Trusted Signing
@@ -38,10 +38,14 @@ jobs:
           file-digest: SHA256
           timestamp-rfc3161: http://timestamp.acs.microsoft.com
           timestamp-digest: SHA256
+      
+      - name: Build C++ NuGet Packages
+        run: msbuild /m ice.proj /t:Pack 
+        working-directory: cpp/msbuild
 
-      - name: Upload MSI
+      - name: Upload NuGet Package
         uses: actions/upload-artifact@v4
         with:
-          name: slice2cpp
+          name: cpp-nuget-packages
           path: |
-            ./cpp/bin/x64/Release/*.exe
+            cpp/msbuild/ZeroC.Ice.Cpp/*.nupkg
