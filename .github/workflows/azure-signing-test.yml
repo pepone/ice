@@ -15,10 +15,6 @@ jobs:
       - name: Setup C++
         uses: ./.github/actions/setup-cpp
 
-      - name: NuGet restore
-        run: nuget restore ice.sln
-        working-directory: cpp/msbuild
-
       - name: Build C++ Binaries
         run: msbuild /m ice.proj /t:BuildDist /p:Configuration=Debug /p:Platform=x64
         working-directory: cpp/msbuild
