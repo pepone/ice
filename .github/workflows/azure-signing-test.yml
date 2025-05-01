@@ -36,7 +36,7 @@ jobs:
           timestamp-digest: SHA256
       
       - name: Build C++ NuGet Packages
-        run: msbuild /m ice.proj /t:Pack 
+        run: msbuild /m ice.proj /t:Pack /p:Configuration=Debug /p:Platform=x64
         working-directory: cpp/msbuild
 
       - name: Upload NuGet Package
