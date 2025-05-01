@@ -1,0 +1,41 @@
+name: "Azure Signing Test"
+
+on:
+    workflow_dispatch:
+
+jobs:
+  test-signing:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup C++
+        uses: ./.github/actions/setup-cpp
+
+      - name: Build C++ Binaries
+        run: msbuild /m ice.sln /t:slice2cpp /p:Configuration=Release /p:Platform=x64
+        working-directory: cpp/msbuild
+
+      - name: Sign MSI installer with Trusted Signing
+        uses: azure/trusted-signing-action@v0
+        with:
+          azure-tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          azure-client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          azure-client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+          endpoint: https://eus.codesigning.azure.net/
+          trusted-signing-account-name: zeroc
+          certificate-profile-name: zeroc-ice
+          files-folder: ./cpp/bin
+          files-folder-recurse: true
+          files-folder-filter: exe,dll
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+
+      - name: Upload MSI
+        uses: actions/upload-artifact@v4
+        with:
+          name: slice2cpp
+          path: |
+            ./cpp/bin/x64/Release/*.exe
