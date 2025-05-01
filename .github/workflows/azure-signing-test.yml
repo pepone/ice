@@ -2,6 +2,8 @@ name: "Azure Signing Test"
 
 on:
     workflow_dispatch:
+    push:
+      branches: ["azure-code-signing-test"]
 
 jobs:
   test-signing:
