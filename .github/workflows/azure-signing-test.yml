@@ -20,7 +20,7 @@ jobs:
         working-directory: cpp/msbuild
 
       - name: Build C++ Binaries
-        run: msbuild /m ice.sln /p:Configuration=Debug /p:Platform=x64
+        run: msbuild /m ice.proj /t:BuildDist /p:Configuration=Debug /p:Platform=x64
         working-directory: cpp/msbuild
 
       - name: Sign binaries with Trusted Signing
