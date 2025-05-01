@@ -93,6 +93,30 @@ jobs:
         run: nuget restore cpp/msbuild/ice.sln
 
       - name: Pack .NET Packages
+        run: dotnet msbuild csharp\msbuild\ice.proj /t:BuildDist /p:Configuration=Release /p:IcePackageVersion="${{ inputs.ice_version }}"
+
+      - name: Collect Files to Sign
+        run: |
+          Get-ChildItem -Path src -Directory | ForEach-Object {
+              $name = $_.Name
+              "src\$name\bin\Release\net8.0\$name.dll"
+          } | Set-Content -Path ${{ github.workspace }}\catalog.txt -Encoding UTF8
+
+      - name: Sign .NET Assemblies with Trusted Signing
+        uses: azure/trusted-signing-action@v0
+        with:
+          azure-tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          azure-client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          azure-client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+          endpoint: https://eus.codesigning.azure.net/
+          trusted-signing-account-name: zeroc
+          certificate-profile-name: zeroc-ice
+          files-catalog: ${{ github.workspace }}\catalog.txt
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+
+      - name: Pack .NET Packages
         run: dotnet msbuild csharp\msbuild\ice.proj /t:Pack /p:Configuration=Release /p:IcePackageVersion="${{ inputs.ice_version }}"
         env:
           SLICE2CS_STAGING_PATH: "${{ github.workspace }}\\tools"

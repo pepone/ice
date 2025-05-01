@@ -15,11 +15,20 @@ jobs:
       - name: Setup C++
         uses: ./.github/actions/setup-cpp
 
-      - name: Build C++ Binaries
-        run: msbuild /m ice.proj /t:BuildDist /p:Configuration=Debug /p:Platform=x64
-        working-directory: cpp/msbuild
+      - name: Setup .NET
+        uses: ./.github/actions/setup-dotnet
 
-      - name: Sign binaries with Trusted Signing
+      - name: Pack .NET Packages
+        run: dotnet msbuild csharp\msbuild\ice.proj /t:BuildDist /p:Configuration=Release
+
+      - name: Collect Files to Sign
+        run: |
+          Get-ChildItem -Path src -Directory | ForEach-Object {
+              $name = $_.Name
+              "src\$name\bin\Release\net8.0\$name.dll"
+          } | Set-Content -Path ${{ github.workspace }}\catalog.txt -Encoding UTF8
+
+      - name: Sign .NET Assemblies with Trusted Signing
         uses: azure/trusted-signing-action@v0
         with:
           azure-tenant-id: ${{ secrets.AZURE_TENANT_ID }}
@@ -28,20 +37,20 @@ jobs:
           endpoint: https://eus.codesigning.azure.net/
           trusted-signing-account-name: zeroc
           certificate-profile-name: zeroc-ice
-          files-folder: ./cpp/bin
-          files-folder-recurse: true
-          files-folder-filter: exe,dll
+          files-catalog: ${{ github.workspace }}\catalog.txt
           file-digest: SHA256
           timestamp-rfc3161: http://timestamp.acs.microsoft.com
           timestamp-digest: SHA256
-      
-      - name: Build C++ NuGet Packages
-        run: msbuild /m ice.proj /t:Pack /p:Configuration=Debug /p:Platform=x64
-        working-directory: cpp/msbuild
 
-      - name: Upload NuGet Package
+      - name: Pack .NET Packages
+        run: dotnet msbuild csharp\msbuild\ice.proj /t:Pack /p:Configuration=Release
+
+      - name: Upload NuGet Packages
         uses: actions/upload-artifact@v4
         with:
-          name: cpp-nuget-packages
+          name: dotnet-nuget-packages
           path: |
-            cpp/msbuild/ZeroC.Ice.Cpp/*.nupkg
+            csharp/src/**/bin/Release/*.nupkg
+            csharp/src/**/bin/Release/*.snupkg
+            tools/ZeroC.Ice.Slice.Tools.CSharp/bin/Release/*.nupkg
+            tools/ZeroC.Ice.Slice.Tools.CSharp/bin/Release/*.snupkg

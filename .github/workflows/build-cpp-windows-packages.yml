@@ -20,6 +20,12 @@ on:
         required: false
       REPOSITORY_PASSWORD:
         required: false
+      AZURE_TENANT_ID:
+        required: true
+      AZURE_CLIENT_ID:
+        required: true
+      AZURE_CLIENT_SECRET:
+        required: true
   workflow_dispatch:
     inputs:
       ice_version:
