@@ -151,6 +151,8 @@ revoke_certificates(){
 revoke_certificates configuration//ca3/ca3.cnf \
     "configuration/ca3/server_revoked_cert.pem configuration/ca3/i1/i1_cert.pem"
 
+revoke_certificates configuration/ca3/i1/i1.cnf configuration/ca3/i1/server_revoked_cert.pem
+
 revoke_certificates configuration/ca4/ca4.cnf \
     "configuration/ca4/server_revoked_cert.pem configuration/ca4/i1/i1_cert.pem"
 
