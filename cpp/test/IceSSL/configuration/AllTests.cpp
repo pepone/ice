@@ -2136,7 +2136,8 @@ testCrlRevocation(const string& factoryRef, const string& defaultDir, const Ice:
     optional<Test::ServerPrx> server = fact->createServer(d);
 
     server->ice_ping();
-    Ice::SSL::ConnectionInfoPtr info = dynamic_pointer_cast<Ice::SSL::ConnectionInfo>(server->ice_getConnection()->getInfo());
+    Ice::SSL::ConnectionInfoPtr info =
+        dynamic_pointer_cast<Ice::SSL::ConnectionInfo>(server->ice_getConnection()->getInfo());
     fact->destroyServer(server);
     comm->destroy();
 
@@ -2204,7 +2205,7 @@ testCrlRevocation(const string& factoryRef, const string& defaultDir, const Ice:
     comm->destroy();
 
     // Test with ca3/i1/server.p12 only the intermediate CA cert is revoked
-    const char* certificates[] = {"/ca3/i1/server_revoked.p12", nullptr};
+    const char* certificates[] = {"/ca3/i1/server.p12", nullptr};
     ImportCerts import{defaultDir, certificates};
 
     initData.properties = createClientProps(defaultProps, p12, "", "ca3/ca3");
@@ -2233,6 +2234,7 @@ testCrlRevocation(const string& factoryRef, const string& defaultDir, const Ice:
     fact->destroyServer(server);
     comm->destroy();
 
+    cerr << " Repeat checking only the end cert" << endl;
     // Repeat checking only the end cert
     initData.properties = createClientProps(defaultProps, p12, "", "ca3/ca3");
     initData.properties->setProperty("IceSSL.RevocationCheck", "1");
@@ -2285,7 +2287,8 @@ testOcspRevocation(const string& factoryRef, const string& defaultDir, const Ice
     optional<Test::ServerPrx> server = fact->createServer(d);
 
     server->ice_ping();
-    Ice::SSL::ConnectionInfoPtr info = dynamic_pointer_cast<Ice::SSL::ConnectionInfo>(server->ice_getConnection()->getInfo());
+    Ice::SSL::ConnectionInfoPtr info =
+        dynamic_pointer_cast<Ice::SSL::ConnectionInfo>(server->ice_getConnection()->getInfo());
 
     fact->destroyServer(server);
     comm->destroy();
@@ -2293,12 +2296,12 @@ testOcspRevocation(const string& factoryRef, const string& defaultDir, const Ice
     // Now check with a revoked certificate and RevocationCheck=0 to disable revocation checks
 #    ifndef ICE_USE_SECURE_TRANSPORT
     // With secure transport there is no reliable way to disable revocation checks
-    initData.properties = createClientProps(defaultProps, p12, "", "cacert4");
+    initData.properties = createClientProps(defaultProps, p12, "", "ca4/ca4");
     initData.properties->setProperty("IceSSL.RevocationCheck", "0");
     comm = initialize(initData);
     fact = Test::ServerFactoryPrx{comm, factoryRef};
 
-    d = createServerProps(defaultProps, p12, "s_rsa_ca4_revoked", "");
+    d = createServerProps(defaultProps, p12, "ca4/server_revoked", "");
     d["IceSSL.VerifyPeer"] = "0";
     server = fact->createServer(d);
     server->ice_ping();
@@ -2526,9 +2529,9 @@ allTests(Test::TestHelper* helper, const string& /*certsDir*/, bool p12)
     testMutlipleCACerts(factory, defaultProps, p12);
     testDerCertificates(factory, defaultProps, p12);
     testTrustOnly(factory, defaultProps, p12);
-    //testCrlRevocation(factory, defaultDir, defaultProps, p12);
+    testCrlRevocation(factory, defaultDir, defaultProps, p12);
     testOcspRevocation(factory, defaultDir, defaultProps, p12);
     testSystemCAs(defaultProps);
 
     return Test::ServerFactoryPrx{communicator, factory};
-} 
+}
