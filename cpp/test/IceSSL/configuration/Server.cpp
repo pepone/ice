@@ -26,7 +26,7 @@ Server::run(int argc, char** argv)
         os << "Usage: " << argv[0] << " testdir";
         throw invalid_argument(os.str());
     }
-    testdir = string(argv[1]) + "/../certs";
+    testdir = string(argv[1]);
 #else
     testdir = "certs";
 #endif
