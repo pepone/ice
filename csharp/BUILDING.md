@@ -2,11 +2,11 @@
 
 ## Table of contents
 
-- [Building Ice for C# from source](#building-ice-for-c-1-from-source)
+- [Building Ice for C# from source](#building-ice-for-c-from-source)
   - [Table of contents](#table-of-contents)
   - [Prerequisites](#prerequisites)
   - [Build roadmap](#build-roadmap)
-  - [Building Ice for C#](#building-ice-for-c-1)
+  - [Building Ice for C#](#building-ice-for-c)
   - [Running the tests](#running-the-tests)
   - [Creating and publishing NuGet packages](#creating-and-publishing-nuget-packages)
     - [Slice tools](#slice-tools)
@@ -38,7 +38,7 @@ flowchart LR
     compiler(slice2cs) --> slice-tools(ZeroC.Ice.Slice.Tools) --> ice(ZeroC.*<br>iceboxnet)
     ice -- doc --> api(API reference)
     ice -- pack/publish --> nuget(NuGet packages)
-    ice --> tests(Tests) -- coverage --> cov(Code coverage reports)
+    ice --> tests(Tests)
 ```
 
 ## Building Ice for C\#
