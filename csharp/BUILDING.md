@@ -1,4 +1,4 @@
-# Building Ice for C-Sharp
+# Building Ice for C\#
 
 This page describes how to build Ice for C# from source and package the resulting assemblies.
 
@@ -10,6 +10,16 @@ This page describes how to build Ice for C# from source and package the resultin
 
 ## Building
 
+### Build roadmap
+
+```mermaid
+flowchart LR
+    compiler(slice2cs) --> slice-tools(ZeroC.Ice.Slice.Tools) --> ice(ZeroC.*<br>iceboxnet)
+    ice -- doc --> api(API reference)
+    ice -- pack/publish --> nuget(NuGet packages)
+    ice --> tests(Tests) -- coverage --> cov(Code coverage reports)
+```
+
 ### Prerequisites
 
 1. .NET SDK 8.0 \
@@ -19,9 +29,9 @@ This page describes how to build Ice for C# from source and package the resultin
    Refer to the [build instructions](../cpp/BUILDING.md) in the `cpp` folder for details on how to build the C++ source
    distribution.
 
-3. Python 3.12 is required for running the tests. The Glacier2 test also require the passlib Python package.
+3. Python 3.12 is required for running the tests. The Glacier2 test also require the `passlib` Python package.
 
-### Compiling Ice for C-Sharp
+### Building Ice for C\#
 
 Open a command prompt and change to the `csharp` subdirectory. To build all Ice assemblies and the associated test
 suite, run:
