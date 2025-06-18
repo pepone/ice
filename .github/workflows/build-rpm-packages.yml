@@ -87,12 +87,16 @@ jobs:
 
       - name: Sign RPM packages
         run: |
-          docker run --rm \
-            -v "$GITHUB_WORKSPACE:/workspace" \
-            -e GPG_KEY="${{ secrets.GPG_KEY }}" \
-            -e GPG_KEY_ID="${{ secrets.GPG_KEY_ID }}" \
-            rpm-repo-builder \
-            /workspace/ice/packaging/rpm/rpm-sign.sh /workspace/build/RPMS
+          args=(
+            --rm
+            -v "$GITHUB_WORKSPACE:/workspace"
+            -e GPG_KEY="${{ secrets.GPG_KEY }}"
+            -e GPG_KEY_ID="${{ secrets.GPG_KEY_ID }}"
+            rpm-repo-builder
+          )
+
+          docker run "${args[@]}" /workspace/ice/packaging/rpm/rpm-sign.sh /workspace/build/RPMS
+          docker run "${args[@]}" /workspace/ice/packaging/rpm/rpm-sign.sh /workspace/build/SRPMS
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
@@ -100,3 +104,4 @@ jobs:
           name: rpm-packages-${{ inputs.distribution }}-${{ inputs.arch }}
           path: |
             build/RPMS/*
+            build/SRPMS/*

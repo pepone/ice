@@ -1,0 +1,5 @@
+# Use the official Amazon Linux 2023 image
+FROM public.ecr.aws/amazonlinux/amazonlinux:2023
+
+# Install required build tools
+RUN dnf install -y rpmdevtools && dnf clean all

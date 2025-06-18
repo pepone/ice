@@ -7,7 +7,7 @@ RPM_BUILD_ROOT="/workspace/build"
 # Ensure necessary directories exist
 mkdir -p "$RPM_BUILD_ROOT"/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
 
-# Copy Ice spec file
+# Copy ice-repo spec file
 SPEC_SRC="/workspace/ice/packaging/rpm/ice-repo.spec"
 SPEC_DEST="$RPM_BUILD_ROOT/SPECS/ice-repo.spec"
 
@@ -22,7 +22,7 @@ RPM_MACROS+=(--define "vendor ZeroC, Inc.")
 cp "/workspace/ice/packaging/rpm/$DISTRIBUTION/zeroc-ice3.8.repo" "$RPM_BUILD_ROOT/SOURCES"
 
 # Build source RPM
-rpmbuild -bs "$SPEC_DEST" "${RPM_MACROS[@]}" --target="$TARGET_ARCH"
+rpmbuild -bs "$SPEC_DEST" "${RPM_MACROS[@]}"
 
 # Build binary RPM
-rpmbuild -bb "$SPEC_DEST" "${RPM_MACROS[@]}" --target="$TARGET_ARCH"
+rpmbuild -bb "$SPEC_DEST" "${RPM_MACROS[@]}"

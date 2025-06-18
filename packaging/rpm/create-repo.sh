@@ -23,51 +23,79 @@ cat > ~/.rpmmacros <<EOF
 %__gpg /usr/bin/gpg
 EOF
 
-
 STAGING="${1:?Usage: $0 <staging-dir> <repo-dir>}"
 REPODIR="${2:?Usage: $0 <staging-dir> <repo-dir>}"
 
-# Include noarch in the list of architectures
-ARCHES=(x86_64 aarch64 noarch)
+ARCHES=(x86_64 aarch64)
+NOARCH_RPMS=()
 
 echo "Syncing RPMs from '$STAGING' to '$REPODIR'..."
 
+# Collect noarch RPMs once
+mapfile -t NOARCH_RPMS < <(find "$STAGING" -type f -name "*.noarch.rpm")
+
+# Process each architecture
 for arch in "${ARCHES[@]}"; do
   echo "Processing architecture: $arch"
 
-  # Find all RPMs for the current arch
+  # Find arch-specific RPMs
   mapfile -t rpms < <(find "$STAGING" -type f -name "*.${arch}.rpm")
 
-  # Ensure target directory exists
+  # Add noarch RPMs
+  rpms+=("${NOARCH_RPMS[@]}")
+
+  # Create architecture-specific repo dir
   mkdir -p "$REPODIR/$arch"
 
   for rpm in "${rpms[@]}"; do
     target="$REPODIR/$arch/$(basename "$rpm")"
-
     if [[ -f "$target" ]]; then
       echo "Skipping existing: $(basename "$rpm")"
       continue
     fi
-
     echo "Copying: $(basename "$rpm")"
     cp "$rpm" "$target"
-
-    echo "Signing: $(basename "$rpm")"
-    rpmsign --addsign "$target"
   done
+
+  # Run createrepo_c for this arch
+  echo "Running createrepo_c in $REPODIR/$arch..."
+  createrepo_c --update "$REPODIR/$arch"
+
+  # Sign repomd.xml
+  REPO_MD="$REPODIR/$arch/repodata/repomd.xml"
+  if [[ -f "$REPO_MD" ]]; then
+    echo "Signing repomd.xml for $arch..."
+    gpg --detach-sign --armor --yes --batch "$REPO_MD"
+  else
+    echo "Warning: repomd.xml not found for $arch!"
+    exit 1
+  fi
 done
 
-# Create or update repo metadata
-echo "Running createrepo_c in $REPODIR..."
-createrepo_c --update "$REPODIR"
+# Process source RPMs
+echo "Processing SRPMS (source RPMs)..."
+mapfile -t srpms < <(find "$STAGING" -type f -name "*.src.rpm")
+mkdir -p "$REPODIR/SRPMS"
 
-# Sign the repomd.xml metadata
-REPO_MD="$REPODIR/repodata/repomd.xml"
+for srpm in "${srpms[@]}"; do
+  target="$REPODIR/SRPMS/$(basename "$srpm")"
+  if [[ -f "$target" ]]; then
+    echo "Skipping existing: $(basename "$srpm")"
+    continue
+  fi
+  echo "Copying: $(basename "$srpm")"
+  cp "$srpm" "$target"
+done
+
+echo "Running createrepo_c in $REPODIR/SRPMS..."
+createrepo_c --update "$REPODIR/SRPMS"
+
+REPO_MD="$REPODIR/SRPMS/repodata/repomd.xml"
 if [[ -f "$REPO_MD" ]]; then
-  echo "Signing repomd.xml..."
+  echo "Signing repomd.xml for SRPMS..."
   gpg --detach-sign --armor --yes --batch "$REPO_MD"
 else
-  echo "Warning: repomd.xml not found!"
+  echo "Warning: repomd.xml not found for SRPMS!"
   exit 1
 fi
 

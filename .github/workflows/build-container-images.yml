@@ -20,15 +20,20 @@ jobs:
             image: ice-rpm-builder-rhel9
             context: packaging/rpm/docker/rhel9
           - platform: arm64
-            image: ice-rpm-builder-rhel9
-            context: packaging/rpm/docker/rhel9
+            image: ice-rpm-builder-rhel10
+            context: packaging/rpm/docker/rhel10
+          - platform: amd64
+            image: ice-rpm-builder-rhel10
+            context: packaging/rpm/docker/rhel10
+          - platform: arm64
+            image: ice-rpm-builder-rhel10
+            context: packaging/rpm/docker/rhel10
           - platform: amd64
             image: ice-rpm-builder-amzn2023
             context: packaging/rpm/docker/amzn2023
           - platform: arm64
             image: ice-rpm-builder-amzn2023
             context: packaging/rpm/docker/amzn2023
-            # We don't build rhel10 images here because we need to register with subscription-manager
 
     steps:
       - name: Check out repository
@@ -46,14 +51,33 @@ jobs:
           username: zeroc-ice
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Add RH credentials
+        if: ${{ matrix.image == 'ice-rpm-builder-rhel10' }}
+        run: |
+          umask 077
+          echo "RH_USERNAME=\"${{ secrets.RH_USERNAME }}\"" >> rh_credentials
+          echo "RH_PASSWORD=\"${{ secrets.RH_PASSWORD }}\"" >> rh_credentials
+
       - name: Build and push image
         run: |
-          docker buildx build \
-            --platform linux/${{ matrix.platform }} \
-            --tag ghcr.io/zeroc-ice/${{ matrix.image }}:${{ matrix.platform }} \
-            --push \
-            -f Dockerfile .
+          args=(
+            --platform "linux/${{ matrix.platform }}"
+            --tag "ghcr.io/zeroc-ice/${{ matrix.image }}:${{ matrix.platform }}"
+            --push
+            -f Dockerfile
+          )
+
+          # Add secret mount only for RHEL10
+          if [[ "${{ matrix.image }}" == "ice-rpm-builder-rhel10" ]]; then
+            args+=( --secret id=rh_credentials,src=rh_credentials )
+          fi
+
+          docker buildx build "${args[@]}" .
         working-directory: ice/${{ matrix.context }}
+
+      - name: Clean up RH credentials
+        if: ${{ always() && matrix.image == 'ice-rpm-builder-rhel10' }}
+        run: rm -f rh_credentials
 
   create-manifests:
     name: "Create and Push Multi-Arch Manifests"
@@ -63,6 +87,7 @@ jobs:
         image:
           - rpm-repo-builder
           - ice-rpm-builder-rhel9
+          - ice-rpm-builder-rhel10
           - ice-rpm-builder-amzn2023
 
     steps:

@@ -1,11 +1,20 @@
 FROM registry.access.redhat.com/ubi9
 
-# Enable Ice 3.7 repository for third-party dependencies (mcpp-devel, lmdb-devel).
-RUN dnf install -y https://zeroc.com/download/ice/3.7/el9/ice-repo-3.7.el9.noarch.rpm && \
-    dnf clean all
+# Copy Ice spec file into the container
+COPY ice/packaging/rpm/ice.spec /usr/src/ice.spec
 
-# Install required build tools and dependencies
-RUN dnf install --setopt=multilib_policy=all -y \
+# Install required tools and build dependencies:
+# - Enable the Ice 3.8 repository to install mcpp-devel
+# - Register with subscription-manager to enable CodeReady Builder (needed for lmdb-devel)
+# - Install build tools and dependencies
+# - Unregister and remove RHSM credentials and entitlements for cleanup
+
+RUN --mount=type=secret,id=rh_credentials \
+    source /run/secrets/rh_credentials && \
+    subscription-manager register --username "$RH_USERNAME" --password "$RH_PASSWORD" && \
+    dnf install -y https://zeroc.com/download/ice/3.8/el9/ice-repo-3.8-1.el9.noarch.rpm && \
+    dnf config-manager --set-enabled codeready-builder-for-rhel-9-$(arch)-rpms && \
+    dnf install -y \
     rpmdevtools \
     make \
     curl-minimal \
@@ -16,16 +25,7 @@ RUN dnf install --setopt=multilib_policy=all -y \
     redhat-rpm-config \
     glibc-static \
     libstdc++-static && \
-    dnf clean all
-
-# Copy Ice spec file into the container
-COPY ice/packaging/rpm/ice.spec /usr/src/ice.spec
-
-# Install build dependencies. Do not use dnf builddep as it doesn't obey multilib_policy=all.
-RUN rpmspec --parse /usr/src/ice.spec 2>/dev/null | \
-    grep '^BuildRequires:' | \
-    sed -E 's/BuildRequires:\s*//' | \
-    tr ',' '\n' | awk '{print $1}' | sort -u > /tmp/dependencies.txt && \
-    dnf install --setopt=multilib_policy=all -y $(cat /tmp/dependencies.txt) && \
-    rm -f /tmp/dependencies.txt /usr/src/ice.spec && \
-    dnf clean all
+    dnf builddep -y /usr/src/ice.spec && \
+    dnf clean all && \
+    subscription-manager unregister && \
+    rm -rf /etc/pki/entitlement /etc/rhsm/ca
