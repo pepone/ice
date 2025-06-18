@@ -1,0 +1,63 @@
+name: "Build Docker CI Images"
+
+on:
+  workflow_dispatch
+
+jobs:
+  build-repo-builder:
+    name: "Build Repo Builder Image linux/${{ matrix.platform }}"
+    runs-on: ${{ matrix.platform == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
+    strategy:
+      matrix:
+        include:
+          - platform: amd64
+          - platform: arm64
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          path: ice
+
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u zeroc-ice --password-stdin
+
+      - name: Build Repo Builder Image
+        run: |
+          docker buildx build \
+            --platform linux/${{ matrix.platform }} \
+            --tag ghcr.io/zeroc-ice/rpm-repo-builder:${{ matrix.platform }} \
+            --push $GITHUB_WORKSPACE/ice -f Dockerfile
+        working-directory: ice/packaging/rpm/docker/rpm-repo-builder
+      
+      - name: Build Rhel9 RPM Builder Image
+        run: |
+          docker buildx build \
+            --platform linux/${{ matrix.platform }} \
+            --tag ghcr.io/zeroc-ice/ice-rpm-builder-rhel9:${{ matrix.platform }} \
+            --push $GITHUB_WORKSPACE/ice -f Dockerfile
+        working-directory: ice/packaging/rpm/docker/rhel9
+      
+      - name: Build Amazon Linux 2023 RPM Builder Image
+        run: |
+          docker buildx build \
+            --platform linux/${{ matrix.platform }} \
+            --tag ghcr.io/zeroc-ice/ice-rpm-builder-amzn2023:${{ matrix.platform }} \
+            --push $GITHUB_WORKSPACE/ice -f Dockerfile
+        working-directory: ice/packaging/rpm/docker/amzn2023
+
+  create-manifest:
+    name: "Create multi arch manifest"
+    runs-on: ubuntu-24.04
+    steps:
+
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u zeroc-ice --password-stdin
+
+      - name: Create manifest
+        run: |
+          docker manifest create ghcr.io/zeroc-ice/rpm-repo-builder:latest \
+            --amend ghcr.io/zeroc-ice/rpm-repo-builder:amd64 \
+            --amend ghcr.io/zeroc-ice/rpm-repo-builder:arm64
+
+      - name: Push manifest
+        run: docker manifest push ghcr.io/zeroc-ice/rpm-repo-builder:latest
