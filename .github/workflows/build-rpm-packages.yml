@@ -45,18 +45,27 @@ jobs:
         include:
           - distribution: rhel9
             arch: x86_64
-
-          - distribution: rhel9
-            arch: i686
+            image: ghcr.io/zeroc-ice/ice-rpm-package-builder-x86_64-rhel9:latest
 
           - distribution: rhel9
             arch: aarch64
+            image: ghcr.io/zeroc-ice/ice-rpm-package-builder-aarch64-rhel9:latest
+
+          - distribution: rhel10
+            arch: x86_64
+            image: ghcr.io/zeroc-ice/ice-rpm-package-builder-x86_64-rhel10:latest
+
+          - distribution: rhel10
+            arch: aarch64
+            image: ghcr.io/zeroc-ice/ice-rpm-package-builder-aarch64-rhel10:latest
 
           - distribution: amzn2023
             arch: x86_64
+            image: ghcr.io/zeroc-ice/ice-rpm-package-builder-x86_64-amzn2023:latest
 
           - distribution: amzn2023
             arch: aarch64
+            image: ghcr.io/zeroc-ice/ice-rpm-package-builder-aarch64-amzn2023:latest
 
     steps:
       - name: Check out repository
@@ -64,14 +73,30 @@ jobs:
         with:
           path: ice
 
-      - name: Call Build RPM Package Action
-        uses: ./ice/.github/actions/build-rpm-package
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u zeroc-ice --password-stdin
+
+      - name: Build RPM packages
+        run: |
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/workspace" \
+            -e ICE_VERSION="${{ inputs.ice_version }}" \
+            -e GIT_TAG="${{ github.ref_name }}" \
+            ${{ inputs.image }} \
+            /workspace/ice/packaging/rpm/build-package.sh
+
+      - name: Sign RPM packages
+        run: |
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/workspace" \
+            -e GPG_KEY="${{ secrets.GPG_KEY }}" \
+            -e GPG_KEY_ID="${{ secrets.GPG_KEY_ID }}" \
+            rpm-repo-builder \
+            /workspace/ice/packaging/rpm/rpm-sign.sh /workspace/build/RPMS
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
         with:
-          ice_version: ${{ inputs.ice_version || '' }}
-          distribution: ${{ matrix.distribution }}
-          arch: ${{ matrix.arch }}
-          repository_url: ${{ inputs.repository_url || ''}}
-          repository_suffix: ${{ inputs.repository_suffix || '' }}
-        env:
-          REPOSITORY_USERNAME: ${{ inputs.repository_username }}
-          REPOSITORY_PASSWORD: ${{ secrets.REPOSITORY_PASSWORD }}
+          name: rpm-packages-${{ inputs.distribution }}-${{ inputs.arch }}
+          path: |
+            build/RPMS/*

@@ -1,14 +1,34 @@
 #!/bin/bash
 set -euo pipefail
 
+# Ensure GPG_KEY and GPG_KEY_ID are set
+: "${GPG_KEY:?GPG_KEY environment variable is not set}"
+: "${GPG_KEY_ID:?GPG_KEY_ID environment variable is not set}"
+
+# Import the GPG key
+echo "$GPG_KEY" | gpg --batch --import
+
+# Check that the key was successfully imported
+if ! gpg --list-secret-keys "$GPG_KEY_ID" > /dev/null 2>&1; then
+  echo "Error: GPG key ID $GPG_KEY_ID was not imported successfully."
+  exit 1
+fi
+
+# Set up ~/.rpmmacros for rpmsign
+cat > ~/.rpmmacros <<EOF
+%_signature gpg
+%_gpg_name $GPG_KEY_ID
+%_gpg_path ~/.gnupg
+%__gpg_check_password_cmd /bin/true
+%__gpg /usr/bin/gpg
+EOF
+
+
 STAGING="${1:?Usage: $0 <staging-dir> <repo-dir>}"
 REPODIR="${2:?Usage: $0 <staging-dir> <repo-dir>}"
 
 # Include noarch in the list of architectures
-ARCHES=(i686 x86_64 aarch64 noarch)
-
-# Ensure rpm signing environment is set up
-export GPG_TTY=$(tty)
+ARCHES=(x86_64 aarch64 noarch)
 
 echo "Syncing RPMs from '$STAGING' to '$REPODIR'..."
 

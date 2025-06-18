@@ -1,13 +1,13 @@
 [zeroc-ice3.8]
 name=ZeroC Ice 3.8
-baseurl=https://download.zeroc.com/ice/3.7/el9/$basearch
+baseurl=https://download.zeroc.com/ice/3.8/el9/$basearch
 enabled=1
 gpgcheck=1
-gpgkey=https://download.zeroc.com/GPG-KEY-zeroc-release-B6391CB2CFBA643D
+gpgkey=https://download.zeroc.com/ice/3.8/GPG-KEY-zeroc-release-4F747656A9377A7CE9E013F662E9DC4B01B155CD
 
 [zeroc-ice3.8-src]
 name=ZeroC Ice 3.8 (SRPMS)
-baseurl=https://download.zeroc.com/ice/3.7/el9/SRPMS
+baseurl=https://download.zeroc.com/ice/3.8/el9/SRPMS
 enabled=1
 gpgcheck=1
-gpgkey=https://download.zeroc.com/GPG-KEY-zeroc-release-B6391CB2CFBA643D
+gpgkey=https://download.zeroc.com/ice/3.8/GPG-KEY-zeroc-release-4F747656A9377A7CE9E013F662E9DC4B01B155CD
