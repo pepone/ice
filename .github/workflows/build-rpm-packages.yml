@@ -45,27 +45,21 @@ jobs:
         include:
           - distribution: rhel9
             arch: x86_64
-            image: ghcr.io/zeroc-ice/ice-rpm-package-builder-x86_64-rhel9:latest
 
           - distribution: rhel9
             arch: aarch64
-            image: ghcr.io/zeroc-ice/ice-rpm-package-builder-aarch64-rhel9:latest
 
           - distribution: rhel10
             arch: x86_64
-            image: ghcr.io/zeroc-ice/ice-rpm-package-builder-x86_64-rhel10:latest
 
           - distribution: rhel10
             arch: aarch64
-            image: ghcr.io/zeroc-ice/ice-rpm-package-builder-aarch64-rhel10:latest
 
           - distribution: amzn2023
             arch: x86_64
-            image: ghcr.io/zeroc-ice/ice-rpm-package-builder-x86_64-amzn2023:latest
 
           - distribution: amzn2023
             arch: aarch64
-            image: ghcr.io/zeroc-ice/ice-rpm-package-builder-aarch64-amzn2023:latest
 
     steps:
       - name: Check out repository
@@ -73,8 +67,15 @@ jobs:
         with:
           path: ice
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Log in to GHCR
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u zeroc-ice --password-stdin
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: zeroc-ice
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build RPM packages
         run: |
@@ -82,21 +83,46 @@ jobs:
             -v "$GITHUB_WORKSPACE:/workspace" \
             -e ICE_VERSION="${{ inputs.ice_version }}" \
             -e GIT_TAG="${{ github.ref_name }}" \
-            ${{ inputs.image }} \
+            ghcr.io/zeroc-ice/ice-rpm-package-builder-${{ inputs.distribution }} \
             /workspace/ice/packaging/rpm/build-package.sh
 
-      - name: Sign RPM packages
+      - name: Sign RPM packages and create repository
         run: |
-          args=(
+          docker_args=(
             --rm
             -v "$GITHUB_WORKSPACE:/workspace"
-            -e GPG_KEY="${{ secrets.GPG_KEY }}"
-            -e GPG_KEY_ID="${{ secrets.GPG_KEY_ID }}"
-            rpm-repo-builder
+            -e GPG_KEY="${{ secrets.ICE_3_8_CI_SIGNER_KEY }}"
+            -e GPG_KEY_ID="${{ secrets.ICE_3_8_CI_SIGNER_KEY_ID }}"
+            ghcr.io/zeroc-ice/rpm-repo-builder
           )
 
-          docker run "${args[@]}" /workspace/ice/packaging/rpm/rpm-sign.sh /workspace/build/RPMS
-          docker run "${args[@]}" /workspace/ice/packaging/rpm/rpm-sign.sh /workspace/build/SRPMS
+          docker run "${docker_args[@]}" /usr/local/bin/rpm-sign /workspace/build/RPMS
+          docker run "${docker_args[@]}" /usr/local/bin/rpm-sign /workspace/build/SRPMS
+        
+      - name:  Create RPM repository
+        run: |
+          aws s3 sync s3://zeroc-downloads/ice/nightly/${{ inputs.distribution }} ${{ inputs.distribution }}
+
+          # Prune RPMs older than 3 days
+          for arch in x86_64 aarch64 SRPMS; do
+            find "${{ inputs.distribution }}/$arch" -type f -name "*.rpm" -mtime +3 -exec rm -v {} \;
+          done
+
+          docker_args=(
+            --rm
+            -v "$GITHUB_WORKSPACE:/workspace"
+            -e GPG_KEY="${{ secrets.ICE_3_8_CI_SIGNER_KEY }}"
+            -e GPG_KEY_ID="${{ secrets.ICE_3_8_CI_SIGNER_KEY_ID }}"
+            ghcr.io/zeroc-ice/rpm-repo-builder
+          )
+
+          docker run "${docker_args[@]}" /workspace/ice/packaging/rpm/create-repo.sh /workspace/build/RPMS ${{ inputs.distribution }}
+          docker run "${docker_args[@]}" /workspace/ice/packaging/rpm/create-repo.sh /workspace/build/SRPMS ${{ inputs.distribution }}
+
+          aws s3 sync ${{ inputs.distribution }} s3://zeroc-downloads/ice/nightly/${{ inputs.distribution }} --delete
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
