@@ -249,33 +249,8 @@ namespace
 }
 
 namespace Slice::Python
-{
-    //
-    // ModuleVisitor finds all of the Slice modules whose include level is greater
-    // than 0 and emits a statement of the following form:
-    //
-    // _M_Foo = Ice.openModule("Foo")
-    //
-    // This statement allows the code generated for this translation unit to refer
-    // to types residing in those included modules.
-    //
-    class ModuleVisitor final : public ParserVisitor
-    {
-    public:
-        ModuleVisitor(Output&, set<string>&);
-
-        bool visitModuleStart(const ModulePtr&) final;
-
-        [[nodiscard]] bool shouldVisitIncludedDefinitions() const final { return true; }
-
-    private:
-        Output& _out;
-        set<string>& _history;
-    };
-
-    //
+{ 
     // CodeVisitor generates the Python mapping for a translation unit.
-    //
     class CodeVisitor final : public ParserVisitor
     {
     public:
@@ -295,49 +270,32 @@ namespace Slice::Python
         void visitConst(const ConstPtr&) final;
 
     private:
-        //
+
         // Emit Python code for operations
-        //
         void writeOperations(const InterfaceDefPtr&);
 
-        //
         // Emit Python code to assign the given symbol in the current module.
-        //
         void registerName(const string&);
 
-        //
         // Emit the tuple for a Slice type.
-        //
         void writeType(const TypePtr&);
 
-        //
         // Write an initializer value for a given type.
-        //
         void writeInitializer(const DataMemberPtr&);
 
-        //
         // Add a value to a hash code.
-        //
         void writeHash(const string&, const TypePtr&, int&);
 
-        //
         // Write Python metadata as a tuple.
-        //
         void writeMetadata(const MetadataList&);
 
-        //
         // Convert an operation mode into a string.
-        //
         string getOperationMode(Slice::Operation::Mode);
 
-        //
         // Write a member assignment statement for a constructor.
-        //
         void writeAssign(const DataMemberPtr& member);
 
-        //
         // Write a constant value.
-        //
         void writeConstantValue(const TypePtr&, const SyntaxTreeBasePtr&, const string&);
 
         /// Write constructor parameters with default values.
@@ -356,6 +314,8 @@ namespace Slice::Python
         set<string>& _moduleHistory;
         list<string> _moduleStack;
         set<string> _classHistory;
+
+        map<string, unique_ptr<Output>> _outputs;
     };
 }
 
@@ -374,55 +334,9 @@ writeModuleHasDefinitionCheck(Output& out, const ContainedPtr& cont, const strin
     out << sp << nl << "if \"" << name << "\" not in _M_" << scope << "__dict__:";
 }
 
-//
-// ModuleVisitor implementation.
-//
-Slice::Python::ModuleVisitor::ModuleVisitor(Output& out, set<string>& history) : _out(out), _history(history) {}
-
-bool
-Slice::Python::ModuleVisitor::visitModuleStart(const ModulePtr& p)
-{
-    if (p->includeLevel() > 0)
-    {
-        string abs = getAbsolute(p);
-        if (_history.count(abs) == 0)
-        {
-            // If this is a top-level module, then we check if it has package metadata.
-            // If so, we need to emit statements to open each of the modules in the
-            // package before we can open this module.
-            if (p->isTopLevel())
-            {
-                string pkg = getPackageMetadata(p);
-                if (!pkg.empty())
-                {
-                    vector<string> v;
-                    splitString(pkg, ".", v);
-                    string mod;
-                    for (const auto& q : v)
-                    {
-                        mod = mod.empty() ? q : mod + "." + q;
-                        if (_history.count(mod) == 0)
-                        {
-                            _out << nl << "_M_" << mod << " = Ice.openModule(\"" << mod << "\")";
-                            _history.insert(mod);
-                        }
-                    }
-                }
-            }
-
-            _out << sp << nl << "# Included module " << abs;
-            _out << nl << "_M_" << abs << " = Ice.openModule(\"" << abs << "\")";
-            _history.insert(abs);
-        }
-    }
-
-    return true;
-}
-
 // CodeVisitor implementation.
-Slice::Python::CodeVisitor::CodeVisitor(Output& out, set<string>& moduleHistory)
-    : _out(out),
-      _moduleHistory(moduleHistory)
+Slice::Python::CodeVisitor::CodeVisitor(Output& out)
+    : _out(out)
 {
 }
 
@@ -444,53 +358,15 @@ Slice::Python::CodeVisitor::visitModuleStart(const ModulePtr& p)
     // This allows us to create types in the module Foo.
     //
     string abs = getAbsolute(p);
-    _out << sp << nl << "# Start of module " << abs;
-    if (_moduleHistory.count(abs) == 0) // Don't emit this more than once for each module.
-    {
-        // If this is a top-level module, then we check if it has package metadata.
-        // If so, we need to emit statements to open each of the modules in the
-        // package before we can open this module.
-        if (p->isTopLevel())
-        {
-            string pkg = getPackageMetadata(p);
-            if (!pkg.empty())
-            {
-                vector<string> v;
-                splitString(pkg, ".", v);
-                string mod;
-                for (const auto& q : v)
-                {
-                    mod = mod.empty() ? q : mod + "." + q;
-                    if (_moduleHistory.count(mod) == 0) // Don't emit this more than once for each module.
-                    {
-                        _out << nl << "_M_" << mod << " = Ice.openModule(\"" << mod << "\")";
-                        _moduleHistory.insert(mod);
-                    }
-                }
-            }
-        }
-        _out << nl << "_M_" << abs << " = Ice.openModule(\"" << abs << "\")";
-        _moduleHistory.insert(abs);
-    }
     _out << nl << "__name__ = \"" << abs << "\"";
 
-    writeDocstring(DocComment::parseFrom(p, pyLinkFormatter), "_M_" + abs + ".__doc__ = ");
-
-    _moduleStack.push_front(abs);
+    writeDocstring(DocComment::parseFrom(p, pyLinkFormatter), "__doc__ = ");
     return true;
 }
 
 void
 Slice::Python::CodeVisitor::visitModuleEnd(const ModulePtr&)
 {
-    assert(!_moduleStack.empty());
-    _out << sp << nl << "# End of module " << _moduleStack.front();
-    _moduleStack.pop_front();
-
-    if (!_moduleStack.empty())
-    {
-        _out << sp << nl << "__name__ = \"" << _moduleStack.front() << "\"";
-    }
 }
 
 void
@@ -2454,12 +2330,7 @@ Slice::Python::generate(const UnitPtr& unit, bool all, const vector<string>& inc
         }
     }
 
-    set<string> moduleHistory;
-
-    ModuleVisitor moduleVisitor(out, moduleHistory);
-    unit->visit(&moduleVisitor);
-
-    CodeVisitor codeVisitor(out, moduleHistory);
+    CodeVisitor codeVisitor(out);
     unit->visit(&codeVisitor);
 
     out << nl; // Trailing newline.
