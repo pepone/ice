@@ -377,7 +377,7 @@ Slice::Python::CodeVisitor::writeOperations(const InterfaceDefPtr& p)
 
         _out << sp;
         _out << nl << "@abstractmethod";
-        _out << nl << "def " << mappedName << "(self";
+        _out << nl << "def " << mappedName << spar << "self";
 
         for (const auto& param : operation->parameters())
         {
@@ -388,8 +388,7 @@ Slice::Python::CodeVisitor::writeOperations(const InterfaceDefPtr& p)
         }
 
         const string currentParamName = getEscapedParamName(operation->parameters(), "current");
-        _out << ", " << currentParamName << ": Ice.Current";
-        _out << ")" << operationReturnTypeHint(operation, OpDispatch) << ":";
+        _out << (currentParamName + ": Ice.Current") << epar << ':';
         _out.inc();
 
         writeDocstring(operation, OpDispatch);
