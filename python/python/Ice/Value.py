@@ -28,7 +28,6 @@ class Value(object):
         """
         return "::Ice::Object"
 
-    #
     # Do not define these here. They will be invoked if defined by a subclass.
     #
     # def ice_preMarshal(self):
@@ -52,4 +51,4 @@ class Value(object):
     def __str__(self) -> str:
         return repr(self)
 
-IcePy._t_Value = IcePy.defineValue("::Ice::Object", Value, -1, (), False, None, ())
+Value._t = IcePy.defineValue("::Ice::Object", Value, -1, (), False, None, ())

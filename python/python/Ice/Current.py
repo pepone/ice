@@ -4,9 +4,9 @@ from dataclasses import dataclass
 from IcePy import Connection
 from .ObjectAdapter import ObjectAdapter
 
-import Ice.Identity_ice
-import Ice.OperationMode_ice
-import Ice.Version_ice
+from .Identity_ice import Identity
+from .OperationMode_ice import OperationMode
+from .Version_ice import EncodingVersion
 
 @dataclass(frozen=True)
 class Current:
@@ -37,10 +37,10 @@ class Current:
 
     adapter: ObjectAdapter
     con: Connection | None
-    id: Ice.Identity
+    id: Identity
     facet: str
     operation: str
-    mode: Ice.OperationMode
+    mode: OperationMode
     ctx: dict[str, str]
     requestId: int
-    encoding: Ice.EncodingVersion
+    encoding: EncodingVersion
