@@ -52,7 +52,7 @@ def wrap_future(future, *, loop=None):
     if isinstance(future, asyncio.Future):
         return future
 
-    assert isinstance(future, FutureBase), "Ice.Future is expected, got {!r}".format(
+    assert isinstance(future, Future), "Ice.Future is expected, got {!r}".format(
         future
     )
 
@@ -321,7 +321,7 @@ class Future(FutureBase):
         f.set_result(result)
         return f
 
-    def _wait(self, timeout, testFn=None):
+    def _wait(self, timeout, testFn):
         # Must be called with _condition acquired
 
         while testFn():

@@ -8,12 +8,9 @@
 
 namespace Slice::Python
 {
-    /// Get the package directory from metadata (if any).
-    std::string getPackageDirectory(const std::string&, const Slice::UnitPtr&);
-
     /// Determine the name of a Python source file for use in an import statement.
     /// The return value does not include the .py extension.
-    std::string getImportFileName(const std::string&, const Slice::UnitPtr&, const std::vector<std::string>&);
+    std::string getImportFileName(const std::string&, const std::vector<std::string>&);
 
     /// Generate Python code for a translation unit.
     void generate(const Slice::UnitPtr&, bool, const std::vector<std::string>&, IceInternal::Output&);

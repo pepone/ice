@@ -55,7 +55,6 @@ def dispatch(cb, method, args):
                 cb.response(future.result())
             except Exception:
                 cb.exception(sys.exc_info()[1])
-
         result.add_done_callback(handle_future_result)
 
     # If the result is a coroutine and no custom coroutine executor is available, run the coroutine synchronously in

@@ -65,84 +65,6 @@ namespace
     }
 
     //
-    // Starting in the directory given by output (can be empty for the CWD), create all necessary subdirectories
-    // in the path given by pkgdir.
-    //
-    void createPackageDirectory(const string& output, const string& pkgdir)
-    {
-        assert(output.empty() || IceInternal::directoryExists(output));
-        assert(!pkgdir.empty());
-
-        vector<string> elements;
-        if (!IceInternal::splitString(pkgdir, "/", elements))
-        {
-            throw FileException("invalid path in '" + pkgdir + "'");
-        }
-
-        assert(!elements.empty());
-
-        //
-        // Create all necessary subdirectories.
-        //
-        string path = output;
-        for (const auto& element : elements)
-        {
-            if (!path.empty())
-            {
-                path += "/";
-            }
-            path += element;
-
-            IceInternal::structstat st;
-            if (IceInternal::stat(path, &st) < 0)
-            {
-                int err = IceInternal::mkdir(path, 0777);
-                // If slice2py is run concurrently, it's possible that another instance of slice2py has already created
-                // the directory.
-                if (err == 0 || (errno == EEXIST && IceInternal::directoryExists(path)))
-                {
-                    // Directory successfully created or already exists.
-                }
-                else
-                {
-                    ostringstream os;
-                    os << "cannot create directory '" << path << "': " << IceInternal::errorToString(errno);
-                    throw FileException(os.str());
-                }
-                FileTracker::instance()->addDirectory(path);
-            }
-            else if (!(st.st_mode & S_IFDIR))
-            {
-                ostringstream os;
-                os << "failed to create directory '" << path << "': file already exists and is not a directory";
-                throw FileException(os.str());
-            }
-
-            //
-            // It's possible that the pkgdir metadata specified a directory that won't be visited by our
-            // PackageVisitor. We need every intermediate subdirectory to have an __init__.py file, which
-            // can be empty.
-            //
-            const string initFile = path + "/__init__.py";
-            if (!IceInternal::fileExists(initFile))
-            {
-                //
-                // Create an empty file.
-                //
-                IceInternal::Output out;
-                out.open(initFile.c_str());
-                if (!out)
-                {
-                    ostringstream os;
-                    os << "cannot open '" << initFile << "': " << IceInternal::errorToString(errno);
-                    throw FileException(os.str());
-                }
-                FileTracker::instance()->addFile(initFile);
-            }
-        }
-    }
-
-    //
     // For each Slice file Foo.ice we generate Foo_ice.py containing the Python
     // mappings. Furthermore, for each Slice module M in Foo.ice, we create a
     // Python package of the same name. This package is simply a subdirectory
@@ -646,11 +568,6 @@ Slice::Python::compile(const vector<string>& argv)
                         }
 
                         //
-                        // Check if the file contains the python:pkgdir file metadata.
-                        //
-                        const string pkgdir = getPackageDirectory(icecpp->getFileName(), u);
-
-                        //
                         // If --build-package is specified, we don't generate any code and simply
                         // update the __init__.py files.
                         //
@@ -661,32 +578,7 @@ Slice::Python::compile(const vector<string>& argv)
                             {
                                 path = output + '/'; // The output directory must already exist.
                             }
-
-                            if (!pkgdir.empty())
-                            {
-                                //
-                                // The metadata is present. It should have the form
-                                //
-                                // python:pkgdir:A/B/C
-                                //
-                                // We open the output file in the specified directory, prefixed by the
-                                // output directory (if any).
-                                //
-                                createPackageDirectory(output, pkgdir);
-                                path += pkgdir;
-                                if (path[path.size() - 1] != '/')
-                                {
-                                    path += "/"; // Append a separator if necessary.
-                                }
-                            }
-                            else
-                            {
-                                //
-                                // The file doesn't contain the python:pkgdir metadata, so we use the
-                                // value of the --prefix option (if any).
-                                //
-                                path += prefix;
-                            }
+                            path += prefix;
 
                             //
                             // Add the file name (without the .ice extension).
@@ -728,16 +620,7 @@ Slice::Python::compile(const vector<string>& argv)
                         //
                         if (!noPackage)
                         {
-                            string name;
-                            if (!pkgdir.empty())
-                            {
-                                name = getImportFileName(icecpp->getFileName(), u, vector<string>());
-                            }
-                            else
-                            {
-                                name = prefix + base + "_ice";
-                            }
-                            PackageVisitor::createModules(u, name, output);
+                            PackageVisitor::createModules(u, prefix + base + "_ice", output);
                         }
                     }
                     catch (const Slice::FileException& ex)
