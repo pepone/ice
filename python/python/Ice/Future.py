@@ -6,6 +6,7 @@ import asyncio
 import logging
 from .LocalExceptions import TimeoutException
 from .LocalExceptions import InvocationCanceledException
+from typing import overload
 
 #
 # This class defines an __await__ method so that coroutines can call 'await <future>'.
@@ -55,6 +56,12 @@ def wrap_future(future, *, loop=None):
     assert isinstance(future, Future), "Ice.Future is expected, got {!r}".format(
         future
     )
+
+    @overload
+    def forwardCompletion(sourceFuture: Future, targetFuture: asyncio.Future): ...
+
+    @overload
+    def forwardCompletion(sourceFuture: asyncio.Future, targetFuture: Future): ...
 
     def forwardCompletion(sourceFuture, targetFuture):
         if not targetFuture.done():
