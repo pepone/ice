@@ -67,7 +67,7 @@ namespace
                 return string{builtinTable[builtin->kind()]};
             }
         }
-        else if (auto proxy = dynamic_pointer_cast<InterfaceDecl>(type))
+        else if (auto cl = dynamic_pointer_cast<ClassDecl>(type))
         {
             return proxy->mappedScoped(".") + "Prx | None";
         }
@@ -122,7 +122,7 @@ namespace
         }
         else if (!outParameters.empty())
         {
-            auto param = outParameters.front();
+            const auto& param = outParameters.front();
             returnTypeHint = typeToTypeHintString(param->type(), param->optional());
         }
         else
@@ -383,12 +383,13 @@ Slice::Python::CodeVisitor::writeOperations(const InterfaceDefPtr& p)
         {
             if (!param->isOutParam())
             {
-                _out << ", " << param->mappedName() << ": " << typeToTypeHintString(param->type(), param->optional());
+                _out << (param->mappedName() + ": " + typeToTypeHintString(param->type(), param->optional()));
             }
         }
 
         const string currentParamName = getEscapedParamName(operation->parameters(), "current");
-        _out << (currentParamName + ": Ice.Current") << epar << ':';
+        _out << (currentParamName + ": Ice.Current");
+        _out << epar << operationReturnTypeHint(operation, OpDispatch) << ":";
         _out.inc();
 
         writeDocstring(operation, OpDispatch);
