@@ -3,8 +3,8 @@
 import IcePy
 from .SlicedData import SlicedData
 
-class Value(object):
 
+class Value(object):
     def ice_id(self) -> str:
         """
         Obtain the type ID corresponding to the most-derived Slice interface supported by the target object.
@@ -28,6 +28,7 @@ class Value(object):
         """
         return "::Ice::Object"
 
+    #
     # Do not define these here. They will be invoked if defined by a subclass.
     #
     # def ice_preMarshal(self):
@@ -51,4 +52,5 @@ class Value(object):
     def __str__(self) -> str:
         return repr(self)
 
-Value._t = IcePy.defineValue("::Ice::Object", Value, -1, (), False, None, ())
+
+IcePy._t_Value = IcePy.defineValue("::Ice::Object", Value, -1, (), False, None, ())

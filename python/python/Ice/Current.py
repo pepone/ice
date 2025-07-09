@@ -8,6 +8,7 @@ from .Identity_ice import Identity
 from .OperationMode_ice import OperationMode
 from .Version_ice import EncodingVersion
 
+
 @dataclass(frozen=True)
 class Current:
     """

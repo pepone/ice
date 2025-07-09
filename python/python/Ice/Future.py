@@ -53,15 +53,13 @@ def wrap_future(future, *, loop=None):
     if isinstance(future, asyncio.Future):
         return future
 
-    assert isinstance(future, Future), "Ice.Future is expected, got {!r}".format(
-        future
-    )
+    assert isinstance(future, FutureBase), "Ice.Future is expected, got {!r}".format(future)
 
     @overload
-    def forwardCompletion(sourceFuture: Future, targetFuture: asyncio.Future): ...
+    def forwardCompletion(sourceFuture: FutureBase, targetFuture: asyncio.Future): ...
 
     @overload
-    def forwardCompletion(sourceFuture: asyncio.Future, targetFuture: Future): ...
+    def forwardCompletion(sourceFuture: asyncio.Future, targetFuture: FutureBase): ...
 
     def forwardCompletion(sourceFuture, targetFuture):
         if not targetFuture.done():
@@ -81,14 +79,8 @@ def wrap_future(future, *, loop=None):
         # even if the future is constructed with a loop which isn't the current thread's loop.
         forwardCompletion(future, asyncioFuture)
     else:
-        asyncioFuture.add_done_callback(
-            lambda f: forwardCompletion(asyncioFuture, future)
-        )
-        future.add_done_callback(
-            lambda f: loop.call_soon_threadsafe(
-                forwardCompletion, future, asyncioFuture
-            )
-        )
+        asyncioFuture.add_done_callback(lambda f: forwardCompletion(asyncioFuture, future))
+        future.add_done_callback(lambda f: loop.call_soon_threadsafe(forwardCompletion, future, asyncioFuture))
 
     return asyncioFuture
 
@@ -328,7 +320,7 @@ class Future(FutureBase):
         f.set_result(result)
         return f
 
-    def _wait(self, timeout, testFn):
+    def _wait(self, timeout, testFn=None):
         # Must be called with _condition acquired
 
         while testFn():
@@ -358,5 +350,6 @@ class Future(FutureBase):
     StateRunning = "running"
     StateCancelled = "cancelled"
     StateDone = "done"
+
 
 __all__ = ["Future", "wrap_future", "FutureBase"]
