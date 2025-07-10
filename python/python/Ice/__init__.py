@@ -28,8 +28,8 @@ AsyncInvocationContext = IcePy.AsyncInvocationContext
 #
 # Forward declarations.
 #
-IcePy._t_Value = IcePy.declareValue("::Ice::Object")
-IcePy._t_ObjectPrx = IcePy.declareProxy("::Ice::Object")
+from .ObjectPrxF import __Ice_ObjectPrx_t
+from .ValueF import __Ice_Value_t
 
 #
 # Import local definitions that are part of the Ice module public API.

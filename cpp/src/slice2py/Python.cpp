@@ -367,7 +367,6 @@ Slice::Python::compile(const vector<string>& argv)
     opts.addOpt("", "all");
     opts.addOpt("", "no-package");
     opts.addOpt("", "build-package");
-    opts.addOpt("", "prefix", IceInternal::Options::NeedArg);
 
     vector<string> args;
     try
@@ -415,7 +414,7 @@ Slice::Python::compile(const vector<string>& argv)
 
     bool preprocess = opts.isSet("E");
 
-    string output = opts.optArg("output-dir");
+    string outputDir = opts.optArg("output-dir");
 
     bool depend = opts.isSet("depend");
 
@@ -430,8 +429,6 @@ Slice::Python::compile(const vector<string>& argv)
     bool noPackage = opts.isSet("no-package");
 
     bool buildPackage = opts.isSet("build-package");
-
-    string prefix = opts.optArg("prefix");
 
     if (args.empty())
     {
@@ -454,7 +451,7 @@ Slice::Python::compile(const vector<string>& argv)
         return EXIT_FAILURE;
     }
 
-    if (!output.empty() && !IceInternal::directoryExists(output))
+    if (!outputDir.empty() && !IceInternal::directoryExists(outputDir))
     {
         consoleErr << argv[0] << ": error: argument for --output-dir does not exist or is not a directory" << endl;
         return EXIT_FAILURE;
@@ -471,20 +468,11 @@ Slice::Python::compile(const vector<string>& argv)
         os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<dependencies>" << endl;
     }
 
-    for (auto i = args.begin(); i != args.end(); ++i)
+    for (auto fileName : args)
     {
-        //
-        // Ignore duplicates.
-        //
-        auto p = find(args.begin(), args.end(), *i);
-        if (p != i)
-        {
-            continue;
-        }
-
         if (depend || dependxml)
         {
-            PreprocessorPtr icecpp = Preprocessor::create(argv[0], *i, cppArgs);
+            PreprocessorPtr icecpp = Preprocessor::create(argv[0], fileName, cppArgs);
             FILE* cppHandle = icecpp->preprocess(false, "-D__SLICE2PY__");
 
             if (cppHandle == nullptr)
@@ -492,9 +480,9 @@ Slice::Python::compile(const vector<string>& argv)
                 return EXIT_FAILURE;
             }
 
-            UnitPtr u = Unit::createUnit("python", false);
-            int parseStatus = u->parse(*i, cppHandle, debug);
-            u->destroy();
+            UnitPtr unit = Unit::createUnit("python", false);
+            int parseStatus = unit->parse(fileName, cppHandle, debug);
+            unit->destroy();
 
             if (parseStatus == EXIT_FAILURE)
             {
@@ -505,8 +493,7 @@ Slice::Python::compile(const vector<string>& argv)
                     os,
                     depend ? Preprocessor::Python : Preprocessor::SliceXML,
                     includePaths,
-                    "-D__SLICE2PY__",
-                    prefix))
+                    "-D__SLICE2PY__"))
             {
                 return EXIT_FAILURE;
             }
@@ -518,7 +505,7 @@ Slice::Python::compile(const vector<string>& argv)
         }
         else
         {
-            PreprocessorPtr icecpp = Preprocessor::create(argv[0], *i, cppArgs);
+            PreprocessorPtr icecpp = Preprocessor::create(argv[0], fileName, cppArgs);
             FILE* cppHandle = icecpp->preprocess(true, "-D__SLICE2PY__");
 
             if (cppHandle == nullptr)
@@ -543,12 +530,12 @@ Slice::Python::compile(const vector<string>& argv)
             }
             else
             {
-                UnitPtr u = Unit::createUnit("python", all);
-                int parseStatus = u->parse(*i, cppHandle, debug);
+                UnitPtr unit = Unit::createUnit("python", all);
+                int parseStatus = unit->parse(fileName, cppHandle, debug);
 
                 if (!icecpp->close())
                 {
-                    u->destroy();
+                    unit->destroy();
                     return EXIT_FAILURE;
                 }
 
@@ -560,89 +547,32 @@ Slice::Python::compile(const vector<string>& argv)
                 {
                     try
                     {
-                        string base = icecpp->getBaseName();
-                        string::size_type pos = base.find_last_of("/\\");
-                        if (pos != string::npos)
-                        {
-                            base.erase(0, pos + 1);
-                        }
-
-                        //
-                        // If --build-package is specified, we don't generate any code and simply
-                        // update the __init__.py files.
-                        //
+                        // If --build-package is specified, we don't generate any code and simply update the __init__.py
+                        // files.
                         if (!buildPackage)
                         {
-                            string path;
-                            if (!output.empty())
-                            {
-                                path = output + '/'; // The output directory must already exist.
-                            }
-                            path += prefix;
-
-                            //
-                            // Add the file name (without the .ice extension).
-                            //
-                            path += base;
-
-                            //
-                            // Append the suffix "_ice" to the filename in order to avoid any conflicts
-                            // with Slice module or type names. For example, if the file Test.ice defines a
-                            // Slice module named "Test", then we couldn't create a Python package named
-                            // "Test" and also call the generated file "Test.py".
-                            //
-                            path += "_ice.py";
-
-                            IceInternal::Output out;
-                            out.open(path.c_str());
-                            if (!out)
-                            {
-                                ostringstream oss;
-                                oss << "cannot open '" << path << "': " << IceInternal::errorToString(errno);
-                                throw FileException(oss.str());
-                            }
-                            FileTracker::instance()->addFile(path);
-
-                            printHeader(out);
-                            printGeneratedHeader(out, base + ".ice", "#");
-                            out << sp;
-
-                            //
                             // Generate Python code.
-                            //
-                            generate(u, all, includePaths, out);
-
-                            out.close();
+                            generate(unit, outputDir, baseName(icecpp->getBaseName()));
                         }
 
-                        //
                         // Create or update the Python package hierarchy.
-                        //
-                        if (!noPackage)
-                        {
-                            PackageVisitor::createModules(u, prefix + base + "_ice", output);
-                        }
+                        // if (!noPackage)
+                        // {
+                        //     PackageVisitor::createModules(u, prefix + base + "_ice", output);
+                        // }
                     }
                     catch (const Slice::FileException& ex)
                     {
-                        //
                         // If a file could not be created, then clean up any created files.
-                        //
                         FileTracker::instance()->cleanup();
-                        u->destroy();
+                        unit->destroy();
                         consoleErr << argv[0] << ": error: " << ex.what() << endl;
                         return EXIT_FAILURE;
                     }
-                    catch (const exception& ex)
-                    {
-                        FileTracker::instance()->cleanup();
-                        consoleErr << argv[0] << ": error: " << ex.what() << endl;
-                        status = EXIT_FAILURE;
-                    }
                 }
 
-                status |= u->getStatus();
-                u->destroy();
+                status |= unit->getStatus();
+                unit->destroy();
             }
         }
 

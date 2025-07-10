@@ -13,7 +13,10 @@ namespace Slice::Python
     std::string getImportFileName(const std::string&, const std::vector<std::string>&);
 
     /// Generate Python code for a translation unit.
-    void generate(const Slice::UnitPtr&, bool, const std::vector<std::string>&, IceInternal::Output&);
+    /// @p unit is the Slice unit to generate code for.
+    /// @p outputDir The directory to write the generated Python files to.
+    /// @p baseName The base name of the generated Python files.
+    void generate(const Slice::UnitPtr& unit, const std::string& outputDir, const std::string& baseName);
 
     /// Return the package specified by metadata for the given definition, or an empty string if no metadata was found.
     std::string getPackageMetadata(const Slice::ContainedPtr&);
