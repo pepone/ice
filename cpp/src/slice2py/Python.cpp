@@ -14,6 +14,7 @@
 #include <cassert>
 #include <cstring>
 #include <fstream>
+#include <iostream>
 #include <mutex>
 
 #include <sys/stat.h>
@@ -42,288 +43,28 @@ namespace
         interrupted = true;
     }
 
-    void createDirectory(const string& dir)
+    string getPackageInitOutputFile(const string& packageName, const string& outputDir)
     {
-        IceInternal::structstat st;
-        if (!IceInternal::stat(dir, &st))
+        // Create a new output file for this package.
+        string fileName = packageName;
+        replace(fileName.begin(), fileName.end(), '.', '/');
+        fileName += "/__init__.py";
+
+        string outputPath;
+        if (!outputDir.empty())
         {
-            if (!(st.st_mode & S_IFDIR))
-            {
-                ostringstream os;
-                os << "failed to create directory '" << dir << "': file already exists and is not a directory";
-                throw FileException(os.str());
-            }
-            return;
+            outputPath = outputDir + "/";
         }
-
-        if (IceInternal::mkdir(dir, 0777) != 0)
+        else
         {
-            ostringstream os;
-            os << "cannot create directory '" << dir << "': " << IceInternal::errorToString(errno);
-            throw FileException(os.str());
+            outputPath = "./";
         }
-    }
+        createPackagePath(packageName, outputPath);
+        outputPath += fileName;
 
-    //
-    // For each Slice file Foo.ice we generate Foo_ice.py containing the Python
-    // mappings. Furthermore, for each Slice module M in Foo.ice, we create a
-    // Python package of the same name. This package is simply a subdirectory
-    // containing the special file "__init__.py" that is executed when a Python
-    // script executes the statement "import M".
-    //
-    // Inside __init__.py we add an import statement for Foo_ice, causing
-    // Foo_ice to be imported implicitly when M is imported.
-    //
-    // Of course, another Slice file Bar.ice may contain definitions for the
-    // same Slice module M, in which case the __init__.py file for M is modified
-    // to contain an additional import statement for Bar_ice. Therefore a
-    // Python script executing "import M" implicitly imports the definitions
-    // from both Foo_ice and Bar_ice.
-    //
-    // The __init__.py file also contains import statements for submodules,
-    // so that importing the top-level module automatically imports all of
-    // its submodules.
-    //
-    // The PackageVisitor class creates the directory hierarchy to mirror the
-    // Slice module hierarchy, and updates the __init__.py files as necessary.
-    //
-    class PackageVisitor final : public ParserVisitor
-    {
-    public:
-        static void createModules(const UnitPtr&, const string&, const string&);
+        FileTracker::instance()->addFile(outputPath);
 
-        void visitModuleEnd(const ModulePtr&) final;
-
-    private:
-        PackageVisitor(StringList&);
-
-        enum ReadState
-        {
-            PreModules,
-            InModules,
-            InSubmodules
-        };
-
-        static void addModule(const string&, const string&, const string&);
-        static void addSubmodule(const string&, const string&, const string&);
-
-        static void readInit(const string&, StringList&, StringList&);
-        static void writeInit(const string&, const string&, const StringList&, const StringList&);
-
-        StringList& _modules;
-    };
-
-    const string moduleTag = "# Modules:";       // NOLINT(cert-err58-cpp)
-    const string submoduleTag = "# Submodules:"; // NOLINT(cert-err58-cpp)
-
-    PackageVisitor::PackageVisitor(StringList& modules) : _modules(modules) {}
-
-    void PackageVisitor::createModules(const UnitPtr& unt, const string& module, const string& dir)
-    {
-        StringList modules;
-        PackageVisitor v(modules);
-        unt->visit(&v);
-
-        for (const auto& p : modules)
-        {
-            vector<string> vs;
-            if (!IceInternal::splitString(p, ".", vs))
-            {
-                assert(false);
-            }
-            string currentModule;
-            string path = dir.empty() ? "." : dir;
-            for (auto q = vs.begin(); q != vs.end(); ++q)
-            {
-                if (q != vs.begin())
-                {
-                    addSubmodule(path, currentModule, *q);
-                    currentModule += ".";
-                }
-
-                currentModule += *q;
-                path += "/" + *q;
-                createDirectory(path);
-
-                addModule(path, currentModule, module);
-            }
-        }
-    }
-
-    void PackageVisitor::visitModuleEnd(const ModulePtr& p)
-    {
-        //
-        // Collect the most deeply-nested modules. For example, if we have a
-        // module named M.N.O, then we don't need to keep M or M.N in the list.
-        //
-        string abs = getAbsolute(p);
-        if (find(_modules.begin(), _modules.end(), abs) == _modules.end())
-        {
-            _modules.push_back(abs);
-        }
-        string::size_type pos = abs.rfind('.');
-        if (pos != string::npos)
-        {
-            string parent = abs.substr(0, pos);
-            _modules.remove(parent);
-        }
-    }
-
-    void PackageVisitor::addModule(const string& dir, const string& module, const string& name)
-    {
-        //
-        // Add a module to the set of imported modules in __init__.py.
-        //
-        StringList modules, submodules;
-        readInit(dir, modules, submodules);
-        auto p = find(modules.begin(), modules.end(), name);
-        if (p == modules.end())
-        {
-            modules.push_back(name);
-            writeInit(dir, module, modules, submodules);
-        }
-    }
-
-    void PackageVisitor::addSubmodule(const string& dir, const string& module, const string& name)
-    {
-        //
-        // Add a submodule to the set of imported modules in __init__.py.
-        //
-        StringList modules, submodules;
-        readInit(dir, modules, submodules);
-        auto p = find(submodules.begin(), submodules.end(), name);
-        if (p == submodules.end())
-        {
-            submodules.push_back(name);
-            writeInit(dir, module, modules, submodules);
-        }
-    }
-
-    void PackageVisitor::readInit(const string& dir, StringList& modules, StringList& submodules)
-    {
-        string initPath = dir + "/__init__.py";
-
-        IceInternal::structstat st;
-        if (!IceInternal::stat(initPath, &st))
-        {
-            ifstream in(IceInternal::streamFilename(initPath).c_str());
-            if (!in)
-            {
-                ostringstream os;
-                os << "cannot open file '" << initPath << "': " << IceInternal::errorToString(errno);
-                throw FileException(os.str());
-            }
-
-            ReadState state = PreModules;
-            char line[1024];
-            while (in.getline(line, 1024))
-            {
-                string s = line;
-                if (s.find(moduleTag) == 0)
-                {
-                    if (state != PreModules)
-                    {
-                        break;
-                    }
-                    state = InModules;
-                }
-                else if (s.find(submoduleTag) == 0)
-                {
-                    if (state != InModules)
-                    {
-                        break;
-                    }
-                    state = InSubmodules;
-                }
-                else if (s.find("import") == 0)
-                {
-                    if (state == PreModules)
-                    {
-                        continue;
-                    }
-
-                    if (s.size() < 8)
-                    {
-                        throw runtime_error("invalid line '" + s + "' in '" + initPath + "'");
-                    }
-
-                    string name = s.substr(7);
-                    if (state == InModules)
-                    {
-                        modules.push_back(name);
-                    }
-                    else
-                    {
-                        //
-                        // This case occurs in old (Ice <= 3.5.1) code that used implicit
-                        // relative imports, such as:
-                        //
-                        // File: outer/__init__.py
-                        //
-                        // import inner
-                        //
-                        // These aren't supported in Python 3. We'll translate these into
-                        // explicit relative imports:
-                        //
-                        // from . import inner
-                        //
-                        submodules.push_back(name);
-                    }
-                }
-                else if (s.find("from . import") == 0)
-                {
-                    if (state != InSubmodules)
-                    {
-                        throw runtime_error("invalid line '" + s + "' in '" + initPath + "'");
-                    }
-
-                    if (s.size() < 15)
-                    {
-                        throw runtime_error("invalid line '" + s + "' in '" + initPath + "'");
-                    }
-
-                    submodules.push_back(s.substr(14));
-                }
-            }
-
-            if (state == InModules)
-            {
-                throw runtime_error("invalid format in '" + initPath + "'\n");
-            }
-        }
-    }
-
-    void PackageVisitor::writeInit(
-        const string& dir,
-        const string& name,
-        const StringList& modules,
-        const StringList& submodules)
-    {
-        string initPath = dir + "/__init__.py";
-
-        ofstream os(IceInternal::streamFilename(initPath).c_str());
-        if (!os)
-        {
-            ostringstream oss;
-            oss << "cannot open file '" << initPath << "': " << IceInternal::errorToString(errno);
-            throw FileException(oss.str());
-        }
-        FileTracker::instance()->addFile(initPath);
-
-        os << "# Generated by slice2py - DO NOT EDIT!" << endl << "#" << endl;
-        os << endl << "import Ice" << endl << "Ice.updateModule(\"" << name << "\")" << endl << endl;
-        os << moduleTag << endl;
-        for (const auto& module : modules)
-        {
-            os << "import " << module << endl;
-        }
-
-        os << endl;
-        os << submoduleTag << endl;
-        for (const auto& submodule : submodules)
-        {
-            os << "from . import " << submodule << endl;
-        }
+        return outputPath;
     }
 
     void usage(const string& n)
@@ -463,6 +204,9 @@ Slice::Python::compile(const vector<string>& argv)
         os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<dependencies>" << endl;
     }
 
+    map<string, map<string, set<string>>> packageImports;
+    PackageVisitor packageVisitor(packageImports);
+
     for (const auto& fileName : args)
     {
         if (depend || dependxml)
@@ -549,12 +293,11 @@ Slice::Python::compile(const vector<string>& argv)
                             // Generate Python code.
                             generate(unit, outputDir);
                         }
-
-                        // Create or update the Python package hierarchy.
-                        // if (!noPackage)
-                        // {
-                        //     PackageVisitor::createModules(u, prefix + base + "_ice", output);
-                        // }
+                        if (!noPackage)
+                        {
+                            // Collect the package imports.
+                            unit->visit(&packageVisitor);
+                        }
                     }
                     catch (const Slice::FileException&)
                     {
@@ -566,6 +309,65 @@ Slice::Python::compile(const vector<string>& argv)
 
                 status |= unit->getStatus();
                 unit->destroy();
+            }
+        }
+
+        if (status != EXIT_FAILURE)
+        {
+            // Emit the package index files.
+            for (const auto& [packageName, imports] : packageVisitor.imports())
+            {
+                Output out{getPackageInitOutputFile(packageName, outputDir).c_str()};
+                out << sp;
+                printHeader(out);
+                out << sp;
+                std::list<string> allDefinitions;
+                for (const auto& [moduleName, definitions] : imports)
+                {
+                    for (const auto& name : definitions)
+                    {
+                        out << nl << "from ." << moduleName << " import " << name;
+                        allDefinitions.push_back(name);
+                    }
+                }
+                out << nl;
+
+                out << sp;
+                out << nl << "__all__ = [";
+                out.inc();
+                for (auto it = allDefinitions.begin(); it != allDefinitions.end();)
+                {
+                    out << nl << ("\"" + *it + "\"");
+                    if (++it != allDefinitions.end())
+                    {
+                        out << ",";
+                    }
+                }
+                out.dec();
+                out << nl << "]";
+                out << nl;
+            }
+
+            // Ensure all package directories have an __init__.py file.
+            for (const auto& [packageName, imports] : packageVisitor.imports())
+            {
+                vector<string> packageParts;
+                IceInternal::splitString(string_view{packageName}, ".", packageParts);
+                string packagePath = outputDir;
+                for (const auto& part : packageParts)
+                {
+                    packagePath += "/" + part;
+
+                    const string initFile = packagePath + "/__init__.py";
+                    if (!IceInternal::fileExists(initFile))
+                    {
+                        FileTracker::instance()->addDirectory(initFile);
+                        // Create an empty __init__.py file in the package directory.
+                        Output out{initFile.c_str()};
+                        printHeader(out);
+                        out << sp;
+                    }
+                }
             }
         }
 

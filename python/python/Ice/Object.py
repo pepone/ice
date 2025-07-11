@@ -3,14 +3,15 @@
 # Avoid evaluating annotations at function definition time.
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
 from collections.abc import Awaitable
-
-import Ice
-import Ice.BuiltinSequences_ice
-import Ice.OperationMode_ice
+from .OperationMode import OperationMode
+from .StringSeq import __Ice_StringSeq_t
 import IcePy
 
-from .Current import Current
+if TYPE_CHECKING:
+    from .Current import Current
+    from .Identity import Identity
 
 
 class Object:
@@ -18,7 +19,7 @@ class Object:
     The base class for servants.
     """
 
-    def ice_isA(self, id: Ice.Identity, current: Current) -> bool | Awaitable[bool]:
+    def ice_isA(self, id: Identity, current: Current) -> bool | Awaitable[bool]:
         """
         Determine whether the target object supports the interface denoted by the given Slice type ID.
 
@@ -95,7 +96,7 @@ class Object:
 Object._op_ice_isA = IcePy.Operation(
     "ice_isA",
     "ice_isA",
-    Ice.OperationMode.Idempotent,
+    OperationMode.Idempotent,
     None,
     (),
     (((), IcePy._t_string, False, 0),),
@@ -107,7 +108,7 @@ Object._op_ice_isA = IcePy.Operation(
 Object._op_ice_ping = IcePy.Operation(
     "ice_ping",
     "ice_ping",
-    Ice.OperationMode.Idempotent,
+    OperationMode.Idempotent,
     None,
     (),
     (),
@@ -119,19 +120,19 @@ Object._op_ice_ping = IcePy.Operation(
 Object._op_ice_ids = IcePy.Operation(
     "ice_ids",
     "ice_ids",
-    Ice.OperationMode.Idempotent,
+    OperationMode.Idempotent,
     None,
     (),
     (),
     (),
-    ((), Ice._t_StringSeq, False, 0),
+    ((), __Ice_StringSeq_t, False, 0),
     (),
 )
 
 Object._op_ice_id = IcePy.Operation(
     "ice_id",
     "ice_id",
-    Ice.OperationMode.Idempotent,
+    OperationMode.Idempotent,
     None,
     (),
     (),

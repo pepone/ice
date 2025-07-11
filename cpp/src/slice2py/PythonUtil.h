@@ -6,8 +6,15 @@
 #include "../Ice/OutputUtil.h"
 #include "../Slice/Parser.h"
 
+#include <map>
+#include <set>
+#include <string>
+
 namespace Slice::Python
 {
+    void createPackagePath(const std::string& moduleName, const std::string& outputPath);
+    void printHeader(IceInternal::Output& out);
+
     /// Determine the name of a Python source file for use in an import statement.
     /// The return value does not include the .py extension.
     std::string getImportFileName(const std::string&, const std::vector<std::string>&);
@@ -34,6 +41,40 @@ namespace Slice::Python
     pyLinkFormatter(const std::string& rawLink, const ContainedPtr& source, const SyntaxTreeBasePtr& target);
 
     void validatePythonMetadata(const UnitPtr&);
+
+    // Collects Python definitions for each generated Python package.
+    // Each package corresponds to a Slice module and includes an `__init__.py` file
+    // that re-exports selected definitions from the package's internal modules.
+    class PackageVisitor final : public ParserVisitor
+    {
+    public:
+        PackageVisitor(std::map<std::string, std::map<std::string, std::set<std::string>>>& imports) : _imports(imports)
+        {
+        }
+
+        bool visitClassDefStart(const ClassDefPtr&) final;
+        bool visitInterfaceDefStart(const InterfaceDefPtr&) final;
+        bool visitStructStart(const StructPtr&) final;
+        bool visitExceptionStart(const ExceptionPtr&) final;
+        void visitSequence(const SequencePtr&) final;
+        void visitDictionary(const DictionaryPtr&) final;
+        void visitEnum(const EnumPtr&) final;
+        void visitConst(const ConstPtr&) final;
+
+        const std::map<std::string, std::map<std::string, std::set<std::string>>>& imports() { return _imports; }
+
+    private:
+        void importType(const ContainedPtr& definition, const std::string& prefix = "");
+        void importMetaType(const ContainedPtr& definition);
+
+        // A map where:
+        // - The outer key is the generated Python package name (e.g., "Foo" for the Slice module ::Foo).
+        // - The inner key is the generated Python module name (e.g., "Bar" for the Slice class ::Foo::Bar).
+        // - The value is the set of symbol names that the generated module contributes to the package.
+        //   For example, the generated module for the Slice class "Bar" contributes the symbols "Bar" and
+        //   "__Foo_Bar_t", corresponding to the class itself and its associated meta-type.
+        std::map<std::string, std::map<std::string, std::set<std::string>>> _imports;
+    };
 }
 
 #endif
