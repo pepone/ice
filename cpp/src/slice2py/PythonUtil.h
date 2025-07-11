@@ -14,9 +14,8 @@ namespace Slice::Python
 
     /// Generate Python code for a translation unit.
     /// @p unit is the Slice unit to generate code for.
-    /// @p outputDir The directory to write the generated Python files to.
-    /// @p baseName The base name of the generated Python files.
-    void generate(const Slice::UnitPtr& unit, const std::string& outputDir, const std::string& baseName);
+    /// @p outputDir The base-directory to write the generated Python files to.
+    void generate(const Slice::UnitPtr& unit, const std::string& outputDir);
 
     /// Return the package specified by metadata for the given definition, or an empty string if no metadata was found.
     std::string getPackageMetadata(const Slice::ContainedPtr&);
@@ -32,9 +31,6 @@ namespace Slice::Python
     /// but "_M_" is prepended to the first name segment, and "_t_" is prepended to the final name segment,
     /// indicating that this is a an explicit reference to a type.
     std::string getMetaTypeReference(const Slice::ContainedPtr& p);
-
-    /// Emit a comment header.
-    void printHeader(IceInternal::Output&);
 
     int compile(const std::vector<std::string>&);
 

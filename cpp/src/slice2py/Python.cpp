@@ -342,8 +342,6 @@ namespace
                       "--depend                 Generate Makefile dependencies.\n"
                       "--depend-xml             Generate dependencies in XML format.\n"
                       "--depend-file FILE       Write dependencies to FILE instead of standard output.\n"
-                      "--all                    Generate code for Slice definitions in included files.\n"
-                      "--prefix PREFIX          Prepend filenames of Python modules with PREFIX.\n"
                       "--no-package             Do not generate Python package hierarchy.\n"
                       "--build-package          Only generate Python package hierarchy.\n";
     }
@@ -364,7 +362,6 @@ Slice::Python::compile(const vector<string>& argv)
     opts.addOpt("", "depend-xml");
     opts.addOpt("", "depend-file", IceInternal::Options::NeedArg, "");
     opts.addOpt("d", "debug");
-    opts.addOpt("", "all");
     opts.addOpt("", "no-package");
     opts.addOpt("", "build-package");
 
@@ -394,7 +391,7 @@ Slice::Python::compile(const vector<string>& argv)
 
     vector<string> cppArgs;
     vector<string> optargs = opts.argVec("D");
-    cppArgs.reserve(optargs.size()); // keep clang-tidy happy
+    cppArgs.reserve(optargs.size());
     for (const auto& arg : optargs)
     {
         cppArgs.push_back("-D" + arg);
@@ -423,8 +420,6 @@ Slice::Python::compile(const vector<string>& argv)
     string dependFile = opts.optArg("depend-file");
 
     bool debug = opts.isSet("debug");
-
-    bool all = opts.isSet("all");
 
     bool noPackage = opts.isSet("no-package");
 
@@ -530,7 +525,7 @@ Slice::Python::compile(const vector<string>& argv)
             }
             else
             {
-                UnitPtr unit = Unit::createUnit("python", all);
+                UnitPtr unit = Unit::createUnit("python", false);
                 int parseStatus = unit->parse(fileName, cppHandle, debug);
 
                 if (!icecpp->close())
@@ -552,7 +547,7 @@ Slice::Python::compile(const vector<string>& argv)
                         if (!buildPackage)
                         {
                             // Generate Python code.
-                            generate(unit, outputDir, baseName(icecpp->getBaseName()));
+                            generate(unit, outputDir);
                         }
 
                         // Create or update the Python package hierarchy.
@@ -561,13 +556,11 @@ Slice::Python::compile(const vector<string>& argv)
                         //     PackageVisitor::createModules(u, prefix + base + "_ice", output);
                         // }
                     }
-                    catch (const Slice::FileException& ex)
+                    catch (const Slice::FileException&)
                     {
                         // If a file could not be created, then clean up any created files.
                         FileTracker::instance()->cleanup();
-                        unit->destroy();
-                        consoleErr << argv[0] << ": error: " << ex.what() << endl;
-                        return EXIT_FAILURE;
+                        throw;
                     }
                 }
 
