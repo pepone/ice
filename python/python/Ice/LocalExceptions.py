@@ -1,9 +1,10 @@
 # Copyright (c) ZeroC, Inc.
 
-from .LocalException import LocalException
-from .ReplyStatus_ice import ReplyStatus
-
 from typing import final
+
+import Ice.ReplyStatus_ice
+
+from .LocalException import LocalException
 
 __name__ = "Ice"
 
@@ -19,16 +20,21 @@ class DispatchException(LocalException):
     wire".
     """
 
-    def __init__(self, replyStatus, msg=""):
-        if replyStatus is None or replyStatus <= ReplyStatus.UserException.value or replyStatus > 255:
+    def __init__(self, replyStatus: int | None, msg: str = ""):
+        if replyStatus is None or replyStatus <= Ice.ReplyStatus.UserException.value or replyStatus > 255:
             raise ValueError("the reply status must fit in a byte and be greater than ReplyStatus.UserException.value")
 
         if msg == "":
             msg = "The dispatch failed with reply status "
-            enumerator = ReplyStatus.valueOf(replyStatus)
-            msg += str(replyStatus) if enumerator is None else enumerator.name
-            msg += "."
+            try:
+                msg += Ice.ReplyStatus(replyStatus).name
+            except ValueError:
+                # If the replyStatus is not a valid enumerator, we just use the int value.
+                # This can happen if the server uses a custom reply status.
+                # We still want to provide a string representation of the reply status.
+                msg += str(replyStatus)
 
+            msg += "."
         LocalException.__init__(self, msg)
         self.__replyStatus = replyStatus
 
@@ -100,7 +106,7 @@ class ObjectNotExistException(RequestFailedException):
     """
 
     def __init__(self, id=None, facet="", operation="", msg=""):
-        RequestFailedException.__init__(self, ReplyStatus.ObjectNotExist.value, id, facet, operation, msg)
+        RequestFailedException.__init__(self, Ice.ReplyStatus.ObjectNotExist.value, id, facet, operation, msg)
 
 
 @final
@@ -110,7 +116,7 @@ class FacetNotExistException(RequestFailedException):
     """
 
     def __init__(self, id=None, facet="", operation="", msg=""):
-        RequestFailedException.__init__(self, ReplyStatus.FacetNotExist.value, id, facet, operation, msg)
+        RequestFailedException.__init__(self, Ice.ReplyStatus.FacetNotExist.value, id, facet, operation, msg)
 
 
 @final
@@ -121,7 +127,7 @@ class OperationNotExistException(RequestFailedException):
     """
 
     def __init__(self, id=None, facet="", operation="", msg=""):
-        RequestFailedException.__init__(self, ReplyStatus.OperationNotExist.value, id, facet, operation, msg)
+        RequestFailedException.__init__(self, Ice.ReplyStatus.OperationNotExist.value, id, facet, operation, msg)
 
 
 class UnknownException(DispatchException):
@@ -129,7 +135,7 @@ class UnknownException(DispatchException):
     The dispatch failed with an exception that is not a LocalException or a UserException.
     """
 
-    def __init__(self, msg, replyStatus=ReplyStatus.UnknownException.value):
+    def __init__(self, msg, replyStatus=Ice.ReplyStatus.UnknownException.value):
         DispatchException.__init__(self, replyStatus, msg)
 
 
@@ -140,7 +146,7 @@ class UnknownLocalException(UnknownException):
     """
 
     def __init__(self, msg):
-        UnknownException.__init__(self, msg, ReplyStatus.UnknownLocalException.value)
+        UnknownException.__init__(self, msg, Ice.ReplyStatus.UnknownLocalException.value)
 
 
 @final
@@ -150,7 +156,7 @@ class UnknownUserException(UnknownException):
     """
 
     def __init__(self, msg):
-        UnknownException.__init__(self, msg, ReplyStatus.UnknownUserException.value)
+        UnknownException.__init__(self, msg, Ice.ReplyStatus.UnknownUserException.value)
 
 
 #

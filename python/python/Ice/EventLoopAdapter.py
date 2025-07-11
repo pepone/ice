@@ -2,7 +2,8 @@
 
 from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Coroutine
-from .Future import Future
+
+from .Future import Future, FutureLike
 
 
 class EventLoopAdapter(ABC):
@@ -11,7 +12,7 @@ class EventLoopAdapter(ABC):
     """
 
     @abstractmethod
-    def runCoroutine(self, coroutine: Coroutine) -> None:
+    def runCoroutine(self, coroutine: Coroutine) -> FutureLike:
         """
         Run a coroutine in the application configured event loop. The Ice run time will call this method to run
         coroutines returned by async dispatch methods. This method is called from the Ice dispatch thread.
@@ -23,7 +24,7 @@ class EventLoopAdapter(ABC):
 
         Returns
         -------
-        Future-like
+        FutureLike
             A Future-like object that can be used to wait for the completion of the coroutine.
         """
         pass
@@ -41,7 +42,7 @@ class EventLoopAdapter(ABC):
 
         Returns
         -------
-        Future-like
-            A Future-like object that can be awaited in the application event loop.
+        Awaitable
+            An awaitable object that can be awaited in the application event loop.
         """
         pass

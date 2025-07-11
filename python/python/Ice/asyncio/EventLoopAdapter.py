@@ -1,7 +1,11 @@
 # Copyright (c) ZeroC, Inc.
 
-import Ice
 import asyncio
+from collections.abc import Awaitable, Coroutine
+
+import Ice
+
+from ..Future import FutureLike
 
 
 class EventLoopAdapter(Ice.EventLoopAdapter):
@@ -12,11 +16,12 @@ class EventLoopAdapter(Ice.EventLoopAdapter):
     the communicator.
     """
 
-    def __init__(self, eventLoop):
+    def __init__(self, eventLoop: asyncio.AbstractEventLoop):
         self._eventLoop = eventLoop
 
-    def runCoroutine(self, coroutine):
+    def runCoroutine(self, coroutine: Coroutine) -> FutureLike:
+        # Convert the concurrent.futures.Future to an awaitable by wrapping it with asyncio.wrap_future
         return asyncio.run_coroutine_threadsafe(coroutine, self._eventLoop)
 
-    def wrapFuture(self, future):
+    def wrapFuture(self, future: Ice.Future) -> Awaitable:
         return Ice.wrap_future(future, loop=self._eventLoop)

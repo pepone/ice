@@ -14,6 +14,7 @@
 #include <iostream>
 #include <iterator>
 #include <sstream>
+#include <string>
 #include <vector>
 
 using namespace std;
@@ -227,7 +228,7 @@ namespace
     /// Returns a string representation of the type hint for the given Slice type.
     /// @param type The Slice type to convert to a type hint string.
     /// @param optional If true, the type hint will indicate that the type is optional (i.e., it can be `None`).
-    /// @param source The Slice definition requesting the type hint. 
+    /// @param source The Slice definition requesting the type hint.
     /// @return The string representation of the type hint for the given Slice type.
     string typeToTypeHintString(const TypePtr& type, bool optional, const SyntaxTreeBasePtr& source)
     {
@@ -292,7 +293,7 @@ namespace
             {
                 ostringstream os;
                 os << "dict[" << typeToTypeHintString(dict->keyType(), false, source) << ", "
-                << typeToTypeHintString(dict->valueType(), false, source) << "]";
+                   << typeToTypeHintString(dict->valueType(), false, source) << "]";
                 return os.str();
             }
             else
@@ -356,72 +357,6 @@ namespace
     string operationReturnTypeHint(const OperationPtr& operation, MethodKind methodKind)
     {
         return " -> " + returnTypeHint(operation, methodKind);
-    }
-
-    /// Returns a DocString formatted link to the provided Slice identifier.
-    string pyLinkFormatter(const string& rawLink, const ContainedPtr& p, const SyntaxTreeBasePtr& target)
-    {
-        ostringstream result;
-        if (target)
-        {
-            if (auto builtinTarget = dynamic_pointer_cast<Builtin>(target))
-            {
-                switch (builtinTarget->kind())
-                {
-                    case Builtin::KindObject:
-                        result << ":class:`Ice.Object`";
-                        break;
-                    case Builtin::KindValue:
-                        result << ":class:`Ice.Value`";
-                        break;
-                    case Builtin::KindObjectProxy:
-                        result << ":class:`Ice.ObjectPrx`";
-                        break;
-                    default:
-                        result << "``" << typeToTypeHintString(builtinTarget, false, p) << "``";
-                        break;
-                }
-            }
-            else if (auto operationTarget = dynamic_pointer_cast<Operation>(target))
-            {
-                string targetScoped = operationTarget->interface()->mappedScoped(".");
-
-                // link to the method on the proxy interface
-                result << ":meth:`" << targetScoped << "Prx." << operationTarget->mappedName() << "`";
-            }
-            else
-            {
-                string targetScoped = dynamic_pointer_cast<Contained>(target)->mappedScoped(".");
-                result << ":class:`" << targetScoped;
-                if (auto interfaceTarget = dynamic_pointer_cast<InterfaceDecl>(target))
-                {
-                    // link to the proxy interface
-                    result << "Prx";
-                }
-                result << "`";
-            }
-        }
-        else
-        {
-            result << "``";
-
-            auto hashPos = rawLink.find('#');
-            if (hashPos != string::npos)
-            {
-                if (hashPos != 0)
-                {
-                    result << rawLink.substr(0, hashPos) << ".";
-                }
-                result << rawLink.substr(hashPos + 1);
-            }
-            else
-            {
-                result << rawLink;
-            }
-
-            result << "``";
-        }
-        return result.str();
     }
 
     string formatFields(const DataMemberList& members)
@@ -721,9 +656,10 @@ Slice::Python::ImportVisitor::visitDictionary(const DictionaryPtr& p)
 }
 
 void
-Slice::Python::ImportVisitor::visitEnum(const EnumPtr&)
+Slice::Python::ImportVisitor::visitEnum(const EnumPtr& p)
 {
     // TODO if a value is initialized with a constant, we need to import the type of the constant.
+    importType("enum", {"Enum", ""}, p, RuntimeImport);
 }
 
 void
@@ -1531,20 +1467,18 @@ Slice::Python::CodeVisitor::visitExceptionStart(const ExceptionPtr& p)
     out.dec();
 
     // Emit the type information.
-    string type = getMetaTypeReference(p);
+    string metaType = getMetaType(p);
     out << sp;
-    out << nl << "IcePy.defineException(\"" << scoped << "\", " << name << ", ";
+    out << nl << metaType << " = IcePy.defineException(";
+    out.inc();
+    out << nl << "\"" << scoped << "\",";
+    out << nl << name << ",";
+    out << nl;
     writeMetadata(p->getMetadata(), out);
-    out << ", ";
-    if (!base)
-    {
-        out << "None";
-    }
-    else
-    {
-        out << getMetaTypeReference(base);
-    }
-    out << ", (";
+    out << ",";
+    out << nl << (base ? metaType : "None") << ",";
+
+    out << nl << "(";
     if (members.size() > 1)
     {
         out.inc();
@@ -1579,6 +1513,10 @@ Slice::Python::CodeVisitor::visitExceptionStart(const ExceptionPtr& p)
         out << nl;
     }
     out << "))";
+    out.dec();
+
+    out << sp;
+    out << nl << "__all__ = [\"" << name << "\", \"" << metaType << "\"]";
 
     _codeFragments.emplace_back(p, out.str());
     return false;
@@ -1722,62 +1660,40 @@ Slice::Python::CodeVisitor::visitEnum(const EnumPtr& p)
     EnumeratorList enumerators = p->enumerators();
 
     BufferedOutput out;
-    out << nl << "class " << name << "(Ice.EnumBase):";
+    out << nl << "class " << name << "(Enum):";
     out.inc();
 
     writeDocstring(DocComment::parseFrom(p, pyLinkFormatter), p, out);
 
-    out << sp;
-    out << nl << "def __init__(self, name, value):";
-    out.inc();
-    out << nl << "Ice.EnumBase.__init__(self, name, value)";
-    out.dec();
-
-    out << sp;
-    out << nl << "@staticmethod";
-    out << nl << "def valueOf(name):";
-    out.inc();
-    out << nl << "return " << name << "._enumerators.get(name)";
-    out.dec();
-
-    out << sp;
-    out << nl << "def __repr__(self):";
-    out.inc();
-
-    out << nl << "if self._value in " << name << "._enumerators:";
-    out.inc();
-    out << nl << "return f\"" << getAbsolute(p) << ".{self._name}\"";
-    out.dec();
-
-    out << nl << "else:";
-    out.inc();
-    out << nl << "return f\"" << getAbsolute(p) << "({self._name!r}, {self._value!r})\"";
-    out.dec();
-
-    out.dec();
-
-    out.dec();
-
-    out << sp;
+    out << nl;
     for (const auto& enumerator : enumerators)
     {
-        out << nl << name << '.' << enumerator->mappedName() << " = " << name << "(\"" << enumerator->name() << "\", "
-            << enumerator->value() << ')';
+        out << nl << enumerator->mappedName() << " = " << enumerator->value();
     }
-    out << nl << name << "._enumerators = { ";
-    out.inc();
-    for (const auto& enumerator : enumerators)
-    {
-        out << nl << enumerator->value() << ':' << name << '.' << enumerator->mappedName() << ',';
-    }
-    out.dec();
-    out << nl << "}";
 
-    // Emit the type information.
+    out.dec();
+
+    // Meta type definition.
     out << sp;
-    out << nl << name << "._t = IcePy.defineEnum(\"" << scoped << "\", " << name << ", ";
+    out << nl << getMetaType(p) << " = IcePy.defineEnum(";
+    out.inc();
+    out << nl << "\"" << scoped << "\",";
+    out << nl << name << ",";
     writeMetadata(p->getMetadata(), out);
-    out << ", " << name << "._enumerators)";
+    out << ",";
+    out << nl;
+    out.spar("{");
+    for (const auto& enumerator : enumerators)
+    {
+        out << (std::to_string(enumerator->value()) + ": " + name + "." + enumerator->mappedName());
+    }
+    out.epar("}");
+    out << ")";
+    out.dec();
+
+    out << sp;
+    out << nl << "__all__ = [\"" << name << "\", \"" << getMetaType(p) << "\"]";
+
     _codeFragments.emplace_back(p, out.str());
 }
 
@@ -2052,8 +1968,13 @@ Slice::Python::CodeVisitor::writeDocstring(
         out << nl << "Attributes";
         out << nl << "----------";
         for (const auto& member : members)
-        {;
-            out << nl << member->mappedName() << " : " << typeToTypeHintString(member->type(), member->optional(), dynamic_pointer_cast<Contained>(member->container()));
+        {
+            ;
+            out << nl << member->mappedName() << " : "
+                << typeToTypeHintString(
+                       member->type(),
+                       member->optional(),
+                       dynamic_pointer_cast<Contained>(member->container()));
             auto p = docs.find(member->name());
             if (p != docs.end())
             {
@@ -2071,10 +1992,7 @@ Slice::Python::CodeVisitor::writeDocstring(
 }
 
 void
-Slice::Python::CodeVisitor::writeDocstring(
-    const optional<DocComment>& comment,
-    const EnumPtr& enumeration,
-    Output& out)
+Slice::Python::CodeVisitor::writeDocstring(const optional<DocComment>& comment, const EnumPtr& enumeration, Output& out)
 {
     if (!comment)
     {
@@ -2409,7 +2327,7 @@ namespace
 void
 Slice::Python::generate(const Slice::UnitPtr& unit, const std::string& outputDir)
 {
-    validateMetadata(unit);
+    validatePythonMetadata(unit);
 
     ImportVisitor importVisitor;
     unit->visit(&importVisitor);
@@ -2519,8 +2437,75 @@ Slice::Python::getMetaTypeReference(const ContainedPtr& p)
     return absoluteName;
 }
 
+string
+Slice::Python::pyLinkFormatter(const string& rawLink, const ContainedPtr& p, const SyntaxTreeBasePtr& target)
+{
+    ostringstream result;
+    if (target)
+    {
+        if (auto builtinTarget = dynamic_pointer_cast<Builtin>(target))
+        {
+            if (builtinTarget->kind() == Builtin::KindObject)
+            {
+                result << ":class:`Ice.Object`";
+            }
+            else if (builtinTarget->kind() == Builtin::KindValue)
+            {
+                result << ":class:`Ice.Value`";
+            }
+            else if (builtinTarget->kind() == Builtin::KindObjectProxy)
+            {
+                result << ":class:`Ice.ObjectPrx`";
+            }
+            else
+            {
+                result << "``" << typeToTypeHintString(builtinTarget, false, p) << "``";
+            }
+        }
+        else if (auto operationTarget = dynamic_pointer_cast<Operation>(target))
+        {
+            string targetScoped = operationTarget->interface()->mappedScoped(".");
+
+            // link to the method on the proxy interface
+            result << ":meth:`" << targetScoped << "Prx." << operationTarget->mappedName() << "`";
+        }
+        else
+        {
+            string targetScoped = dynamic_pointer_cast<Contained>(target)->mappedScoped(".");
+            result << ":class:`" << targetScoped;
+            if (auto interfaceTarget = dynamic_pointer_cast<InterfaceDecl>(target))
+            {
+                // link to the proxy interface
+                result << "Prx";
+            }
+            result << "`";
+        }
+    }
+    else
+    {
+        result << "``";
+
+        auto hashPos = rawLink.find('#');
+        if (hashPos != string::npos)
+        {
+            if (hashPos != 0)
+            {
+                result << rawLink.substr(0, hashPos) << ".";
+            }
+            result << rawLink.substr(hashPos + 1);
+        }
+        else
+        {
+            result << rawLink;
+        }
+
+        result << "``";
+    }
+    return result.str();
+}
+
 void
-Slice::Python::validateMetadata(const UnitPtr& unit)
+Slice::Python::validatePythonMetadata(const UnitPtr& unit)
 {
     auto pythonArrayTypeValidationFunc = [](const MetadataPtr& m, const SyntaxTreeBasePtr& p) -> optional<string>
     {
@@ -2577,31 +2562,6 @@ Slice::Python::validateMetadata(const UnitPtr& unit)
         .extraValidation = pythonArrayTypeValidationFunc,
     };
     knownMetadata.emplace("python:memoryview", std::move(memoryViewInfo));
-
-    // "python:package"
-    MetadataInfo packageInfo = {
-        .validOn = {typeid(Module), typeid(Unit)},
-        .acceptedArgumentKind = MetadataArgumentKind::SingleArgument,
-        .extraValidation = [](const MetadataPtr& metadata, const SyntaxTreeBasePtr& p) -> optional<string>
-        {
-            const string msg = "'python:package' is deprecated; use 'python:identifier' to remap modules instead";
-            p->unit()->warning(metadata->file(), metadata->line(), Deprecated, msg);
-
-            if (auto cont = dynamic_pointer_cast<Contained>(p); cont && cont->hasMetadata("python:identifier"))
-            {
-                return "A Slice element can only have one of 'python:package' and 'python:identifier' applied to it";
-            }
-
-            // If 'python:package' is applied to a module, it must be a top-level module.
-            // Top-level modules are contained by the 'Unit'. Non-top-level modules are contained in 'Module's.
-            if (auto mod = dynamic_pointer_cast<Module>(p); mod && !mod->isTopLevel())
-            {
-                return "the 'python:package' metadata can only be applied at the file level or to top-level modules";
-            }
-            return nullopt;
-        },
-    };
-    knownMetadata.emplace("python:package", std::move(packageInfo));
 
     // "python:seq"
     // We support 3 arguments to this metadata: "default", "list", and "tuple".

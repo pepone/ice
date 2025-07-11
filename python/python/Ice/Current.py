@@ -1,12 +1,13 @@
 # Copyright (c) ZeroC, Inc.
 
 from dataclasses import dataclass
-from IcePy import Connection
-from .ObjectAdapter import ObjectAdapter
 
-from .Identity_ice import Identity
-from .OperationMode_ice import OperationMode
-from .Version_ice import EncodingVersion
+import Ice.Identity_ice
+import Ice.OperationMode_ice
+import Ice.Version_ice
+from IcePy import Connection
+
+from .ObjectAdapter import ObjectAdapter
 
 
 @dataclass(frozen=True)
@@ -38,10 +39,10 @@ class Current:
 
     adapter: ObjectAdapter
     con: Connection | None
-    id: Identity
+    id: Ice.Identity
     facet: str
     operation: str
-    mode: OperationMode
+    mode: Ice.OperationMode
     ctx: dict[str, str]
     requestId: int
-    encoding: EncodingVersion
+    encoding: Ice.EncodingVersion
