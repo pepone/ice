@@ -27,11 +27,6 @@ namespace Slice::Python
     /// but "_M_" is prepended to the first name segment, indicating that this is a an explicit reference.
     std::string getTypeReference(const Slice::ContainedPtr& p);
 
-    /// Get the fully-qualified name of the given definition, including any package defined via metadata,
-    /// but "_M_" is prepended to the first name segment, and "_t_" is prepended to the final name segment,
-    /// indicating that this is a an explicit reference to a type.
-    std::string getMetaTypeReference(const Slice::ContainedPtr& p);
-
     int compile(const std::vector<std::string>&);
 
     /// Returns a DocString formatted link to the provided Slice identifier.

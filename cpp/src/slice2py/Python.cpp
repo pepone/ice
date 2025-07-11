@@ -463,7 +463,7 @@ Slice::Python::compile(const vector<string>& argv)
         os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<dependencies>" << endl;
     }
 
-    for (auto fileName : args)
+    for (const auto& fileName : args)
     {
         if (depend || dependxml)
         {

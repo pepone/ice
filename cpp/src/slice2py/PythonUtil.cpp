@@ -53,8 +53,8 @@ namespace
                 case Builtin::KindValue:
                     return "Ice.Value";
                 default:
-                    assert(false); // other builtins shouldn't need imports
-                    return "???";
+                    // Nothing to import for other builtins.
+                    return "";
             }
         }
         else
@@ -96,9 +96,7 @@ namespace
             auto contained = dynamic_pointer_cast<Contained>(p);
             assert(contained);
             // Only classes and interfaces can be forward declared.
-            assert(
-                dynamic_pointer_cast<ClassDef>(contained) || dynamic_pointer_cast<InterfaceDef>(contained) ||
-                dynamic_pointer_cast<ClassDecl>(contained) || dynamic_pointer_cast<InterfaceDecl>(contained));
+            assert(dynamic_pointer_cast<ClassDecl>(contained) || dynamic_pointer_cast<InterfaceDecl>(contained));
             return contained->mappedScoped(".") + "F";
         }
     }
@@ -161,9 +159,9 @@ namespace
             auto contained = dynamic_pointer_cast<Contained>(p);
             assert(contained);
             string s = "__" + contained->mappedScoped("_");
-            if (dynamic_pointer_cast<InterfaceDef>(contained))
+            if (dynamic_pointer_cast<InterfaceDef>(contained) || dynamic_pointer_cast<InterfaceDecl>(contained))
             {
-                s += "_Prx_t";
+                s += "Prx";
             }
             s += "_t";
             return s;
@@ -208,6 +206,7 @@ namespace
         string code;
     };
 
+    // The kind of method being documented or generated.
     enum MethodKind
     {
         SyncInvocation,
@@ -220,7 +219,16 @@ namespace
         // The imported type is used at runtime by the generated Python code.
         RuntimeImport,
         // The imported type is only used by Python type hints.
-        TypingImport,
+        TypingImport
+    };
+
+    // The context a type will be used in.
+    enum TypeContext
+    {
+        // If the type is an interface, it is used as a servant (base type).
+        ServantType,
+        // If the type is an interface, it is used as a proxy (base type or parameter).
+        ProxyType
     };
 
     const char* const tripleQuotes = R"(""")";
@@ -256,9 +264,9 @@ namespace
             "float",
             "float",
             "str",
-            "Ice.Object | None", // Not used anymore
-            "Ice.ObjectPrx | None",
-            "Ice.Value | None"};
+            "Ice_Object | None", // Not used anymore
+            "Ice_ObjectPrx | None",
+            "Ice_Value | None"};
 
         if (auto builtin = dynamic_pointer_cast<Builtin>(type))
         {
@@ -279,7 +287,7 @@ namespace
             auto contained = dynamic_pointer_cast<Contained>(type);
             assert(contained);
 
-            string prefix = sourceModule == definitionModule ? "" : contained->mappedScoped("_");
+            string prefix = sourceModule == definitionModule ? "" : contained->mappedScope("_");
 
             if (auto proxy = dynamic_pointer_cast<InterfaceDecl>(type))
             {
@@ -407,9 +415,7 @@ namespace Slice::Python
 
         bool visitModuleStart(const ModulePtr&) final;
         void visitModuleEnd(const ModulePtr&) final;
-        void visitClassDecl(const ClassDeclPtr&) final;
         bool visitClassDefStart(const ClassDefPtr&) final;
-        void visitInterfaceDecl(const InterfaceDeclPtr&) final;
         bool visitInterfaceDefStart(const InterfaceDefPtr&) final;
         bool visitExceptionStart(const ExceptionPtr&) final;
         bool visitStructStart(const StructPtr&) final;
@@ -478,11 +484,15 @@ namespace Slice::Python
         const ImportsMap& getTypingImports() const { return _typingImports; }
 
     private:
-        /// Add an import for the given contained type if it comes from a different module.
+        /// Add an import for the given Slice definition if it comes from a different module.
         /// @p definition is the Slice definition to import.
         /// @p source is the Slice definition that requires the import.
         /// @p importScope indicates whether the import is used at runtime or only for type hints.
-        void importType(const ContainedPtr& definition, const ContainedPtr& source, ImportScope importScope);
+        void importType(
+            const SyntaxTreeBasePtr& definition,
+            const ContainedPtr& source,
+            ImportScope importScope,
+            TypeContext typeContext = ProxyType);
 
         /// Adds an import for the given definition from the specified Python module.
         ///
@@ -497,10 +507,10 @@ namespace Slice::Python
             const ContainedPtr& source,
             ImportScope importScope);
 
-        /// Import the meta type for the given contained type if it comes from a different module.
-        /// @p contained is the Slice definition to import.
+        /// Import the meta type for the given Slice definition if it comes from a different module.
+        /// @p definition is the Slice definition to import.
         /// @p source is the Slice definition that requires the import.
-        void importMetaType(const ContainedPtr& contained, const ContainedPtr& source);
+        void importMetaType(const SyntaxTreeBasePtr& definition, const ContainedPtr& source);
 
         ImportsMap _runtimeImports;
         ImportsMap _typingImports;
@@ -511,7 +521,7 @@ bool
 Slice::Python::ImportVisitor::visitClassDefStart(const ClassDefPtr& p)
 {
     // Import the meta type that is created in the Xxx_iceF module for forward declarations.
-    importMetaType(p, p);
+    importMetaType(p->declaration(), p);
 
     // Add imports required for the base class type.
     if (ClassDefPtr base = p->base())
@@ -526,20 +536,22 @@ Slice::Python::ImportVisitor::visitClassDefStart(const ClassDefPtr& p)
 bool
 Slice::Python::ImportVisitor::visitInterfaceDefStart(const InterfaceDefPtr& p)
 {
-    // Import the meta type that is created in the Xxx_iceF module for forward declarations.
-    importMetaType(p, p);
+    // Import the proxy meta type that is created in the XxxF module for forward declarations.
+    importMetaType(p->declaration(), p);
 
     // Add imports required for base interfaces types.
     const InterfaceList& bases = p->bases();
     if (bases.empty())
     {
         importType("Ice.ObjectPrx", {"ObjectPrx", "Ice_ObjectPrx"}, p, RuntimeImport);
+        importType("Ice.Object", {"Object", "Ice_Object"}, p, RuntimeImport);
     }
     else
     {
         for (const auto& base : bases)
         {
-            importType(base, p, RuntimeImport);
+            importType(base, p, RuntimeImport, ProxyType);
+            importType(base, p, RuntimeImport, ServantType);
         }
     }
 
@@ -565,20 +577,23 @@ Slice::Python::ImportVisitor::visitInterfaceDefStart(const InterfaceDefPtr& p)
 
     for (const auto& op : operations)
     {
-        auto ret = dynamic_pointer_cast<Contained>(op->returnType());
+        auto ret = op->returnType();
         if (ret)
         {
-            importType(ret, p, TypingImport);
+            importType(ret, p, TypingImport, ProxyType);
             importMetaType(ret, p);
         }
 
         for (const auto& param : op->parameters())
         {
-            if (auto type = dynamic_pointer_cast<Contained>(param->type()))
-            {
-                importType(type, p, TypingImport);
-                importMetaType(type, p);
-            }
+            importType(param->type(), p, TypingImport, ProxyType);
+            importMetaType(param->type(), p);
+        }
+
+        for (const auto& ex : op->throws())
+        {
+            importType(ex, p, TypingImport, ProxyType);
+            importMetaType(ex, p);
         }
     }
 
@@ -626,7 +641,8 @@ Slice::Python::ImportVisitor::visitDataMember(const DataMemberPtr& p)
         importType(
             type,
             dynamic_pointer_cast<Contained>(p->container()),
-            dynamic_pointer_cast<Struct>(type) ? RuntimeImport : TypingImport);
+            dynamic_pointer_cast<Struct>(type) ? RuntimeImport : TypingImport,
+            ProxyType);
     }
 }
 
@@ -634,25 +650,15 @@ void
 Slice::Python::ImportVisitor::visitSequence(const SequencePtr& p)
 {
     // Add import required for the sequence element type.
-    if (auto type = dynamic_pointer_cast<Contained>(p->type()))
-    {
-        importMetaType(type, p);
-    }
+    importMetaType(p->type(), p);
 }
 
 void
 Slice::Python::ImportVisitor::visitDictionary(const DictionaryPtr& p)
 {
-    // Add imports required for the dictionary key and value types
-    if (auto keyType = dynamic_pointer_cast<Contained>(p->keyType()))
-    {
-        importType(keyType, p, TypingImport);
-    }
-
-    if (auto valueType = dynamic_pointer_cast<Contained>(p->valueType()))
-    {
-        importType(valueType, p, TypingImport);
-    }
+    // Add imports required for the dictionary key and value meta types
+    importMetaType(p->keyType(), p);
+    importMetaType(p->valueType(), p);
 }
 
 void
@@ -664,9 +670,10 @@ Slice::Python::ImportVisitor::visitEnum(const EnumPtr& p)
 
 void
 Slice::Python::ImportVisitor::importType(
-    const ContainedPtr& definition,
+    const SyntaxTreeBasePtr& definition,
     const ContainedPtr& source,
-    ImportScope importScope)
+    ImportScope importScope,
+    TypeContext typeContext)
 {
     // The module containing the definition we want to import.
     auto definitionModule = getPythonModuleForDefinition(definition);
@@ -681,11 +688,31 @@ Slice::Python::ImportVisitor::importType(
     }
 
     vector<pair<string, string>> names;
-    names.emplace_back(definition->mappedName(), getImportAlias(definition));
-    if (auto interfaceDef = dynamic_pointer_cast<InterfaceDef>(definition))
+    if (auto builtin = dynamic_pointer_cast<Builtin>(definition))
     {
-        // If the definition is an interface, we also import the proxy types.
-        names.emplace_back(interfaceDef->mappedName() + "Prx", getImportAlias(definition) + "Prx");
+        if (builtin->kind() != Builtin::KindObjectProxy && builtin->kind() != Builtin::KindValue)
+        {
+            // Builtin types other than ObjectPrx and Value don't need imports.
+            return;
+        }
+        names.emplace_back(
+            builtin->kind() == Builtin::KindObjectProxy ? "ObjectPrx" : "Value",
+            getImportAlias(definition));
+    }
+    else
+    {
+        auto contained = dynamic_pointer_cast<Contained>(definition);
+        assert(contained);
+
+        if ((dynamic_pointer_cast<InterfaceDef>(definition) || dynamic_pointer_cast<InterfaceDecl>(definition)) &&
+            typeContext == ProxyType)
+        {
+            names.emplace_back(contained->mappedName() + "Prx", getImportAlias(definition) + "Prx");
+        }
+        else
+        {
+            names.emplace_back(contained->mappedName(), getImportAlias(definition));
+        }
     }
 
     auto& imports = (importScope == RuntimeImport) ? _runtimeImports : _typingImports;
@@ -717,12 +744,18 @@ Slice::Python::ImportVisitor::importType(
 }
 
 void
-Slice::Python::ImportVisitor::importMetaType(const ContainedPtr& definition, const ContainedPtr& source)
+Slice::Python::ImportVisitor::importMetaType(const SyntaxTreeBasePtr& definition, const ContainedPtr& source)
 {
+    auto builtin = dynamic_pointer_cast<Builtin>(definition);
+    if (builtin && builtin->kind() != Builtin::KindObjectProxy && builtin->kind() != Builtin::KindValue)
+    {
+        // Builtin types other than ObjectPrx and Value don't need imports.
+        return;
+    }
+
     // The meta type for a Slice class or interface is always imported from the Xxx_iceF module.
     bool isForwardDeclared =
-        dynamic_pointer_cast<ClassDef>(definition) || dynamic_pointer_cast<InterfaceDef>(definition) ||
-        dynamic_pointer_cast<ClassDecl>(definition) || dynamic_pointer_cast<InterfaceDecl>(definition);
+        dynamic_pointer_cast<ClassDecl>(definition) || dynamic_pointer_cast<InterfaceDecl>(definition) || builtin;
 
     // The module containing the definition we want to import.
     string definitionModule =
@@ -737,17 +770,9 @@ Slice::Python::ImportVisitor::importMetaType(const ContainedPtr& definition, con
         return;
     }
 
-    vector<pair<string, string>> names;
-    names.emplace_back("__" + definition->mappedScoped("_") + "_t", "");
-    if (auto interfaceDef = dynamic_pointer_cast<InterfaceDef>(definition))
-    {
-        // If the definition is an interface, we import the servant and proxy types.
-        names.emplace_back("__" + interfaceDef->mappedScoped("_") + "Prx_t", "");
-    }
-
     auto& sourceModuleImports = _runtimeImports[sourceModule];
     auto& definitionImports = sourceModuleImports[definitionModule];
-    definitionImports.insert(names.begin(), names.end());
+    definitionImports.insert({getMetaType(definition), ""});
 }
 
 // CodeVisitor implementation.
@@ -772,24 +797,6 @@ Slice::Python::CodeVisitor::visitModuleStart(const ModulePtr& p)
 void
 Slice::Python::CodeVisitor::visitModuleEnd(const ModulePtr&)
 {
-}
-
-void
-Slice::Python::CodeVisitor::visitClassDecl(const ClassDeclPtr& p)
-{
-    // Emit forward declarations.
-    BufferedOutput out;
-    out << nl << p->mappedName() << "_t = IcePy.declareValue(\"" << p->scoped() << "\")";
-    _codeFragments.emplace_back(p, out.str());
-}
-
-void
-Slice::Python::CodeVisitor::visitInterfaceDecl(const InterfaceDeclPtr& p)
-{
-    // Emit forward declarations.
-    BufferedOutput out;
-    out << nl << p->mappedName() << "Prx_t" << " = IcePy.declareProxy(\"" << p->scoped() << "\")";
-    _codeFragments.emplace_back(p, out.str());
 }
 
 void
@@ -854,13 +861,22 @@ bool
 Slice::Python::CodeVisitor::visitClassDefStart(const ClassDefPtr& p)
 {
     const string scoped = p->scoped();
-    const string type = getMetaTypeReference(p);
+    const string metaType = getMetaType(p);
     const string valueName = p->mappedName();
     const ClassDefPtr base = p->base();
     const DataMemberList members = p->dataMembers();
 
-    BufferedOutput out;
+    // Emit a forward declaration for the class meta-type.
+    BufferedOutput outF;
+    outF << nl << metaType << " = IcePy.declareValue(\"" << p->scoped() << "\")";
 
+    outF << sp;
+    outF << nl << "__all__ = [\"" << metaType << "\"]";
+
+    _codeFragments.emplace_back(p->declaration(), outF.str());
+
+    // Emit the class definition.
+    BufferedOutput out;
     out << nl << "class " << valueName << '(' << (base ? getAbsolute(base) : "Ice.Value") << "):";
     out.inc();
 
@@ -879,7 +895,7 @@ Slice::Python::CodeVisitor::visitClassDefStart(const ClassDefPtr& p)
     {
         if (base)
         {
-            out << nl << getTypeReference(base) << ".__init__(self";
+            out << nl << "super.__init__(self";
             for (const auto& member : base->allDataMembers())
             {
                 out << ", " << member->mappedName();
@@ -986,14 +1002,19 @@ Slice::Python::CodeVisitor::visitInterfaceDefStart(const InterfaceDefPtr& p)
 {
     string scoped = p->scoped();
     string className = p->mappedName();
-    string classAbs = getTypeReference(p);
     string prxName = className + "Prx";
-    string prxAbs = classAbs + "Prx";
+    string metaType = getMetaType(p);
     InterfaceList bases = p->bases();
 
-    BufferedOutput out;
+    // Emit a forward declarations for the proxy meta type.
+    BufferedOutput outF;
+    outF << nl << metaType << " = IcePy.declareProxy(\"" << scoped << "\")";
+    outF << sp;
+    outF << nl << "__all__ = [\"" << metaType << "\"]";
+    _codeFragments.emplace_back(p->declaration(), outF.str());
 
-    // Define the proxy class
+    // Emit the proxy class.
+    BufferedOutput out;
     out << sp;
     out << nl << "class " << prxName << '(';
 
@@ -1062,37 +1083,34 @@ Slice::Python::CodeVisitor::visitInterfaceDefStart(const InterfaceDefPtr& p)
         // Find the last required parameter, all optional parameters after the last required parameter will use
         // None as the default.
         ParameterPtr lastRequiredParameter;
-        for (const auto& q : paramList)
+        for (const auto& q : operation->inParameters())
         {
-            if (!q->isOutParam() && !q->optional())
+            if (!q->optional())
             {
                 lastRequiredParameter = q;
             }
         }
 
         bool afterLastRequiredParameter = lastRequiredParameter == nullptr;
-        for (const auto& q : paramList)
+        for (const auto& q : operation->inParameters())
         {
-            if (!q->isOutParam())
+            if (!inParams.empty())
             {
-                if (!inParams.empty())
-                {
-                    inParams.append(", ");
-                    inParamsDecl.append(", ");
-                }
-                string param = q->mappedName();
-                inParams.append(param);
-                param += ": " + typeToTypeHintString(q->type(), q->optional(), p);
-                if (afterLastRequiredParameter)
-                {
-                    param += " = None";
-                }
-                inParamsDecl.append(param);
+                inParams.append(", ");
+                inParamsDecl.append(", ");
+            }
+            string param = q->mappedName();
+            inParams.append(param);
+            param += ": " + typeToTypeHintString(q->type(), q->optional(), p);
+            if (afterLastRequiredParameter)
+            {
+                param += " = None";
+            }
+            inParamsDecl.append(param);
 
-                if (q == lastRequiredParameter)
-                {
-                    afterLastRequiredParameter = true;
-                }
+            if (q == lastRequiredParameter)
+            {
+                afterLastRequiredParameter = true;
             }
         }
 
@@ -1120,7 +1138,7 @@ Slice::Python::CodeVisitor::visitInterfaceDefStart(const InterfaceDefPtr& p)
         out << nl << "def " << mappedOpName << "Async(self";
         if (!inParams.empty())
         {
-            out << ", " << inParams;
+            out << ", " << inParamsDecl;
         }
         out << ", " << contextParamName << ": dict[str, str] | None = None)"
             << operationReturnTypeHint(operation, AsyncInvocation) << ":";
@@ -1180,15 +1198,15 @@ Slice::Python::CodeVisitor::visitInterfaceDefStart(const InterfaceDefPtr& p)
     out.dec(); // end prx class
 
     out << sp;
-    out << nl << prxName << "._t = IcePy.defineProxy(\"" << scoped << "\", " << prxName << ")";
+    out << nl << "IcePy.defineProxy(\"" << scoped << "\", " << prxName << ")";
 
-    // Define the servant class
+    // Emit the servant class (to the same code fragment as the proxy class).
     out << sp;
     out << nl << "class " << className;
     out << spar;
     if (bases.empty())
     {
-        out << "Ice.Object";
+        out << "Ice_Object";
     }
     else
     {
@@ -1383,6 +1401,9 @@ Slice::Python::CodeVisitor::visitInterfaceDefStart(const InterfaceDefPtr& p)
             out << nl << className << "._op_" << sliceName << ".deprecate(\"" << reason << "\")";
         }
     }
+
+    out << sp;
+    out << nl << "__all__ = [\"" << className << "\", \"" << prxName << "\", \"" << metaType << "\"]";
 
     _codeFragments.emplace_back(p, out.str());
     return false;
@@ -1646,9 +1667,14 @@ void
 Slice::Python::CodeVisitor::visitDictionary(const DictionaryPtr& p)
 {
     BufferedOutput out;
-    out << nl << p->mappedName() << "_t = IcePy.defineDictionary(\"" << p->scoped() << "\", ";
+    string metaType = getMetaType(p);
+    out << nl << metaType << " = IcePy.defineDictionary(\"" << p->scoped() << "\", ";
     writeMetadata(p->getMetadata(), out);
     out << ", " << getMetaType(p->keyType()) << ", " << getMetaType(p->valueType()) << ")";
+
+    out << sp;
+    out << nl << "__all__ = [\"" << metaType << "\"]";
+
     _codeFragments.emplace_back(p, out.str());
 }
 
@@ -1700,10 +1726,15 @@ Slice::Python::CodeVisitor::visitEnum(const EnumPtr& p)
 void
 Slice::Python::CodeVisitor::visitConst(const ConstPtr& p)
 {
+    string name = p->mappedName();
     BufferedOutput out;
     out << sp;
-    out << nl << p->mappedName() << " = ";
+    out << nl << name << " = ";
     writeConstantValue(p->type(), p->valueType(), p->value(), out);
+
+    out << sp;
+    out << nl << "__all__ = [\"" << name << "\"]";
+
     _codeFragments.emplace_back(p, out.str());
 }
 
@@ -2317,6 +2348,7 @@ namespace
         printHeader(out);
 
         out << sp;
+        out << nl << "from __future__ import annotations";
         out << nl << "import IcePy";
 
         outputFiles[moduleName] = std::move(output);
@@ -2340,6 +2372,7 @@ Slice::Python::generate(const Slice::UnitPtr& unit, const std::string& outputDir
     // A map from python module names to output files.
     std::map<string, unique_ptr<Output>> outputFiles;
 
+    // Write the runtime imports.
     ImportsMap runtimeImports = importVisitor.getRuntimeImports();
     for (const auto& [sourceModuleName, imports] : runtimeImports)
     {
@@ -2354,7 +2387,7 @@ Slice::Python::generate(const Slice::UnitPtr& unit, const std::string& outputDir
         }
     }
 
-    // Typing imports
+    // Write typing imports
     ImportsMap typingImports = importVisitor.getTypingImports();
     for (const auto& [file, imports] : typingImports)
     {
@@ -2381,7 +2414,18 @@ Slice::Python::generate(const Slice::UnitPtr& unit, const std::string& outputDir
     // Emit the code fragments for the unit.
     for (const auto& fragment : codeVisitor.codeFragments())
     {
-        string moduleName = getPythonModuleForDefinition(fragment.contained);
+        string moduleName;
+        if (dynamic_pointer_cast<ClassDecl>(fragment.contained) ||
+            dynamic_pointer_cast<InterfaceDecl>(fragment.contained))
+        {
+            cerr << "Forward declaration for " << fragment.contained->scoped() << endl;
+            moduleName = getPythonModuleForForwardDeclaration(fragment.contained);
+        }
+        else
+        {
+            moduleName = getPythonModuleForDefinition(fragment.contained);
+        }
+
         Output& out = getOutputFile(moduleName, outputFiles, outputDir);
         out << sp;
         out << fragment.code;
@@ -2422,19 +2466,6 @@ Slice::Python::getTypeReference(const ContainedPtr& p)
     const string package = getPackageMetadata(p);
     const string packagePrefix = package + (package.empty() ? "" : "_");
     return packagePrefix + p->mappedScoped("_");
-}
-
-string
-Slice::Python::getMetaTypeReference(const ContainedPtr& p)
-{
-    string absoluteName = getTypeReference(p);
-
-    // Append a "_t_" in front of the last name segment.
-    auto pos = absoluteName.rfind('.');
-    pos = (pos == string::npos ? 0 : pos + 1);
-    absoluteName.insert(pos, "_t_");
-
-    return absoluteName;
 }
 
 string
