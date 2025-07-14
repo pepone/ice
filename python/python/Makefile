@@ -13,16 +13,25 @@ $(eval $(call load-translator-dependencies,$(top_srcdir)/cpp/src/slice2py))
 
 .NOTPARALLEL:
 
-$(eval $(call make-python-package,$(slicedir),$(lang_srcdir)/python,Ice,--no-package))
-$(eval $(call make-python-package,$(slicedir),$(lang_srcdir)/python,IceMX))
-$(eval $(call make-python-package,$(slicedir),$(lang_srcdir)/python,Glacier2))
-$(eval $(call make-python-package,$(slicedir),$(lang_srcdir)/python,IceBox))
-$(eval $(call make-python-package,$(slicedir),$(lang_srcdir)/python,IceGrid))
-$(eval $(call make-python-package,$(slicedir),$(lang_srcdir)/python,IceStorm))
+$(eval $(call make-python-module,Ice))
+$(eval $(call make-python-module,Glacier2))
+$(eval $(call make-python-module,IceBox))
+$(eval $(call make-python-module,IceGrid))
+$(eval $(call make-python-module,IceStorm))
 
-# Generate this file individually without the --no-package option to ensure the
-# IceMX package is updated.
-$(eval $(call make-python-slice,$(slicedir),$(lang_srcdir)/python,Ice,Metrics))
+# Make Python packages.
+
+ICE_MX_FILES := $(top_srcdir)/slice/Glacier2/Metrics.ice $(top_srcdir)/slice/Ice/Metrics.ice $(top_srcdir)/slice/IceStorm/Metrics.ice
+GLACIER2_FILES := $(filter-out %/Metrics.ice,$(wildcard $(top_srcdir)/slice/Glacier2/*.ice))
+ICE_BOX_FILES := $(wildcard $(top_srcdir)/slice/IceBox/*.ice)
+ICE_GRID_FILES := $(wildcard $(top_srcdir)/slice/IceGrid/*.ice)
+ICE_STORM_FILES := $(filter-out %/Metrics.ice,$(wildcard $(top_srcdir)/slice/IceStorm/*.ice))
+
+$(eval $(call make-python-package,Glacier2,$(GLACIER2_FILES)))
+$(eval $(call make-python-package,IceBox,$(ICE_BOX_FILES)))
+$(eval $(call make-python-package,IceGrid,$(ICE_GRID_FILES)))
+$(eval $(call make-python-package,IceStorm,$(ICE_STORM_FILES)))
+$(eval $(call make-python-package,IceMX,$(ICE_MX_FILES)))
 
 install:: | $(DESTDIR)$(install_pythondir)/Ice
 	$(E) "Installing python code"

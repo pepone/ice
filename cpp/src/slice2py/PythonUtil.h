@@ -24,16 +24,6 @@ namespace Slice::Python
     /// @p outputDir The base-directory to write the generated Python files to.
     void generate(const Slice::UnitPtr& unit, const std::string& outputDir);
 
-    /// Return the package specified by metadata for the given definition, or an empty string if no metadata was found.
-    std::string getPackageMetadata(const Slice::ContainedPtr&);
-
-    /// Get the fully-qualified name of the given definition, including any package defined via metadata.
-    std::string getAbsolute(const Slice::ContainedPtr& p);
-
-    /// Get the fully-qualified name of the given definition, including any package defined via metadata,
-    /// but "_M_" is prepended to the first name segment, indicating that this is a an explicit reference.
-    std::string getTypeReference(const Slice::ContainedPtr& p);
-
     int compile(const std::vector<std::string>&);
 
     /// Returns a DocString formatted link to the provided Slice identifier.
@@ -52,6 +42,7 @@ namespace Slice::Python
         {
         }
 
+        bool visitModuleStart(const ModulePtr&);
         bool visitClassDefStart(const ClassDefPtr&) final;
         bool visitInterfaceDefStart(const InterfaceDefPtr&) final;
         bool visitStructStart(const StructPtr&) final;
@@ -62,6 +53,8 @@ namespace Slice::Python
         void visitConst(const ConstPtr&) final;
 
         const std::map<std::string, std::map<std::string, std::set<std::string>>>& imports() { return _imports; }
+        const std::set<std::string>& generatedModules() const { return _generatedModules; }
+        const std::set<std::string>& packageIndexFiles() const { return _packageIndexFiles; }
 
     private:
         void importType(const ContainedPtr& definition, const std::string& prefix = "");
@@ -74,6 +67,12 @@ namespace Slice::Python
         //   For example, the generated module for the Slice class "Bar" contributes the symbols "Bar" and
         //   "__Foo_Bar_t", corresponding to the class itself and its associated meta-type.
         std::map<std::string, std::map<std::string, std::set<std::string>>> _imports;
+
+        // The set of generated Python modules.
+        std::set<std::string> _generatedModules;
+
+        // The se of generated package index files.
+        std::set<std::string> _packageIndexFiles;
     };
 }
 

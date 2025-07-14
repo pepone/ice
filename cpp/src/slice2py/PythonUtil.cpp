@@ -39,16 +39,10 @@ namespace
     {
         if (auto builtin = dynamic_pointer_cast<Builtin>(p))
         {
-            switch (builtin->kind())
-            {
-                case Builtin::KindObjectProxy:
-                    return "Ice.ObjectPrx";
-                case Builtin::KindValue:
-                    return "Ice.Value";
-                default:
-                    // Nothing to import for other builtins.
-                    return "";
-            }
+            static const char* builtinTable[] =
+                {"", "", "", "", "", "", "", "", "Ice.Value", "Ice.ObjectPrx", "Ice.Value"};
+
+            return builtinTable[builtin->kind()];
         }
         else
         {
@@ -71,27 +65,12 @@ namespace
     /// @return The fully qualified Python module name for the forward declaration of the given class or interface.
     string getPythonModuleForForwardDeclaration(const SyntaxTreeBasePtr& p)
     {
-        if (auto builtin = dynamic_pointer_cast<Builtin>(p))
+        string declarationModule = getPythonModuleForDefinition(p);
+        if (!declarationModule.empty())
         {
-            switch (builtin->kind())
-            {
-                case Builtin::KindObjectProxy:
-                    return "Ice.ObjectPrxF";
-                case Builtin::KindValue:
-                    return "Ice.ValueF";
-                default:
-                    assert(false); // other builtins shouldn't need imports
-                    return "???";
-            }
+            declarationModule += "F";
         }
-        else
-        {
-            auto contained = dynamic_pointer_cast<Contained>(p);
-            assert(contained);
-            // Only classes and interfaces can be forward declared.
-            assert(dynamic_pointer_cast<ClassDecl>(contained) || dynamic_pointer_cast<InterfaceDecl>(contained));
-            return contained->mappedScoped(".") + "F";
-        }
+        return declarationModule;
     }
 
     /// Returns the alias used for importing the given Slice definition in Python.
@@ -109,16 +88,10 @@ namespace
     {
         if (auto builtin = dynamic_pointer_cast<Builtin>(p))
         {
-            switch (builtin->kind())
-            {
-                case Builtin::KindObjectProxy:
-                    return "Ice_ObjectPrx";
-                case Builtin::KindValue:
-                    return "Ice_Value";
-                default:
-                    assert(false); // other builtins shouldn't need imports
-                    return "???";
-            }
+            static const char* builtinTable[] =
+                {"", "", "", "", "", "", "", "", "Ice_Value", "Ice_ObjectPrx", "Ice_Value"};
+
+            return builtinTable[builtin->kind()];
         }
         else
         {
@@ -442,13 +415,14 @@ namespace Slice::Python
         void visitDictionary(const DictionaryPtr&) final;
         void visitEnum(const EnumPtr&) final;
         void visitConst(const ConstPtr&) final;
-        void visitDataMember(const DataMemberPtr&) final;
 
         const ImportsMap& getRuntimeImports() const { return _runtimeImports; }
 
         const ImportsMap& getTypingImports() const { return _typingImports; }
 
     private:
+        void visitDataMembers(const ContainedPtr&, const list<DataMemberPtr>&);
+
         /// Add an import for the given Slice definition if it comes from a different module.
         /// @p definition is the Slice definition to import.
         /// @p source is the Slice definition that requires the import.
@@ -540,8 +514,9 @@ Slice::Python::ImportVisitor::visitClassDefStart(const ClassDefPtr& p)
         importType("Ice.Value", {"Value", "Ice_Value"}, p, RuntimeImport);
     }
 
-    // Visit the data members.
-    return true;
+    // Add imports required for the data members.
+    visitDataMembers(p, p->allDataMembers());
+    return false;
 }
 
 bool
@@ -606,6 +581,11 @@ Slice::Python::ImportVisitor::visitInterfaceDefStart(const InterfaceDefPtr& p)
             importType(ex, p, TypingImport, ProxyType);
             importMetaType(ex, p);
         }
+
+        if (op->format())
+        {
+            importType("Ice.FormatType", {"FormatType", "Ice_FormatType"}, p, RuntimeImport);
+        }
     }
 
     // Types that are used in the Prx interface.
@@ -623,7 +603,9 @@ Slice::Python::ImportVisitor::visitStructStart(const StructPtr& p)
     importType("Ice.Util", {"format_fields", ""}, p, RuntimeImport);
     importType("dataclasses", {"dataclass", ""}, p, RuntimeImport);
     importType("dataclasses", {"field", ""}, p, RuntimeImport);
-    return true;
+    // Add imports required for the data members.
+    visitDataMembers(p, p->dataMembers());
+    return false;
 }
 
 bool
@@ -642,35 +624,37 @@ Slice::Python::ImportVisitor::visitExceptionStart(const ExceptionPtr& p)
         // If the exception has no base, we import the Ice.UserException type.
         importType("Ice.UserException", {"UserException", "Ice_UserException"}, p, RuntimeImport);
     }
-    // Visit the data members.
-    return true;
+    // Add imports required for the data members.
+    visitDataMembers(p, p->allDataMembers());
+    return false;
 }
 
 void
-Slice::Python::ImportVisitor::visitDataMember(const DataMemberPtr& p)
+Slice::Python::ImportVisitor::visitDataMembers(const ContainedPtr& parent, const list<DataMemberPtr>& members)
 {
-    // Add imports required for data member types.
-    auto type = p->type();
-    // The parent definition (class, struct, or exception) that contains the data member.
-    auto parent = dynamic_pointer_cast<Contained>(p->container());
-    // For structs and enums we need a RuntimeImport for the initialization of the field in the constructor.
-    // Otherwise a TypingImport is sufficient for type hints.
-    ImportScope importScope =
-        (dynamic_pointer_cast<Struct>(type) || dynamic_pointer_cast<Enum>(type)) ? RuntimeImport : TypingImport;
-
-    // For fields with a type that is a Struct, we need to import it as a RuntimeImport, to
-    // initialize the field in the constructor. For other contained types, we only need the
-    // import for type hints.
-    importType(type, parent, importScope, ProxyType);
-
-    importMetaType(type, dynamic_pointer_cast<Contained>(p->container()));
-
-    // If the data member has a default value, and the type of the default value is an Enum or a Const
-    // we need to import the corresponding Enum or Const.
-    if (p->defaultValue() &&
-        (dynamic_pointer_cast<Const>(p->defaultValueType()) || dynamic_pointer_cast<Enum>(p->defaultValueType())))
+    for (const auto& member : members)
     {
-        importType(p->defaultValueType(), parent, RuntimeImport, ProxyType);
+        // Add imports required for data member types.
+        auto type = member->type();
+        // For structs and enums we need a RuntimeImport for the initialization of the field in the constructor.
+        // Otherwise a TypingImport is sufficient for type hints.
+        ImportScope importScope =
+            (dynamic_pointer_cast<Struct>(type) || dynamic_pointer_cast<Enum>(type)) ? RuntimeImport : TypingImport;
+
+        // For fields with a type that is a Struct, we need to import it as a RuntimeImport, to
+        // initialize the field in the constructor. For other contained types, we only need the
+        // import for type hints.
+        importType(type, parent, importScope, ProxyType);
+
+        importMetaType(type, parent);
+
+        // If the data member has a default value, and the type of the default value is an Enum or a Const
+        // we need to import the corresponding Enum or Const.
+        if (member->defaultValue() && (dynamic_pointer_cast<Const>(member->defaultValueType()) ||
+                                       dynamic_pointer_cast<Enum>(member->defaultValueType())))
+        {
+            importType(member->defaultValueType(), parent, RuntimeImport, ProxyType);
+        }
     }
 }
 
@@ -700,9 +684,13 @@ Slice::Python::ImportVisitor::visitEnum(const EnumPtr& p)
 }
 
 void
-Slice::Python::ImportVisitor::visitConst(const ConstPtr&)
+Slice::Python::ImportVisitor::visitConst(const ConstPtr& p)
 {
-    // TODO if the constant is initialized with an enum value, we need to import the enum type.
+    // If the constant value is a Slice enum, we need to import the enum type.
+    if (dynamic_pointer_cast<Enum>(p->type()))
+    {
+        importType(p->type(), p, RuntimeImport);
+    }
 }
 
 void
@@ -727,7 +715,8 @@ Slice::Python::ImportVisitor::importType(
     vector<pair<string, string>> names;
     if (auto builtin = dynamic_pointer_cast<Builtin>(definition))
     {
-        if (builtin->kind() != Builtin::KindObjectProxy && builtin->kind() != Builtin::KindValue)
+        if (builtin->kind() != Builtin::KindObjectProxy && builtin->kind() != Builtin::KindValue &&
+            builtin->kind() != Builtin::KindObject)
         {
             // Builtin types other than ObjectPrx and Value don't need imports.
             return;
@@ -784,7 +773,8 @@ void
 Slice::Python::ImportVisitor::importMetaType(const SyntaxTreeBasePtr& definition, const ContainedPtr& source)
 {
     auto builtin = dynamic_pointer_cast<Builtin>(definition);
-    if (builtin && builtin->kind() != Builtin::KindObjectProxy && builtin->kind() != Builtin::KindValue)
+    if (builtin && builtin->kind() != Builtin::KindObjectProxy && builtin->kind() != Builtin::KindValue &&
+        builtin->kind() != Builtin::KindObject)
     {
         // Builtin types other than ObjectPrx and Value don't need imports.
         return;
@@ -810,6 +800,14 @@ Slice::Python::ImportVisitor::importMetaType(const SyntaxTreeBasePtr& definition
     auto& sourceModuleImports = _runtimeImports[sourceModule];
     auto& definitionImports = sourceModuleImports[definitionModule];
     definitionImports.insert({getMetaType(definition), ""});
+}
+
+bool
+Slice::Python::PackageVisitor::visitModuleStart(const ModulePtr& p)
+{
+    // Add the __init__.py file to the list of generated modules.
+    _packageIndexFiles.insert(p->mappedScoped(".") + "/__init__.py");
+    return true;
 }
 
 bool
@@ -880,6 +878,10 @@ Slice::Python::PackageVisitor::importType(const ContainedPtr& definition, const 
     auto& packageImports = _imports[packageName];
     auto& definitions = packageImports[moduleName];
     definitions.insert(definition->mappedName() + prefix);
+
+    // Add the definition to the list of generated Python modules.
+    replace(packageName.begin(), packageName.end(), '.', '/');
+    _generatedModules.insert(packageName + moduleName + ".py");
 }
 void
 Slice::Python::PackageVisitor::importMetaType(const ContainedPtr& definition)
@@ -894,6 +896,10 @@ Slice::Python::PackageVisitor::importMetaType(const ContainedPtr& definition)
     auto& packageImports = _imports[packageName];
     auto& definitions = packageImports[moduleName];
     definitions.insert(getMetaType(definition));
+
+    // Add the definition to the list of generated Python modules.
+    replace(packageName.begin(), packageName.end(), '.', '/');
+    _generatedModules.insert(packageName + moduleName + ".py");
 }
 
 // CodeVisitor implementation.
@@ -939,7 +945,7 @@ Slice::Python::CodeVisitor::writeOperations(const InterfaceDefPtr& p, Output& ou
             out << nl << "Returns";
             out << nl << "  An object containing the marshaled result.";
             out << nl << tripleQuotes;
-            out << nl << "return IcePy.MarshaledResult(result, " << getAbsolute(p) << "._op_" << sliceName
+            out << nl << "return IcePy.MarshaledResult(result, " << p->mappedName() << "._op_" << sliceName
                 << ", current.adapter.getCommunicator()._getImpl(), current.encoding)";
             out.dec();
         }
@@ -1006,12 +1012,13 @@ Slice::Python::CodeVisitor::visitClassDefStart(const ClassDefPtr& p)
     {
         if (base)
         {
-            out << nl << "super.__init__(self";
+            out << nl << "super().__init__";
+            out.spar("(");
             for (const auto& member : base->allDataMembers())
             {
-                out << ", " << member->mappedName();
+                out << member->mappedName();
             }
-            out << ')';
+            out.epar(")");
         }
 
         for (const auto& member : members)
@@ -1044,11 +1051,11 @@ Slice::Python::CodeVisitor::visitClassDefStart(const ClassDefPtr& p)
     const auto& allDataMembers = p->allDataMembers();
     if (allDataMembers.empty())
     {
-        out << nl << "return \"" << getAbsolute(p) << "()\"";
+        out << nl << "return \"" << getImportAlias(p) << "()\"";
     }
     else
     {
-        out << nl << "return f\"" << getAbsolute(p) << "(" << formatFields(allDataMembers) << ")\"";
+        out << nl << "return f\"" << getImportAlias(p) << "(" << formatFields(allDataMembers) << ")\"";
     }
     out.dec();
 
@@ -1064,7 +1071,7 @@ Slice::Python::CodeVisitor::visitClassDefStart(const ClassDefPtr& p)
     writeMetadata(p->getMetadata(), out);
     out << ",";
     out << nl << "False,";
-    out << nl << (base ? getTypeReference(base) : "None") << ",";
+    out << nl << (base ? getMetaType(base) : "None") << ",";
     out << nl << "(";
 
     // Members
@@ -1139,7 +1146,7 @@ Slice::Python::CodeVisitor::visitInterfaceDefStart(const InterfaceDefPtr& p)
     for (const auto& base : bases)
     {
         InterfaceDefPtr d = base;
-        baseClasses.push_back(getTypeReference(base) + "Prx");
+        baseClasses.push_back(getImportAlias(base) + "Prx");
     }
 
     if (baseClasses.empty())
@@ -1329,7 +1336,7 @@ Slice::Python::CodeVisitor::visitInterfaceDefStart(const InterfaceDefPtr& p)
     {
         for (const auto& base : bases)
         {
-            out << getTypeReference(base);
+            out << getImportAlias(base);
         }
     }
     out << "ABC" << epar << ':';
@@ -1388,10 +1395,10 @@ Slice::Python::CodeVisitor::visitInterfaceDefStart(const InterfaceDefPtr& p)
             switch (*opFormat)
             {
                 case CompactFormat:
-                    format = "Ice.FormatType.CompactFormat";
+                    format = "Ice_FormatType.CompactFormat";
                     break;
                 case SlicedFormat:
-                    format = "Ice.FormatType.SlicedFormat";
+                    format = "Ice_FormatType.SlicedFormat";
                     break;
                 default:
                     assert(false);
@@ -1411,6 +1418,7 @@ Slice::Python::CodeVisitor::visitInterfaceDefStart(const InterfaceDefPtr& p)
         out << nl << "\"" << operation->mappedName() << "\",";
         out << nl << getOperationMode(operation->mode()) << ",";
         out << nl << format << ",";
+        out << nl;
         writeMetadata(operation->getMetadata(), out);
         out << ",";
         out << nl << "(";
@@ -1540,11 +1548,9 @@ Slice::Python::CodeVisitor::visitExceptionStart(const ExceptionPtr& p)
     out << sp;
     out << nl << "class " << name << '(';
 
-    string baseName;
     if (base)
     {
-        baseName = getTypeReference(base);
-        out << baseName;
+        out << getImportAlias(base);
     }
     else
     {
@@ -1568,13 +1574,15 @@ Slice::Python::CodeVisitor::visitExceptionStart(const ExceptionPtr& p)
     {
         if (base)
         {
-            out << nl << baseName << ".__init__(self";
+            out << nl << "super().__init__";
+            out.spar("(");
             for (const auto& member : base->allDataMembers())
             {
-                out << ", " << member->mappedName();
+                out << member->mappedName();
             }
-            out << ')';
+            out.epar(")");
         }
+
         for (const auto& member : members)
         {
             writeAssign(member, out);
@@ -1590,11 +1598,11 @@ Slice::Python::CodeVisitor::visitExceptionStart(const ExceptionPtr& p)
     const auto& allDataMembers = p->allDataMembers();
     if (allDataMembers.empty())
     {
-        out << nl << "return \"" << getAbsolute(p) << "()\"";
+        out << nl << "return \"" << getImportAlias(p) << "()\"";
     }
     else
     {
-        out << nl << "return f\"" << getAbsolute(p) << "(" << formatFields(p->allDataMembers()) << ")\"";
+        out << nl << "return f\"" << getImportAlias(p) << "(" << formatFields(p->allDataMembers()) << ")\"";
     }
     out.dec();
 
@@ -1667,7 +1675,6 @@ bool
 Slice::Python::CodeVisitor::visitStructStart(const StructPtr& p)
 {
     const string scoped = p->scoped();
-    const string abs = getTypeReference(p);
     const string name = p->mappedName();
     const string metaTypeName = getMetaType(p);
     const DataMemberList members = p->dataMembers();
@@ -1701,7 +1708,7 @@ Slice::Python::CodeVisitor::visitStructStart(const StructPtr& p)
         else if (auto st = dynamic_pointer_cast<Struct>(field->type()))
         {
             // See writeAssign.
-            out << " = " << "field(default_factory=" << getTypeReference(st) << ')';
+            out << " = " << "field(default_factory=" << getImportAlias(st) << ')';
         }
         else
         {
@@ -1927,7 +1934,7 @@ Slice::Python::CodeVisitor::writeAssign(const DataMemberPtr& member, Output& out
     if (st && !member->optional())
     {
         out << nl << "self." << memberName << " = " << memberName << " if " << memberName << " is not None else "
-            << getTypeReference(st) << "()";
+            << getImportAlias(st) << "()";
     }
     else
     {
@@ -1945,7 +1952,7 @@ Slice::Python::CodeVisitor::writeConstantValue(
     ConstPtr constant = dynamic_pointer_cast<Const>(valueType);
     if (constant)
     {
-        out << getTypeReference(constant);
+        out << getImportAlias(constant);
     }
     else if (auto builtin = dynamic_pointer_cast<Slice::Builtin>(type))
     {
@@ -1984,7 +1991,7 @@ Slice::Python::CodeVisitor::writeConstantValue(
     {
         EnumeratorPtr enumerator = dynamic_pointer_cast<Enumerator>(valueType);
         assert(enumerator);
-        out << getMetaType(enumeration) << "." << enumerator->mappedName();
+        out << getImportAlias(enumeration) << "." << enumerator->mappedName();
     }
     else
     {
@@ -2544,41 +2551,6 @@ Slice::Python::generate(const Slice::UnitPtr& unit, const std::string& outputDir
         out << fragment.code;
         out << nl;
     }
-}
-
-string
-Slice::Python::getPackageMetadata(const ContainedPtr& cont)
-{
-    ModulePtr topLevelModule = cont->getTopLevelModule();
-
-    // The python:package metadata can be defined as file metadata or applied to a top-level module.
-    // We check for the metadata at the top-level module first and then fall back to the global scope.
-    static const string directive = "python:package";
-    if (auto packageMetadata = topLevelModule->getMetadataArgs(directive))
-    {
-        return *packageMetadata;
-    }
-
-    string_view file = cont->file();
-    DefinitionContextPtr dc = cont->unit()->findDefinitionContext(file);
-    assert(dc);
-    return dc->getMetadataArgs(directive).value_or("");
-}
-
-string
-Slice::Python::getAbsolute(const ContainedPtr& p)
-{
-    const string package = getPackageMetadata(p);
-    const string packagePrefix = package + (package.empty() ? "" : ".");
-    return packagePrefix + p->mappedScoped(".");
-}
-
-string
-Slice::Python::getTypeReference(const ContainedPtr& p)
-{
-    const string package = getPackageMetadata(p);
-    const string packagePrefix = package + (package.empty() ? "" : "_");
-    return packagePrefix + p->mappedScoped("_");
 }
 
 string
