@@ -12,12 +12,19 @@
 
 namespace Slice::Python
 {
+    /// Creates the package directory structure for a given Python module name.
+    ///
+    /// For example, if the module name is "Foo.Bar.Baz", this function creates
+    /// the directories "Foo/Bar" under the specified output path.
+    ///
+    /// @param moduleName The name of the Python module (e.g., "Foo.Bar.Baz").
+    /// @param outputPath The base directory in which to create the package directories. Must already exist.
     void createPackagePath(const std::string& moduleName, const std::string& outputPath);
-    void printHeader(IceInternal::Output& out);
 
-    /// Determine the name of a Python source file for use in an import statement.
-    /// The return value does not include the .py extension.
-    std::string getImportFileName(const std::string&, const std::vector<std::string>&);
+    /// Writes the standard header comment to a generated Python source file.
+    ///
+    /// @param out The output stream to write the header to.
+    void writeHeader(IceInternal::Output& out);
 
     /// Generate Python code for a translation unit.
     /// @p unit is the Slice unit to generate code for.
@@ -30,6 +37,7 @@ namespace Slice::Python
     std::string
     pyLinkFormatter(const std::string& rawLink, const ContainedPtr& source, const SyntaxTreeBasePtr& target);
 
+    /// Validates the Slice python metadata for the given unit.
     void validatePythonMetadata(const UnitPtr&);
 
     // Collects Python definitions for each generated Python package.
@@ -38,9 +46,6 @@ namespace Slice::Python
     class PackageVisitor final : public ParserVisitor
     {
     public:
-        PackageVisitor(std::map<std::string, std::map<std::string, std::set<std::string>>>& imports) : _imports(imports)
-        {
-        }
 
         bool visitModuleStart(const ModulePtr&);
         bool visitClassDefStart(const ClassDefPtr&) final;

@@ -23,15 +23,37 @@ using namespace IceInternal;
 
 namespace
 {
-    /// Returns the fully qualified name of the Python module that defines the given Slice definition.
+    /// Determines the mapped package for a given Slice definition.
+    /// @param p The Slice definition to get the mapped package for.
+    /// @param separator Use this character as the separator between package segments.
+    /// @return The mapped package name, with the specified separator.
+    string getMappedPackage(SyntaxTreeBasePtr p, char separator = '.')
+    {
+        if (dynamic_pointer_cast<Builtin>(p))
+        {
+            return string{"Ice"} + separator;
+        }
+        else
+        {
+            auto contained = dynamic_pointer_cast<Contained>(p);
+            assert(contained);
+            string package = contained->mappedScope(string{separator});
+            if (separator != '.')
+            {
+                // Replace "." with the specified separator.
+                replace(package.begin(), package.end(), '.', separator);
+            }
+            return package;
+        }
+    }
+
+    /// Returns the fully qualified name of the Python module where the given Slice definition is mapped.
     ///
-    /// Each Slice module is mapped to a Python package of the same name. Within that package, each Slice file is
-    /// mapped to one or more Python modules—one per Slice module defined in the file. Each generated module has the
-    /// same name as the Slice file, with its extension replaced by "_ice".
+    /// Each Slice module is mapped to a Python package of the same name. Within that package, each Slice definition
+    /// is mapped to a Python module with the same name.
     ///
     /// For example:
-    /// - A definition in module `Bar` from `Foo.ice` is placed in `"Bar.Foo_ice"`.
-    /// - A definition in module `Bar::Baz` from `Foo.ice` is placed in `"Bar.Baz.Foo_ice"`.
+    /// - A definition named `Foo` in module `Bar` is placed in Python module`"Bar.Foo"`.
     ///
     /// @param p The Slice definition to get the corresponding Python module name for.
     /// @return The fully qualified Python module name for the mapped Slice definition.
@@ -48,20 +70,20 @@ namespace
         {
             auto contained = dynamic_pointer_cast<Contained>(p);
             assert(contained);
-            return contained->mappedScoped(".");
+            return getMappedPackage(contained) + contained->mappedName();
         }
     }
 
     /// Returns the fully qualified name of the Python module where the given Slice definition is forward declared.
     ///
     /// Forward declarations are generated only for classes and interfaces. The corresponding Python module name is
-    /// constructed by mapping the scoped name of the definition using dots (".") as separators, and appending "_iceF"
+    /// constructed by mapping the scoped name of the definition using dots (".") as separators, and appending "F"
     /// to the result.
     ///
-    /// For example, the forward declaration of the class `Bar::MyClass` is placed in the module `"Bar.MyClass_iceF"`.
+    /// For example, the forward declaration of the class `Bar::MyClass` is placed in the module `"Bar.MyClassF"`.
     ///
-    /// @param p The Slice definition to get the forward declaration module name for. Must represent a class or
-    /// interface.
+    /// @param p The Slice definition to get the forward declaration module name for. The definition must be a class or
+    /// interface type.
     /// @return The fully qualified Python module name for the forward declaration of the given class or interface.
     string getPythonModuleForForwardDeclaration(const SyntaxTreeBasePtr& p)
     {
@@ -97,10 +119,14 @@ namespace
         {
             auto contained = dynamic_pointer_cast<Contained>(p);
             assert(contained);
-            return contained->mappedScoped("_");
+            return getMappedPackage(contained, '_') + contained->mappedName();
         }
     }
 
+    /// Gets the name used for the meta-type of the given Slice definition. IcePy creates a meta-type for each Slice type.
+    /// The generated code uses this meta-types to call IcePy.
+    /// @param p The Slice definition to get the meta-type name for.
+    /// @return The name of the meta-type for the given Slice definition.
     string getMetaType(const SyntaxTreeBasePtr& p)
     {
         if (auto builtin = dynamic_pointer_cast<Builtin>(p))
@@ -124,7 +150,7 @@ namespace
         {
             auto contained = dynamic_pointer_cast<Contained>(p);
             assert(contained);
-            string s = "__" + contained->mappedScoped("_");
+            string s = "__" + getMappedPackage(contained, '_') + contained->mappedName();
             if (dynamic_pointer_cast<InterfaceDef>(contained) || dynamic_pointer_cast<InterfaceDecl>(contained))
             {
                 s += "Prx";
@@ -134,6 +160,7 @@ namespace
         }
     }
 
+    /// Represents a Python code fragment generated for a Slice definition.
     struct PythonCodeFragment
     {
         /// The Slice definition.
@@ -151,11 +178,13 @@ namespace
         Dispatch
     };
 
+    /// Represents the scope of an import statement—either required at runtime or only used for type hints.
     enum ImportScope
     {
-        // The imported type is used at runtime by the generated Python code.
+        /// The import is required at runtime by the generated Python code.
         RuntimeImport,
-        // The imported type is only used by Python type hints.
+
+        /// The import is only used for type hints and is not needed at runtime.
         TypingImport
     };
 
@@ -248,6 +277,10 @@ namespace
         }
     }
 
+    /// Returns a string representation of the return type hint for the given operation.
+    /// @param operation The Slice operation to get the return type hint for.
+    /// @param methodKind The kind of method being documented or generated (sync, async, or dispatch).
+    /// @return The string representation of the return type hint for the given operation.
     string returnTypeHint(const OperationPtr& operation, MethodKind methodKind)
     {
         auto source = dynamic_pointer_cast<Contained>(operation->container());
@@ -304,6 +337,7 @@ namespace
         return " -> " + returnTypeHint(operation, methodKind);
     }
 
+    /// Helper method to emit the generated code that format the fields of a type in __repr__ implementation.
     string formatFields(const DataMemberList& members)
     {
         if (members.empty())
@@ -348,10 +382,6 @@ namespace Slice::Python
     class CodeVisitor final : public ParserVisitor
     {
     public:
-        CodeVisitor();
-
-        bool visitModuleStart(const ModulePtr&) final;
-        void visitModuleEnd(const ModulePtr&) final;
         bool visitClassDefStart(const ClassDefPtr&) final;
         bool visitInterfaceDefStart(const InterfaceDefPtr&) final;
         bool visitExceptionStart(const ExceptionPtr&) final;
@@ -457,7 +487,7 @@ namespace Slice::Python
 }
 
 void
-Slice::Python::printHeader(IceInternal::Output& out)
+Slice::Python::writeHeader(IceInternal::Output& out)
 {
     out << "# Copyright (c) ZeroC, Inc.";
     out << sp;
@@ -807,6 +837,20 @@ Slice::Python::PackageVisitor::visitModuleStart(const ModulePtr& p)
 {
     // Add the __init__.py file to the list of generated modules.
     _packageIndexFiles.insert(p->mappedScoped(".") + "/__init__.py");
+
+    // Ensure all the parent packages has a __init__.py file. This is require to account for modules
+    // that are mapped to a nested package using python:identifier metadata.
+    string packageName = getMappedPackage(p);
+
+    vector<string> packageParts;
+    IceInternal::splitString(string_view{packageName}, ".", packageParts);
+    packageName = "";
+    for (const auto& part : packageParts)
+    {
+        packageName += part;
+        _packageIndexFiles.insert(packageName + "/__init__.py");
+        packageName += ".";
+    }
     return true;
 }
 
@@ -880,9 +924,26 @@ Slice::Python::PackageVisitor::importType(const ContainedPtr& definition, const 
     definitions.insert(definition->mappedName() + prefix);
 
     // Add the definition to the list of generated Python modules.
-    replace(packageName.begin(), packageName.end(), '.', '/');
-    _generatedModules.insert(packageName + moduleName + ".py");
+    string modulePath = packageName; 
+    replace(modulePath.begin(), modulePath.end(), '.', '/');
+    _generatedModules.insert(modulePath + moduleName + ".py");
+
+    // Ensure all parent packages exits, that is necessary to account for modules
+    // that are mapped to a nested package using python:identifier metadata.
+    vector<string> packageParts;
+    IceInternal::splitString(string_view{packageName}, ".", packageParts);
+    packageName = "";
+    for (const auto& part : packageParts)
+    {
+        packageName += part + ".";
+        if (_imports.find(packageName) == _imports.end())
+        {
+            // If the package does not exist, we create an empty map for it.
+            _imports[packageName] = {};
+        }
+    }
 }
+
 void
 Slice::Python::PackageVisitor::importMetaType(const ContainedPtr& definition)
 {
@@ -903,18 +964,6 @@ Slice::Python::PackageVisitor::importMetaType(const ContainedPtr& definition)
 }
 
 // CodeVisitor implementation.
-Slice::Python::CodeVisitor::CodeVisitor() {}
-
-bool
-Slice::Python::CodeVisitor::visitModuleStart(const ModulePtr&)
-{
-    return true;
-}
-
-void
-Slice::Python::CodeVisitor::visitModuleEnd(const ModulePtr&)
-{
-}
 
 void
 Slice::Python::CodeVisitor::writeOperations(const InterfaceDefPtr& p, Output& out)
@@ -2423,15 +2472,6 @@ Slice::Python::CodeVisitor::writeDocstring(const OperationPtr& op, MethodKind me
     out << nl << tripleQuotes;
 }
 
-string
-Slice::Python::getImportFileName(const string& file, const vector<string>& includePaths)
-{
-    // The file and includePaths arguments must be fully-qualified path names.
-    string name = changeInclude(file, includePaths);
-    replace(name.begin(), name.end(), '/', '_');
-    return name + "_ice";
-}
-
 namespace
 {
     Output& getModuleOutputFile(
@@ -2466,7 +2506,7 @@ namespace
 
         auto output = make_unique<Output>(outputPath.c_str());
         Output& out = *output;
-        Slice::Python::printHeader(out);
+        Slice::Python::writeHeader(out);
 
         out << sp;
         out << nl << "from __future__ import annotations";

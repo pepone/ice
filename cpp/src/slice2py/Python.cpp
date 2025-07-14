@@ -230,8 +230,7 @@ Slice::Python::compile(const vector<string>& argv)
         os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<dependencies>" << endl;
     }
 
-    map<string, map<string, set<string>>> packageImports;
-    PackageVisitor packageVisitor(packageImports);
+    PackageVisitor packageVisitor;
 
     for (const auto& fileName : args)
     {
@@ -338,54 +337,35 @@ Slice::Python::compile(const vector<string>& argv)
         {
             Output out{getPackageInitOutputFile(packageName, outputDir).c_str()};
             out << sp;
-            printHeader(out);
-            out << sp;
-            std::list<string> allDefinitions;
-            for (const auto& [moduleName, definitions] : imports)
+            writeHeader(out);
+            if (!imports.empty())
             {
-                for (const auto& name : definitions)
+                out << sp;
+                std::list<string> allDefinitions;
+                for (const auto& [moduleName, definitions] : imports)
                 {
-                    out << nl << "from ." << moduleName << " import " << name;
-                    allDefinitions.push_back(name);
+                    for (const auto& name : definitions)
+                    {
+                        out << nl << "from ." << moduleName << " import " << name;
+                        allDefinitions.push_back(name);
+                    }
                 }
-            }
-            out << nl;
+                out << nl;
 
-            out << sp;
-            out << nl << "__all__ = [";
-            out.inc();
-            for (auto it = allDefinitions.begin(); it != allDefinitions.end();)
-            {
-                out << nl << ("\"" + *it + "\"");
-                if (++it != allDefinitions.end())
+                out << sp;
+                out << nl << "__all__ = [";
+                out.inc();
+                for (auto it = allDefinitions.begin(); it != allDefinitions.end();)
                 {
-                    out << ",";
+                    out << nl << ("\"" + *it + "\"");
+                    if (++it != allDefinitions.end())
+                    {
+                        out << ",";
+                    }
                 }
-            }
-            out.dec();
-            out << nl << "]";
-            out << nl;
-        }
-
-        // Ensure all package directories have an __init__.py file.
-        for (const auto& [packageName, imports] : packageVisitor.imports())
-        {
-            vector<string> packageParts;
-            IceInternal::splitString(string_view{packageName}, ".", packageParts);
-            string packagePath = outputDir;
-            for (const auto& part : packageParts)
-            {
-                packagePath += "/" + part;
-
-                const string initFile = packagePath + "/__init__.py";
-                if (!IceInternal::fileExists(initFile))
-                {
-                    FileTracker::instance()->addDirectory(initFile);
-                    // Create an empty __init__.py file in the package directory.
-                    Output out{initFile.c_str()};
-                    printHeader(out);
-                    out << sp;
-                }
+                out.dec();
+                out << nl << "]";
+                out << nl;
             }
         }
     }
