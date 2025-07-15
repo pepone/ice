@@ -43,7 +43,7 @@ namespace
         interrupted = true;
     }
 
-    string getPackageInitOutputFile(const string& packageName, const string& outputDir)
+    string getPackageInitPath(const string& packageName, const string& outputDir)
     {
         // Create a new output file for this package.
         string fileName = packageName;
@@ -335,7 +335,7 @@ Slice::Python::compile(const vector<string>& argv)
         // Emit the package index files.
         for (const auto& [packageName, imports] : packageVisitor.imports())
         {
-            Output out{getPackageInitOutputFile(packageName, outputDir).c_str()};
+            Output out{getPackageInitPath(packageName, outputDir).c_str()};
             out << sp;
             writeHeader(out);
             if (!imports.empty())

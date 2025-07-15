@@ -47,16 +47,16 @@ namespace
         }
     }
 
-    /// Returns the fully qualified name of the Python module where the given Slice definition is mapped.
+    /// Returns the fully qualified name of the Python module that corresponds to the given Slice definition.
     ///
-    /// Each Slice module is mapped to a Python package of the same name. Within that package, each Slice definition
-    /// is mapped to a Python module with the same name.
+    /// Each Slice module is mapped to a Python package with the same name, but with "::" replaced by ".".
+    /// Within that package, each Slice definition is mapped to a Python module with the same name as the definition.
     ///
     /// For example:
-    /// - A definition named `Foo` in module `Bar` is placed in Python module`"Bar.Foo"`.
+    /// - A Slice definition named `Baz` in the module `::Bar::Foo` is mapped to the Python module `"Bar.Foo.Baz"`.
     ///
-    /// @param p The Slice definition to get the corresponding Python module name for.
-    /// @return The fully qualified Python module name for the mapped Slice definition.
+    /// @param p The Slice definition to map to a Python module.
+    /// @return The fully qualified Python module name corresponding to the Slice definition.
     string getPythonModuleForDefinition(const SyntaxTreeBasePtr& p)
     {
         if (auto builtin = dynamic_pointer_cast<Builtin>(p))
@@ -74,17 +74,15 @@ namespace
         }
     }
 
-    /// Returns the fully qualified name of the Python module where the given Slice definition is forward declared.
+    /// Returns the fully qualified name of the Python module where the given Slice definition is forward-declared.
     ///
-    /// Forward declarations are generated only for classes and interfaces. The corresponding Python module name is
-    /// constructed by mapping the scoped name of the definition using dots (".") as separators, and appending "F"
-    /// to the result.
+    /// Forward declarations are generated only for classes and interfaces. The corresponding Python module name
+    /// is the same as the definition module returned by `getPythonModuleForDefinition`, with an "F" appended to the end.
     ///
     /// For example, the forward declaration of the class `Bar::MyClass` is placed in the module `"Bar.MyClassF"`.
     ///
-    /// @param p The Slice definition to get the forward declaration module name for. The definition must be a class or
-    /// interface type.
-    /// @return The fully qualified Python module name for the forward declaration of the given class or interface.
+    /// @param p The Slice definition to get the forward declaration module name for. Must be a class or interface.
+    /// @return The fully qualified Python module name for the forward declaration.
     string getPythonModuleForForwardDeclaration(const SyntaxTreeBasePtr& p)
     {
         string declarationModule = getPythonModuleForDefinition(p);
@@ -124,7 +122,7 @@ namespace
     }
 
     /// Gets the name used for the meta-type of the given Slice definition. IcePy creates a meta-type for each Slice type.
-    /// The generated code uses this meta-types to call IcePy.
+    /// The generated code uses these meta-types to call IcePy.
     /// @param p The Slice definition to get the meta-type name for.
     /// @return The name of the meta-type for the given Slice definition.
     string getMetaType(const SyntaxTreeBasePtr& p)
@@ -332,6 +330,11 @@ namespace
         }
     }
 
+    /// Returns a string representation of the operation's return type hint. This is the same as `returnTypeHint`, but
+    /// with the " -> " prefix for use in function signatures.
+    /// @param operation The Slice operation to get the return type hint for.
+    /// @param methodKind The kind of method being documented or generated (sync, async, or dispatch).
+    /// @return The string representation of the operation's return type hint, prefixed with " -> ".
     string operationReturnTypeHint(const OperationPtr& operation, MethodKind methodKind)
     {
         return " -> " + returnTypeHint(operation, methodKind);
@@ -370,11 +373,14 @@ namespace Slice::Python
         std::ostringstream _outBuffer;
     };
 
+    /// A output class that writes to a stream, used by the CodeVisitor to write Python code fragments.
     class BufferedOutput final : public BufferedOutputBase, public Output
     {
     public:
         BufferedOutput() : Output(_outBuffer) {}
 
+        /// Returns the string representation of the buffered output.
+        /// @return the string containing the buffered output.
         string str() const { return _outBuffer.str(); }
     };
 
@@ -424,6 +430,8 @@ namespace Slice::Python
 
         void writeDocstring(const OperationPtr&, MethodKind, Output&);
 
+        // The list of generated Python code fragments in the current translation unit.
+        // Each fragment corresponds to a Slice definition and contains the generated code for that definition.
         vector<PythonCodeFragment> _codeFragments;
     };
 
@@ -527,7 +535,6 @@ Slice::Python::createPackagePath(const string& moduleName, const string& outputP
 bool
 Slice::Python::ImportVisitor::visitClassDefStart(const ClassDefPtr& p)
 {
-    importType("typing", {"TYPE_CHECKING", ""}, p, RuntimeImport);
     importType("Ice.Util", {"format_fields", ""}, p, RuntimeImport);
     // Import the meta type that is created in the Xxx_iceF module for forward declarations.
     importMetaType(p->declaration(), p);
@@ -775,6 +782,12 @@ Slice::Python::ImportVisitor::importType(
     auto& sourceModuleImports = imports[sourceModule];
     auto& definitionImports = sourceModuleImports[definitionModule];
     definitionImports.insert(names.begin(), names.end());
+
+    // If we are importing a type with the TypingImport scope, we also need to import TYPE_CHECKING from typing.
+    if (importScope == TypingImport)
+    {
+        importType("typing", {"TYPE_CHECKING", ""}, source, RuntimeImport);
+    }
 }
 
 void
@@ -836,21 +849,7 @@ bool
 Slice::Python::PackageVisitor::visitModuleStart(const ModulePtr& p)
 {
     // Add the __init__.py file to the list of generated modules.
-    _packageIndexFiles.insert(p->mappedScoped(".") + "/__init__.py");
-
-    // Ensure all the parent packages has a __init__.py file. This is require to account for modules
-    // that are mapped to a nested package using python:identifier metadata.
-    string packageName = getMappedPackage(p);
-
-    vector<string> packageParts;
-    IceInternal::splitString(string_view{packageName}, ".", packageParts);
-    packageName = "";
-    for (const auto& part : packageParts)
-    {
-        packageName += part;
-        _packageIndexFiles.insert(packageName + "/__init__.py");
-        packageName += ".";
-    }
+    _packageIndexFiles.insert(getMappedPackage(p) + "/__init__.py");
     return true;
 }
 
@@ -917,7 +916,7 @@ Slice::Python::PackageVisitor::visitConst(const ConstPtr& p)
 void
 Slice::Python::PackageVisitor::importType(const ContainedPtr& definition, const string& prefix)
 {
-    string packageName = definition->mappedScope(".");
+    string packageName = getMappedPackage(definition);
     string moduleName = definition->mappedName();
     auto& packageImports = _imports[packageName];
     auto& definitions = packageImports[moduleName];
@@ -940,6 +939,7 @@ Slice::Python::PackageVisitor::importType(const ContainedPtr& definition, const 
         {
             // If the package does not exist, we create an empty map for it.
             _imports[packageName] = {};
+            _packageIndexFiles.insert(packageName + "/__init__.py");
         }
     }
 }
@@ -947,11 +947,13 @@ Slice::Python::PackageVisitor::importType(const ContainedPtr& definition, const 
 void
 Slice::Python::PackageVisitor::importMetaType(const ContainedPtr& definition)
 {
-    string packageName = definition->mappedScope(".");
+    string packageName = getMappedPackage(definition);
     string moduleName = definition->mappedName();
+
+    // The meta type for Slice classes or interfaces is always imported from the XxxF module containing the forward
+    // declaration.
     if (dynamic_pointer_cast<ClassDecl>(definition) || dynamic_pointer_cast<InterfaceDecl>(definition))
     {
-        // For forward declarations, we use the XxxF module.
         moduleName += "F";
     }
     auto& packageImports = _imports[packageName];
@@ -1595,17 +1597,7 @@ Slice::Python::CodeVisitor::visitExceptionStart(const ExceptionPtr& p)
     const DataMemberList members = p->dataMembers();
 
     out << sp;
-    out << nl << "class " << name << '(';
-
-    if (base)
-    {
-        out << getImportAlias(base);
-    }
-    else
-    {
-        out << "Ice_UserException";
-    }
-    out << "):";
+    out << nl << "class " << name << '(' << (base ? getImportAlias(base) : "Ice_UserException") << "):";
     out.inc();
 
     writeDocstring(DocComment::parseFrom(p, pyLinkFormatter), members, out);
@@ -1615,28 +1607,18 @@ Slice::Python::CodeVisitor::visitExceptionStart(const ExceptionPtr& p)
     writeConstructorParams(p->allDataMembers(), out);
     out << "):";
     out.inc();
-    if (!base && members.empty())
-    {
-        out << nl << "pass";
-    }
-    else
-    {
-        if (base)
-        {
-            out << nl << "super().__init__";
-            out.spar("(");
-            for (const auto& member : base->allDataMembers())
-            {
-                out << member->mappedName();
-            }
-            out.epar(")");
-        }
 
-        for (const auto& member : members)
+    out << nl << "super().__init__";
+    out.spar("(");
+    if (base)
+    {
+        for (const auto& member : base->allDataMembers())
         {
-            writeAssign(member, out);
+            out << member->mappedName();
         }
     }
+    out.epar(")");
+
     out.dec();
 
     // Generate the __repr__ method for this Exception class.
@@ -2097,25 +2079,27 @@ Slice::Python::CodeVisitor::writeRemarksDocComment(const StringList& remarks, bo
 void
 Slice::Python::CodeVisitor::writeDocstring(const optional<DocComment>& comment, const string& prefix, Output& out)
 {
-    if (comment)
+    if (!comment)
     {
-        const StringList& overview = comment->overview();
-        const StringList& remarks = comment->remarks();
-        if (overview.empty() && remarks.empty())
-        {
-            return;
-        }
-
-        out << nl << prefix << tripleQuotes;
-        for (const auto& line : overview)
-        {
-            out << nl << line;
-        }
-
-        writeRemarksDocComment(remarks, !overview.empty(), out);
-
-        out << nl << tripleQuotes;
+        return;
     }
+
+    const StringList& overview = comment->overview();
+    const StringList& remarks = comment->remarks();
+    if (overview.empty() && remarks.empty())
+    {
+        return;
+    }
+
+    out << nl << prefix << tripleQuotes;
+    for (const auto& line : overview)
+    {
+        out << nl << line;
+    }
+
+    writeRemarksDocComment(remarks, !overview.empty(), out);
+
+    out << nl << tripleQuotes;
 }
 
 void
@@ -2258,9 +2242,14 @@ Slice::Python::CodeVisitor::writeDocstring(const optional<DocComment>& comment, 
 void
 Slice::Python::CodeVisitor::writeDocstring(const OperationPtr& op, MethodKind methodKind, Output& out)
 {
+    cerr << "write docstring for " << op->scoped() << endl;
+
+    cerr << " lines: " << op->docComment() << endl;
+
     optional<DocComment> comment = DocComment::parseFrom(op, pyLinkFormatter);
     if (!comment)
     {
+        cerr << "  No doc comment for operation " << op->scoped() << endl;
         return;
     }
 
@@ -2279,17 +2268,21 @@ Slice::Python::CodeVisitor::writeDocstring(const OperationPtr& op, MethodKind me
 
     if (overview.empty() && remarks.empty())
     {
+        cerr << "  overview and remarks are empty " << op->scoped() << endl;
         if ((methodKind == SyncInvocation || methodKind == Dispatch) && parametersDoc.empty() &&
             exceptionsDoc.empty() && returnsDoc.empty())
         {
+            cerr << "  1 " << op->scoped() << endl;
             return;
         }
         else if (methodKind == AsyncInvocation && inParams.empty())
         {
+            cerr << "  2 " << op->scoped() << endl;
             return;
         }
         else if (methodKind == Dispatch && inParams.empty() && exceptionsDoc.empty())
         {
+            cerr << "  3 " << op->scoped() << endl;
             return;
         }
     }
