@@ -243,7 +243,7 @@ Slice::Python::compile(const vector<string>& argv)
             return EXIT_FAILURE;
         }
 
-        UnitPtr unit = Unit::createUnit("python", false);
+        UnitPtr unit = Unit::createUnit("python", Slice::Python::pyLinkFormatter, false);
         int parseStatus = unit->parse(fileName, cppHandle, debug);
 
         if (parseStatus == EXIT_FAILURE)

@@ -1048,7 +1048,7 @@ Slice::Python::CodeVisitor::visitClassDefStart(const ClassDefPtr& p)
     out << nl << "class " << valueName << '(' << (base ? getImportAlias(base) : "Ice_Value") << "):";
     out.inc();
 
-    writeDocstring(DocComment::parseFrom(p, pyLinkFormatter), members, out);
+    writeDocstring(DocComment::parseFrom(p), members, out);
 
     // __init__
     out << nl << "def __init__(";
@@ -1600,7 +1600,7 @@ Slice::Python::CodeVisitor::visitExceptionStart(const ExceptionPtr& p)
     out << nl << "class " << name << '(' << (base ? getImportAlias(base) : "Ice_UserException") << "):";
     out.inc();
 
-    writeDocstring(DocComment::parseFrom(p, pyLinkFormatter), members, out);
+    writeDocstring(DocComment::parseFrom(p), members, out);
 
     // __init__
     out << nl << "def __init__(";
@@ -1721,7 +1721,7 @@ Slice::Python::CodeVisitor::visitStructStart(const StructPtr& p)
     out << nl << "class " << name << ":";
     out.inc();
 
-    writeDocstring(DocComment::parseFrom(p, pyLinkFormatter), members, out);
+    writeDocstring(DocComment::parseFrom(p), members, out);
 
     for (const auto& field : members)
     {
@@ -1847,7 +1847,7 @@ Slice::Python::CodeVisitor::visitEnum(const EnumPtr& p)
     out << nl << "class " << name << "(Enum):";
     out.inc();
 
-    writeDocstring(DocComment::parseFrom(p, pyLinkFormatter), p, out);
+    writeDocstring(DocComment::parseFrom(p), p, out);
 
     out << nl;
     for (const auto& enumerator : enumerators)
@@ -2117,7 +2117,7 @@ Slice::Python::CodeVisitor::writeDocstring(
     map<string, list<string>> docs;
     for (const auto& member : members)
     {
-        if (auto memberDoc = DocComment::parseFrom(member, pyLinkFormatter))
+        if (auto memberDoc = DocComment::parseFrom(member))
         {
             const StringList& memberOverview = memberDoc->overview();
             if (!memberOverview.empty())
@@ -2187,7 +2187,7 @@ Slice::Python::CodeVisitor::writeDocstring(const optional<DocComment>& comment, 
     map<string, list<string>> docs;
     for (const auto& enumerator : enumerators)
     {
-        if (auto enumeratorDoc = DocComment::parseFrom(enumerator, pyLinkFormatter))
+        if (auto enumeratorDoc = DocComment::parseFrom(enumerator))
         {
             const StringList& enumeratorOverview = enumeratorDoc->overview();
             if (!enumeratorOverview.empty())
@@ -2246,7 +2246,7 @@ Slice::Python::CodeVisitor::writeDocstring(const OperationPtr& op, MethodKind me
 
     cerr << " lines: " << op->docComment() << endl;
 
-    optional<DocComment> comment = DocComment::parseFrom(op, pyLinkFormatter);
+    optional<DocComment> comment = DocComment::parseFrom(op);
     if (!comment)
     {
         cerr << "  No doc comment for operation " << op->scoped() << endl;
