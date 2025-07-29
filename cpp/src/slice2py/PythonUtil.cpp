@@ -187,19 +187,6 @@ Slice::Python::CodeVisitor::typeToTypeHintString(
         }
     }
 
-    static constexpr string_view builtinTable[] = {
-        "int",
-        "bool",
-        "int",
-        "int",
-        "int",
-        "float",
-        "float",
-        "str",
-        "Ice.Value | None", // Builtin::KindObject not used anymore
-        "Ice.ObjectPrx | None",
-        "Ice.Value | None"};
-
     if (auto builtin = dynamic_pointer_cast<Builtin>(type))
     {
         if (builtin->kind() == Builtin::KindObjectProxy)
@@ -212,6 +199,7 @@ Slice::Python::CodeVisitor::typeToTypeHintString(
         }
         else
         {
+            static constexpr string_view builtinTable[] = {"int", "bool", "int", "int", "int", "float", "float", "str"};
             return string{builtinTable[builtin->kind()]};
         }
     }
@@ -235,18 +223,7 @@ Slice::Python::CodeVisitor::typeToTypeHintString(
         {
             ostringstream os;
             // Map Slice built-in numeric types to NumPy types.
-            static const char* numpyBuiltinTable[] = {
-                "numpy.int8",
-                "numpy.bool",
-                "numpy.int16",
-                "numpy.int32",
-                "numpy.int64",
-                "numpy.float32",
-                "numpy.float64",
-                "",
-                "",
-                "",
-                ""};
+            static const char* numpyBuiltinTable[] = {"int8", "bool", "int16", "int32", "int64", "float32", "float64"};
 
             auto elementType = dynamic_pointer_cast<Builtin>(seq->type());
             bool isByteSequence = elementType && elementType->kind() == Builtin::KindByte;
@@ -277,7 +254,7 @@ Slice::Python::CodeVisitor::typeToTypeHintString(
             else if (seq->hasMetadata("python:numpy.ndarray"))
             {
                 assert(elementType);
-                os << "numpy.typing.NDArray[" << numpyBuiltinTable[elementType->kind()] << "]";
+                os << "numpy.typing.NDArray[numpy." << numpyBuiltinTable[elementType->kind()] << "]";
             }
             else if (seq->hasMetadata("python:array.array"))
             {
@@ -859,10 +836,7 @@ Slice::Python::ImportVisitor::addTypingImport(
     {
         if (sequence->hasMetadata("python:numpy.ndarray"))
         {
-            // We need both numpy and numpy.typing imports to generate:
-            // numpy.typing.NDArray[numpy.int8]
             addTypingImport("numpy", source);
-            addTypingImport("numpy.typing", source);
         }
 
         if (forMarshaling)
@@ -965,7 +939,7 @@ Slice::Python::PackageVisitor::visitModuleStart(const ModulePtr& p)
             string currentPath = current;
             replace(currentPath.begin(), currentPath.end(), '.', '/');
             currentPath += "__init__.py";
-            _packageIndexFiles.insert(currentPath);
+            _generated[p->unit()->topLevelFile()].insert(currentPath);
         }
     }
     return true;
@@ -1043,7 +1017,8 @@ Slice::Python::PackageVisitor::addRuntimeImport(const ContainedPtr& definition, 
     // Add the definition to the list of generated Python modules.
     string modulePath = packageName;
     replace(modulePath.begin(), modulePath.end(), '.', '/');
-    _generatedModules.insert(modulePath + moduleName + ".py");
+
+    _generated[definition->unit()->topLevelFile()].insert(modulePath + moduleName + ".py");
 }
 
 void
@@ -1064,7 +1039,7 @@ Slice::Python::PackageVisitor::addRuntimeImportForMetaType(const ContainedPtr& d
 
     // Add the definition to the list of generated Python modules.
     replace(packageName.begin(), packageName.end(), '.', '/');
-    _generatedModules.insert(packageName + moduleName + ".py");
+    _generated[definition->unit()->topLevelFile()].insert(packageName + moduleName + ".py");
 }
 
 // CodeVisitor implementation.
@@ -2040,14 +2015,33 @@ Slice::Python::CodeVisitor::writeAssign(const ContainedPtr& source, const DataMe
         {
             auto elementType = dynamic_pointer_cast<Builtin>(seq->type());
             bool isByteSequence = elementType && elementType->kind() == Builtin::KindByte;
-            if (isByteSequence)
+            if (seq->hasMetadata("python:list"))
             {
-                out << "b''"; // Byte sequences are initialized with an empty byte string.
+                out << "list()";
+            }
+            else if (seq->hasMetadata("python:tuple"))
+            {
+                out << "tuple()";
+            }
+            else if (seq->hasMetadata("python:numpy.ndarray"))
+            {
+                assert(elementType);
+                static const char* builtinTable[] = {"bool", "int8", "int16", "int32", "int64", "float32", "float64"};
+                out << "numpy.empty(0, numpy." << builtinTable[elementType->kind()] << ")";
+            }
+            else if (seq->hasMetadata("python:array.array"))
+            {
+                assert(elementType);
+                static const char* builtinTable[] = {"b", "b", "h", "i", "q", "f", "d"};
+                out << "array.array('" << builtinTable[elementType->kind()] << "')";
+            }
+            else if (isByteSequence)
+            {
+                out << "b''";
             }
             else
             {
-                // TODO: handle metadata for sequences.
-                out << "[]"; // Other sequences are initialized with an empty list.
+                out << "list()";
             }
         }
         else if (dynamic_pointer_cast<Dictionary>(memberType))
