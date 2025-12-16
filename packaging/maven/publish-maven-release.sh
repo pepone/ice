@@ -28,6 +28,11 @@ cat > ~/.m2/settings.xml <<EOF
       <username>${MAVEN_USERNAME}</username>
       <password>${MAVEN_PASSWORD}</password>
     </server>
+    <server>
+      <id>gradlePluginPortal</id>
+      <username>${GRADLE_PUBLISH_KEY}</username>
+      <password>${GRADLE_PUBLISH_SECRET}</password>
+    </server>
   </servers>
 </settings>
 EOF
@@ -75,39 +80,45 @@ if [ "$CHANNEL" = "3.8" ]; then
 fi
 
 if [ "$CHANNEL" = "nightly" ]; then
-  echo "Publishing Slice Tools plugin"
-
-  mkdir -p plugin
-
-  plugin_staging_dir="${STAGING_DIR}/slice-tools-packages/com/zeroc/slice-tools"
-
-  cp "${plugin_staging_dir}/${ice_version}/"*.jar "plugin/slice-tools-${ice_version}.jar"
-  cp "${plugin_staging_dir}/${ice_version}/"*.pom "plugin/slice-tools-${ice_version}.pom"
-
-  plugin_jar="plugin/slice-tools-${ice_version}.jar"
-  plugin_pom="plugin/slice-tools-${ice_version}.pom"
-
-  mvn org.apache.maven.plugins:maven-gpg-plugin:3.2.4:sign-and-deploy-file \
-    -Dgpg.keyname="${GPG_KEY_ID}" \
-    -Dfile="${plugin_jar}" \
-    -DpomFile="${plugin_pom}" \
-    -Durl="${SOURCE_URL}" \
-    -DrepositoryId="${REPO_ID}" || { echo "Failed to publish plugin"; exit 1; }
-
-  cp "${plugin_staging_dir}/com.zeroc.slice-tools.gradle.plugin/${ice_version}/"*.pom \
-    "plugin/com.zeroc.slice-tools.gradle.plugin-${ice_version}.pom"
-
-  plugin_marker_pom="plugin/com.zeroc.slice-tools.gradle.plugin-${ice_version}.pom"
-
-  echo "Publishing plugin marker POM"
-
-  mvn org.apache.maven.plugins:maven-gpg-plugin:3.2.4:sign-and-deploy-file \
-    -Dgpg.keyname="${GPG_KEY_ID}" \
-    -Dfile="${plugin_marker_pom}" \
-    -Dpackaging=pom \
-    -DgroupId="com.zeroc.slice-tools" \
-    -DartifactId="com.zeroc.slice-tools.gradle.plugin" \
-    -Dversion="${ice_version}" \
-    -Durl="${SOURCE_URL}" \
-    -DrepositoryId="${REPO_ID}" || { echo "Failed to publish plugin marker"; exit 1; }
+  echo "Publishing Slice Tools plugin to ZeroC Nexus"
+  PLUGIN_REPO_URL="${SOURCE_URL}"
+  PLUGIN_REPO_ID="${REPO_ID}"
+else
+  echo "Publishing Slice Tools plugin to Gradle Plugin Portal"
+  PLUGIN_REPO_URL="https://plugins.gradle.org/m2/"
+  PLUGIN_REPO_ID="gradlePluginPortal"
 fi
+
+mkdir -p plugin
+
+plugin_staging_dir="${STAGING_DIR}/slice-tools-packages/com/zeroc/slice-tools"
+
+cp "${plugin_staging_dir}/${ice_version}/"*.jar "plugin/slice-tools-${ice_version}.jar"
+cp "${plugin_staging_dir}/${ice_version}/"*.pom "plugin/slice-tools-${ice_version}.pom"
+
+plugin_jar="plugin/slice-tools-${ice_version}.jar"
+plugin_pom="plugin/slice-tools-${ice_version}.pom"
+
+mvn org.apache.maven.plugins:maven-gpg-plugin:3.2.4:sign-and-deploy-file \
+  -Dgpg.keyname="${GPG_KEY_ID}" \
+  -Dfile="${plugin_jar}" \
+  -DpomFile="${plugin_pom}" \
+  -Durl="${PLUGIN_REPO_URL}" \
+  -DrepositoryId="${PLUGIN_REPO_ID}" || { echo "Failed to publish plugin"; exit 1; }
+
+cp "${plugin_staging_dir}/com.zeroc.slice-tools.gradle.plugin/${ice_version}/"*.pom \
+  "plugin/com.zeroc.slice-tools.gradle.plugin-${ice_version}.pom"
+
+plugin_marker_pom="plugin/com.zeroc.slice-tools.gradle.plugin-${ice_version}.pom"
+
+echo "Publishing plugin marker POM"
+
+mvn org.apache.maven.plugins:maven-gpg-plugin:3.2.4:sign-and-deploy-file \
+  -Dgpg.keyname="${GPG_KEY_ID}" \
+  -Dfile="${plugin_marker_pom}" \
+  -Dpackaging=pom \
+  -DgroupId="com.zeroc.slice-tools" \
+  -DartifactId="com.zeroc.slice-tools.gradle.plugin" \
+  -Dversion="${ice_version}" \
+  -Durl="${PLUGIN_REPO_URL}" \
+  -DrepositoryId="${PLUGIN_REPO_ID}" || { echo "Failed to publish plugin marker"; exit 1; }
