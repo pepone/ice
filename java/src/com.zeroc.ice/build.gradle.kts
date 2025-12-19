@@ -1,11 +1,17 @@
 // Copyright (c) ZeroC, Inc.
 
-val displayName by extra("Ice")
-val moduleName by extra("com.zeroc.ice")
-val projectDescription by extra(
-    "Ice is a comprehensive RPC framework that helps you build distributed applications" +
-        " with minimal effort using familiar object-oriented idioms"
-)
+plugins {
+    id("ice.library-conventions")
+}
+
+iceLibrary {
+    displayName.set("Ice")
+    moduleName.set("com.zeroc.ice")
+    projectDescription.set(
+        "Ice is a comprehensive RPC framework that helps you build distributed applications" +
+            " with minimal effort using familiar object-oriented idioms"
+    )
+}
 
 val topSrcDir: String by project.extra
 
@@ -18,5 +24,3 @@ sourceSets {
         }
     }
 }
-
-apply(from = "$topSrcDir/java/gradle/library.gradle.kts")

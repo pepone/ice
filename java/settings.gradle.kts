@@ -1,6 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
 pluginManagement {
+    includeBuild("./build-logic")
     includeBuild("./tools/slice-tools")
 }
 

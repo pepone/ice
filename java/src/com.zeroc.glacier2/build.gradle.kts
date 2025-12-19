@@ -1,8 +1,14 @@
 // Copyright (c) ZeroC, Inc.
 
-val displayName by extra("Glacier2")
-val moduleName by extra("com.zeroc.glacier2")
-val projectDescription by extra("Firewall traversal for Ice")
+plugins {
+    id("ice.library-conventions")
+}
+
+iceLibrary {
+    displayName.set("Glacier2")
+    moduleName.set("com.zeroc.glacier2")
+    projectDescription.set("Firewall traversal for Ice")
+}
 
 val topSrcDir: String by project.extra
 
@@ -18,5 +24,3 @@ sourceSets {
 dependencies {
     implementation(project(":ice"))
 }
-
-apply(from = "$topSrcDir/java/gradle/library.gradle.kts")

@@ -1,8 +1,14 @@
 // Copyright (c) ZeroC, Inc.
 
-val displayName by extra("IceBT")
-val moduleName by extra("com.zeroc.icebt")
-val projectDescription by extra("Bluetooth support for Ice")
+plugins {
+    id("ice.library-conventions")
+}
+
+iceLibrary {
+    displayName.set("IceBT")
+    moduleName.set("com.zeroc.icebt")
+    projectDescription.set("Bluetooth support for Ice")
+}
 
 val topSrcDir: String by project.extra
 
@@ -17,8 +23,6 @@ sourceSets {
 dependencies {
     implementation(project(":ice"))
 }
-
-apply(from = "$topSrcDir/java/gradle/library.gradle.kts")
 
 tasks.named<Jar>("jar") {
     //

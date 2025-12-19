@@ -117,8 +117,11 @@ cpp/test/Slice/errorDetection/tmp
 
 # iOS builds
 
-**/objs-*/
-**/build-*/
+cpp/**/objs-*/
+cpp/**/build-*/
+
+swift/**/objs-*/
+swift/**/build-*/
 
 .classpath
 .project

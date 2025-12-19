@@ -1,8 +1,14 @@
 // Copyright (c) ZeroC, Inc.
 
-val displayName by extra("IceGrid")
-val moduleName by extra("com.zeroc.icegrid")
-val projectDescription by extra("Locate, deploy, and manage Ice servers")
+plugins {
+    id("ice.library-conventions")
+}
+
+iceLibrary {
+    displayName.set("IceGrid")
+    moduleName.set("com.zeroc.icegrid")
+    projectDescription.set("Locate, deploy, and manage Ice servers")
+}
 
 val topSrcDir: String by project.extra
 
@@ -18,5 +24,3 @@ dependencies {
     implementation(project(":ice"))
     implementation(project(":glacier2"))
 }
-
-apply(from = "$topSrcDir/java/gradle/library.gradle.kts")

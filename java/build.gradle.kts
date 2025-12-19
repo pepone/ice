@@ -2,6 +2,9 @@
 
 plugins {
     id("com.zeroc.slice-tools") apply false
+    id("ice.java-conventions") apply false
+    id("ice.library-conventions") apply false
+    id("ice.application-conventions") apply false
     id("checkstyle")
     id("org.openrewrite.rewrite") version "7.19.0"
 }
@@ -16,21 +19,26 @@ allprojects {
     }
 }
 
+// Library modules using convention plugins
+val libraryModules = setOf("glacier2", "ice", "icebox", "icebt", "icediscovery", "icegrid", "icelocatordiscovery", "icestorm")
+
+// Application/test modules using legacy script plugins (will be migrated later)
+val applicationModules = setOf("IceGridGUI", "test", "testPlugins")
+
 subprojects {
     extra["topSrcDir"] = "${rootProject.projectDir}/.."
-
     version = iceVersion
     group = "com.zeroc"
 
+    // Skip legacy plugin application for modules using convention plugins
+    if (name in libraryModules) {
+        return@subprojects
+    }
+
+    // For application/test modules, apply legacy script plugins
     apply(plugin = "checkstyle")
     apply(plugin = "java")
     apply(plugin = "com.zeroc.slice-tools")
-    
-    // Apply maven-publish only to library projects, not test projects
-    if (name != "test" && name != "testPlugins") {
-        apply(plugin = "maven-publish")
-    }
-    
     apply(from = "${rootProject.projectDir}/gradle/ice.gradle.kts")
 
     repositories {
