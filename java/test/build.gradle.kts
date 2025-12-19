@@ -42,14 +42,12 @@ if (!gradle.startParameter.isOffline) {
 
 tasks.named<Jar>("jar") {
     archiveFileName.set("test.jar")
-    destinationDirectory.set(file("${rootProject.projectDir}/lib/"))
     manifest {
         attributes("Class-Path" to configurations.getByName("runtimeClasspath").resolve().joinToString(" ") { it.toURI().toString() })
     }
 }
 
 tasks.named<Delete>("clean") {
-    delete("${rootProject.projectDir}/lib/test.jar")
     listOf("src/main/java/test/IceGrid/simple/db").forEach {
         delete(fileTree(it))
     }

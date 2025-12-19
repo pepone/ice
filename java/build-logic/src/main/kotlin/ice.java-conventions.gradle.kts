@@ -13,11 +13,9 @@ plugins {
 
 val runningInCi = providers.environmentVariable("CI").isPresent
 val topSrcDir = "${rootProject.projectDir}/.."
-val libDir = "${rootProject.projectDir}/lib"
 
 // Store in extra properties for access by other scripts/plugins
 extra["topSrcDir"] = topSrcDir
-extra["libDir"] = libDir
 
 group = "com.zeroc"
 

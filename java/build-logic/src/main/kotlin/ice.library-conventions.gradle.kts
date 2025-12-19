@@ -27,7 +27,6 @@ plugins {
 }
 
 val iceVersion = rootProject.findProperty("iceVersion")?.toString() ?: project.version.toString()
-val libDir: String by project.extra
 
 // Create the extension for subprojects to configure
 val iceLibrary = extensions.create<IceLibraryExtension>("iceLibrary")
@@ -36,23 +35,6 @@ val iceLibrary = extensions.create<IceLibraryExtension>("iceLibrary")
 iceLibrary.displayName.convention(project.name.replaceFirstChar { it.uppercase() })
 iceLibrary.moduleName.convention("com.zeroc.${project.name}")
 iceLibrary.projectDescription.convention("Ice ${project.name} module")
-
-// Compute POM path
-val pomName = "$libDir/${project.name}-${project.version}.pom"
-extra["pomName"] = pomName
-
-// Configure jar output directories
-tasks.named<Jar>("jar") {
-    destinationDirectory.set(file(libDir))
-}
-
-tasks.named<Jar>("javadocJar") {
-    destinationDirectory.set(file(libDir))
-}
-
-tasks.named<Jar>("sourcesJar") {
-    destinationDirectory.set(file(libDir))
-}
 
 // Configure Javadoc - use afterEvaluate to ensure extension values are available
 afterEvaluate {
@@ -155,19 +137,11 @@ if (project.name == "icebox") {
 
 // Configure POM generation
 tasks.withType<GenerateMavenPom>().configureEach {
-    destination = file(pomName)
+    destination = layout.buildDirectory.file("publications/maven/pom-default.xml").get().asFile
 }
 
 // Configure assemble task dependencies
 tasks.named("assemble") {
     dependsOn(tasks.named("jar"), tasks.named("sourcesJar"), tasks.named("javadocJar"))
     dependsOn(tasks.named("generatePomFileForMavenPublication"))
-}
-
-// Configure clean task
-tasks.named<Delete>("clean") {
-    delete("$libDir/${project.name}-${project.version}.jar")
-    delete("$libDir/${project.name}-${project.version}-sources.jar")
-    delete("$libDir/${project.name}-${project.version}-javadoc.jar")
-    delete(pomName)
 }

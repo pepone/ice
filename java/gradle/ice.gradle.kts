@@ -44,5 +44,3 @@ tasks.withType<Checkstyle>().configureEach {
     outputs.upToDateWhen { false }
     doNotTrackState("Always run Checkstyle")
 }
-
-val libDir by project.extra { "${rootProject.projectDir}/lib" }

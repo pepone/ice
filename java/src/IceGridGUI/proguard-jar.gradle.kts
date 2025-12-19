@@ -10,7 +10,6 @@ buildscript {
     }
 }
 
-val libDir: String by project.extra
 val tmpJarName: String by project.extra
 val jarName: String by project.extra
 val libJars: MutableList<String> by project.extra
@@ -40,7 +39,7 @@ tasks.register<proguard.gradle.ProGuardTask>("proguardJar") {
     filterMap["filter"] = "!META-INF/**"
     injars(filterMap, configurations.getByName("runtimeClasspath"))
     injars(file("$projectDir/build/libs/$tmpJarName"))
-    outjars(file("$libDir/$jarName"))
+    outjars(layout.buildDirectory.file("libs/$jarName"))
     libraryjars(libJars)
     configuration("icegridgui.pro")
 }

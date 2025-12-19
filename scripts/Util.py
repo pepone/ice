@@ -3560,7 +3560,7 @@ class JavaMapping(Mapping):
         }[plugin]
 
     def getEnv(self, process, current):
-        return {"CLASSPATH": os.path.join(self.path, "lib", "test.jar")}
+        return {"CLASSPATH": os.path.join(self.path, "test", "build", "libs", "test.jar")}
 
     def _getDefaultSource(self, processType):
         return {

@@ -6,7 +6,6 @@ val projectDescription by extra("")
 val jgoodiesLooksVersion: String by rootProject.extra
 val jgoodiesFormsVersion: String by rootProject.extra
 val openjfxVersion: String by rootProject.extra
-val libDir: String by project.extra
 
 val os: String = System.getProperty("os.name")
 val platform: String = when {
@@ -57,8 +56,3 @@ tasks.named<Jar>("jar") {
 val libJars by extra { mutableListOf<String>() }
 
 apply(from = "proguard-jar.gradle.kts")
-
-tasks.named<Delete>("clean") {
-    delete("$libDir/$jarName")
-    delete("$libDir/IceGrid GUI.app")
-}

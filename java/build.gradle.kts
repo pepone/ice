@@ -80,22 +80,6 @@ tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
 }
 
-val dist by tasks.registering {
-    dependsOn(project(":ice").tasks.named("assemble"))
-    dependsOn(project(":glacier2").tasks.named("assemble"))
-    dependsOn(project(":icegrid").tasks.named("assemble"))
-    dependsOn(project(":icebox").tasks.named("assemble"))
-    dependsOn(project(":icebt").tasks.named("assemble"))
-    dependsOn(project(":icediscovery").tasks.named("assemble"))
-    dependsOn(project(":icelocatordiscovery").tasks.named("assemble"))
-    dependsOn(project(":icestorm").tasks.named("assemble"))
-    dependsOn(project(":IceGridGUI").tasks.named("assemble"))
-}
-
-project(":test").tasks.named("compileJava") {
-    dependsOn(dist)
-}
-
 val exportedProjects = listOf(
     ":glacier2",
     ":ice",
