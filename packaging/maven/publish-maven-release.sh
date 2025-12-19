@@ -81,15 +81,23 @@ if [ "$CHANNEL" = "nightly" ]; then
 
   plugin_staging_dir="${STAGING_DIR}/slice-tools-packages/com/zeroc/slice-tools"
 
-  cp "${plugin_staging_dir}/${ice_version}/"*.jar "plugin/slice-tools-${ice_version}.jar"
-  cp "${plugin_staging_dir}/${ice_version}/"*.pom "plugin/slice-tools-${ice_version}.pom"
+  # For SNAPSHOT versions, Maven replaces -SNAPSHOT with a timestamp in the filename
+  # Use globs to find the actual files
+  cp "${plugin_staging_dir}/${ice_version}/"slice-tools-*[0-9].jar "plugin/slice-tools-${ice_version}.jar"
+  cp "${plugin_staging_dir}/${ice_version}/"slice-tools-*-javadoc.jar "plugin/slice-tools-${ice_version}-javadoc.jar"
+  cp "${plugin_staging_dir}/${ice_version}/"slice-tools-*-sources.jar "plugin/slice-tools-${ice_version}-sources.jar"
+  cp "${plugin_staging_dir}/${ice_version}/"slice-tools-*.pom "plugin/slice-tools-${ice_version}.pom"
 
   plugin_jar="plugin/slice-tools-${ice_version}.jar"
+  plugin_javadoc_jar="plugin/slice-tools-${ice_version}-javadoc.jar"
+  plugin_sources_jar="plugin/slice-tools-${ice_version}-sources.jar"
   plugin_pom="plugin/slice-tools-${ice_version}.pom"
 
   mvn org.apache.maven.plugins:maven-gpg-plugin:3.2.4:sign-and-deploy-file \
     -Dgpg.keyname="${GPG_KEY_ID}" \
     -Dfile="${plugin_jar}" \
+    -Djavadoc="${plugin_javadoc_jar}" \
+    -Dsources="${plugin_sources_jar}" \
     -DpomFile="${plugin_pom}" \
     -Durl="${SOURCE_URL}" \
     -DrepositoryId="${REPO_ID}" || { echo "Failed to publish plugin"; exit 1; }
