@@ -11,36 +11,28 @@ dependencyResolutionManagement {
     }
 }
 
-// Source projects
-include(":ice")
-project(":ice").projectDir = file("src/com.zeroc.ice")
+// Library projects
+val libraryProjects = listOf(
+    "ice",
+    "icediscovery",
+    "icelocatordiscovery",
+    "icebt",
+    "icebox",
+    "glacier2",
+    "icestorm",
+    "icegrid"
+)
 
-include(":icediscovery")
-project(":icediscovery").projectDir = file("src/com.zeroc.icediscovery")
+libraryProjects.forEach {
+    include(":$it")
+    project(":$it").projectDir = file("src/com.zeroc.$it")
+}
 
-include(":icelocatordiscovery")
-project(":icelocatordiscovery").projectDir = file("src/com.zeroc.icelocatordiscovery")
-
-include(":icebt")
-project(":icebt").projectDir = file("src/com.zeroc.icebt")
-
-include(":icebox")
-project(":icebox").projectDir = file("src/com.zeroc.icebox")
-
-include(":glacier2")
-project(":glacier2").projectDir = file("src/com.zeroc.glacier2")
-
-include(":icestorm")
-project(":icestorm").projectDir = file("src/com.zeroc.icestorm")
-
-include(":icegrid")
-project(":icegrid").projectDir = file("src/com.zeroc.icegrid")
-
+// Application projects
 include(":IceGridGUI")
 project(":IceGridGUI").projectDir = file("src/IceGridGUI")
 
 // Tests
 include(":test")
-
 include(":testPlugins")
 project(":testPlugins").projectDir = file("test/plugins")

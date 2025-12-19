@@ -19,6 +19,7 @@
  */
 
 import com.zeroc.ice.gradle.IceLibraryExtension
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 
 plugins {
     id("ice.java-conventions")
@@ -36,81 +37,85 @@ iceLibrary.displayName.convention(project.name.replaceFirstChar { it.uppercase()
 iceLibrary.moduleName.convention("com.zeroc.${project.name}")
 iceLibrary.projectDescription.convention("Ice ${project.name} module")
 
-// Configure Javadoc - use afterEvaluate to ensure extension values are available
-afterEvaluate {
-    val displayName = iceLibrary.displayName.get()
-    val moduleName = iceLibrary.moduleName.get()
+// Export extension properties for cross-project Javadoc linking
+extra["iceLibraryDisplayName"] = iceLibrary.displayName
+extra["iceLibraryModuleName"] = iceLibrary.moduleName
 
-    // Export these as extra properties for cross-project Javadoc linking
-    extra["displayName"] = displayName
-    extra["moduleName"] = moduleName
+// Configure Javadoc with lazy configuration
+val javadoc by tasks.existing(Javadoc::class) {
+    dependsOn(tasks.named("compileSlice"))
+    source(sourceSets["main"].allJava)
+    destinationDirectory.set(layout.buildDirectory.dir("docs/javadoc"))
+    isFailOnError = true
+    (options as StandardJavadocDocletOptions).apply {
+        addStringOption("Xdoclint:none", "-quiet")
+        addBooleanOption("html5", true)
+        header = iceLibrary.displayName.get()
+        docTitle = "${iceLibrary.displayName.get()} $iceVersion API Reference"
+    }
 
-    val compileSlice = tasks.named("compileSlice")
-    val sourceSets = extensions.getByType<SourceSetContainer>()
-
-    tasks.named<Javadoc>("javadoc") {
-        dependsOn(compileSlice)
-        source = sourceSets["main"].allJava
-        doFirst {
-            (options as StandardJavadocDocletOptions).addStringOption("Xdoclint:none", "-quiet")
-        }
-        isFailOnError = true
-        (options as StandardJavadocDocletOptions).apply {
-            header = displayName
-            addBooleanOption("html5", true)
-            docTitle = "$displayName $iceVersion API Reference"
-        }
-        destinationDir = file("${layout.buildDirectory.get()}/docs/javadoc")
-
-        configurations.getByName("compileClasspath").resolvedConfiguration.resolvedArtifacts.forEach { artifact ->
-            if (artifact.moduleVersion.id.group == "com.zeroc") {
-                val artifactProject = project(":${artifact.name}")
-
-                // Add dependency on the Javadoc task of the artifact project
-                dependsOn(artifactProject.tasks.named("javadoc"))
-
-                val artifactDisplayName = artifactProject.extra["displayName"] as String
-                val artifactModuleName = artifactProject.extra["moduleName"] as String
+    // Use doFirst to lazily resolve dependencies and add linksOffline
+    doFirst {
+        configurations.getByName("compileClasspath").incoming.artifacts.artifacts.forEach { artifact ->
+            val componentId = artifact.id.componentIdentifier
+            if (componentId is ProjectComponentIdentifier) {
+                val artifactProject = project(componentId.projectPath)
+                val artifactDisplayName = (artifactProject.extra["iceLibraryDisplayName"] as Provider<String>).get()
+                val artifactModuleName = (artifactProject.extra["iceLibraryModuleName"] as Provider<String>).get()
 
                 (options as StandardJavadocDocletOptions).linksOffline(
                     "https://code.zeroc.com/ice/main/api/java/$artifactDisplayName/",
-                    "${rootProject.projectDir}/src/$artifactModuleName/build/docs/javadoc"
+                    rootProject.projectDir.resolve("src/$artifactModuleName/build/docs/javadoc").absolutePath
                 )
             }
         }
     }
+}
 
-    // Configure Maven publishing
-    configure<PublishingExtension> {
-        publications {
-            create<MavenPublication>("maven") {
-                groupId = "com.zeroc"
-                artifactId = project.name
-                version = project.version.toString()
+// Ensure javadoc depends on dependency project javadocs
+afterEvaluate {
+    configurations.getByName("compileClasspath").incoming.afterResolve {
+        artifacts.artifacts.forEach { artifact ->
+            val componentId = artifact.id.componentIdentifier
+            if (componentId is ProjectComponentIdentifier) {
+                tasks.named("javadoc") {
+                    dependsOn(project(componentId.projectPath).tasks.named("javadoc"))
+                }
+            }
+        }
+    }
+}
 
-                from(components["java"])
-                pom {
-                    name.set(displayName)
-                    description.set(iceLibrary.projectDescription.get())
-                    url.set("https://zeroc.com")
-                    licenses {
-                        license {
-                            name.set("GNU General Public License, version 2")
-                            url.set("https://www.gnu.org/licenses/gpl-2.0.html")
-                        }
+// Configure Maven publishing
+configure<PublishingExtension> {
+    publications {
+        create<MavenPublication>("maven") {
+            groupId = "com.zeroc"
+            artifactId = project.name
+            version = project.version.toString()
+
+            from(components["java"])
+            pom {
+                name.set(iceLibrary.displayName)
+                description.set(iceLibrary.projectDescription)
+                url.set("https://zeroc.com")
+                licenses {
+                    license {
+                        name.set("GNU General Public License, version 2")
+                        url.set("https://www.gnu.org/licenses/gpl-2.0.html")
                     }
-                    developers {
-                        developer {
-                            name.set("ZeroC Developers")
-                            email.set("info@zeroc.com")
-                            organization.set("ZeroC, Inc.")
-                            organizationUrl.set("https://zeroc.com")
-                        }
+                }
+                developers {
+                    developer {
+                        name.set("ZeroC Developers")
+                        email.set("info@zeroc.com")
+                        organization.set("ZeroC, Inc.")
+                        organizationUrl.set("https://zeroc.com")
                     }
-                    scm {
-                        connection.set("scm:git:git://github.com:zeroc-ice/ice.git")
-                        url.set("https://github.com:zeroc-ice/ice")
-                    }
+                }
+                scm {
+                    connection.set("scm:git:git://github.com:zeroc-ice/ice.git")
+                    url.set("https://github.com:zeroc-ice/ice")
                 }
             }
         }

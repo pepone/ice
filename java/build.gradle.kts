@@ -32,7 +32,7 @@ tasks.register<Javadoc>("alljavadoc") {
     // Add the source files from all subprojects
     source(exportedProjects.map { project(it).the<SourceSetContainer>()["main"].allJava })
     // Output directory for the aggregated Javadocs
-    destinationDir = file("${layout.buildDirectory.get()}/docs/javadoc")
+    destinationDirectory.set(layout.buildDirectory.dir("docs/javadoc"))
     options.encoding = "UTF-8"
     // Where to find source files for the different modules
     (options as StandardJavadocDocletOptions).apply {
@@ -55,7 +55,7 @@ tasks.register<Javadoc>("alljavadoc") {
 }
 
 tasks.named("alljavadoc") {
-    dependsOn(exportedProjects.map { project(it).tasks.named("assemble") })
+    dependsOn(exportedProjects.map { project(it).tasks.named("javadoc") })
 }
 
 configure<CheckstyleExtension> {
