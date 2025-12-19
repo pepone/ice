@@ -1,0 +1,25 @@
+# Copyright (c) ZeroC, Inc.
+
+[versions]
+checkstyle = "10.21.4"
+rewrite = "7.19.0"
+rewrite-static-analysis = "2.19.0"
+rewrite-java-dependencies = "1.43.0"
+jgoodies-looks = "2.7.0"
+jgoodies-forms = "1.9.0"
+openjfx = "11.0.2"
+proguard = "7.6.0"
+
+[libraries]
+jgoodies-looks = { module = "com.jgoodies:jgoodies-looks", version.ref = "jgoodies-looks" }
+jgoodies-forms = { module = "com.jgoodies:jgoodies-forms", version.ref = "jgoodies-forms" }
+javafx-base = { module = "org.openjfx:javafx-base", version.ref = "openjfx" }
+javafx-swing = { module = "org.openjfx:javafx-swing", version.ref = "openjfx" }
+javafx-controls = { module = "org.openjfx:javafx-controls", version.ref = "openjfx" }
+javafx-graphics = { module = "org.openjfx:javafx-graphics", version.ref = "openjfx" }
+rewrite-static-analysis = { module = "org.openrewrite.recipe:rewrite-static-analysis", version.ref = "rewrite-static-analysis" }
+rewrite-java-dependencies = { module = "org.openrewrite.recipe:rewrite-java-dependencies", version.ref = "rewrite-java-dependencies" }
+proguard-gradle = { module = "com.guardsquare:proguard-gradle", version.ref = "proguard" }
+
+[plugins]
+rewrite = { id = "org.openrewrite.rewrite", version.ref = "rewrite" }

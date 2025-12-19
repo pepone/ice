@@ -35,7 +35,7 @@ extensions.configure<com.zeroc.slice.tools.SliceExtension> {
 
 // Configure Checkstyle
 checkstyle {
-    toolVersion = "10.21.4"
+    toolVersion = libs.versions.checkstyle.get()
 
     // If we're running in CI, we want the build to fail if any warnings are emitted.
     if (runningInCi) {

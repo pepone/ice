@@ -1,36 +1,22 @@
 // Copyright (c) ZeroC, Inc.
 
 plugins {
+    base
     id("com.zeroc.slice-tools") apply false
     id("ice.java-conventions") apply false
     id("ice.library-conventions") apply false
     id("ice.application-conventions") apply false
     id("checkstyle")
-    id("org.openrewrite.rewrite") version "7.19.0"
+    alias(libs.plugins.rewrite)
 }
 
 val iceVersion: String by project
 val targetJavaRelease: String by project
 val debug: String by project
 
-allprojects {
-    repositories {
-        mavenCentral()
-    }
-}
-
 subprojects {
     version = iceVersion
     group = "com.zeroc"
-}
-
-tasks.withType<JavaCompile>().configureEach {
-    options.release.set(targetJavaRelease.toInt())
-    options.isDebug = debug.toBoolean()
-}
-
-tasks.register<Delete>("clean") {
-    delete(rootProject.layout.buildDirectory)
 }
 
 val exportedProjects = listOf(
@@ -73,7 +59,7 @@ tasks.named("alljavadoc") {
 }
 
 configure<CheckstyleExtension> {
-    toolVersion = "10.21.4"
+    toolVersion = libs.versions.checkstyle.get()
     isIgnoreFailures = false
     isShowViolations = true
 }
@@ -102,8 +88,8 @@ configure<org.openrewrite.gradle.RewriteExtension> {
 }
 
 dependencies {
-    "rewrite"("org.openrewrite.recipe:rewrite-static-analysis:2.19.0")
-    "rewrite"("org.openrewrite.recipe:rewrite-java-dependencies:1.43.0")
+    "rewrite"(libs.rewrite.static.analysis)
+    "rewrite"(libs.rewrite.java.dependencies)
 }
 
 tasks.named("rewriteDryRun") {

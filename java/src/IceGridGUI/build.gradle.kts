@@ -7,10 +7,6 @@ plugins {
 val displayName by extra("IceGridGUI")
 val projectDescription by extra("")
 
-val jgoodiesLooksVersion: String by rootProject.extra
-val jgoodiesFormsVersion: String by rootProject.extra
-val openjfxVersion: String by rootProject.extra
-
 val os: String = System.getProperty("os.name")
 val platform: String = when {
     os == "Mac OS X" -> "mac"
@@ -29,19 +25,19 @@ tasks.withType<JavaCompile> {
 }
 
 dependencies {
-    "implementation"(project(":ice"))
-    "implementation"(project(":icelocatordiscovery"))
-    "implementation"(project(":icebox"))
-    "implementation"(project(":icestorm"))
-    "implementation"(project(":glacier2"))
-    "implementation"(project(":icegrid"))
-    "implementation"("com.jgoodies:jgoodies-looks:$jgoodiesLooksVersion")
-    "implementation"("com.jgoodies:jgoodies-forms:$jgoodiesFormsVersion")
+    implementation(project(":ice"))
+    implementation(project(":icelocatordiscovery"))
+    implementation(project(":icebox"))
+    implementation(project(":icestorm"))
+    implementation(project(":glacier2"))
+    implementation(project(":icegrid"))
+    implementation(libs.jgoodies.looks)
+    implementation(libs.jgoodies.forms)
 
-    "implementation"("org.openjfx:javafx-base:$openjfxVersion:$platform")
-    "implementation"("org.openjfx:javafx-swing:$openjfxVersion:$platform")
-    "implementation"("org.openjfx:javafx-controls:$openjfxVersion:$platform")
-    "implementation"("org.openjfx:javafx-graphics:$openjfxVersion:$platform")
+    implementation(variantOf(libs.javafx.base) { classifier(platform) })
+    implementation(variantOf(libs.javafx.swing) { classifier(platform) })
+    implementation(variantOf(libs.javafx.controls) { classifier(platform) })
+    implementation(variantOf(libs.javafx.graphics) { classifier(platform) })
 }
 
 val tmpJarName by extra("IceGridGUITEMP.jar")

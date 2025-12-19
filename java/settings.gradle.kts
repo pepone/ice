@@ -5,6 +5,12 @@ pluginManagement {
     includeBuild("./tools/slice-tools")
 }
 
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+    }
+}
+
 // Source projects
 include(":ice")
 project(":ice").projectDir = file("src/com.zeroc.ice")

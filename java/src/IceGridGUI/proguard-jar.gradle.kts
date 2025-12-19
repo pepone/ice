@@ -1,5 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
+// Note: buildscript blocks cannot access version catalogs, so version is hardcoded here
 buildscript {
     repositories {
         mavenCentral()
