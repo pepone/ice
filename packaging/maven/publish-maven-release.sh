@@ -82,11 +82,15 @@ if [ "$CHANNEL" = "nightly" ]; then
   plugin_staging_dir="${STAGING_DIR}/slice-tools-packages/com/zeroc/slice-tools"
 
   # For SNAPSHOT versions, Maven replaces -SNAPSHOT with a timestamp in the filename
-  # Use globs to find the actual files
-  cp "${plugin_staging_dir}/${ice_version}/"slice-tools-*[0-9].jar "plugin/slice-tools-${ice_version}.jar"
-  cp "${plugin_staging_dir}/${ice_version}/"slice-tools-*-javadoc.jar "plugin/slice-tools-${ice_version}-javadoc.jar"
-  cp "${plugin_staging_dir}/${ice_version}/"slice-tools-*-sources.jar "plugin/slice-tools-${ice_version}-sources.jar"
-  cp "${plugin_staging_dir}/${ice_version}/"slice-tools-*.pom "plugin/slice-tools-${ice_version}.pom"
+  # Use find to locate each file type (globs match multiple files with similar endings)
+  cp "$(find "${plugin_staging_dir}/${ice_version}/" -name "slice-tools-*.jar" ! -name "*-javadoc.jar" ! -name "*-sources.jar" | head -1)" \
+    "plugin/slice-tools-${ice_version}.jar"
+  cp "$(find "${plugin_staging_dir}/${ice_version}/" -name "slice-tools-*-javadoc.jar" | head -1)" \
+    "plugin/slice-tools-${ice_version}-javadoc.jar"
+  cp "$(find "${plugin_staging_dir}/${ice_version}/" -name "slice-tools-*-sources.jar" | head -1)" \
+    "plugin/slice-tools-${ice_version}-sources.jar"
+  cp "$(find "${plugin_staging_dir}/${ice_version}/" -name "slice-tools-*.pom" | head -1)" \
+    "plugin/slice-tools-${ice_version}.pom"
 
   plugin_jar="plugin/slice-tools-${ice_version}.jar"
   plugin_javadoc_jar="plugin/slice-tools-${ice_version}-javadoc.jar"
