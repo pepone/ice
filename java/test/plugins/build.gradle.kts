@@ -1,5 +1,9 @@
 // Copyright (c) ZeroC, Inc.
 
+plugins {
+    id("ice.application-conventions")
+}
+
 // Don't generate javadoc
 tasks.named<Javadoc>("javadoc") {
     isEnabled = false
@@ -11,9 +15,4 @@ dependencies {
 
 tasks.named<Jar>("jar") {
     archiveFileName.set("IceTestPlugins.jar")
-    destinationDirectory.set(file("${rootProject.projectDir}/lib/"))
-}
-
-tasks.named<Delete>("clean") {
-    delete("${rootProject.projectDir}/lib/IceTestPlugins.jar")
 }

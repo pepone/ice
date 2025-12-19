@@ -1,5 +1,9 @@
 // Copyright (c) ZeroC, Inc.
 
+plugins {
+    id("ice.application-conventions")
+}
+
 val testDir = "${projectDir}/src/main/java/test"
 
 // Don't generate javadoc

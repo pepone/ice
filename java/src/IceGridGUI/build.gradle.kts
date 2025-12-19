@@ -1,5 +1,9 @@
 // Copyright (c) ZeroC, Inc.
 
+plugins {
+    id("ice.application-conventions")
+}
+
 val displayName by extra("IceGridGUI")
 val projectDescription by extra("")
 

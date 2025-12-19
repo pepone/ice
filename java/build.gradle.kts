@@ -19,56 +19,9 @@ allprojects {
     }
 }
 
-// Library modules using convention plugins
-val libraryModules = setOf("glacier2", "ice", "icebox", "icebt", "icediscovery", "icegrid", "icelocatordiscovery", "icestorm")
-
-// Application/test modules using legacy script plugins (will be migrated later)
-val applicationModules = setOf("IceGridGUI", "test", "testPlugins")
-
 subprojects {
-    extra["topSrcDir"] = "${rootProject.projectDir}/.."
     version = iceVersion
     group = "com.zeroc"
-
-    // Skip legacy plugin application for modules using convention plugins
-    if (name in libraryModules) {
-        return@subprojects
-    }
-
-    // For application/test modules, apply legacy script plugins
-    apply(plugin = "checkstyle")
-    apply(plugin = "java")
-    apply(plugin = "com.zeroc.slice-tools")
-    apply(from = "${rootProject.projectDir}/gradle/ice.gradle.kts")
-
-    repositories {
-        mavenCentral()
-    }
-
-    configure<JavaPluginExtension> {
-        toolchain {
-            languageVersion.set(JavaLanguageVersion.of(targetJavaRelease))
-        }
-        withSourcesJar()
-        withJavadocJar()
-    }
-
-    tasks.withType<Jar> {
-        manifest {
-            attributes("Built-By" to "ZeroC, Inc.")
-        }
-    }
-
-    tasks.withType<JavaCompile> {
-        options.compilerArgs.addAll(
-            listOf(
-                "-Xdoclint:all,-missing",
-                "-Xlint:all,-rawtypes,-exports,-serial,-try,-missing-explicit-ctor,-deprecation"
-            )
-        )
-        options.encoding = "UTF-8"
-        options.isDeprecation = true
-    }
 }
 
 tasks.withType<JavaCompile>().configureEach {
