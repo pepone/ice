@@ -34,8 +34,9 @@ extensions.configure<com.zeroc.slice.tools.SliceExtension> {
 }
 
 // Configure Checkstyle
+// Note: Version catalog is not accessible in precompiled script plugins, so version is hardcoded
 checkstyle {
-    toolVersion = libs.versions.checkstyle.get()
+    toolVersion = "10.21.4"
 
     // If we're running in CI, we want the build to fail if any warnings are emitted.
     if (runningInCi) {

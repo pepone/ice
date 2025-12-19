@@ -32,7 +32,7 @@ tasks.register<Javadoc>("alljavadoc") {
     // Add the source files from all subprojects
     source(exportedProjects.map { project(it).the<SourceSetContainer>()["main"].allJava })
     // Output directory for the aggregated Javadocs
-    destinationDirectory.set(layout.buildDirectory.dir("docs/javadoc"))
+    setDestinationDir(layout.buildDirectory.dir("docs/javadoc").get().asFile)
     options.encoding = "UTF-8"
     // Where to find source files for the different modules
     (options as StandardJavadocDocletOptions).apply {

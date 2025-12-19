@@ -3,6 +3,10 @@
 pluginManagement {
     includeBuild("./build-logic")
     includeBuild("./tools/slice-tools")
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
 }
 
 dependencyResolutionManagement {

@@ -42,10 +42,10 @@ extra["iceLibraryDisplayName"] = iceLibrary.displayName
 extra["iceLibraryModuleName"] = iceLibrary.moduleName
 
 // Configure Javadoc with lazy configuration
-val javadoc by tasks.existing(Javadoc::class) {
+tasks.named<Javadoc>("javadoc") {
     dependsOn(tasks.named("compileSlice"))
     source(sourceSets["main"].allJava)
-    destinationDirectory.set(layout.buildDirectory.dir("docs/javadoc"))
+    setDestinationDir(layout.buildDirectory.dir("docs/javadoc").get().asFile)
     isFailOnError = true
     (options as StandardJavadocDocletOptions).apply {
         addStringOption("Xdoclint:none", "-quiet")
