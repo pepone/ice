@@ -240,11 +240,6 @@ jobs:
         shell: bash
         if: (runner.os == 'macOS') && (matrix.config == 'ios')
 
-      - name: Setup Cache
-        uses: ./.github/actions/setup-cache
-        with:
-          prefix: ci-${{ matrix.config }}
-
       # See https://learn.microsoft.com/en-us/windows/win32/wer/collecting-user-mode-dumps
       - name: Enable Windows crash dumps
         run: |
