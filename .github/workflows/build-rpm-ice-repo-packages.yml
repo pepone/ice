@@ -1,25 +1,20 @@
-name: "Build RPM Packages"
+name: "Build Ice Repo RPM Packages"
 
 on:
   workflow_dispatch:
     inputs:
-      ice_version:
-        description: "The Ice version to build"
+      quality:
+        description: "Release quality (e.g., stable, nightly, RC)"
         required: false
-  workflow_call:
-    inputs:
-      ice_version:
-        required: false
-        type: string
+        default: "nightly"
 
 jobs:
   build:
-    name: "Build for ${{ matrix.distribution }}-${{ matrix.arch }}"
-    runs-on: ${{ matrix.arch == 'aarch64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
+    name: "Build Ice Repo RPM packages for ${{ matrix.distribution }}"
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
-        distribution: [el9, el10, amzn2023]
-        arch: [x86_64, aarch64]
+        distribution: [el10]
 
     steps:
       - name: Check out repository
@@ -46,12 +41,13 @@ jobs:
         run: |
           docker run --rm \
             -v "$GITHUB_WORKSPACE:/workspace" \
-            -e ICE_VERSION="${{ inputs.ice_version }}" \
-            -e GIT_TAG="${{ github.ref_name }}" \
             ghcr.io/zeroc-ice/ice-rpm-builder-${{ matrix.distribution }}:${CHANNEL} \
-            /workspace/ice/packaging/rpm/build-package.sh
+            /workspace/ice/packaging/rpm/build-repo-package.sh \
+            --distribution "${{ matrix.distribution }}" \
+            --channel "${CHANNEL}" \
+            --quality "${{ inputs.quality }}"
 
-      - name: Sign RPM packages
+      - name: Build RPM packages
         run: |
           docker run --rm \
             -v "$GITHUB_WORKSPACE:/workspace" \
@@ -60,10 +56,25 @@ jobs:
             ghcr.io/zeroc-ice/ice-rpm-builder-${{ matrix.distribution }}:${CHANNEL} \
             /workspace/ice/packaging/rpm/sign-package.sh
 
+      - name: Sync RPM packages to S3
+        run: |
+          if [ "${QUALITY}" = "stable" ]; then
+            UPLOAD_PATH="ice/${CHANNEL}/${DISTRIBUTION}"
+          else
+            UPLOAD_PATH="ice/${QUALITY}/${CHANNEL}/${DISTRIBUTION}"
+          fi
+
+          aws s3 cp build/RPMS/noarch/*.rpm "s3://zeroc-downloads/${UPLOAD_PATH}/"
+        env:
+          QUALITY: ${{ inputs.quality }}
+          DISTRIBUTION: ${{ matrix.distribution }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: rpm-packages-${{ matrix.distribution }}-${{ matrix.arch }}
+          name: rpm-packages-${{ matrix.distribution }}
           path: |
             build/RPMS/*
             build/SRPMS/*

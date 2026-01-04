@@ -500,6 +500,10 @@ export LDFLAGS="%{?__global_ldflags}"
 
 %install
 
+%if "%{dist}" == ".amzn2023"
+    export GRADLEARGS="-PiceGridGuiUseJavaFX=false -PicegridguiProguard=false"
+%endif
+
 %ifarch %{_host_cpu}
     make           %{?_smp_mflags} %{makeinstallopts} install-slice
     make -C cpp    %{?_smp_mflags} %{makeinstallopts} install
