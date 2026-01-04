@@ -67,14 +67,8 @@
    %define runpath embedded_runpath_prefix=%{_prefix}
 %endif
 
-%if "%{dist}" == ".amzn2023"
-   %define javafxargs -PiceGridGuiUseJavaFX=false -PicegridguiProguard=false
-%else
-   %define javafxargs %{nil}
-%endif
-
-%define makebuildopts CONFIGS="shared cpp11-shared" OPTIMIZE=yes V=1 %{runpath} GRADLEARGS="%{javafxargs}" %{?_smp_mflags}
-%define makeinstallopts CONFIGS="shared cpp11-shared" OPTIMIZE=yes V=1 %{runpath} GRADLEARGS="%{javafxargs}" DESTDIR=%{buildroot} prefix=%{_prefix} install_bindir=%{_bindir} install_libdir=%{_libdir} install_slicedir=%{_datadir}/ice/slice install_includedir=%{_includedir} install_mandir=%{_mandir} install_configdir=%{_datadir}/ice install_javadir=%{_javadir} install_phplibdir=%{phplibdir} install_phpdir=%{phpdir}
+%define makebuildopts CONFIGS="shared cpp11-shared" OPTIMIZE=yes V=1 %{runpath} %{?_smp_mflags}
+%define makeinstallopts CONFIGS="shared cpp11-shared" OPTIMIZE=yes V=1 %{runpath} DESTDIR=%{buildroot} prefix=%{_prefix} install_bindir=%{_bindir} install_libdir=%{_libdir} install_slicedir=%{_datadir}/ice/slice install_includedir=%{_includedir} install_mandir=%{_mandir} install_configdir=%{_datadir}/ice install_javadir=%{_javadir} install_phplibdir=%{phplibdir} install_phpdir=%{phpdir}
 
 Name: %{?nameprefix}ice
 Version: 3.7.10
@@ -486,6 +480,9 @@ cp %{_builddir}/ice-%{archive_dir_suffix}/python %{_builddir}/ice-%{archive_dir_
 #
 export CXXFLAGS="%{optflags}"
 export LDFLAGS="%{?__global_ldflags}"
+%if "%{dist}" == ".amzn2023"
+    export GRADLEARGS="-PiceGridGuiUseJavaFX=false -PicegridguiProguard=false"
+%endif
 
 %ifarch %{_host_cpu}
     make %{makebuildopts} LANGUAGES="cpp java php" srcs
@@ -513,6 +510,7 @@ export LDFLAGS="%{?__global_ldflags}"
     %if "%{dist}" == ".amzn2" || "%{dist}" == ".amzn2023" || "%{dist}" == ".el8" || "%{dist}" == ".el9"
         make -C python3 %{?_smp_mflags} %{makeinstallopts} PYTHON=python3 install_pythondir=%{python3_sitearch} install
     %endif
+
     make -C java   %{?_smp_mflags} %{makeinstallopts} install-icegridgui
 %else
     %ifarch %{ix86}
