@@ -25,7 +25,6 @@ RUN --mount=type=secret,id=rh_credentials \
     glibc-static \
     libstdc++-static \
     rpm-sign && \
-    dnf builddep -y /usr/src/ice.spec && \
     dnf clean all && \
     subscription-manager unregister && \
     rm -rf /etc/pki/entitlement /etc/rhsm/ca
