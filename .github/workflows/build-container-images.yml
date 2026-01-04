@@ -23,6 +23,12 @@ jobs:
             image: ice-rpm-builder-el9
             dockerfile: packaging/rpm/docker/el9/Dockerfile
           - platform: amd64
+            image: ice-rpm-builder-el10
+            dockerfile: packaging/rpm/docker/el10/Dockerfile
+          - platform: arm64
+            image: ice-rpm-builder-el10
+            dockerfile: packaging/rpm/docker/el10/Dockerfile
+          - platform: amd64
             image: ice-rpm-builder-amzn2023
             dockerfile: packaging/rpm/docker/amzn2023/Dockerfile
           - platform: arm64
