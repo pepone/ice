@@ -74,6 +74,7 @@ fi
 declare -A CODENAMES=(
     ["debian12"]="bookworm"
     ["debian13"]="trixie"
+    ["ubuntu22.04"]="jammy"
     ["ubuntu24.04"]="noble"
 )
 
