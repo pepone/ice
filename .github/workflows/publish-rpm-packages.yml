@@ -40,32 +40,36 @@ jobs:
       CHANNEL: ${{ inputs.channel }}
       MCPP_VERSION: v2.7.2.19
     steps:
-      - name: Download RPM artifacts
+      - name: Download build artifacts
+        if: ${{ inputs.run_id != '' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RUN_ID: ${{ inputs.run_id }}
         run: |
           # Download RPM artifacts from the specified run.
           echo "Downloading Ice RPMs from current run..."
-          gh run download "$RUN_ID" \
+          gh run download "${{ inputs.run_id }}" \
             --repo zeroc-ice/ice \
             --pattern "rpm-packages-${DISTRIBUTION}-*" \
             --dir staging
 
+      - name: Download MCPP RPM artifacts
+        if: ${{ matrix.distribution == 'el9' || matrix.distribution == 'el10' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+
           # If building for RHEL 9 or 10, also download MCPP RPMs.
-          if [[ "$DISTRIBUTION" == "rhel9" || "$DISTRIBUTION" == "rhel10" ]]; then
-            echo "Also downloading MCPP RPMs for $DISTRIBUTION..."
+          echo "Also downloading MCPP RPMs for $DISTRIBUTION..."
 
-            gh release download "$MCPP_VERSION" \
-              --repo zeroc-ice/mcpp \
-              --pattern "rpm-packages-${DISTRIBUTION}-*" \
-              --dir staging/mcpp
+          gh release download "$MCPP_VERSION" \
+            --repo zeroc-ice/mcpp \
+            --pattern "rpm-packages-${DISTRIBUTION}-*" \
+            --dir staging/mcpp
 
-            # gh doesn't automatically extract release downloads
-            pushd staging/mcpp > /dev/null
-            unzip -q "rpm-packages-${DISTRIBUTION}-*.zip"
-            popd > /dev/null
-          fi
+          # gh doesn't automatically extract release downloads
+          pushd staging/mcpp > /dev/null
+          unzip -q "rpm-packages-${DISTRIBUTION}-*.zip"
+          popd > /dev/null
 
       - name: Create RPM repository
         run: |
