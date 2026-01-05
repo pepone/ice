@@ -1,9 +1,11 @@
-# Copyright (c) ZeroC, Inc.
+#
+# Copyright (c) ZeroC, Inc. All rights reserved.
+#
 
 [Unit]
 Description=Glacier2 router daemon
 Documentation=man:glacier2router(1)
-Documentation=https://docs.zeroc.com/ice/latest/cpp/glacier2
+Documentation=https://doc.zeroc.com/ice/latest/ice-services/glacier2
 After=syslog.target network.target
 
 [Service]

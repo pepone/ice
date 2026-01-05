@@ -1,9 +1,11 @@
-# Copyright (c) ZeroC, Inc.
+#
+# Copyright (c) ZeroC, Inc. All rights reserved.
+#
 
 [Unit]
 Description=IceGrid registry daemon
 Documentation=man:icegridregistry(1)
-Documentation=https://docs.zeroc.com/ice/latest/cpp/icegridregistry
+Documentation=https://doc.zeroc.com/ice/latest/ice-services/icegrid/icegrid-server-reference/icegridregistry
 Before=icegridnode.service
 After=syslog.target network.target
 
