@@ -8,7 +8,7 @@
 # The build-rpm-packages GitHub Actions workflow in this repository uses this script together
 # with the ghcr.io/zeroc-ice/ice-rpm-builder-<distribution>:<channel> Docker image to sign the packages.
 
-set -euo pipefail
+set -exuo pipefail
 
 # Ensure GPG_KEY and GPG_KEY_ID are set
 : "${GPG_KEY:?GPG_KEY environment variable is not set}"
