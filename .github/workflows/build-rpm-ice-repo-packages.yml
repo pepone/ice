@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        distribution: [el10]
+        distribution: [el9, el10, amzn2023]
 
     steps:
       - name: Check out repository
