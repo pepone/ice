@@ -47,7 +47,7 @@ jobs:
             --channel "${CHANNEL}" \
             --quality "${{ inputs.quality }}"
 
-      - name: Build RPM packages
+      - name: Sign RPM packages
         run: |
           docker run --rm \
             -v "$GITHUB_WORKSPACE:/workspace" \

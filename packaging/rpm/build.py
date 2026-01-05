@@ -25,11 +25,12 @@ from common import (
 
 
 # Supported RPM distributions (el10 not yet available on this branch)
-DISTRIBUTIONS = ['el9', 'amzn2023']
+DISTRIBUTIONS = ['el9', 'el10', 'amzn2023']
 
 # Distribution to Dockerfile path mapping
 DOCKERFILE_PATHS = {
     'el9': 'packaging/rpm/docker/el9/Dockerfile',
+    'el10': 'packaging/rpm/docker/el10/Dockerfile',
     'amzn2023': 'packaging/rpm/docker/amzn2023/Dockerfile',
 }
 

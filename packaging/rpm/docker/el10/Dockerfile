@@ -24,6 +24,7 @@ RUN --mount=type=secret,id=rh_credentials \
     redhat-rpm-config \
     glibc-static \
     libstdc++-static \
+    gnupg2 \
     rpm-sign && \
     dnf clean all && \
     subscription-manager unregister && \
