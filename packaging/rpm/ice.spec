@@ -2,18 +2,11 @@
 # Copyright (c) ZeroC, Inc. All rights reserved.
 #
 
-#
-# git_tag, when defined, is typically a branch, for example master
-#
+# git_tag, when defined, is typically a branch, for example 3.7
 %if 0%{?git_tag:1}
    %define archive_tag %{git_tag}
-   %define archive_dir_suffix %{git_tag}
 %else
-   # git_tag_version is the git tag vX.Y.Z[...] less the v prefix
-   # if not defined, we default to the version provided below
-   %{!?git_tag_version:%define git_tag_version 3.7.10}
-   %define archive_tag v%{git_tag_version}
-   %define archive_dir_suffix %{git_tag_version}
+  %define archive_tag 3.7
 %endif
 
 #
@@ -81,9 +74,8 @@ License: GPLv2 with exceptions
 %endif
 Vendor: ZeroC, Inc.
 URL: https://zeroc.com/
-Source0: https://github.com/zeroc-ice/ice/archive/%{archive_tag}/%{name}-%{version}.tar.gz
-Source1: https://github.com/zeroc-ice/ice-packaging/archive/%{archive_tag}/%{name}-packaging-%{version}.tar.gz
-Source2: https://raw.githubusercontent.com/zeroc-ice/ice-packaging/v3.7.10-2/ice/rpm/0001-Remove-workaround-for-old-proguard-version-1913.patch
+Source0:  https://github.com/zeroc-ice/ice/archive/%{archive_tag}.tar.gz#/%{name}-%{version}.tar.gz
+Source1: https://raw.githubusercontent.com/zeroc-ice/ice-packaging/v3.7.10-2/ice/rpm/0001-Remove-workaround-for-old-proguard-version-1913.patch
 
 Patch0: 0001-Remove-workaround-for-old-proguard-version-1913.patch
 
