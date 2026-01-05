@@ -90,5 +90,5 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          GPG_KEY: ${{ secrets.ICE_3_8_CI_SIGNER_KEY }}
-          GPG_KEY_ID: ${{ secrets.ICE_3_8_CI_SIGNER_KEY_ID }}
+          GPG_KEY: ${{ secrets.ICE_3_7_CI_SIGNER_KEY }}
+          GPG_KEY_ID: ${{ secrets.ICE_3_7_CI_SIGNER_KEY_ID }}

@@ -36,7 +36,7 @@
 %define phplibdir %{_libdir}/%{phpname}/modules
 %define phpcommon php-common
 
-%if "%{dist}" != ".el9" && "%{dist}" != ".amzn2"
+%if "%{dist}" != ".el9" && "%{dist}" != ".el10" && "%{dist}" != ".amzn2"
 %define pythonname python
 %define pythondir %{python_sitearch}
 %endif
@@ -104,13 +104,17 @@ BuildRequires: pkgconfig(mcpp)
 BuildRequires: java-11-openjdk-devel java-11-openjdk-jmods
 %endif
 
+%if "%{dist}" == ".el10"
+BuildRequires: java-17-openjdk-devel java-17-openjdk-jmods
+%endif
+
 %if "%{dist}" == ".amzn2023"
 BuildRequires: java-17-amazon-corretto-devel
 %endif
 
 %ifarch %{_host_cpu}
 BuildRequires: %{phpdevel}, %{javapackagestools}
-   %if "%{dist}" != ".el9" && "%{dist}" != ".amzn2023"
+   %if "%{dist}" != ".el10" && "%{dist}" != ".el9" && "%{dist}" != ".amzn2023"
 BuildRequires: pkgconfig(python-2.7)
    %endif
    %if "%{dist}" == ".amzn2"
@@ -120,6 +124,9 @@ BuildRequires: pkgconfig(python-3.7), python3-rpm-macros
 BuildRequires: pkgconfig(python-3.9), python3-rpm-macros
    %endif
    %if "%{dist}" == ".el8" || "%{dist}" == ".el9"
+BuildRequires: pkgconfig(python3), python3-rpm-macros
+   %endif
+   %if "%{dist}" == ".el10"
 BuildRequires: pkgconfig(python3), python3-rpm-macros
    %endif
 %endif
