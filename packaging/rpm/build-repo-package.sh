@@ -76,9 +76,9 @@ EOF
 # Generate the target .repo file from template
 REPO_TARGET="$RPM_BUILD_ROOT/SOURCES/$REPO_FILENAME"
 cp "/workspace/ice/packaging/rpm/zeroc-ice.repo.in" "$REPO_TARGET"
-sed -i "s#@CHANNEL@/$CHANNEL/g" "$REPO_TARGET"
-sed -i "s#@QUALITY@/$QUALITY/g" "$REPO_TARGET"
-sed -i "s#@DISTRIBUTION@#$DISTRIBUTION/g" "$REPO_TARGET"
+sed -i "s#@CHANNEL@#$CHANNEL#g" "$REPO_TARGET"
+sed -i "s#@QUALITY@#$QUALITY#g" "$REPO_TARGET"
+sed -i "s#@DISTRIBUTION@#$DISTRIBUTION#g" "$REPO_TARGET"
 sed -i "s#@UPLOAD_PREFIX@#${UPLOAD_PREFIX}#g" "$REPO_TARGET"
 
 # Build source RPM
