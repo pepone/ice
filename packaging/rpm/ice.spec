@@ -462,7 +462,6 @@ your application logic.
 
 %prep
 %setup -q -n ice-%{archive_tag} -a 1
-%patch0 -p1
 cp %{_builddir}/ice-%{archive_tag}/python %{_builddir}/ice-%{archive_tag}/python3 -rf
 
 %build
