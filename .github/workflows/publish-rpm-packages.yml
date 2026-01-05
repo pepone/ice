@@ -63,12 +63,12 @@ jobs:
 
           gh release download "$MCPP_VERSION" \
             --repo zeroc-ice/mcpp \
-            --pattern "rpm-packages-${DISTRIBUTION}-*" \
+            --pattern "rpm-packages-*${DISTRIBUTION}-*" \
             --dir staging/mcpp
 
           # gh doesn't automatically extract release downloads
           pushd staging/mcpp > /dev/null
-          unzip -q "rpm-packages-${DISTRIBUTION}-*.zip"
+          unzip -q "rpm-packages-*${DISTRIBUTION}-*.zip"
           popd > /dev/null
 
       - name: Create RPM repository
