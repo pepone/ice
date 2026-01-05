@@ -12,7 +12,7 @@ on:
         default: "nightly"
       run_id:
         description: "The run ID to use for downloading artifacts"
-        required: true
+        required: false
   workflow_call:
     inputs:
       channel:
@@ -22,7 +22,7 @@ on:
         required: true
         type: string
       run_id:
-        required: true
+        required: false
         type: string
 
 jobs:
