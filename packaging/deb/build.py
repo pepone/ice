@@ -28,6 +28,7 @@ from common import (
 DISTRIBUTION_PROFILES = {
     'debian12': 'no-python312',
     'debian13': '',
+    'ubuntu22.04': '',
     'ubuntu24.04': '',
 }
 
@@ -35,6 +36,7 @@ DISTRIBUTION_PROFILES = {
 DOCKERFILE_PATHS = {
     'debian12': 'packaging/deb/docker/debian12/Dockerfile',
     'debian13': 'packaging/deb/docker/debian13/Dockerfile',
+    'ubuntu22.04': 'packaging/deb/docker/ubuntu22.04/Dockerfile',
     'ubuntu24.04': 'packaging/deb/docker/ubuntu24.04/Dockerfile',
 }
 

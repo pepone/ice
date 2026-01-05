@@ -307,22 +307,6 @@ def run_package_build(args: argparse.Namespace) -> int:
             print(f"Error: Failed to pull image '{image_name}'", file=sys.stderr)
             return 1
     
-    # Get GPG credentials from environment
-    gpg_key = os.environ.get('GPG_KEY', '')
-    gpg_key_id = os.environ.get('GPG_KEY_ID', '')
-    gpg_passphrase = os.environ.get('GPG_PASSPHRASE', '')
-    
-    # Validate GPG credentials
-    if not gpg_key:
-        print("Error: GPG_KEY environment variable is required", file=sys.stderr)
-        print("Set it with: export GPG_KEY='<your-gpg-private-key>'", file=sys.stderr)
-        return 1
-    
-    if not gpg_key_id:
-        print("Error: GPG_KEY_ID environment variable is required", file=sys.stderr)
-        print("Set it with: export GPG_KEY_ID='<your-gpg-key-id>'", file=sys.stderr)
-        return 1
-    
     # Build Docker command
     docker_cmd = [
         'docker', 'run', '--rm',
@@ -330,13 +314,7 @@ def run_package_build(args: argparse.Namespace) -> int:
         '-e', 'HOME=/workspace',
         '-v', f'{output_dir}:/workspace',
         '-v', f'{ice_repo}:/workspace/ice:ro',
-        '-e', f'GPG_KEY={gpg_key}',
-        '-e', f'GPG_KEY_ID={gpg_key_id}',
     ]
-    
-    # Add optional GPG passphrase if provided
-    if gpg_passphrase:
-        docker_cmd.extend(['-e', f'GPG_PASSPHRASE={gpg_passphrase}'])
     
     # Add optional ICE_VERSION override
     if args.ice_version:
@@ -363,13 +341,11 @@ def run_package_build(args: argparse.Namespace) -> int:
     print(f"Output Directory:    {output_dir}")
     print(f"Ice Version:         {args.ice_version or '(from spec file)'}")
     print(f"Git Tag:             {args.git_tag or '(not set)'}")
-    print(f"GPG Key ID:          {gpg_key_id}")
-    print(f"GPG Passphrase:      {'(set)' if gpg_passphrase else '(not set)'}")
     print("=" * 70 + "\n")
     
     # Run the build
     print("Starting package build...")
-    print(f"Command: {' '.join([c if not c.startswith('GPG_KEY=') else 'GPG_KEY=***' for c in docker_cmd])}\n")
+    print(f"Command: {' '.join(docker_cmd)}\n")
     
     result = subprocess.run(docker_cmd)
     
@@ -421,20 +397,12 @@ Examples:
   # Force rebuild of Docker image (for testing Dockerfile changes)
   %(prog)s -d amzn2023 --force-build-image
 
-  # Set GPG credentials for signing packages
-  export GPG_KEY="$(cat ~/.gnupg/private-key.asc)"
-  export GPG_KEY_ID="ABCD1234"
-  %(prog)s -d el9
-
   # Build EL9 image (requires Red Hat subscription)
   export RH_USERNAME='your-username'
   export RH_PASSWORD='your-password'
   %(prog)s -d el9 --build-image
 
 Environment Variables:
-  GPG_KEY         GPG private key for signing packages (required for builds)
-  GPG_KEY_ID      GPG key ID (required for builds)
-  GPG_PASSPHRASE  GPG passphrase (optional)
   RH_USERNAME     Red Hat subscription username (required for building el9 images)
   RH_PASSWORD     Red Hat subscription password (required for building el9 images)
 
