@@ -31,10 +31,7 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        include:
-          - distribution: debian12
-          - distribution: debian13
-          - distribution: ubuntu24.04
+        distribution: [debian12, debian13, ubuntu22.04, ubuntu24.04]
     env:
       DISTRIBUTION: ${{ matrix.distribution }}
       CHANNEL: ${{ inputs.channel }}

@@ -31,10 +31,7 @@ jobs:
     runs-on: 'ubuntu-24.04'
     strategy:
       matrix:
-        include:
-          - distribution: el9
-          - distribution: el10
-          - distribution: amzn2023
+        distribution: [el9, el10, amzn2023]
     env:
       DISTRIBUTION: ${{ matrix.distribution }}
       CHANNEL: ${{ inputs.channel }}
