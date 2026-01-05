@@ -12,6 +12,7 @@ COPY packaging/rpm/ice.spec /usr/src/ice.spec
 RUN --mount=type=secret,id=rh_credentials \
     source /run/secrets/rh_credentials && \
     subscription-manager register --username "$RH_USERNAME" --password "$RH_PASSWORD" && \
+    dnf install -y https://zeroc.com/download/ice/3.7/el10/ice-repo-3.7-1.0.0-1.el10.noarch.rpm && \
     dnf config-manager --set-enabled codeready-builder-for-rhel-10-$(arch)-rpms && \
     dnf install -y \
     rpmdevtools \
@@ -26,6 +27,7 @@ RUN --mount=type=secret,id=rh_credentials \
     libstdc++-static \
     gnupg2 \
     rpm-sign && \
+    dnf builddep -y /usr/src/ice.spec && \
     dnf clean all && \
     subscription-manager unregister && \
     rm -rf /etc/pki/entitlement /etc/rhsm/ca

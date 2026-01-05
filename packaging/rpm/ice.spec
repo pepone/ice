@@ -105,7 +105,7 @@ BuildRequires: java-11-openjdk-devel java-11-openjdk-jmods
 %endif
 
 %if "%{dist}" == ".el10"
-BuildRequires: java-17-openjdk-devel java-17-openjdk-jmods
+BuildRequires: java-21-openjdk-devel java-21-openjdk-jmods
 %endif
 
 %if "%{dist}" == ".amzn2023"
@@ -114,7 +114,7 @@ BuildRequires: java-17-amazon-corretto-devel
 
 %ifarch %{_host_cpu}
 BuildRequires: %{phpdevel}, %{javapackagestools}
-   %if "%{dist}" != ".el10" && "%{dist}" != ".el9" && "%{dist}" != ".amzn2023"
+   %if "%{dist}" != ".el9" && "%{dist}" != ".el10" && "%{dist}" != ".amzn2023"
 BuildRequires: pkgconfig(python-2.7)
    %endif
    %if "%{dist}" == ".amzn2"
@@ -123,10 +123,7 @@ BuildRequires: pkgconfig(python-3.7), python3-rpm-macros
    %if "%{dist}" == ".amzn2023"
 BuildRequires: pkgconfig(python-3.9), python3-rpm-macros
    %endif
-   %if "%{dist}" == ".el8" || "%{dist}" == ".el9"
-BuildRequires: pkgconfig(python3), python3-rpm-macros
-   %endif
-   %if "%{dist}" == ".el10"
+   %if "%{dist}" == ".el8" || "%{dist}" == ".el9" || "%{dist}" == ".el10"
 BuildRequires: pkgconfig(python3), python3-rpm-macros
    %endif
 %endif
@@ -195,10 +192,10 @@ Requires: %{?nameprefix}icegrid%{?_isa} = %{version}-%{release}
 Requires: %{?nameprefix}icepatch2%{?_isa} = %{version}-%{release}
 Requires: %{?nameprefix}icebridge%{?_isa} = %{version}-%{release}
 Requires: %{phpname}-%{?nameprefix}ice%{?_isa} = %{version}-%{release}
-   %if "%{dist}" != ".el9" && "%{dist}" != ".amzn2023"
+   %if "%{dist}" != ".el9" && "%{dist}" != ".el10" && "%{dist}" != ".amzn2023"
 Requires: %{pythonname}-%{?nameprefix}ice%{?_isa} = %{version}-%{release}
    %endif
-   %if "%{dist}" == ".amzn2" || "%{dist}" == ".amzn2023" || "%{dist}" == ".el8" || "%{dist}" == ".el9"
+   %if "%{dist}" == ".amzn2" || "%{dist}" == ".amzn2023" || "%{dist}" == ".el8" || "%{dist}" == ".el9" || "%{dist}" == ".el10"
 Requires: python3-%{?nameprefix}ice%{?_isa} = %{version}-%{release}
    %endif
 Requires: lib%{?nameprefix}ice3.7-c++%{?_isa} = %{version}-%{release}
@@ -437,7 +434,7 @@ with minimal effort. Ice takes care of all interactions with low-level
 network programming interfaces and allows you to focus your efforts on
 your application logic.
 
-%if "%{dist}" != ".el9" && "%{dist}" != ".amzn2023"
+%if "%{dist}" != ".el9" && "%{dist}" != ".el10" && "%{dist}" != ".amzn2023"
 #
 # python-ice package
 #
@@ -456,7 +453,7 @@ network programming interfaces and allows you to focus your efforts on
 your application logic.
 %endif
 
-%if "%{dist}" == ".amzn2" || "%{dist}" == ".amzn2023" || "%{dist}" == ".el8" || "%{dist}" == ".el9"
+%if "%{dist}" == ".amzn2" || "%{dist}" == ".amzn2023" || "%{dist}" == ".el8" || "%{dist}" == ".el9" || "%{dist}" == ".el10"
 #
 # python3-ice package
 #
@@ -493,10 +490,10 @@ export LDFLAGS="%{?__global_ldflags}"
 
 %ifarch %{_host_cpu}
     make %{makebuildopts} LANGUAGES="cpp java php" srcs
-    %if "%{dist}" != ".el9" && "%{dist}" != ".amzn2023"
+    %if "%{dist}" != ".el9" && "%{dist}" != ".el10" && "%{dist}" != ".amzn2023"
         make %{makebuildopts} PYTHON=%{pythonname} -C python srcs
     %endif
-    %if "%{dist}" == ".amzn2" || "%{dist}" == ".amzn2023" || "%{dist}" == ".el8" || "%{dist}" == ".el9"
+    %if "%{dist}" == ".amzn2" || "%{dist}" == ".amzn2023" || "%{dist}" == ".el8" || "%{dist}" == ".el9" || "%{dist}" == ".el10"
         make %{makebuildopts} PYTHON=python3 -C python3 srcs
     %endif
 %else
@@ -515,10 +512,10 @@ export LDFLAGS="%{?__global_ldflags}"
     make           %{?_smp_mflags} %{makeinstallopts} install-slice
     make -C cpp    %{?_smp_mflags} %{makeinstallopts} install
     make -C php    %{?_smp_mflags} %{makeinstallopts} install
-    %if "%{dist}" != ".el9" && "%{dist}" != ".amzn2023"
+    %if "%{dist}" != ".el9" && "%{dist}" != ".el10" && "%{dist}" != ".amzn2023"
     make -C python %{?_smp_mflags} %{makeinstallopts} PYTHON=%{pythonname} install_pythondir=%{pythondir} install
     %endif
-    %if "%{dist}" == ".amzn2" || "%{dist}" == ".amzn2023" || "%{dist}" == ".el8" || "%{dist}" == ".el9"
+    %if "%{dist}" == ".amzn2" || "%{dist}" == ".amzn2023" || "%{dist}" == ".el8" || "%{dist}" == ".el9" || "%{dist}" == ".el10"
         make -C python3 %{?_smp_mflags} %{makeinstallopts} PYTHON=python3 install_pythondir=%{python3_sitearch} install
     %endif
 
@@ -914,7 +911,7 @@ exit 0
 %config(noreplace) %{_sysconfdir}/php.d/ice.ini
 %endif
 
-%if "%{dist}" != ".el9" && "%{dist}" != ".amzn2023"
+%if "%{dist}" != ".el9" && "%{dist}" != ".el10" && "%{dist}" != ".amzn2023"
 #
 # python-ice package
 #
@@ -926,7 +923,7 @@ exit 0
 
 %endif
 
-%if "%{dist}" == ".amzn2" || "%{dist}" == ".amzn2023" || "%{dist}" == ".el8" || "%{dist}" == ".el9"
+%if "%{dist}" == ".amzn2" || "%{dist}" == ".amzn2023" || "%{dist}" == ".el8" || "%{dist}" == ".el9" || "%{dist}" == ".el10"
 #
 # python3-ice package
 #
