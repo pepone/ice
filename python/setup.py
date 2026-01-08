@@ -323,7 +323,11 @@ class CustomSdistCommand(_sdist):
                                 "IceDiscovery",
                                 "IceLocatorDiscovery",
                             ]:
-                                if root.startswith(os.path.join("..", "cpp", "src", name, "msbuild")) or root.startswith(os.path.join("..", "cpp", "src", name, "generated")):
+                                if root.startswith(
+                                    os.path.join("..", "cpp", "src", name, "msbuild")
+                                ) or root.startswith(
+                                    os.path.join("..", "cpp", "src", name, "generated")
+                                ):
                                     if file.endswith(".h"):
                                         relative_path = os.path.join(
                                             "cpp",
