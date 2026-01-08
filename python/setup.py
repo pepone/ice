@@ -58,10 +58,14 @@ else:
     ice_cpp_sources.extend(
         [
             "../cpp/include/generated/Ice",
+            "../cpp/include/generated/IceSSL",
             "../cpp/include/generated/IceDiscovery",
             "../cpp/include/generated/IceLocatorDiscovery",
         ]
     )
+    include_dirs.append("dist/ice/cpp/src/IceDiscovery/generated/")
+    include_dirs.append("dist/ice/cpp/src/IceLocatorDiscovery/generated/")
+    include_dirs.append("dist/ice/python/modules/IcePy/")
 
 # Define macros used during the build process
 # All the /**/ macros are necessary only on Windows
@@ -111,12 +115,12 @@ def filter_source(filename: str):
                 # Skip SysLoggerI, OpenSSL and SecureTransport on Windows
                 return False
     elif sys.platform == "darwin":
-        for exclude in ["DLLMain", "Schannel", "OpenSSL", "bzip2-"]:
+        for exclude in ["DLLMain", "SChannel", "OpenSSL", "bzip2-"]:
             if exclude in filename:
                 # Skip Schannel, OpenSSL and bzip2 on macOS
                 return False
     else:
-        for exclude in ["DLLMain", "Schannel", "SecureTransport", "bzip2-"]:
+        for exclude in ["DLLMain", "SChannel", "SecureTransport", "bzip2-"]:
             if exclude in filename:
                 # Skip Schannel, SecureTransport and bzip2 on Linux
                 return False

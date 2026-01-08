@@ -17,9 +17,9 @@ lib/**/zeroc_ice.egg-info/
 lib/slice/
 lib/Ice/__init__.py
 lib/Ice/Py3/
-lib/Glacier2/__init__.py
-lib/IceBox/__init__.py
-lib/IceGrid/__init__.py
-lib/IceMX/__init__.py
-lib/IcePatch2/__init__.py
-lib/IceStorm/__init__.py
+lib/Glacier2/*.py
+lib/IceBox/*.py
+lib/IceGrid/*.py
+lib/IceMX/*.py
+lib/IcePatch2/*.py
+lib/IceStorm/*.py
