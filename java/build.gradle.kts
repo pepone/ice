@@ -6,57 +6,10 @@ import org.gradle.external.javadoc.StandardJavadocDocletOptions
 
 plugins {
     id("com.zeroc.slice-tools") apply false
-    checkstyle
     alias(libs.plugins.openrewrite)
 }
 
 val iceVersion = libs.versions.ice.get()
-val javaVersion = libs.versions.java.get().toInt()
-val debug: String by project
-
-subprojects {
-    // Store topSrcDir as extra property for subprojects
-    extra["topSrcDir"] = rootProject.projectDir.parentFile.absolutePath
-
-    version = iceVersion
-    group = "com.zeroc"
-
-    apply(plugin = "checkstyle")
-
-    // Configure Java-specific settings when java plugin is applied
-    pluginManager.withPlugin("java") {
-        // Configure Java extension
-        extensions.configure<JavaPluginExtension>("java") {
-            withSourcesJar()
-            withJavadocJar()
-        }
-
-        // Configure JAR manifest
-        tasks.named<Jar>("jar") {
-            manifest {
-                attributes("Built-By" to "ZeroC, Inc.")
-            }
-        }
-
-        // Configure Java compilation for subprojects
-        tasks.withType<JavaCompile>().configureEach {
-            options.compilerArgs.addAll(
-                listOf(
-                    "-Xdoclint:all,-missing",
-                    "-Xlint:all,-rawtypes,-exports,-serial,-try,-missing-explicit-ctor,-deprecation"
-                )
-            )
-            options.encoding = "UTF-8"
-            options.isDeprecation = true
-        }
-    }
-}
-
-// Configure Java compilation options at root level
-tasks.withType<JavaCompile>().configureEach {
-    options.release.set(javaVersion)
-    options.isDebug = debug.toBoolean()
-}
 
 // Clean task
 tasks.register<Delete>("clean") {
@@ -130,13 +83,6 @@ tasks.register<Javadoc>("alljavadoc") {
     dependsOn(exportedProjects.map { project(it).tasks.named("assemble") })
 }
 
-// Checkstyle configuration
-checkstyle {
-    toolVersion = "10.21.4"
-    isIgnoreFailures = false
-    isShowViolations = true
-}
-
 // OpenRewrite configuration
 rewrite {
     activeRecipe("com.zeroc.IceRewriteRecipes")
@@ -162,8 +108,8 @@ rewrite {
 }
 
 dependencies {
-    rewrite("org.openrewrite.recipe:rewrite-static-analysis:2.19.0")
-    rewrite("org.openrewrite.recipe:rewrite-java-dependencies:1.43.0")
+    rewrite(libs.openrewrite.static.analysis)
+    rewrite(libs.openrewrite.java.dependencies)
 }
 
 // Configure rewriteDryRun task
@@ -188,6 +134,6 @@ tasks.named("rewriteDryRun") {
     }
 }
 
-// Helper extension for root build script to access subproject sourceSets
+// Extension to access sourceSets from other projects (used by alljavadoc task)
 val Project.sourceSets: SourceSetContainer
     get() = extensions.getByType()
