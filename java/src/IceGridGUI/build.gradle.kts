@@ -7,7 +7,8 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("com.guardsquare:proguard-gradle:7.6.0")
+        // Version must match libs.versions.toml proguard version
+        classpath(libs.proguard.gradle)
     }
 }
 
@@ -26,9 +27,7 @@ val platform: String = when {
 val topSrcDir: String by project.extra
 val libDir = rootProject.projectDir.resolve("lib")
 
-val jgoodiesLooksVersion: String by project
-val jgoodiesFormsVersion: String by project
-val openjfxVersion: String by project
+val openjfxVersion = libs.versions.openjfx.get()
 
 // Don't generate Javadoc for this module
 tasks.named<Javadoc>("javadoc") {
@@ -49,8 +48,8 @@ dependencies {
     implementation(project(":icegrid"))
 
     // JGoodies UI libraries
-    implementation("com.jgoodies:jgoodies-looks:$jgoodiesLooksVersion")
-    implementation("com.jgoodies:jgoodies-forms:$jgoodiesFormsVersion")
+    implementation(libs.jgoodies.looks)
+    implementation(libs.jgoodies.forms)
 
     // JavaFX (platform-specific)
     implementation("org.openjfx:javafx-base:$openjfxVersion:$platform")

@@ -1,23 +1,18 @@
 // Copyright (c) ZeroC, Inc.
 
 import org.gradle.api.tasks.javadoc.Javadoc
+import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.external.javadoc.StandardJavadocDocletOptions
 
 plugins {
     id("com.zeroc.slice-tools") apply false
     checkstyle
-    id("org.openrewrite.rewrite") version "7.19.0"
+    alias(libs.plugins.openrewrite)
 }
 
-val iceVersion: String by project
-val targetJavaRelease: String by project
+val iceVersion = libs.versions.ice.get()
+val javaVersion = libs.versions.java.get().toInt()
 val debug: String by project
-
-allprojects {
-    repositories {
-        mavenCentral()
-    }
-}
 
 subprojects {
     // Store topSrcDir as extra property for subprojects
@@ -27,62 +22,39 @@ subprojects {
     group = "com.zeroc"
 
     apply(plugin = "checkstyle")
-    apply(plugin = "java")
-    apply(plugin = "com.zeroc.slice-tools")
 
-    // Configure slice extension with toolsPath for all subprojects
-    extensions.configure<com.zeroc.slice.tools.SliceExtension>("slice") {
-        val topSrcDir = rootProject.projectDir.parentFile.absolutePath
-        val isWindows = System.getProperty("os.name").lowercase().contains("windows")
-        
-        val toolsPathValue = if (isWindows) {
-            val releasePath = file("$topSrcDir/cpp/bin/x64/Release")
-            val debugPath = file("$topSrcDir/cpp/bin/x64/Debug")
-            when {
-                file("$releasePath/slice2java.exe").exists() -> releasePath.absolutePath
-                file("$debugPath/slice2java.exe").exists() -> debugPath.absolutePath
-                else -> null
+    // Configure Java-specific settings when java plugin is applied
+    pluginManager.withPlugin("java") {
+        // Configure Java extension
+        extensions.configure<JavaPluginExtension>("java") {
+            withSourcesJar()
+            withJavadocJar()
+        }
+
+        // Configure JAR manifest
+        tasks.named<Jar>("jar") {
+            manifest {
+                attributes("Built-By" to "ZeroC, Inc.")
             }
-        } else {
-            val binPath = file("$topSrcDir/cpp/bin")
-            if (file("$binPath/slice2java").exists()) binPath.absolutePath else null
         }
-        
-        if (toolsPathValue != null) {
-            toolsPath.set(toolsPathValue)
-        }
-        includeSearchPath.from(file("$topSrcDir/slice"))
-    }
 
-    // Configure Java extension
-    extensions.configure<JavaPluginExtension>("java") {
-        withSourcesJar()
-        withJavadocJar()
-    }
-
-    // Configure JAR manifest
-    tasks.named<Jar>("jar") {
-        manifest {
-            attributes("Built-By" to "ZeroC, Inc.")
-        }
-    }
-
-    // Configure Java compilation for subprojects
-    tasks.withType<JavaCompile>().configureEach {
-        options.compilerArgs.addAll(
-            listOf(
-                "-Xdoclint:all,-missing",
-                "-Xlint:all,-rawtypes,-exports,-serial,-try,-missing-explicit-ctor,-deprecation"
+        // Configure Java compilation for subprojects
+        tasks.withType<JavaCompile>().configureEach {
+            options.compilerArgs.addAll(
+                listOf(
+                    "-Xdoclint:all,-missing",
+                    "-Xlint:all,-rawtypes,-exports,-serial,-try,-missing-explicit-ctor,-deprecation"
+                )
             )
-        )
-        options.encoding = "UTF-8"
-        options.isDeprecation = true
+            options.encoding = "UTF-8"
+            options.isDeprecation = true
+        }
     }
 }
 
 // Configure Java compilation options at root level
 tasks.withType<JavaCompile>().configureEach {
-    options.release.set(targetJavaRelease.toInt())
+    options.release.set(javaVersion)
     options.isDebug = debug.toBoolean()
 }
 
@@ -107,8 +79,10 @@ val dist by tasks.registering {
 }
 
 // Make test compilation depend on dist
-project(":test").tasks.named("compileJava") {
-    dependsOn(dist)
+project(":test").afterEvaluate {
+    tasks.named("compileJava") {
+        dependsOn(dist)
+    }
 }
 
 // Projects to include in aggregated Javadoc
@@ -214,6 +188,6 @@ tasks.named("rewriteDryRun") {
     }
 }
 
-// Helper extension for subprojects to access sourceSets
+// Helper extension for root build script to access subproject sourceSets
 val Project.sourceSets: SourceSetContainer
     get() = extensions.getByType()

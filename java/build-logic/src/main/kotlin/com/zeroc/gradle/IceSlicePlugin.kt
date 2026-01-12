@@ -19,7 +19,16 @@ class IceSlicePlugin : Plugin<Project> {
             // Configure slice extension with Ice paths
             val topSrcDir = extra["topSrcDir"] as String
             val isWindows = System.getProperty("os.name").lowercase().contains("windows")
-            val binDir = if (isWindows) "$topSrcDir/cpp/bin/x64/Release/" else "$topSrcDir/cpp/bin/"
+
+            // On Windows, use cppPlatform/cppConfiguration from gradle.properties (default: x64/Release)
+            // On macOS/Linux, use cpp/bin directly
+            val binDir = if (isWindows) {
+                val cppPlatform = findProperty("cppPlatform")?.toString()?.takeIf { it.isNotBlank() } ?: "x64"
+                val cppConfiguration = findProperty("cppConfiguration")?.toString()?.takeIf { it.isNotBlank() } ?: "Release"
+                "$topSrcDir/cpp/bin/$cppPlatform/$cppConfiguration/"
+            } else {
+                "$topSrcDir/cpp/bin/"
+            }
 
             extensions.configure<SliceExtension>("slice") {
                 toolsPath.set(binDir)

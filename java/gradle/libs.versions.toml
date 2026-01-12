@@ -47,4 +47,3 @@ commons-compress = { module = "org.apache.commons:commons-compress", version.ref
 [plugins]
 slice-tools = { id = "com.zeroc.slice-tools" }
 openrewrite = { id = "org.openrewrite.rewrite", version.ref = "openrewrite" }
-foojay-resolver = { id = "org.gradle.toolchains.foojay-resolver-convention", version.ref = "foojay-resolver" }

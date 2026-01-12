@@ -103,7 +103,7 @@ jobs:
 
       - name: Update Ice Version
         run: |
-          sed -i "s/^iceVersion = .*/iceVersion = ${{ inputs.ice_version }}/" gradle.properties
+          sed -i 's/^ice = .*/ice = "${{ inputs.ice_version }}"/' gradle/libs.versions.toml
           sed -i "s/^sliceToolsVersion = .*/sliceToolsVersion = ${{ inputs.ice_version }}/" tools/slice-tools/gradle.properties
         working-directory: ice/java
         if: ${{ inputs.ice_version != '' }}
