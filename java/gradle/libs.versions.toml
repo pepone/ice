@@ -1,0 +1,50 @@
+# Copyright (c) ZeroC, Inc.
+
+[versions]
+# Ice version
+ice = "3.9.0-alpha.0"
+
+# Java toolchain
+java = "17"
+
+# Build tools
+checkstyle = "10.21.4"
+openrewrite = "7.19.0"
+openrewrite-static-analysis = "2.19.0"
+openrewrite-java-dependencies = "1.43.0"
+proguard = "7.6.0"
+foojay-resolver = "1.0.0"
+
+# IceGridGUI dependencies
+jgoodies-looks = "2.7.0"
+jgoodies-forms = "1.9.0"
+openjfx = "11.0.2"
+
+# Test dependencies
+commons-compress = "1.20"
+
+[libraries]
+# JGoodies
+jgoodies-looks = { module = "com.jgoodies:jgoodies-looks", version.ref = "jgoodies-looks" }
+jgoodies-forms = { module = "com.jgoodies:jgoodies-forms", version.ref = "jgoodies-forms" }
+
+# OpenJFX (platform-specific classifier added at usage site)
+openjfx-base = { module = "org.openjfx:javafx-base", version.ref = "openjfx" }
+openjfx-swing = { module = "org.openjfx:javafx-swing", version.ref = "openjfx" }
+openjfx-controls = { module = "org.openjfx:javafx-controls", version.ref = "openjfx" }
+openjfx-graphics = { module = "org.openjfx:javafx-graphics", version.ref = "openjfx" }
+
+# OpenRewrite
+openrewrite-static-analysis = { module = "org.openrewrite.recipe:rewrite-static-analysis", version.ref = "openrewrite-static-analysis" }
+openrewrite-java-dependencies = { module = "org.openrewrite.recipe:rewrite-java-dependencies", version.ref = "openrewrite-java-dependencies" }
+
+# ProGuard
+proguard-gradle = { module = "com.guardsquare:proguard-gradle", version.ref = "proguard" }
+
+# Test
+commons-compress = { module = "org.apache.commons:commons-compress", version.ref = "commons-compress" }
+
+[plugins]
+slice-tools = { id = "com.zeroc.slice-tools" }
+openrewrite = { id = "org.openrewrite.rewrite", version.ref = "openrewrite" }
+foojay-resolver = { id = "org.gradle.toolchains.foojay-resolver-convention", version.ref = "foojay-resolver" }

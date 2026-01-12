@@ -1,5 +1,7 @@
 lib
-build
+/build
+!build-logic
+build-logic/build
 .gradle
 *.iml
 .idea
