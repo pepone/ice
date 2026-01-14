@@ -3,20 +3,20 @@
 This page describes how to build and install Ice for Java from source. If
 you prefer, you can also download a [binary distribution].
 
-* [Build Requirements](#build-requirements)
-  * [Operating Systems](#operating-systems)
-  * [Slice to Java Compiler](#slice-to-java-compiler)
-  * [JDK Version](#jdk-version)
-  * [Gradle](#gradle)
-  * [Bzip2 Compression](#bzip2-compression)
-  * [JGoodies](#jgoodies)
-  * [ProGuard](#proguard)
-  * [Java Application Bundler](#java-application-bundler)
-* [Building Ice for Java](#building-ice-for-java)
-* [Installing Ice for Java](#installing-ice-for-java)
-* [Running the Java Tests](#running-the-java-tests)
-* [Building the Ice for Android Tests](#building-the-ice-for-android-tests)
-* [IceGrid GUI Tool](#icegrid-gui-tool)
+- [Build Requirements](#build-requirements)
+  - [Operating Systems](#operating-systems)
+  - [Slice to Java Compiler](#slice-to-java-compiler)
+  - [JDK Version](#jdk-version)
+  - [Gradle](#gradle)
+  - [Bzip2 Compression](#bzip2-compression)
+  - [JGoodies](#jgoodies)
+  - [ProGuard](#proguard)
+  - [Java Application Bundler](#java-application-bundler)
+- [Building Ice for Java](#building-ice-for-java)
+- [Installing Ice for Java](#installing-ice-for-java)
+- [Running the Java Tests](#running-the-java-tests)
+- [Building the Ice for Android Tests](#building-the-ice-for-android-tests)
+- [IceGrid GUI Tool](#icegrid-gui-tool)
 
 ## Build Requirements
 
@@ -76,8 +76,8 @@ to enable protocol compression.
 The IceGrid GUI tool uses the JGoodies libraries Forms and Looks. The following
 versions were tested:
 
-* JGoodies Forms 1.9.0
-* JGoodies Looks 2.7.0
+- JGoodies Forms 1.9.0
+- JGoodies Looks 2.7.0
 
 The Maven package ids for the JGoodies packages are as follows:
 
@@ -88,8 +88,7 @@ groupId=com.jgoodies, version=2.7.0, artifactId=jgoodies-looks
 
 ### ProGuard
 
-Gradle uses [ProGuard] to create the standalone JAR file for the IceGrid
-GUI tool.
+Gradle uses [ProGuard] to create the standalone JAR file for the IceGrid GUI tool.
 
 The Maven package id for the ProGuard gradle plugin is as follows:
 
@@ -99,8 +98,7 @@ groupId=com.guardsquare, version=7.3.1, artifactId=proguard-gradle
 
 ### Java Application Bundler
 
-Under macOS Gradle uses the Java Application Bundler to create an application
-bundle for the IceGrid GUI tool.
+Under macOS Gradle uses the Java Application Bundler to create an application bundle for the IceGrid GUI tool.
 
 The Maven package id for the application bundler package is as follows:
 
@@ -170,17 +168,17 @@ gradlew install
 
 The following JAR files will be installed to `<prefix>/lib`.
 
-* glacier2-3.7.11.jar
-* ice-3.7.11.jar
-* icebox-3.7.11.jar
-* icebt-3.7.11.jar
-* icediscovery-3.7.11.jar
-* icegrid-3.7.11.jar
-* icegridgui.jar
-* icelocatordiscovery-3.7.11.jar
-* icepatch2-3.7.11.jar
-* icessl-3.7.11.jar
-* icestorm-3.7.11.jar
+- glacier2-3.7.11.jar
+- ice-3.7.11.jar
+- icebox-3.7.11.jar
+- icebt-3.7.11.jar
+- icediscovery-3.7.11.jar
+- icegrid-3.7.11.jar
+- icegridgui.jar
+- icelocatordiscovery-3.7.11.jar
+- icepatch2-3.7.11.jar
+- icessl-3.7.11.jar
+- icestorm-3.7.11.jar
 
 POM files are also installed for ease of deployment to a Maven-based
 distribution system.
@@ -223,12 +221,12 @@ the Ice test suite controller.
 To build an Ice application for Android, you need Android Studio and the Android SDK
 build tools. We tested the following components:
 
-* Android Studio Giraffe
-* Android SDK 33
+- Android Studio Giraffe
+- Android SDK 33
 
 To use Ice's Java mapping with Java 8, you need at least API level 24:
 
-* Android 7 (API24)
+- Android 7 (API24)
 
 ### Building the Android Test Controller
 

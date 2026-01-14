@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx gulp dist)",
+      "Bash(npx gulp:*)",
+      "Bash(test:*)"
+    ]
+  }
+}

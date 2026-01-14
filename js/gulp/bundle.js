@@ -2,39 +2,15 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-var PluginError = require("plugin-error");
-var PLUGIN_NAME = "gulp-slice2js-bundle";
-var through     = require("through2");
-var fs          = require("fs");
-var path        = require("path");
-var sourcemap   = require('source-map');
-var Vinyl = require("vinyl");
+import PluginError from "plugin-error";
+import through from "through2";
+import fs from "fs";
+import path from "path";
+import sourcemap from "source-map";
+import Vinyl from "vinyl";
+import esprima from "esprima";
 
-function rmfile(path)
-{
-    try
-    {
-        fs.unlinkSync(path);
-    }
-    catch(e)
-    {
-    }
-}
-
-function mkdir(path)
-{
-    try
-    {
-        fs.mkdirSync(path);
-    }
-    catch(e)
-    {
-        if(e.code != "EEXIST")
-        {
-            throw e;
-        }
-    }
-}
+const PLUGIN_NAME = "gulp-slice2js-bundle";
 
 function isnewer(input, output)
 {
@@ -58,111 +34,110 @@ function isfile(path)
     return false;
 }
 
-var esprima = require('esprima');
-
-var Depends = function()
+class Depends
 {
-    this.depends = [];
-};
-
-Depends.prototype.get = function(file)
-{
-    for(var i = 0; i < this.depends.length; ++i)
+    constructor()
     {
-        var obj = this.depends[i];
-        if(obj.file.path === file)
-        {
-            return obj.depends;
-        }
+        this.depends = [];
     }
-    return [];
-};
 
-Depends.prototype.expand = function(o)
-{
-    if(o === undefined)
+    get(file)
     {
-        for(var i = 0; i < this.depends.length; ++i)
+        for(let i = 0; i < this.depends.length; ++i)
         {
-            this.expand(this.depends[i]);
-        }
-    }
-    else
-    {
-        var newDepends = o.depends.slice();
-        for(var j = 0; j < o.depends.length; ++j)
-        {
-            var depends = this.get(o.depends[j]);
-            for(var k = 0; k < depends.length; ++k)
+            const obj = this.depends[i];
+            if(obj.file.path === file)
             {
-                if(newDepends.indexOf(depends[k]) === -1)
+                return obj.depends;
+            }
+        }
+        return [];
+    }
+
+    expand(o)
+    {
+        if(o === undefined)
+        {
+            for(let i = 0; i < this.depends.length; ++i)
+            {
+                this.expand(this.depends[i]);
+            }
+        }
+        else
+        {
+            const newDepends = o.depends.slice();
+            for(let j = 0; j < o.depends.length; ++j)
+            {
+                const depends = this.get(o.depends[j]);
+                for(let k = 0; k < depends.length; ++k)
                 {
-                    newDepends.push(depends[k]);
+                    if(newDepends.indexOf(depends[k]) === -1)
+                    {
+                        newDepends.push(depends[k]);
+                    }
+                }
+            }
+
+            if(o.depends.length != newDepends.length)
+            {
+                o.depends = newDepends;
+                this.expand(o);
+            }
+        }
+        return this;
+    }
+
+    static comparator(a, b)
+    {
+        // B depends on A
+        let result = 0;
+
+        for(let i = 0; i < b.depends.length; ++i)
+        {
+            if(b.depends[i] === a.file.path)
+            {
+                result = -1;
+            }
+        }
+        // A depends on B
+        for(let i = 0; i < a.depends.length; ++i)
+        {
+            if(a.depends[i] === b.file.path)
+            {
+                if(result == -1)
+                {
+                    process.stderr.write("warning: circulary dependency between: " + a.file.path + " and " + b.file.path + "\n");
+                    return result;
+                }
+                result = 1;
+            }
+        }
+
+        return result;
+    }
+
+    sort()
+    {
+        const objects = this.depends.slice();
+        for(let i = 0; i < objects.length; ++i)
+        {
+            for(let j = 0; j < objects.length; ++j)
+            {
+                if(j === i) { continue; }
+                const v = Depends.comparator(objects[i], objects[j]);
+                if(v < 0)
+                {
+                    const tmp = objects[j];
+                    objects[j] = objects[i];
+                    objects[i] = tmp;
                 }
             }
         }
-
-        if(o.depends.length != newDepends.length)
-        {
-
-            o.depends = newDepends;
-            this.expand(o);
-        }
+        return objects;
     }
-    return this;
-};
+}
 
-Depends.comparator = function(a, b)
-{
-    // B depends on A
-    var i;
-    var result = 0;
-
-    for(i = 0; i < b.depends.length; ++i)
-    {
-        if(b.depends[i] === a.file.path)
-        {
-            result = -1;
-        }
-    }
-    // A depends on B
-    for(i = 0; i < a.depends.length; ++i)
-    {
-        if(a.depends[i] === b.file.path)
-        {
-            if(result == -1)
-            {
-                process.stderr.write("warning: circulary dependency between: " + a.file.path + " and " + b.file.path + "\n");
-                return result;
-            }
-            result = 1;
-        }
-    }
-
-    return result;
-};
-
-Depends.prototype.sort = function()
-{
-    var objects = this.depends.slice();
-    for(var i = 0; i < objects.length; ++i)
-    {
-        for(var j = 0; j < objects.length; ++j)
-        {
-            if(j === i) { continue; }
-            var v = Depends.comparator(objects[i], objects[j]);
-            if(v < 0)
-            {
-                var tmp = objects[j];
-                objects[j] = objects[i];
-                objects[i] = tmp;
-            }
-        }
-    }
-    return objects;
-};
-
-var Parser = {};
+const Parser = {};
 
 Parser.add = function(depend, file, srcDir)
 {
@@ -214,19 +189,18 @@ Parser.transverse = function(object, depend, srcDir)
     }
 };
 
-var StringBuffer = function()
+class StringBuffer
 {
-    // Use new Buffer.alloc(string, encoding) if available, Buffer constructor are deprecated.
-    this.buffer = typeof(Buffer.alloc) === 'function' ? Buffer.alloc(0) : new Buffer(0);
-};
+    constructor()
+    {
+        this.buffer = Buffer.alloc(0);
+    }
 
-StringBuffer.prototype.write = function(data)
-{
-    // Use new Buffer.from(string, encoding) if Buffer.alloc is avilable, Buffer constructors are deprecated.
-    // NOTE: we don't check for Buffer.from which already exists but only accepts array.
-    this.buffer = Buffer.concat([this.buffer,
-                    typeof(Buffer.alloc) === 'function' ? Buffer.from(data, "utf8") : new Buffer(data, "utf8")]);
-};
+    write(data)
+    {
+        this.buffer = Buffer.concat([this.buffer, Buffer.from(data, "utf8")]);
+    }
+}
 
 function sourceMapRelativePath(file)
 {
@@ -486,4 +460,4 @@ function bundle(args)
         });
 }
 
-module.exports = bundle;
+export default bundle;
