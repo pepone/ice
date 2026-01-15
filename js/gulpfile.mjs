@@ -6,7 +6,7 @@
 /* eslint no-process-env: "off" */
 /* eslint no-process-exit: "off" */
 
-import bundle from "./gulp/bundle.js";
+import bundle from "./gulp/bundle.mjs";
 
 import { deleteAsync as del } from "del";
 import extreplace from "gulp-ext-replace";

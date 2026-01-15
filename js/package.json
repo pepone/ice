@@ -1,7 +1,6 @@
 {
   "name": "ice",
   "version": "3.7.110",
-  "type": "module",
   "description": "Ice for JavaScript runtime",
   "author": "Zeroc, Inc.",
   "homepage": "https://zeroc.com",

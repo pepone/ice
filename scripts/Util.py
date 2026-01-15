@@ -2665,7 +2665,7 @@ class BrowserProcessController(RemoteProcessController):
         self.url = None
         self.driver = None
         try:
-            cmd = "node -e \"require('./bin/HttpServer')()\""
+            cmd = "node --input-type=module -e \"import('./bin/HttpServer.mjs').then(m => m.default())\""
             cwd = current.testcase.getMapping().getPath()
             self.httpServer = Expect.Expect(cmd, cwd=cwd)
             self.httpServer.expect("listening on ports")
