@@ -3,7 +3,8 @@
     "allow": [
       "Bash(npx gulp dist)",
       "Bash(npx gulp:*)",
-      "Bash(test:*)"
+      "Bash(test:*)",
+      "Bash(python3:*)"
     ]
   }
 }
