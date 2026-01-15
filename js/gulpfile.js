@@ -87,9 +87,6 @@ function slice2js(options)
     return iceBuilder(defaults);
 }
 
-// Normalize paths for glob (use forward slashes on Windows)
-const toGlobPath = p => p.replace(/\\/g, '/');
-
 //
 // Tasks to build IceJS Distribution
 //
@@ -127,13 +124,10 @@ function mapFiles(name)
 
 function libSources(lib, sources)
 {
-    let srcs = sources.common || [];
-
-    srcs = srcs.map(f => toGlobPath(path.join(srcDir(lib), f)));
-
+    let srcs = (sources.common || []).map(f => path.join(srcDir(lib), f));
     if(sources.slice)
     {
-        srcs = srcs.concat(sources.slice.map(f => toGlobPath(path.join(srcDir(lib), path.basename(f, ".ice") + ".js"))));
+        srcs = srcs.concat(sources.slice.map(f => path.join(srcDir(lib), path.basename(f, ".ice") + ".js")));
     }
     return srcs;
 }
