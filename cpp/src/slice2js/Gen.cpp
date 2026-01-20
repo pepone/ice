@@ -21,25 +21,6 @@ using namespace IceInternal;
 
 namespace
 {
-    // Recursively collects all nested module paths from a module.
-    // For example, if we have Outer::Inner::Deep, this collects "Inner" and "Inner.Deep"
-    // (the paths relative to the top-level module).
-    // @param mod The module to collect nested paths from.
-    // @param topLevelName The name of the top-level module, used to compute relative paths.
-    // @param paths Output set that accumulates all discovered nested module paths.
-    void collectNestedModulePaths(const ModulePtr& mod, const string& topLevelName, set<string>& paths)
-    {
-        for (const auto& nested : mod->modules())
-        {
-            // Get the full scoped path (e.g., "Outer.Inner.Deep") and strip the top-level module prefix
-            // to get the relative path (e.g., "Inner.Deep").
-            string fullPath = nested->mappedScoped(".");
-            string relativePath = fullPath.substr(topLevelName.size() + 1); // +1 for the dot separator
-            paths.insert(relativePath);
-            collectNestedModulePaths(nested, topLevelName, paths);
-        }
-    }
-
     // Convert a path to a module name, e.g., "../foo/bar/baz.ice" -> "__foo_bar_baz"
     string pathToModule(const string& path)
     {
@@ -528,9 +509,33 @@ Slice::Gen::generate(const UnitPtr& p)
     _javaScriptOutput << nl;
 
     {
+        // Build a map from each file to its direct include ancestor.
+        // This is used to properly attribute transitive includes to their direct include.
+        //
+        // For direct includes (level 1), the file maps to itself.
+        // For transitive includes (level > 1), we track the current direct include and map transitives to it.
+        //
+        // Note: Module's file() returns preprocessor-reported filenames (may be relative),
+        // while allFiles() returns absolute paths. We need to use includeFiles() which matches
+        // the format of file().
+        map<string, string> fileToDirectInclude;
+
+        // Start by adding direct includes - they map to themselves
+        for (const string& directInclude : p->includeFiles())
+        {
+            fileToDirectInclude[directInclude] = directInclude;
+        }
+
+        // First, collect nested module paths from all included files (including transitive includes).
+        // This pre-processing phase handles modules that are reopened across multiple files.
+        // The ModuleVisitor will build the fileToDirectInclude map for transitive includes on the fly.
+        ModuleVisitor moduleVisitor(_javaScriptOutput, module, p->topLevelFile(), std::move(fileToDirectInclude));
+        p->visit(&moduleVisitor);
+        const auto& nestedModulePaths = moduleVisitor.getNestedModulePaths();
+
         ImportVisitor importVisitor(_javaScriptOutput);
         p->visit(&importVisitor);
-        set<string> importedModules = importVisitor.writeImports(p);
+        set<string> importedModules = importVisitor.writeImports(p, nestedModulePaths);
 
         ExportsVisitor exportsVisitor(_javaScriptOutput, importedModules);
         p->visit(&exportsVisitor);
@@ -576,6 +581,121 @@ Slice::Gen::generate(const UnitPtr& p)
             _typeScriptOutput << "\n";
         }
     }
+}
+
+// ModuleVisitor implementation
+Slice::ModuleVisitor::ModuleVisitor(
+    IceInternal::Output& out,
+    const string& jsModule,
+    const string& topLevelFile,
+    map<string, string> fileToDirectInclude)
+    : JsVisitor(out),
+      _jsModule(jsModule),
+      _topLevelFile(topLevelFile),
+      _fileToDirectInclude(std::move(fileToDirectInclude))
+{
+}
+
+bool
+Slice::ModuleVisitor::visitModuleStart(const ModulePtr& p)
+{
+    // Skip the top-level file's modules - we only want to collect from included files
+    if (p->file() == _topLevelFile)
+    {
+        return true;
+    }
+
+    // Find the direct include file that brings in this module.
+    // For direct includes (level 1), the file maps to itself.
+    // For transitive includes (level > 1), we need to find the direct include ancestor.
+    string sliceFile = p->file();
+    string directIncludeFile;
+
+    auto it = _fileToDirectInclude.find(sliceFile);
+    if (it != _fileToDirectInclude.end())
+    {
+        directIncludeFile = it->second;
+    }
+    else
+    {
+        // File not in map yet - this is a transitive include.
+        // Find the direct include ancestor by checking include levels.
+        // We track the "current direct include" by looking at the most recently seen level-1 file.
+        // Since the visitor traverses depth-first, we need to walk up the include hierarchy.
+
+        DefinitionContextPtr dc = p->definitionContext();
+        if (!dc || dc->includeLevel() <= 1)
+        {
+            // Shouldn't happen for transitive includes, but handle gracefully
+            directIncludeFile = sliceFile;
+        }
+        else
+        {
+            // For transitive includes, we need to find which direct include brought this in.
+            // We'll use a heuristic: look at the _currentDirectInclude that was set when
+            // we visited a level-1 module. Since this is set during the visit, we track it.
+            directIncludeFile = _currentDirectInclude.empty() ? sliceFile : _currentDirectInclude;
+        }
+
+        // Cache this mapping for future lookups
+        _fileToDirectInclude[sliceFile] = directIncludeFile;
+    }
+
+    // Track the current direct include for transitive files
+    DefinitionContextPtr dc = p->definitionContext();
+    if (dc && dc->includeLevel() == 1)
+    {
+        _currentDirectInclude = sliceFile;
+    }
+
+    // Determine the JavaScript import file based on the direct include.
+    string jsImportedModule = getJavaScriptModule(p->definitionContext());
+
+    string jsImportFile;
+    if (_jsModule == jsImportedModule || jsImportedModule.empty())
+    {
+        // Same JavaScript module or no js:module metadata - use relative path based on direct include
+        jsImportFile = removeExtension(directIncludeFile) + ".js";
+        if (IceInternal::isAbsolutePath(jsImportFile))
+        {
+            jsImportFile = relativePath(jsImportFile, Slice::dirName(_topLevelFile));
+        }
+        else if (!jsImportFile.empty() && jsImportFile[0] != '.')
+        {
+            jsImportFile = "./" + jsImportFile;
+        }
+    }
+    else
+    {
+        // Different JavaScript module - use the module name
+        jsImportFile = jsImportedModule;
+    }
+
+    // Get the full scoped module path (e.g., "Outer.Inner.Deep")
+    string scopedName = p->mappedScoped(".");
+
+    // Find the first dot to separate top-level module from nested path
+    size_t dotPos = scopedName.find('.');
+    if (dotPos == string::npos)
+    {
+        // This is a top-level module - ensure entry exists but don't add any nested paths
+        _nestedModulePaths[jsImportFile][scopedName]; // Creates empty set if not exists
+    }
+    else
+    {
+        // This is a nested module - extract top-level and relative path
+        string topLevel = scopedName.substr(0, dotPos);
+        string nestedPath = scopedName.substr(dotPos + 1);
+        _nestedModulePaths[jsImportFile][topLevel].insert(nestedPath);
+    }
+
+    return true;
+}
+
+const map<string, map<string, set<string>>>&
+Slice::ModuleVisitor::getNestedModulePaths() const
+{
+    return _nestedModulePaths;
 }
 
 Slice::Gen::ImportVisitor::ImportVisitor(IceInternal::Output& out) : JsVisitor(out) {}
@@ -663,7 +783,9 @@ Slice::Gen::ImportVisitor::visitEnum(const EnumPtr&)
 }
 
 set<string>
-Slice::Gen::ImportVisitor::writeImports(const UnitPtr& p)
+Slice::Gen::ImportVisitor::writeImports(
+    const UnitPtr& p,
+    const map<string, map<string, set<string>>>& nestedModulePaths)
 {
     // The JavaScript module we are building as specified by "js:module:" metadata.
     string jsModule = getJavaScriptModule(p->findDefinitionContext(p->topLevelFile()));
@@ -747,10 +869,6 @@ Slice::Gen::ImportVisitor::writeImports(const UnitPtr& p)
 
     StringList includes = p->includeFiles();
 
-    // Maps jsImportedModule -> topLevelModule -> set of nested module paths (relative to top-level).
-    // For example, if we have outer::inner::deep, nestedModulePaths["./first.js"]["outer"] = {"inner", "inner.deep"}
-    map<string, map<string, set<string>>> nestedModulePaths;
-
     // Iterate all the included files and generate an import statement for each top-level module in the included file.
     for (const auto& included : includes)
     {
@@ -780,20 +898,7 @@ Slice::Gen::ImportVisitor::writeImports(const UnitPtr& p)
             {
                 importedModules.insert(topLevelModule);
             }
-
-            // Collect nested module paths for this import.
-            for (const auto& mod : p->modules())
-            {
-                if (mod->file() == included && sliceTopLevelModules.find(mod->mappedName()) != sliceTopLevelModules.end())
-                {
-                    set<string> paths;
-                    collectNestedModulePaths(mod, mod->mappedName(), paths);
-                    if (!paths.empty())
-                    {
-                        nestedModulePaths[f][mod->mappedName()] = paths;
-                    }
-                }
-            }
+            // Note: Nested module paths are now collected by ModuleVisitor and passed in as a parameter.
         }
         else
         {

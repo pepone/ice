@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "FirstDeep.ice"
+
 module Outer
 {
     module Inner

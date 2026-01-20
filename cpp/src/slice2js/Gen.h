@@ -42,6 +42,44 @@ namespace Slice
         ::IceInternal::Output& _out;
     };
 
+    /// Visitor that collects nested module paths across all files in the unit.
+    /// This handles the case where modules are reopened across multiple files (including transitive includes).
+    /// The collected data is used by ImportVisitor to generate proper nested module aggregation.
+    class ModuleVisitor final : public JsVisitor
+    {
+    public:
+        /// Constructs a ModuleVisitor.
+        /// @param out Output stream (unused but required by JsVisitor base).
+        /// @param jsModule The JavaScript module name for the current unit.
+        /// @param topLevelFile The top-level Slice file being compiled.
+        /// @param fileToDirectInclude A map from each file to its direct include ancestor.
+        ///        For direct includes, the value is the file itself. For transitive includes,
+        ///        the value is the direct include that brings them in.
+        ModuleVisitor(
+            ::IceInternal::Output& out,
+            const std::string& jsModule,
+            const std::string& topLevelFile,
+            std::map<std::string, std::string> fileToDirectInclude);
+
+        bool visitModuleStart(const ModulePtr&) final;
+
+        /// Returns the collected nested module paths.
+        /// Structure: jsImportFile -> topLevelModule -> set of nested paths (relative to top-level).
+        /// For example: nestedModulePaths["./First.js"]["Outer"] = {"Inner", "Inner.Deep", "Inner.Transitive"}
+        [[nodiscard]] const std::map<std::string, std::map<std::string, std::set<std::string>>>&
+        getNestedModulePaths() const;
+
+        /// Override to visit included definitions (needed to collect nested module paths from all files).
+        [[nodiscard]] bool shouldVisitIncludedDefinitions() const final { return true; }
+
+    private:
+        std::string _jsModule;
+        std::string _topLevelFile;
+        std::map<std::string, std::string> _fileToDirectInclude;
+        std::map<std::string, std::map<std::string, std::set<std::string>>> _nestedModulePaths;
+        std::string _currentDirectInclude; // Tracks the current direct include during traversal
+    };
+
     class Gen final
     {
     public:
@@ -76,7 +114,10 @@ namespace Slice
             void visitEnum(const EnumPtr&) final;
 
             // Emit the import statements for the given unit and return a list of the imported modules.
-            std::set<std::string> writeImports(const UnitPtr&);
+            // The nestedModulePaths parameter provides pre-collected nested module paths from ModuleVisitor.
+            std::set<std::string> writeImports(
+                const UnitPtr&,
+                const std::map<std::string, std::map<std::string, std::set<std::string>>>& nestedModulePaths);
 
         private:
             bool _seenClass{false};

@@ -2,6 +2,9 @@
 
 import { TestHelper, test } from "../../Common/TestHelper.js";
 import { Outer } from "./Test.js";
+// Import FirstDeep types separately for TypeScript since the transitive re-export
+// isn't generated in the .d.ts files yet (only the JavaScript runtime supports it).
+import { Outer as OuterFirstDeep } from "./FirstDeep.js";
 
 export class Client extends TestHelper {
     run() {
@@ -42,6 +45,26 @@ export class Client extends TestHelper {
         const deepCombined = new Outer.Inner.Deep.DeepCombined(deepFirst, deepSecond);
         test(deepCombined.deepFirst.deepValue === 100);
         test(deepCombined.deepSecond.deepName === "deep");
+
+        out.writeLine("ok");
+
+        out.write("testing transitive includes are merged correctly... ");
+
+        // Test that types from FirstDeep.ice (transitively included via First.ice) are accessible
+        // through Outer.Inner.Transitive. This verifies that transitive includes are properly
+        // aggregated to their direct include parent.
+        //
+        // Note: We use OuterFirstDeep for TypeScript type checking since the .d.ts files don't yet
+        // re-export transitive types. At runtime, the JavaScript code correctly aggregates
+        // Outer.Inner.Transitive from the spread chain.
+        const transitiveFirst = new OuterFirstDeep.Inner.Transitive.TransitiveFirst(999);
+        test(transitiveFirst.transitiveValue === 999);
+
+        // Verify that the runtime aggregation works by accessing through the merged Outer object.
+        // This tests that the JavaScript spread aggregation properly includes transitive modules.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const transitiveFirstViaOuter = new (Outer as any).Inner.Transitive.TransitiveFirst(888);
+        test(transitiveFirstViaOuter.transitiveValue === 888);
 
         out.writeLine("ok");
     }
