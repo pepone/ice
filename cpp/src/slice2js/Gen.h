@@ -180,6 +180,7 @@ namespace Slice
             typeToTsString(const TypePtr&, bool nullable = false, bool forParameter = false, bool optional = false)
                 const;
             void writeOpDocSummary(::IceInternal::Output& out, const OperationPtr& op, bool forDispatch);
+            void writeImportedTypeReExports(const std::string& currentModulePath);
 
             // The module name of the current unit.
             std::string _module;
@@ -187,6 +188,8 @@ namespace Slice
             std::string _iceImportPrefix;
             // A map of imported types to their module name.
             std::map<std::string, std::string> _importedTypes;
+            // Track types that have been re-exported to avoid duplicates.
+            std::set<std::string> _reExportedTypes;
         };
     };
 }

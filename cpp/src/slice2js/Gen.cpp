@@ -21,6 +21,19 @@ using namespace IceInternal;
 
 namespace
 {
+    // Recursively collects all nested module paths from a module.
+    // For example, if we have outer::inner::deep, this collects "inner" and "inner.deep"
+    // (the paths relative to the top-level module).
+    void collectNestedModulePaths(const ModulePtr& mod, const string& prefix, set<string>& paths)
+    {
+        for (const auto& nested : mod->modules())
+        {
+            string nestedPath = prefix.empty() ? nested->mappedName() : prefix + "." + nested->mappedName();
+            paths.insert(nestedPath);
+            collectNestedModulePaths(nested, nestedPath, paths);
+        }
+    }
+
     // Convert a path to a module name, e.g., "../foo/bar/baz.ice" -> "__foo_bar_baz"
     string pathToModule(const string& path)
     {
@@ -728,6 +741,10 @@ Slice::Gen::ImportVisitor::writeImports(const UnitPtr& p)
 
     StringList includes = p->includeFiles();
 
+    // Maps jsImportedModule -> topLevelModule -> set of nested module paths (relative to top-level).
+    // For example, if we have outer::inner::deep, nestedModulePaths["./first.js"]["outer"] = {"inner", "inner.deep"}
+    map<string, map<string, set<string>>> nestedModulePaths;
+
     // Iterate all the included files and generate an import statement for each top-level module in the included file.
     for (const auto& included : includes)
     {
@@ -756,6 +773,20 @@ Slice::Gen::ImportVisitor::writeImports(const UnitPtr& p)
             for (const auto& topLevelModule : sliceTopLevelModules)
             {
                 importedModules.insert(topLevelModule);
+            }
+
+            // Collect nested module paths for this import.
+            for (const auto& mod : p->modules())
+            {
+                if (mod->file() == included && sliceTopLevelModules.find(mod->mappedName()) != sliceTopLevelModules.end())
+                {
+                    set<string> paths;
+                    collectNestedModulePaths(mod, "", paths);
+                    if (!paths.empty())
+                    {
+                        nestedModulePaths[f][mod->mappedName()] = paths;
+                    }
+                }
             }
         }
         else
@@ -891,11 +922,53 @@ Slice::Gen::ImportVisitor::writeImports(const UnitPtr& p)
         _out << nl << "};";
     }
 
-    // TODO aggregate the sub-modules.
+    // Aggregate nested sub-modules.
     // If module Foo.Bar was imported from multiple files, we need to aggregate them into a single
-    // Foo.Bar module. This mut be done in a top-down order.
-    // Foo.Bar = { ...Foo_Bar_1.Bar, ...Foo_Bar_2.Bar, ... }
-    // Foo.Bar.Baz = { ...Foo_Bar_1.Bar.Baz, ...Foo_Bar_2.Bar.Baz, ... }
+    // Foo.Bar module. This must be done in a top-down order.
+    // Foo.Bar = { ...(Foo_file1.Bar || {}), ...(Foo_file2.Bar || {}), ... }
+    // Foo.Bar.Baz = { ...(Foo_file1.Bar.Baz || {}), ...(Foo_file2.Bar.Baz || {}), ... }
+    for (const string& m : aggregatedModules)
+    {
+        if (m == "Ice")
+        {
+            continue;
+        }
+
+        // Collect all unique nested paths for this top-level module across all imports.
+        set<string> allNestedPaths;
+        for (const auto& [jsImportedModule, topLevelModulesMap] : nestedModulePaths)
+        {
+            auto it = topLevelModulesMap.find(m);
+            if (it != topLevelModulesMap.end())
+            {
+                allNestedPaths.insert(it->second.begin(), it->second.end());
+            }
+        }
+
+        // Sort paths by depth (top-down order) to ensure parent modules are merged before children.
+        vector<string> sortedPaths(allNestedPaths.begin(), allNestedPaths.end());
+        sort(
+            sortedPaths.begin(),
+            sortedPaths.end(),
+            [](const string& a, const string& b)
+            { return count(a.begin(), a.end(), '.') < count(b.begin(), b.end(), '.'); });
+
+        // Generate aggregation for each nested path.
+        for (const string& nestedPath : sortedPaths)
+        {
+            _out << nl << m << "." << nestedPath << " = {";
+            _out.inc();
+            for (const auto& [jsImportedModule, topLevelModules] : imports)
+            {
+                if (topLevelModules.find(m) != topLevelModules.end())
+                {
+                    _out << nl << "...(" << m << "_" << pathToModule(jsImportedModule) << "." << nestedPath << " || {}),";
+                }
+            }
+            _out.dec();
+            _out << nl << "}";
+        }
+    }
 
     return importedModules;
 }
@@ -2121,6 +2194,11 @@ Slice::Gen::TypeScriptVisitor::visitModuleStart(const ModulePtr& p)
     {
         _out << nl << "namespace " << p->mappedName() << sb;
     }
+
+    // Generate re-exports for imported types that belong to this module path.
+    // This merges types from multiple included files into the same namespace.
+    writeImportedTypeReExports(p->mappedScoped("."));
+
     return true;
 }
 
@@ -2128,6 +2206,38 @@ void
 Slice::Gen::TypeScriptVisitor::visitModuleEnd(const ModulePtr&)
 {
     _out << eb; // namespace end
+}
+
+void
+Slice::Gen::TypeScriptVisitor::writeImportedTypeReExports(const string& currentModulePath)
+{
+    // Generate re-exports for types from imported modules that belong to the current module path.
+    // This is needed to merge nested modules from multiple included files.
+    // For example, if First.ice and Second.ice both define Outer.Inner types,
+    // we need to re-export them so they're accessible via Outer.Inner in TypeScript.
+    const string prefix = currentModulePath + ".";
+    for (const auto& [typePath, importModule] : _importedTypes)
+    {
+        // Check if the type belongs to the current module path (starts with "Outer.Inner.")
+        // and hasn't been re-exported yet, and is from an imported module (not __global_)
+        if (typePath.rfind(prefix, 0) == 0 && _reExportedTypes.find(typePath) == _reExportedTypes.end() &&
+            importModule.rfind("__module_", 0) == 0)
+        {
+            // Extract the type name (last part after the last dot)
+            const size_t lastDot = typePath.rfind('.');
+            if (lastDot != string::npos)
+            {
+                const string typeName = typePath.substr(lastDot + 1);
+                // Only re-export if the type is directly in this module (not in a sub-module)
+                const string typeModulePath = typePath.substr(0, lastDot);
+                if (typeModulePath == currentModulePath)
+                {
+                    _out << nl << "export import " << typeName << " = " << importModule << typePath << ";";
+                    _reExportedTypes.insert(typePath);
+                }
+            }
+        }
+    }
 }
 
 bool

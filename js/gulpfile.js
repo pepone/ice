@@ -126,6 +126,7 @@ const tests = [
     "test/Ice/inheritance",
     "test/Ice/location",
     "test/Ice/middleware",
+    "test/Ice/nestedModules",
     "test/Ice/objects",
     "test/Ice/operations",
     "test/Ice/optional",
