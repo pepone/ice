@@ -22,15 +22,21 @@ using namespace IceInternal;
 namespace
 {
     // Recursively collects all nested module paths from a module.
-    // For example, if we have outer::inner::deep, this collects "inner" and "inner.deep"
+    // For example, if we have Outer::Inner::Deep, this collects "Inner" and "Inner.Deep"
     // (the paths relative to the top-level module).
-    void collectNestedModulePaths(const ModulePtr& mod, const string& prefix, set<string>& paths)
+    // @param mod The module to collect nested paths from.
+    // @param topLevelName The name of the top-level module, used to compute relative paths.
+    // @param paths Output set that accumulates all discovered nested module paths.
+    void collectNestedModulePaths(const ModulePtr& mod, const string& topLevelName, set<string>& paths)
     {
         for (const auto& nested : mod->modules())
         {
-            string nestedPath = prefix.empty() ? nested->mappedName() : prefix + "." + nested->mappedName();
-            paths.insert(nestedPath);
-            collectNestedModulePaths(nested, nestedPath, paths);
+            // Get the full scoped path (e.g., "Outer.Inner.Deep") and strip the top-level module prefix
+            // to get the relative path (e.g., "Inner.Deep").
+            string fullPath = nested->mappedScoped(".");
+            string relativePath = fullPath.substr(topLevelName.size() + 1); // +1 for the dot separator
+            paths.insert(relativePath);
+            collectNestedModulePaths(nested, topLevelName, paths);
         }
     }
 
@@ -781,7 +787,7 @@ Slice::Gen::ImportVisitor::writeImports(const UnitPtr& p)
                 if (mod->file() == included && sliceTopLevelModules.find(mod->mappedName()) != sliceTopLevelModules.end())
                 {
                     set<string> paths;
-                    collectNestedModulePaths(mod, "", paths);
+                    collectNestedModulePaths(mod, mod->mappedName(), paths);
                     if (!paths.empty())
                     {
                         nestedModulePaths[f][mod->mappedName()] = paths;
