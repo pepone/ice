@@ -35,6 +35,8 @@ srcs:: $(projects)
 
 ifeq ($(os),Darwin)
 $(call make-xcframeworks)
+include $(lang_srcdir)/config/Make.slice2swift.rules
+$(call make-slice2swift-zip)
 endif
 
 #

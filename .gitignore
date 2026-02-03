@@ -146,6 +146,9 @@ compile_commands.json
 .build
 .swiftpm
 
+# slice2swift zip (built on-demand for SwiftPM)
+cpp/bin/slice2swift.zip
+
 # LLVM Code Coverage maps
 *.profraw
 *.profdata

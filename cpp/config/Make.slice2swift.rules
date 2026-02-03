@@ -1,0 +1,30 @@
+# Copyright (c) ZeroC, Inc.
+
+# Creates the slice2swift zip for SwiftPM
+#
+# This rule creates a zip file containing the slice2swift binary for use with SwiftPM's binaryTarget.
+# The zip is used by Package.swift to provide the slice2swift tool to the CompileSlice plugin.
+
+slice2swift_zip := bin/slice2swift.zip
+
+# Get the slice2swift binary path - it's built by the translator project
+slice2swift_binary = $(slice2swift[$(build-platform)-static]_targetdir)/slice2swift
+
+define create-slice2swift-zip
+
+$(slice2swift_zip): $(slice2swift_binary)
+	$(E) Creating $(slice2swift_zip)
+	$(Q)$(RM) -f $(slice2swift_zip)
+	$(Q)cd $$(dirname $(slice2swift_binary)) && zip -j $(abspath $(slice2swift_zip)) slice2swift
+
+srcs all:: $(slice2swift_zip)
+
+clean::
+	$(E) Cleaning $(slice2swift_zip)
+	$(Q)$(RM) -f $(slice2swift_zip)
+
+endef
+
+define make-slice2swift-zip
+$(eval $(call create-slice2swift-zip))
+endef

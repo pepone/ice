@@ -56,8 +56,19 @@ jobs:
           done
         working-directory: cpp/lib/XCFrameworks
 
-      - name: Upload Artifacts
+      - name: Build slice2swift zip
+        run: ./packaging/swift/build-slice2swift.sh
+        env:
+          ICE_VERSION: ${{ env.ICE_VERSION }}
+
+      - name: Upload XCFramework Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: xcframework-packages
           path: cpp/lib/XCFrameworks/*.zip
+
+      - name: Upload slice2swift zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: slice2swift
+          path: cpp/bin/slice2swift-*.zip
