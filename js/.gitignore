@@ -16,6 +16,12 @@ test/Glacier2/router/Callback.d.ts
 test/Glacier2/router/Callback.js
 test/Ice/objects/Forward.d.ts
 test/Ice/objects/Forward.js
+test/Ice/nestedModules/relative/*.js
+test/Ice/nestedModules/relative/*.d.ts
+test/Ice/nestedModules/module/*.js
+test/Ice/nestedModules/module/*.d.ts
+test/Ice/nestedModules/external/*.js
+test/Ice/nestedModules/external/*.d.ts
 test/Ice/optional/ClientPrivate.d.ts
 test/Ice/optional/ClientPrivate.js
 test/Slice/escape/Clash.d.ts
