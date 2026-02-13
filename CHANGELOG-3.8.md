@@ -5,9 +5,17 @@ entries reflect significant new additions, while others represent minor correcti
 comprehensive report of every change we made in a release, it does provide details on the changes we feel Ice users
 might need to be aware of.
 
-- [Changes in Ice 3.8.0](#changes-in-ice-380)
+- [Changes in Ice 3.8.1](#changes-in-ice-381)
   - [General Changes](#general-changes)
+  - [C++ Changes](#c-changes)
+  - [C# Changes](#c-changes-1)
+  - [Java Changes](#java-changes)
+  - [JavaScript Changes](#javascript-changes)
+  - [Swift Changes](#swift-changes)
   - [Packaging Changes](#packaging-changes)
+- [Changes in Ice 3.8.0](#changes-in-ice-380)
+  - [General Changes](#general-changes-1)
+  - [Packaging Changes](#packaging-changes-1)
   - [Slice Language Changes](#slice-language-changes)
   - [IceSSL Changes](#icessl-changes)
     - [Integration with Platform SSL Engines](#integration-with-platform-ssl-engines)
@@ -15,16 +23,16 @@ might need to be aware of.
     - [Removed IceSSL APIs](#removed-icessl-apis)
     - [Updated IceSSL Properties](#updated-icessl-properties)
     - [Removed IceSSL Properties](#removed-icessl-properties)
-  - [C++ Changes](#c-changes)
-  - [C# Changes](#c-changes-1)
-  - [Java Changes](#java-changes)
-  - [JavaScript Changes](#javascript-changes)
+  - [C++ Changes](#c-changes-2)
+  - [C# Changes](#c-changes-3)
+  - [Java Changes](#java-changes-1)
+  - [JavaScript Changes](#javascript-changes-1)
   - [MATLAB Changes](#matlab-changes)
   - [Objective-C Changes](#objective-c-changes)
   - [PHP Changes](#php-changes)
   - [Python Changes](#python-changes)
   - [Ruby Changes](#ruby-changes)
-  - [Swift Changes](#swift-changes)
+  - [Swift Changes](#swift-changes-1)
   - [Ice Service Changes](#ice-service-changes)
     - [DataStorm](#datastorm)
     - [Glacier2](#glacier2)
@@ -32,6 +40,82 @@ might need to be aware of.
     - [IceGrid](#icegrid)
     - [IcePatch2](#icepatch2)
     - [IceStorm](#icestorm)
+
+## Changes in Ice 3.8.1
+
+These are the changes since the Ice 3.8.0 release.
+
+### General Changes
+
+- The Slice compilers now emit members (fields, enumerators, etc.) in source order instead of alphabetically in
+  generated doc-comments.
+
+- Improved doc-comment generation across the Python, Swift, C#, and JavaScript Slice compilers to produce more
+  complete and consistent documentation.
+
+- The IceBox client library is now available in Swift, MATLAB, and JavaScript, matching the functionality already
+  available in C++, C#, Java, and Python.
+
+### C++ Changes
+
+- Fixed build failures with Clang in C++23 and C++26 modes.
+
+- Improved portability of the `execinfo.h` detection across platforms.
+
+- Improved `OutputStream::writeConverted` performance by simplifying the size encoding logic, eliminating unnecessary
+  memory operations when marshaling strings.
+
+- Fixed `iceserviceinstall` to correctly accept IceGrid and Glacier2 property prefixes.
+
+### C# Changes
+
+- Enabled deterministic builds for C# assemblies.
+
+### Java Changes
+
+- Ice for Java no longer requires a specific Java toolchain version. Any toolchain compatible with Java 17 can be used.
+
+### JavaScript Changes
+
+- Created new `@zeroc/slice2js` npm package, which includes the `slice2js` compiler and an unplugin plugin compatible
+  with modern JavaScript build tools (Vite, Rollup, Webpack, esbuild).
+
+- Added module aggregation support to `slice2js`. The compiler now automatically aggregates nested submodules from
+  direct and transitive includes, making module imports more natural in JavaScript and TypeScript projects.
+
+- Fixed inactivity timeout not being correctly converted from seconds to milliseconds, which could cause incorrect
+  connection timeout behavior.
+
+- Fixed missing `onerror` handler on WebSocket connections, which could cause unhandled errors during connection
+  establishment.
+
+- Fixed `slice2js` generating invalid JavaScript identifiers from Slice files or modules with hyphenated names.
+
+- Fixed `slice2js` generating malformed import statements when including `Glacier2/Session.ice`.
+
+- Added address information to socket exceptions for better error diagnostics.
+
+- Improved string encoding performance by using the `TextEncoder.encodeInto()` API.
+
+### Swift Changes
+
+- The `CompileSlice` SwiftPM plugin now auto-detects the Ice slice directory, eliminating the need for manual
+  configuration when including Ice Slice definitions.
+
+- SwiftPM now uses a prebuilt `slice2swift` artifact bundle, reducing build times.
+
+- Fixed a crash in `ICELocalObject` dealloc caused by recursive deallocation via ARC weak reference reads.
+
+### Packaging Changes
+
+- The Windows installer is now distributed as a Burn bundle (.exe) that automatically installs the Visual C++
+  Redistributable as a prerequisite.
+
+- Added IceBT library to RPM distributions.
+
+- Added symbols server support for Windows releases.
+
+- NuGet packages now use service-specific icons.
 
 ## Changes in Ice 3.8.0
 
