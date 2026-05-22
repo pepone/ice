@@ -35,6 +35,12 @@ These are the changes since the [Ice 3.8.1] release.
 
 ### C++ Changes
 
+- Changed the macOS SSL transport to import the certificate configured with `IceSSL.CertFile` into a temporary
+  keychain instead of the user's login keychain.
+
+- Changed the macOS SSL transport to enable only forward-secret (ECDHE) cipher suites by default, and added the
+  `IceSSL.Ciphers` property to override the enabled cipher suites.
+
 - Changed the mapping of `@p [NAME]` tags which reference out parameters in Slice. These now generate `` `[NAME]` ``
   instead of `@p [NAME]`.
 

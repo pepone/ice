@@ -307,6 +307,7 @@
         <property name="CertStoreLocation" languages="cpp,csharp" default="CurrentUser" />
         <property name="CheckCertName" languages="cpp,csharp,java" default="0" />
         <property name="CheckCRL" languages="csharp" default="0" />
+        <property name="Ciphers" languages="cpp" />
         <property name="DefaultDir" languages="cpp,csharp,java" />
         <property name="FindCert" languages="cpp,csharp" />
         <property name="Keychain" languages="cpp" />

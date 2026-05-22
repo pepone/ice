@@ -421,6 +421,7 @@ const Property IceSSLPropsData[] =
     Property{"CertStore", "My", false, false, nullptr},
     Property{"CertStoreLocation", "CurrentUser", false, false, nullptr},
     Property{"CheckCertName", "0", false, false, nullptr},
+    Property{"Ciphers", "", false, false, nullptr},
     Property{"DefaultDir", "", false, false, nullptr},
     Property{"FindCert", "", false, false, nullptr},
     Property{"Keychain", "", false, false, nullptr},
@@ -444,7 +445,7 @@ const PropertyArray PropertyNames::IceSSLProps
     .prefixOnly=false,
     .isOptIn=false,
     .properties=IceSSLPropsData,
-    .length=21
+    .length=22
 };
 
 const Property IceStormPropsData[] =

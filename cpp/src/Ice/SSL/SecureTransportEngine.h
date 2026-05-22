@@ -13,6 +13,7 @@
 
 #    include <Security/SecureTransport.h>
 #    include <Security/Security.h>
+#    include <vector>
 
 namespace Ice::SSL::SecureTransport
 {
@@ -37,6 +38,13 @@ namespace Ice::SSL::SecureTransport
     private:
         IceInternal::UniqueRef<CFArrayRef> _certificateAuthorities;
         IceInternal::UniqueRef<CFArrayRef> _chain;
+
+        // The cipher suites enabled on every SSL context, in preference order.
+        std::vector<SSLCipherSuite> _ciphers;
+
+        // Path of the temporary keychain holding the imported certificate, removed by destroy().
+        // Empty when IceSSL.Keychain is set or no certificate is configured.
+        std::string _temporaryKeychainPath;
     };
 }
 #endif

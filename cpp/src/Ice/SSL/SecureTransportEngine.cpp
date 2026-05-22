@@ -9,9 +9,13 @@
 #include "Ice/Logger.h"
 #include "Ice/Properties.h"
 #include "Ice/SSL/SSLException.h"
+#include "Ice/UUID.h"
 #include "SSLEngine.h"
 #include "SSLUtil.h"
 #include "SecureTransportUtil.h"
+
+#include <cstdlib>
+#include <sstream>
 
 // Disable deprecation warnings from SecureTransport APIs
 #include "../DisableWarnings.h"
@@ -547,6 +551,84 @@ namespace
             }
         }
     }
+
+    // Returns a unique path in the temporary directory for a short-lived keychain.
+    string temporaryKeychainPath()
+    {
+        const char* tmpdir = getenv("TMPDIR");
+        string dir = (tmpdir && *tmpdir) ? tmpdir : "/tmp";
+        if (dir.back() != '/')
+        {
+            dir += '/';
+        }
+        return dir + "ice-" + Ice::generateUUID() + ".keychain";
+    }
+
+    // The cipher suites enabled by default: the Mozilla "Intermediate" recommendation for TLS 1.2
+    // intersected with what SecureTransport can negotiate — forward-secret ECDHE suites with AES-GCM
+    // only. SecureTransport supports neither ChaCha20-Poly1305 nor DHE, and its own default set still
+    // includes static-RSA suites (no forward secrecy) and 3DES.
+    vector<SSLCipherSuite> defaultCipherSuites()
+    {
+        return {
+            TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+            TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+            TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+            TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384};
+    }
+
+    // Resolves a space-separated IceSSL.Ciphers value to SecureTransport cipher suites. Each token
+    // must name a cipher suite the platform supports, e.g. "ECDHE_RSA_WITH_AES_256_GCM_SHA384".
+    vector<SSLCipherSuite> parseCipherSuites(const string& ciphers)
+    {
+        // Retrieve the cipher suites SecureTransport supports so each token can be resolved by name.
+        UniqueRef<SSLContextRef> ctx(SSLCreateContext(kCFAllocatorDefault, kSSLServerSide, kSSLStreamType));
+        size_t count = 0;
+        SSLGetNumberSupportedCiphers(ctx.get(), &count);
+        vector<SSLCipherSuite> supported(count);
+        OSStatus err = SSLGetSupportedCiphers(ctx.get(), supported.data(), &count);
+        if (err != noErr)
+        {
+            throw InitializationException(
+                __FILE__,
+                __LINE__,
+                "SSL transport: unable to retrieve the supported ciphers:\n" + sslErrorToString(err));
+        }
+        supported.resize(count);
+
+        vector<SSLCipherSuite> enabled;
+        istringstream iss(ciphers);
+        string token;
+        while (iss >> token)
+        {
+            bool found = false;
+            for (SSLCipherSuite suite : supported)
+            {
+                if (cipherName(suite) == token)
+                {
+                    enabled.push_back(suite);
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+            {
+                throw InitializationException(
+                    __FILE__,
+                    __LINE__,
+                    "SSL transport: unknown or unsupported cipher '" + token + "' in IceSSL.Ciphers");
+            }
+        }
+
+        if (enabled.empty())
+        {
+            throw InitializationException(
+                __FILE__,
+                __LINE__,
+                "SSL transport: IceSSL.Ciphers does not contain any cipher");
+        }
+        return enabled;
+    }
 }
 
 SecureTransport::SSLEngine::SSLEngine(const IceInternal::InstancePtr& instance)
@@ -636,6 +718,16 @@ SecureTransport::SSLEngine::initialize()
             keyFile = *resolved;
         }
 
+        if (keychain.empty())
+        {
+            // Import the certificate into a temporary keychain rather than the user's login keychain.
+            // A private key in the login keychain cannot complete a forward-secret (ECDHE) handshake
+            // on the server side. The keychain is removed by destroy().
+            _temporaryKeychainPath = temporaryKeychainPath();
+            keychain = _temporaryKeychainPath;
+            keychainPassword = Ice::generateUUID();
+        }
+
         try
         {
             _chain.reset(loadCertificateChain(certFile, keyFile, keychain, keychainPassword, password));
@@ -649,6 +741,12 @@ SecureTransport::SSLEngine::initialize()
     {
         _chain.reset(findCertificateChain(keychain, keychainPassword, findCert));
     }
+
+    // Restrict the enabled cipher suites. By default SecureTransport offers a legacy set that lacks
+    // forward secrecy and still includes 3DES; apply a modern ECDHE-only list instead. IceSSL.Ciphers
+    // lets an operator override this list.
+    const string ciphers = properties->getIceProperty("IceSSL.Ciphers");
+    _ciphers = ciphers.empty() ? defaultCipherSuites() : parseCipherSuites(ciphers);
 }
 
 //
@@ -657,6 +755,18 @@ SecureTransport::SSLEngine::initialize()
 void
 SecureTransport::SSLEngine::destroy()
 {
+    if (!_temporaryKeychainPath.empty())
+    {
+        // Remove the temporary keychain created by initialize() to hold the certificate.
+        _chain.reset();
+        SecKeychainRef keychain = nullptr;
+        if (SecKeychainOpen(_temporaryKeychainPath.c_str(), &keychain) == noErr && keychain)
+        {
+            SecKeychainDelete(keychain);
+            CFRelease(keychain);
+        }
+        _temporaryKeychainPath.clear();
+    }
 }
 
 ClientAuthenticationOptions
@@ -739,6 +849,15 @@ SecureTransport::SSLEngine::newContext(bool incoming) const
             __FILE__,
             __LINE__,
             "SSL transport: error while setting SSL option:\n" + sslErrorToString(err));
+    }
+
+    err = SSLSetEnabledCiphers(ssl, _ciphers.data(), _ciphers.size());
+    if (err != noErr)
+    {
+        throw SecurityException(
+            __FILE__,
+            __LINE__,
+            "SSL transport: error while setting ciphers:\n" + sslErrorToString(err));
     }
 
     return ssl;
