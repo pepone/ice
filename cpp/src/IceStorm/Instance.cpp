@@ -61,8 +61,6 @@ Instance::Instance(
       _traceLevels(make_shared<TraceLevels>(_communicator->getProperties(), _communicator->getLogger())),
       // default one minute.
       _discardInterval(_communicator->getProperties()->getIcePropertyAsInt("IceStorm.Discard.Interval")),
-      // default one second.
-      _flushInterval(_communicator->getProperties()->getIcePropertyAsInt("IceStorm.Flush.Timeout")),
       // default one minute.
       _sendTimeout(_communicator->getProperties()->getIcePropertyAsInt("IceStorm.Send.Timeout")),
       _sendQueueSizeMax(_communicator->getProperties()->getIcePropertyAsInt("IceStorm.Send.QueueSizeMax")),

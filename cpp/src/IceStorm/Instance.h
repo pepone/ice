@@ -85,7 +85,6 @@ namespace IceStorm
         const std::optional<IceStormElection::NodePrx> _nodeProxy;
         const std::shared_ptr<TraceLevels> _traceLevels;
         const std::chrono::seconds _discardInterval;
-        const std::chrono::milliseconds _flushInterval;
         const std::chrono::milliseconds _sendTimeout;
         const int _sendQueueSizeMax;
         const SendQueueSizeMaxPolicy _sendQueueSizeMaxPolicy{RemoveSubscriber};

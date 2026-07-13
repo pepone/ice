@@ -454,7 +454,6 @@ const Property IceStormPropsData[] =
     Property{"Election.ElectionTimeout", "10", false, false, nullptr},
     Property{"Election.MasterTimeout", "10", false, false, nullptr},
     Property{"Election.ResponseTimeout", "10", false, false, nullptr},
-    Property{"Flush.Timeout", "1000", false, false, nullptr},
     Property{"InstanceName", "IceStorm", false, false, nullptr},
     Property{"LMDB.Path", "IceStorm", false, false, nullptr},
     Property{"LMDB.MapSize", "", false, false, nullptr},
@@ -483,7 +482,7 @@ const PropertyArray PropertyNames::IceStormProps
     .prefixOnly=false,
     .isOptIn=true,
     .properties=IceStormPropsData,
-    .length=25
+    .length=24
 };
 
 const Property IceStormAdminPropsData[] =

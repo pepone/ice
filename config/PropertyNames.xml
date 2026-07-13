@@ -336,7 +336,6 @@
         <property name="Election.ElectionTimeout" languages="cpp" default="10" />
         <property name="Election.MasterTimeout" languages="cpp" default="10" />
         <property name="Election.ResponseTimeout" languages="cpp" default="10" />
-        <property name="Flush.Timeout" languages="cpp" default="1000" />
         <property name="InstanceName" languages="cpp" default="IceStorm" />
         <property name="LMDB.Path" languages="cpp" default="IceStorm" />
         <property name="LMDB.MapSize" languages="cpp" />

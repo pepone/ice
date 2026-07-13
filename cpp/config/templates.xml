@@ -27,7 +27,6 @@
       <parameter name="topic-manager-endpoints" default="default"/>
       <!-- publish-endpoints configures the IceStorm.Publish object adapter -->
       <parameter name="publish-endpoints" default="default"/>
-      <parameter name="flush-timeout" default="1000"/>
 
       <!-- In general, the IceStorm service name should be simply "IceStorm". Using a configurable name allows us to
            load multiple IceStorm service instances in the same IceBox server - a rare use case. -->
@@ -45,7 +44,6 @@
         <properties>
            <property name="IceStorm.LMDB.Path" value="${service.data}"/>
            <property name="IceStorm.InstanceName" value="${instance-name}"/>
-           <property name="IceStorm.Flush.Timeout" value="${flush-timeout}"/>
         </properties>
       </service>
     </service-template>
@@ -55,15 +53,13 @@
       <parameter name="instance-name" default="${application}.IceStorm"/>
       <parameter name="topic-manager-endpoints" default="default"/>
       <parameter name="publish-endpoints" default="default"/>
-      <parameter name="flush-timeout" default="1000"/>
 
       <icebox id="${instance-name}" exe="icebox" activation="on-demand">
         <description>An IceBox server that loads a single IceStorm service.</description>
         <service-instance template="IceStorm"
                           instance-name="${instance-name}"
                           topic-manager-endpoints="${topic-manager-endpoints}"
-                          publish-endpoints="${publish-endpoints}"
-                          flush-timeout="${flush-timeout}"/>
+                          publish-endpoints="${publish-endpoints}"/>
       </icebox>
     </server-template>
 
@@ -77,7 +73,6 @@
       <!-- publish-endpoints configures the IceStorm.Publish object adapter -->
       <parameter name="publish-endpoints" default="default"/>
       <parameter name="node-endpoints" default="default"/>
-      <parameter name="flush-timeout" default="1000"/>
       <parameter name="publish-replica-group"/>
       <parameter name="topic-manager-replica-group"/>
 
@@ -102,7 +97,6 @@
            <property name="IceStorm.LMDB.Path" value="${service.data}"/>
            <property name="IceStorm.InstanceName" value="${instance-name}"/>
            <property name="IceStorm.NodeId" value="${node-id}"/>
-           <property name="IceStorm.Flush.Timeout" value="${flush-timeout}"/>
         </properties>
       </service>
     </service-template>
@@ -114,7 +108,6 @@
       <parameter name="topic-manager-endpoints" default="default"/>
       <parameter name="publish-endpoints" default="default"/>
       <parameter name="node-endpoints" default="default"/>
-      <parameter name="flush-timeout" default="1000"/>
       <parameter name="publish-replica-group"/>
       <parameter name="topic-manager-replica-group"/>
 
@@ -126,7 +119,6 @@
                           topic-manager-endpoints="${topic-manager-endpoints}"
                           publish-endpoints="${publish-endpoints}"
                           node-endpoints="${node-endpoints}"
-                          flush-timeout="${flush-timeout}"
                           publish-replica-group="${publish-replica-group}"
                           topic-manager-replica-group="${topic-manager-replica-group}"/>
       </icebox>

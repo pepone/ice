@@ -601,7 +601,7 @@ PropertyNames.{name}Props.properties = [{properties}
 
     @override
     def moveFiles(self, location):
-        dest = os.path.join(location, "js", "src", "Ice")
+        dest = os.path.join(location, "js", "packages", "ice", "src", "Ice")
         if os.path.exists(os.path.join(dest, "PropertyNames.js")):
             os.remove(os.path.join(dest, "PropertyNames.js"))
         shutil.move("PropertyNames.js", dest)
