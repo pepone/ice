@@ -564,6 +564,7 @@ namespace DataStormI
         template<typename Criteria>
         void set(std::string name, std::function<std::function<bool(const Value&)>(const Criteria&)> lambda)
         {
+            assert(!_shared);
             if (lambda)
             {
                 auto factory = std::make_unique<FactoryT<Criteria>>(name, std::move(lambda));
@@ -575,9 +576,20 @@ namespace DataStormI
             }
         }
 
+        /// Marks this filter manager as shared with a topic reader or writer. The filter factories of a shared filter
+        /// manager are read by the Ice dispatch threads and can no longer be updated.
+        void markShared() noexcept { _shared = true; }
+
+        /// Indicates whether or not this filter manager is shared with a topic reader or writer.
+        [[nodiscard]] bool isShared() const noexcept { return _shared; }
+
     private:
         // A map containing the filter factories, indexed by the filter name.
         std::map<std::string, std::unique_ptr<Factory>> _factories;
+
+        // True once this filter manager is shared with a topic reader or writer. Only the application accesses this
+        // member, through the Topic that owns this filter manager, never an Ice dispatch thread.
+        bool _shared{false};
     };
 }
 

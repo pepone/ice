@@ -389,25 +389,33 @@ namespace DataStorm
 
         /// Sets a key filter factory. The given factory function must return a filter function that returns `true` if
         /// the key matches the filter criteria, `false` otherwise.
-        /// Register all key filters before creating any reader or writer for this topic: the set of filters is not
-        /// synchronized, so modifying it once the topic is in use races with the Ice threads that use the topic.
+        /// All key filters must be registered before the topic creates its reader or writer: the topic shares its
+        /// filters with its reader and writer, and the Ice dispatch threads read them once the topic is in use.
+        /// The topic creates its reader when the application constructs a reader for this topic or calls hasWriters,
+        /// waitForWriters, waitForNoWriters or setReaderDefaultConfig; it creates its writer when the application
+        /// constructs a writer for this topic or calls hasReaders, waitForReaders, waitForNoReaders or
+        /// setWriterDefaultConfig.
         /// @param name The name of the key filter.
         /// @param factory The filter factory function.
+        /// @throws std::logic_error Thrown when the topic already created, or tried to create, its reader or writer.
         template<typename Criteria>
-        void setKeyFilter(
-            std::string name,
-            std::function<std::function<bool(const Key&)>(const Criteria&)> factory) noexcept;
+        void setKeyFilter(std::string name, std::function<std::function<bool(const Key&)>(const Criteria&)> factory);
 
         /// Sets a sample filter factory. The given factory function must return a filter function that returns `true`
         /// if the sample matches the filter criteria, `false` otherwise.
-        /// Register all sample filters before creating any reader or writer for this topic: the set of filters is not
-        /// synchronized, so modifying it once the topic is in use races with the Ice threads that use the topic.
+        /// All sample filters must be registered before the topic creates its reader or writer: the topic shares its
+        /// filters with its reader and writer, and the Ice dispatch threads read them once the topic is in use.
+        /// The topic creates its reader when the application constructs a reader for this topic or calls hasWriters,
+        /// waitForWriters, waitForNoWriters or setReaderDefaultConfig; it creates its writer when the application
+        /// constructs a writer for this topic or calls hasReaders, waitForReaders, waitForNoReaders or
+        /// setWriterDefaultConfig.
         /// @param name The name of the sample filter.
         /// @param factory The filter factory function.
+        /// @throws std::logic_error Thrown when the topic already created, or tried to create, its reader or writer.
         template<typename Criteria>
         void setSampleFilter(
             std::string name,
-            std::function<std::function<bool(const SampleType&)>(const Criteria&)> factory) noexcept;
+            std::function<std::function<bool(const SampleType&)>(const Criteria&)> factory);
 
     private:
         [[nodiscard]] std::shared_ptr<DataStormI::TopicReader> getReader() const;
@@ -1680,9 +1688,14 @@ namespace DataStorm
     template<typename Criteria>
     void Topic<Key, Value, UpdateTag>::setKeyFilter(
         std::string name,
-        std::function<std::function<bool(const Key&)>(const Criteria&)> factory) noexcept
+        std::function<std::function<bool(const Key&)>(const Criteria&)> factory)
     {
         std::lock_guard<std::mutex> lock(_mutex);
+        if (_keyFilterFactories->isShared())
+        {
+            throw std::logic_error(
+                "cannot register the key filter '" + name + "': the topic already created its reader or writer");
+        }
         _keyFilterFactories->set(std::move(name), std::move(factory));
     }
 
@@ -1690,9 +1703,14 @@ namespace DataStorm
     template<typename Criteria>
     void Topic<Key, Value, UpdateTag>::setSampleFilter(
         std::string name,
-        std::function<std::function<bool(const SampleType&)>(const Criteria&)> factory) noexcept
+        std::function<std::function<bool(const SampleType&)>(const Criteria&)> factory)
     {
         std::lock_guard<std::mutex> lock(_mutex);
+        if (_sampleFilterFactories->isShared())
+        {
+            throw std::logic_error(
+                "cannot register the sample filter '" + name + "': the topic already created its reader or writer");
+        }
         _sampleFilterFactories->set(std::move(name), std::move(factory));
     }
 
@@ -1702,6 +1720,12 @@ namespace DataStorm
         std::lock_guard<std::mutex> lock(_mutex);
         if (!_reader)
         {
+            // The topic reader shares the filter managers, and the Ice dispatch threads read them as soon as the
+            // reader is created. Mark them shared before creating the reader: the reader is published to the peers
+            // even when its creation fails afterwards.
+            _keyFilterFactories->markShared();
+            _sampleFilterFactories->markShared();
+
             auto sampleFactory = std::make_shared<DataStormI::SampleFactoryT<Key, Value, UpdateTag>>();
             _reader = _topicFactory->createTopicReader(
                 _name,
@@ -1722,6 +1746,12 @@ namespace DataStorm
         std::lock_guard<std::mutex> lock(_mutex);
         if (!_writer)
         {
+            // The topic writer shares the filter managers, and the Ice dispatch threads read them as soon as the
+            // writer is created. Mark them shared before creating the writer: the writer is published to the peers
+            // even when its creation fails afterwards.
+            _keyFilterFactories->markShared();
+            _sampleFilterFactories->markShared();
+
             _writer = _topicFactory->createTopicWriter(
                 _name,
                 _keyFactory,

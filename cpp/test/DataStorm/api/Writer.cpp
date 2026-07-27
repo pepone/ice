@@ -408,6 +408,76 @@ void ::Writer::run(int argc, char* argv[])
     }
     cout << "ok" << endl;
 
+    cout << "testing topic filter registration... " << flush;
+    {
+        auto keyFilterFactory = [](const string& prefix)
+        {
+            return [prefix](const string& key)
+            { return key.size() >= prefix.size() && key.compare(0, prefix.size(), prefix) == 0; };
+        };
+
+        auto sampleFilterFactory = [](const string& prefix)
+        {
+            return [prefix](const Sample<string, string>& sample)
+            {
+                const auto& value = sample.getValue();
+                return value.size() >= prefix.size() && value.compare(0, prefix.size(), prefix) == 0;
+            };
+        };
+
+        // Filters can be registered until the topic creates its reader.
+        {
+            Topic<string, string> topic(node, "filterRegistrationReader");
+            topic.setKeyFilter<string>("startswith", keyFilterFactory);
+            topic.setSampleFilter<string>("startswith", sampleFilterFactory);
+
+            auto reader = makeFilteredKeyReader(topic, Filter<string>("startswith", "key"));
+
+            try
+            {
+                topic.setKeyFilter<string>("other", keyFilterFactory);
+                test(false);
+            }
+            catch (const std::logic_error&)
+            {
+            }
+
+            try
+            {
+                topic.setSampleFilter<string>("other", sampleFilterFactory);
+                test(false);
+            }
+            catch (const std::logic_error&)
+            {
+            }
+        }
+
+        // A Topic method that operates on the writer creates it, and closes the registration as well.
+        {
+            Topic<string, string> topic(node, "filterRegistrationWriter");
+            topic.waitForReaders(0);
+
+            try
+            {
+                topic.setKeyFilter<string>("startswith", keyFilterFactory);
+                test(false);
+            }
+            catch (const std::logic_error&)
+            {
+            }
+
+            try
+            {
+                topic.setSampleFilter<string>("startswith", sampleFilterFactory);
+                test(false);
+            }
+            catch (const std::logic_error&)
+            {
+            }
+        }
+    }
+    cout << "ok" << endl;
+
     cout << "testing sample... " << flush;
     {
         Topic<string, string> topic(node, "topic");
