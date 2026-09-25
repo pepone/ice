@@ -6,13 +6,71 @@
 #include "Test.h"
 #include "TestHelper.h"
 
+#include <atomic>
 #include <chrono>
+#include <stdexcept>
 
 using namespace std;
 using namespace Ice;
 using namespace Test;
 namespace
 {
+    /// Captures warnings emitted when a custom executor throws.
+    class WarningLogger final : public Ice::Logger, public enable_shared_from_this<WarningLogger>
+    {
+    public:
+        void print(const string&) override {}
+        void trace(const string&, const string&) override {}
+        void warning(const string& message) override
+        {
+            if (message.find("executor exception:") == 0)
+            {
+                ++warnings;
+            }
+        }
+        void error(const string&) override {}
+        string getPrefix() override { return ""; }
+        Ice::LoggerPtr cloneWithPrefix(string) override { return shared_from_this(); }
+        atomic<int> warnings{0};
+    };
+
+    /// Checks warnings for both executor exception paths, including the default property value.
+    void testExecutorWarnings()
+    {
+        for (const auto& value : {"0", "", "1", "2", "-1"})
+        {
+            for (bool standardException : {true, false})
+            {
+                auto logger = make_shared<WarningLogger>();
+                atomic<int> calls{0};
+                Ice::InitializationData init;
+                init.logger = logger;
+                init.properties = Ice::createProperties();
+                init.properties->setProperty("Ice.Warn.Executor", value);
+                bool expectWarning = init.properties->getIcePropertyAsInt("Ice.Warn.Executor") > 0;
+                init.executor = [&](function<void()> call, const Ice::ConnectionPtr&)
+                {
+                    ++calls;
+                    call();
+                    if (standardException)
+                    {
+                        throw runtime_error("executor failed");
+                    }
+                    throw 1;
+                };
+                {
+                    Ice::CommunicatorHolder communicator{Ice::initialize(init)};
+                    auto adapter = communicator->createObjectAdapter("");
+                    auto proxy = adapter->addWithUUID(make_shared<Ice::Object>());
+                    adapter->activate();
+                    proxy->ice_pingAsync().get();
+                }
+                test(calls > 0);
+                test(logger->warnings == (expectWarning ? calls.load() : 0));
+            }
+        }
+    }
+
     class Callback
     {
     public:
@@ -80,6 +138,10 @@ namespace
 void
 allTests(TestHelper* helper)
 {
+    cout << "testing executor warnings... " << flush;
+    testExecutorWarnings();
+    cout << "ok" << endl;
+
     CommunicatorPtr communicator = helper->communicator();
 
     TestIntfPrx p(communicator, "test:" + helper->getTestEndpoint());

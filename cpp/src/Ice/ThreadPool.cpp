@@ -412,7 +412,7 @@ IceInternal::ThreadPool::executeFromThisThread(function<void()> call, const Ice:
         }
         catch (const std::exception& ex)
         {
-            if (_instance->initializationData().properties->getIcePropertyAsInt("Ice.Warn.Executor") > 1)
+            if (_instance->initializationData().properties->getIcePropertyAsInt("Ice.Warn.Executor") > 0)
             {
                 Warning out(_instance->initializationData().logger);
                 out << "executor exception:\n" << ex;
@@ -420,7 +420,7 @@ IceInternal::ThreadPool::executeFromThisThread(function<void()> call, const Ice:
         }
         catch (...)
         {
-            if (_instance->initializationData().properties->getIcePropertyAsInt("Ice.Warn.Executor") > 1)
+            if (_instance->initializationData().properties->getIcePropertyAsInt("Ice.Warn.Executor") > 0)
             {
                 Warning out(_instance->initializationData().logger);
                 out << "executor exception: unknown c++ exception";

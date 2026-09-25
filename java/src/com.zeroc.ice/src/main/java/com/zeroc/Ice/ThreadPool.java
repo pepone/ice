@@ -229,7 +229,7 @@ final class ThreadPool implements Executor {
             try {
                 _executor.accept(workItem, workItem.getConnection());
             } catch (Exception ex) {
-                if (_instance.initializationData().properties.getIcePropertyAsInt("Ice.Warn.Executor") > 1) {
+                if (_instance.initializationData().properties.getIcePropertyAsInt("Ice.Warn.Executor") > 0) {
                     StringWriter sw = new StringWriter();
                     PrintWriter pw = new PrintWriter(sw);
                     ex.printStackTrace(pw);

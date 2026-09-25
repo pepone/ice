@@ -4,9 +4,12 @@ package test.Ice.executor;
 
 import com.zeroc.Ice.Communicator;
 import com.zeroc.Ice.CommunicatorDestroyedException;
+import com.zeroc.Ice.InitializationData;
 import com.zeroc.Ice.InvocationFuture;
 import com.zeroc.Ice.InvocationTimeoutException;
+import com.zeroc.Ice.Logger;
 import com.zeroc.Ice.NoEndpointException;
+import com.zeroc.Ice.ObjectAdapter;
 import com.zeroc.Ice.ObjectPrx;
 import com.zeroc.Ice.Util;
 
@@ -17,8 +20,69 @@ import test.TestHelper;
 import java.io.PrintWriter;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class AllTests {
+    /** Captures warnings emitted when a custom executor throws. */
+    private static final class WarningLogger implements Logger {
+        final AtomicInteger warnings = new AtomicInteger();
+
+        @Override
+        public void print(String message) {}
+
+        @Override
+        public void trace(String category, String message) {}
+
+        @Override
+        public void warning(String message) {
+            if (message.startsWith("executor exception:")) {
+                warnings.incrementAndGet();
+            }
+        }
+
+        @Override
+        public void error(String message) {}
+
+        @Override
+        public String getPrefix() {
+            return "";
+        }
+
+        @Override
+        public Logger cloneWithPrefix(String prefix) {
+            return this;
+        }
+
+        @Override
+        public void close() {}
+    }
+
+    /** Checks executor warnings for positive, non-positive, and default property values. */
+    private static void testExecutorWarnings() {
+        for (String value : new String[]{"0", "", "1", "2", "-1"}) {
+            WarningLogger logger = new WarningLogger();
+            AtomicInteger calls = new AtomicInteger();
+            InitializationData init = new InitializationData();
+            init.logger = logger;
+            init.properties = new com.zeroc.Ice.Properties();
+            init.properties.setProperty("Ice.Warn.Executor", value);
+            boolean expectWarning = init.properties.getIcePropertyAsInt("Ice.Warn.Executor") > 0;
+            init.executor = (call, connection) -> {
+                calls.incrementAndGet();
+                call.run();
+                throw new IllegalStateException("executor failed");
+            };
+            try (Communicator communicator = Util.initialize(init)) {
+                ObjectAdapter adapter = communicator.createObjectAdapter("");
+                ObjectPrx proxy = adapter.addWithUUID(new com.zeroc.Ice.Object() {});
+                adapter.activate();
+                proxy.ice_pingAsync().join();
+            }
+            test(calls.get() > 0);
+            test(logger.warnings.get() == (expectWarning ? calls.get() : 0));
+        }
+    }
+
     private static class Callback {
         Callback() {
             _called = false;
@@ -67,6 +131,11 @@ public class AllTests {
     public static void allTests(TestHelper helper, final CustomExecutor executor) {
         Communicator communicator = helper.communicator();
         PrintWriter out = helper.getWriter();
+
+        out.print("testing executor warnings... ");
+        out.flush();
+        testExecutorWarnings();
+        out.println("ok");
 
         String sref = "test:" + helper.getTestEndpoint(0);
         ObjectPrx obj = communicator.stringToProxy(sref);
