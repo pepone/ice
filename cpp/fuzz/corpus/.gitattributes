@@ -1,0 +1,2 @@
+# Seed inputs are raw bytes: HTTP messages keep their CRLF line endings.
+* -text

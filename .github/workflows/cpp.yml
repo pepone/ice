@@ -86,6 +86,7 @@ jobs:
             **/*.cpp
           excluded-files: |
             **/generated/*.cpp
+            fuzz/*.cpp
           working-directory: cpp
 
       - name: Run Clang Tidy
@@ -107,3 +108,39 @@ jobs:
         run: |
           echo "Running clang-tidy on ${{ steps.globpy.outputs.paths }}"
           run-clang-tidy-19 -j$(nproc) -quiet ${{ steps.globpy.outputs.paths }}
+
+  fuzz:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout Ice
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install dependencies
+        # libclang-rt-18-dev provides the libFuzzer and sanitizer runtimes of the default clang.
+        run: sudo apt-get update && sudo apt-get install -y libbz2-dev libmcpp-dev libssl-dev libclang-rt-18-dev
+
+      # The same build OSS-Fuzz runs, with libFuzzer, AddressSanitizer and UndefinedBehaviorSanitizer.
+      - name: Build fuzz targets
+        timeout-minutes: 30
+        env:
+          CC: clang
+          CXX: clang++
+          CFLAGS: -O1 -g -fno-omit-frame-pointer -fsanitize=address,undefined,fuzzer-no-link
+          CXXFLAGS: -O1 -g -fno-omit-frame-pointer -fsanitize=address,undefined,fuzzer-no-link
+          LIB_FUZZING_ENGINE: -fsanitize=fuzzer
+          OUT: ${{ runner.temp }}/fuzz
+        run: |
+          mkdir -p "$OUT"
+          cpp/fuzz/oss-fuzz-build.sh
+
+      - name: Run fuzz targets
+        timeout-minutes: 10
+        working-directory: ${{ runner.temp }}/fuzz
+        env:
+          UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
+        run: |
+          for fuzzer in ice_*_fuzzer; do
+            mkdir -p "corpus/$fuzzer"
+            unzip -q "${fuzzer}_seed_corpus.zip" -d "corpus/$fuzzer"
+            ./"$fuzzer" -max_total_time=60 "corpus/$fuzzer"
+          done
